@@ -1,0 +1,398 @@
+/* scrollable root element */
+
+/*html body {
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", HelveticaNeue, TeXGyreHeros, FreeSans, "Nimbus Sans L", "Liberation Sans", Arimo, Helvetica, Arial, sans-serif;
+    font-weight: 300;
+    font-size: 17px;
+    -webkit-text-size-adjust:none;
+}*/
+
+#wizard {
+    /*background:#fff url(/media/img/gradient/h600.png) repeat scroll 0 0;*/
+    border:1px solid #0078C1;
+    border-radius: 4px;
+    font-size:12px;
+    height:680px;
+    /*margin:20px auto;*/
+    width:440px;
+    overflow:hidden;
+    position:relative;
+
+    /* rounded corners for modern browsers */
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+}
+
+/* scrollable items */
+#wizard .items {
+    width:20000em;
+    clear:both;
+    position:absolute;
+}
+
+#wizard select {
+    font-size: 13px
+}
+
+/* single item */
+#wizard .page {
+    padding:20px 30px;
+    width:440px;
+    float:left;
+}
+
+#wizard .page li {
+    color: black;
+}
+
+/* title */
+#wizard h2 {
+    width: 100%;
+    text-align: center;
+    text-transform: uppercase;
+    border-bottom:1px dotted #ccc;
+    font-size: 24px;
+    font-weight:normal;
+    margin: 20px 0 0 0;
+    padding-bottom:15px;
+}
+
+
+
+
+/* input fields */
+#wizard ul {
+    padding:0px !important;
+    margin:0px !important;
+}
+
+#wizard li {
+    list-style-type:none;
+    list-style-image:none;
+    margin-bottom:25px;
+}
+
+#wizard label {
+    font-size:16px;
+    display:block;
+}
+
+#wizard label strong {
+    color:#789;
+    position:relative;
+    top:-1px;
+}
+
+#wizard label em {
+    font-size:11px;
+    color:#666;
+    font-style:normal;
+}
+
+#wizard input.text {
+    width: 100%;
+    padding:7px;
+    /*border:1px solid #ccc;*/
+    color:#456;
+    letter-spacing:1px;
+    font-size: 14px;
+    outline: 0;
+}
+
+#wizard select {
+    /*border:1px solid #ccc;*/
+    /*width:47%;*/
+    /*padding:7px;*/
+}
+
+#wizard label span {
+    /*color:#b8128f;
+    font-weight:bold;
+    position:relative;
+    top:4px;
+    font-size:20px;*/
+}
+
+#wizard .double label {
+    width:50%;
+    float:left;
+}
+
+#wizard .double .text {
+    width:93%;
+}
+
+#wizard .clearfix {
+    clear:left;
+    padding-top:10px;
+}
+
+#wizard .right {
+    float:right;
+}
+
+#wizard .hidden {
+    display: none;
+}
+
+#wizard .items .page h3 {
+    font-size: 22px;
+    /*color: #575757;*/
+    margin-top: 20px;
+    /*margin-left: 20px;*/
+    transition: color .15s linear;
+}
+
+/* validation error message bar */
+#drawer {
+    /*background:#fff url(/media/img/gradient/h80.png) repeat-x scroll 0 0;*/
+    _background-color:#fff;
+    overflow:visible;
+    position:fixed;
+    left:0;
+    top:0;
+    text-align:center;
+    padding:15px;
+    font-size:18px;
+    border-bottom:2px solid #789;
+    width:100%;
+    display:none;
+    z-index:2;
+}
+
+#wizard .error {
+    border:1px solid red;
+}
+
+#wizard #status {
+    margin-bottom: 20px;
+    margin:0px !important;
+    height:35px;
+    /*background:#123 url(/media/img/gradient/h30.png) repeat-x;*/
+    padding-left:25px !important;
+    _background:#123;
+}
+
+#status li {
+    width: 30%;
+    list-style-type:none;
+    list-style-image:none;
+    float:left;
+    color:#0078C1;
+    padding:10px 0;
+    text-align: center;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+}
+
+#status li.active {
+    color:#fff;
+    background-color:#0078C1;
+    font-weight:normal;
+}
+
+ul#amounts {
+    overflow: auto;
+    zoom: 1;
+    width: 400px;
+    margin: 0 auto;
+}
+
+ul#amounts li {
+    display: block;
+    width: 124px;
+    float: left;
+    clear: none;
+}
+
+ul#amounts input {
+    display: none;
+}
+
+ul#amounts #amount-cont-8 {
+    margin-top: 0;
+    width: 238px;
+}
+
+ul#amounts #amount-cont-8 input {
+    display: block;
+    height: 46px;
+    margin-left: 3px;
+    font-size: 14px;
+    line-height: 26px;
+    width: 100%;
+    transition: background-color .15s linear;
+    border: 1px solid #DEDEDE;
+    border-radius: 5px;
+    padding: 0 0 0 7px;
+    font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;
+}
+
+ul#amounts label:hover {
+    box-shadow: inset 0 1px 1px 1px #1297c9,0 1px 1px 1px #083f54;
+    -webkit-transition: background .1s linear;
+    -moz-transition: background .1s linear;
+    transition: background .1s linear;
+    background: #1297c9;
+    color: #fff;
+    border: 1px solid #1190c0;
+}
+
+ul#amounts label {
+    background: #0078C1;
+    background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0.1,rgba(0,0,0,.1)),color-stop(1,rgba(255,255,255,.2)));
+    border: 1px solid #08b;
+    border-radius: 3px;
+    box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 1px 1px #003246;
+    backface-visibility: hidden;
+
+    display: block;
+    width: 112px;
+    padding: 5px 5px;
+    font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    text-align: center;
+    color: #fff;
+    margin: 1px 0 0 3px;
+    cursor: pointer;
+    outline: 0;
+    -webkit-transition: background-color .15s linear,box-shadow .15s linear;
+    -moz-transition: background-color .15s linear,box-shadow .15s linear;
+    transition: background-color .15s linear,box-shadow .15s linear;
+}
+
+ul#amounts label.active {
+    background: #89cd46;
+    box-shadow: inset 0 1px 2px 1px rgba(0,0,0,.3);
+    color: #fff;
+    border: 1px solid #fff;
+}
+
+
+ul#amounts #amount-cont-8 label {
+    display: none;
+}
+
+ul#form-fields {
+    display: block;
+    width: 95%;
+}
+
+ul#form-fields li {
+    display: block;
+    width: 100%;
+    float: left;
+    /*margin-right: 20px;*/
+    margin-bottom: 15px;
+}
+
+ul#form-fields li#firstname-cont, ul#form-fields li#lastname-cont,
+ul#form-fields li#email-cont, ul#form-fields li#phone-cont {
+    width: 49%;
+    
+}
+
+ul#form-fields li#lastname-cont, ul#form-fields li#phone-cont {
+    float: right;
+}
+
+ul#form-fields label {
+    font-size: 14px;
+    margin: 0 0 .25em;
+}
+
+div#confirmButtonBox {
+    position: relative;
+    top: 480px;
+    left: 0px;
+    width: 440px;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+
+button.confirm {
+    display: none;
+    background: #0078C1;
+    background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0.1,rgba(0,0,0,.1)),color-stop(1,rgba(255,255,255,.2)));
+    border: 1px solid #08b;
+    border-radius: 3px;
+    box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 1px 1px #003246;
+    backface-visibility: hidden;
+    text-align: center;
+    color: #fff;
+    /*font-family: 'Sentinel 7r','Sentinel A','Sentinel B',jubilat,Georgia,serif;*/
+    font-weight: 700;
+    font-size: 18px;
+    padding: 7px 10px 7px 10px;
+    z-index: 1000;
+    margin-top: 0;
+    text-transform: none;
+}
+
+button.confirm.active {
+    background: #89cd46;
+    /*box-shadow: inset 0 1px 2px 1px rgba(0,0,0,.3);*/
+    color: #fff;
+    border: 1px solid #89cd46;
+}
+
+button.confirm:hover {
+    /* TODO */
+}
+
+div#currency-cont {
+    margin-top: 10px;
+}
+
+div#currency-cont label {
+    display: inline;
+    font-size: 12px;
+}
+
+div#currency-form {
+    display: none;
+    margin-top: 10px;
+}
+
+
+ul#payment-method input[type=radio] {
+    float: left;
+    margin-right: 7px;
+    margin-top: 5px;
+}
+
+ul#payment-method div#directdebit-details {
+    display: none;
+    margin: 10px 0 0 22px;
+    padding: 18px 20px 15px 20px;
+    font-size: 12px;
+    background-color: lightgray;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+}
+
+ul#payment-method div#directdebit-details input {
+    font-size: 13px;
+}
+
+ul#payment-method div#directdebit-details li {
+    margin-bottom: 10px;
+}
+
+ul#payment-method div#directdebit-details label {
+    float: left;
+    margin-right: 7px;
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+ul#payment-method div#directdebit-details select,
+ul#payment-method div#directdebit-details input {
+    /* float: right; */
+    width: 100%;
+}
+
