@@ -1,5 +1,89 @@
 <?php
 
+function processDonation()
+{
+    try {
+        // do some cosmetics on form data
+        $keys = array_keys($_POST);
+
+        // replace amount-other
+        if (in_array('amount_other', $keys) && !empty($_POST['amount_other'])) {
+          $_POST['amount'] = $_POST['amount_other'];
+        }
+        unset($_POST['amount_other']);
+
+        // Convert amount to cents
+        if (is_numeric($_POST['amount'])) {
+          $_POST['amount'] = (int) ($_POST['amount'] * 100);
+        } else {
+          throw new Exception('Invalid amount.');
+        }
+
+        // add payment-details
+        /*if (in_array('payment', $keys) && $_POST['payment'] == "Lastschriftverfahren") {
+          $_POST['payment-details'] = $_POST['payment-directdebit-frequency'] . ' | '  . $_POST['payment-directdebit-bankaccount'] . ' | ' . $_POST['payment-directdebit-method'];
+        } else {
+          $_POST['payment-details'] = '';
+        }
+        unset($_POST['payment-directdebit-frequency']);
+        unset($_POST['payment-directdebit-bankaccount']);
+        unset($_POST['payment-directdebit-method']);*/
+        
+        // output
+        if ($_POST['payment'] == "Stripe") {
+            handleStripePayment($_POST);
+        } else if ($_POST['payment'] == "PayPal") {
+            //FIXME
+            echo gbs_paypalRedirect($_POST);
+        } else if ($_POST['payment'] == "Skrill") {
+            //FIXME
+            echo gbs_skrillRedirect($_POST);
+        } else {
+            throw new Exception('Payment method is invalid.');
+        }
+
+        die("success");
+    } catch (Exception $e) {
+        die("An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us at <a href='mailto:info@ea-stiftung.org'>info@ea-stiftung.org</a>.");
+    }
+}
+
+function handleStripePayment($post)
+{
+    // Get the credit card details submitted by the form
+    $email    = $post['stripeEmail'];
+    $token    = $post['stripeToken'];
+    $amount   = $post['amount'];
+    $currency = $post['currency'];
+
+    // Create the charge on Stripe's servers - this will charge the user's card
+    try {
+        $charge = \Stripe\Charge::create(
+            array(
+                "amount"      => $amount,
+                "currency"    => $currency, // in cents
+                "source"      => $token,
+                "description" => "Donation",
+            )
+        );
+
+        // Prepare hook
+        $donation = array(
+            "time"     => date('r'),
+            "currency" => $currency,
+            "amount"   => money_format('%i', $amount / 100),
+            "type"     => "stripe",
+            "email"    => $email,
+        );
+
+        // trigger hook for Zapier
+        do_action('eas_log_donation', $donation);
+    } catch(\Stripe\Error\Card $e) {
+        // The card has been declined
+        throw new Exception($e->getMessage());
+    }
+}
+
 function gbs_allowedPostFields()
 {
     return array(

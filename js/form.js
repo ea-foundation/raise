@@ -1,129 +1,315 @@
+/**
+  * Settings
+  */
+var prefixCurrencySymbols = ['$', '£', 'CHF '];
+var buttonFinalText       = '%curprefix%%amount% %curpostfix% spenden »';
+var buttonConfirmText     = 'Bestätigen »';
+var totalItems = 0;
+
+/**
+  * Stripe setup
+  */ 
+var stripeHandler = StripeCheckout.configure({
+    key: 'pk_test_6pRNASCoBOKtIshFeQd4XMUh',
+    image: wordpress_vars.plugin_path + '/images/eas-logo.png',
+    locale: 'auto',
+    token: function(token) {
+      // Use the token to create the charge with a server-side script.
+      // You can access the token ID with `token.id`
+      //console.log(token);
+      var tokenInput   = jQuery('<input type="hidden" name="stripeToken" />').val(token.id);
+      var emailInput   = jQuery('<input type="hidden" name="stripeEmail" />').val(token.email);
+      
+      // Disable submit button
+      jQuery('#donationSubmit', '#wizard').prop('disabled', true);
+      // Show spinner
+      jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>');
+
+      // Send form
+      jQuery('form#donationForm').append(tokenInput).append(emailInput).ajaxSubmit({
+            success: function(responseText, statusText, xhr, form) {
+                if (responseText == 'success') {
+                    // Everything worked! Change glyphicon from "spinner" to "OK" and go to confirmation page
+                    jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>');
+                    setTimeout(function() { carouselNext(); }, 1000);
+                } else {
+                    // Something went wrong
+                    alert(responseText);
+
+                    // Enable button
+                    jQuery('#donationSubmit', '#wizard').prop('disabled', false);
+                }
+            }
+      });
+      return false;
+    }
+});
+// preload stripe image
+var stripeImage = new Image();
+stripeImage.src = wordpress_vars.plugin_path + 'images/eas-logo.png';
 
 
-var buttonFinalText = '%currency% %amount% spenden »';
-var buttonConfirmText = 'Bestätigen »';
 
-$(document).ready(function() {
-    var root = $("#wizard").scrollable().navigator("#status");
+
+
+/**
+  * Form setup
+  */
+jQuery(document).ready(function() {
+
+    totalItems = jQuery('#wizard .item').length;
+    //var root = jQuery("#wizard").scrollable().navigator("#status");
    
     // some variables that we need
-    var api = root.scrollable(), drawer = $("#drawer");
+    //var api = root.scrollable(); 
+    var drawer = jQuery("#drawer");
 
     // page count
-    var pageCount = $('div#wizard div.page').length;
+    //var pageCount = jQuery('div#wizard div.page').length;
+    jQuery('button.unconfirm').click(function(event) {
+        var currentItem = jQuery('#wizard div.active').index();
 
-    // validation logic is done inside the onBeforeSeek callback
-    api.onBeforeSeek(function(event, i) {
-        // no skipping
-        var currentI = api.getIndex();
-        /*if (i - currentI > 1) {
+        if (currentItem  < 1) {
             return false;
-        }*/
-
-        // if we are going 1 step backwards there is no need for validation, otherwise...
-        if (currentI < i) {
-             // 1. get current page
-             var page = root.find(".page").eq(api.getIndex()),
-
-             // 2. .. and all required fields inside the page
-             inputs = page.find(".required :input").removeClass("error"),
-
-             // 3. .. which are empty
-             empty = inputs.filter(function() {
-                return $(this).val().replace(/\s*/g, '') == '';
-             });
-
-             // if there are empty fields, then
-             if (empty.length) {
-                 // slide down the drawer
-                 drawer.slideDown(function()  {     
-                     // colored flash effect
-                     drawer.css("backgroundColor", "#0078C1");
-                     setTimeout(function() { drawer.css("backgroundColor", "#fff"); }, 1000);
-                 });
-     
-                 // add a CSS class name "error" for empty & required fields
-                 empty.addClass("error");
-     
-                 // cancel seeking of the scrollable by returning false
-                 return false;
-             // everything is good
-             } else {
-                 // hide the drawer
-                 drawer.slideUp();
-             }
         }
 
-        // post data
-        if (i >= pageCount) {
-            //TODO save using jQuery
-            $('#donationForm').submit();
+        // go back
+        jQuery('#donation-carousel').carousel('prev');
+
+        // update status bar
+        jQuery("#status li").removeClass("active").eq(currentItem - 1).addClass("active");
+    });
+
+    // validation logic is done inside the onBeforeSeek callback
+    jQuery('button.confirm').click(function(event) {
+        var currentItem = jQuery('div.active', '#wizard').index() + 1;
+
+        // check contents
+        if (currentItem <= totalItems) {
+            // Get all fields inside the page
+            var inputs = jQuery('div.item.active :input', '#wizard');
+
+            // Remove errors
+            inputs.siblings('span.eas-error').remove();
+            inputs.parent().parent().removeClass('has-error');
+
+            //alert('There are ' + inputs.length + ' inputs');
+
+            // Get all required fields inside the page
+            var reqInputs = jQuery('div.item.active .required :input', '#wizard');
+            // ... which are empty
+            var empty = reqInputs.filter(function() {
+                return jQuery(this).val().replace(/\s*/g, '') == '';
+            });
+            // unchecked radio groups
+            var emptyRadios = jQuery('div.item.active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
+
+            //console.log(emptyRadios);
+
+            // if there are empty fields, then
+            if (empty.length + emptyRadios.length) {
+                // slide down the drawer
+                drawer.slideDown(function()  {     
+                    // colored flash effect
+                    drawer.css("backgroundColor", "#0078C1");
+                    setTimeout(function() { drawer.css("backgroundColor", "#fff"); }, 1000);
+                });
+
+                // add a error CSS for empty & required fields
+                empty.each(function(index) {
+                    jQuery(this).attr('aria-describedby', 'inputError2Status' + index)
+                    jQuery(this).parent().append('<span class="eas-error glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span><span id="inputError2Status' + index + '" class="eas-error sr-only">(error)</span>');
+                    jQuery(this).parent().parent().addClass('has-error');
+                });
+
+
+                // cancel seeking of the scrollable by returning false
+                return false;
+            // everything is good
+            } else {
+                // hide the drawer
+                drawer.slideUp();
+            }
+        }
+
+        // post data and quit on last page
+        if (currentItem >= (totalItems - 1)) {
+            if (jQuery('input[name=payment]:checked', '#wizard').attr('id') == 'payment-creditcard') {
+                handleCreditCardDonation();
+            } else {
+                //FIXME Should be AJAX
+                jQuery('#donationForm').submit();
+            }
+            return;
             //TODO if third party payment redirect 
         }
 
-        // on last page replace "confirm" with "donate X CHF"
-        if (i >= (pageCount - 1)) {
-            // last page
-            var amount = $('div#wizard input[name=amount]:radio:checked').val();
-            amount = (amount) ? amount.replace('.00', '') : $('div#wizard input#amount-other').val();
-            var currency = $('select#currency option:selected').text(),
-                text = buttonFinalText.replace('%amount%', amount).replace('%currency%', currency);
-            $('div#wizard button#confirmButton').addClass('active').text(text);
+        if (currentItem == (totalItems - 2)) {
+            // on penultimate page replace "confirm" with "donate X CHF"
+            var foo = setTimeout(function() { showLastItem(currentItem) }, 200);
         } else {
-            $('div#wizard button#confirmButton').removeClass('active').text(buttonConfirmText);
-        }
-
-        // update status bar
-        $("#status li").removeClass("active").eq(i).addClass("active");
-    });
-
-    // if tab is pressed on the next button seek to next page
-    root.find("li.last input").keydown(function(e) {
-        if (e.keyCode == 9) {
-            // no tab allowed on amount page
-            if ($(this).attr('id') == 'amount-other') {
-                return false;
-            }
-            // seeks to next tab by executing our validation routine
-            api.next();
-            e.preventDefault();
+            // update status bar
+            jQuery("#status li").removeClass("active").eq(currentItem).addClass("active");
+            // show next slide
+            jQuery('#donation-carousel').carousel('next');
         }
     });
 
     // check radio button and show confirm button
-    $('input#amount-other').click(function() {
-        $('ul#amounts label').removeClass("active");
-        $('ul#amounts input:radio').prop('checked', false);
-        $('input#amount-other').parent().addClass("required");
-        showConfirmButton();
+    jQuery('input#amount-other').click(function() {
+        jQuery('ul#amounts label').removeClass("active");
+        jQuery('ul#amounts input:radio').prop('checked', false);
+        jQuery('input#amount-other').parent().addClass("required");
+        enableConfirmButton(0);
     });
-    $('ul#amounts label').click(function() {
-        $('ul#amounts label').removeClass("active");
-        $('input#amount-other').val('');
-        $('input#amount-other').parent().removeClass("required");
-        $(this).addClass("active");
-        showConfirmButton();
-        api.next();
+    jQuery('ul#amounts label').click(function() {
+        jQuery('ul#amounts label').removeClass("active");
+        jQuery('input#amount-other').val('').parent().removeClass("required");
+        jQuery(this).addClass("active");
+        enableConfirmButton(0);
+        jQuery('button.confirm:first').click();
     });
 
     // currency stuff
-    $('select#currency').change(function() {
-        $('span.cur').text($('select#currency option:selected').text());
+    jQuery('select#currency').change(function() {
+        // remove old currency
+        jQuery('.cur', '#wizard').text('');
+
+        // set new currency
+        var currencySymbol = jQuery('select#currency option:selected').text();
+        var currencyClass  = jQuery.inArray(currencySymbol, prefixCurrencySymbols) >= 0 ? '.curprefix' : '.curpostfix';
+        jQuery(currencyClass, '#wizard').text(currencySymbol);
     });
-    $('#currency-link a').click(function() {
-        $('#currency-form').slideDown();
-    })
+    /*jQuery('#currency-link a').click(function() {
+        jQuery('#currency-form').slideDown();
+    })*/
 
     // show div with payment details
-    var paymentPanels = $('ul#payment-method > li > label > div');
-    $('ul#payment-method > li > input').change(function() {
+    var paymentPanels = jQuery('div#payment-method div.radio > div');
+    jQuery('div#payment-method input[name=payment]').change(function() {
+        // slide all panels up
         paymentPanels.slideUp();
-        $(this).next().children('div').slideDown();
-        $('ul#payment-method #payment-required').val('1');
-        return false;
+        // ... except the one that was clicked
+        jQuery(this).parent().next().slideDown();
+
+        // remove required class from all panels
+        paymentPanels.children('div').removeClass('required');
+        // ... except the one taht was clicked
+        jQuery(this).parent().next().children('div').addClass('required');
     });
 });
 
-function showConfirmButton() {
-    $('#confirmButton').fadeIn();
+
+
+
+/**
+ * Auxiliary functions
+ */
+
+function enableConfirmButton(n)
+{
+    jQuery('button.confirm:eq(' + n + ')').removeAttr('disabled');
 }
+
+function showLastItem(currentItem)
+{
+    // Change text of last confirm button
+    var amount          = getDonationAmount();
+    var currency        = getDonationCurrencySymbol();
+    var currencyPrefix  = jQuery.inArray(currency, prefixCurrencySymbols) >= 0 ? currency : '';
+    var currencyPostfix = currencyPrefix == '' ? currency : '';
+    var buttonText = buttonFinalText.replace('%amount%', amount)
+        .replace('%curprefix%', currencyPrefix)
+        .replace('%curpostfix%', currencyPostfix);
+    jQuery('button.confirm:last', '#wizard').text(buttonText);
+    
+    // update status bar
+    jQuery("#status li").removeClass("active").eq(currentItem).addClass("active");
+
+    // show next slide
+    jQuery('#donation-carousel').carousel('next');
+}
+
+function getDonationAmount()
+{
+    var amount = jQuery('input[name=amount]:radio:checked', '#wizard').val();
+    if (amount) {
+        return amount.replace('.00', '');
+    } else {
+        amount = parseInt(jQuery('input#amount-other', '#wizard').val() * 100);
+        if (jQuery.isNumeric(amount) && amount >= 100) {
+            return amount / 100;
+        } else {
+            return 15; // default donation
+        }
+    }
+}
+
+function getDonationCurrencySymbol()
+{
+    return jQuery('select#currency option:selected', '#wizard').text();
+}
+
+function getDonationCurrencyIsoCode()
+{
+    return jQuery('select#currency option:selected', '#wizard').val();
+}
+
+/*function getDonorEmail()
+{
+    return jQuery('input#email', '#wizard').val();
+}*/
+
+function handleCreditCardDonation()
+{
+    stripeHandler.open({
+        name: 'Stiftung für Effektiven Altruismus',
+        description: 'Spende',
+        amount: getDonationAmount() * 100,
+        currency: getDonationCurrencyIsoCode()
+        //email: getDonorEmail()
+    });
+}
+
+function carouselNext()
+{
+    var currentItem = jQuery('#wizard div.active').index() + 1;
+
+    if (currentItem  > totalItems) {
+        return false;
+    }
+
+    // Move carousel
+    jQuery('#donation-carousel').carousel('next');
+    // Update status bar
+    jQuery("#status li").removeClass("active").eq(currentItem).addClass("active");
+}
+
+
+/*function carouselPrev()
+{
+    var currentItem = jQuery('#wizard div.active').index() - 1;
+
+    if (currentItem  < 0) {
+        return false;
+    }
+
+    // Move carousel
+    jQuery('#donation-carousel').carousel('prev');
+    // Update status bar
+    jQuery("#status li").removeClass("active").eq(currentItem).addClass("active");
+}
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
