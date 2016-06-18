@@ -46,10 +46,16 @@ add_shortcode('donationForm','donationForm');
  * Additional Styles 
  */
 function register_donation_styles() {
-  wp_register_style( 'donation-plugin-bootstrap', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
-  wp_enqueue_style( 'donation-plugin-bootstrap' );
+  wp_register_style( 'bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
+  wp_enqueue_style( 'bootstrap' );
+  /*wp_register_style( 'donation-plugin-bootstrap-form-helper', plugins_url( 'eas-donation-processor/js/bootstrapformhelper/css/bootstrap-formhelpers.min.css' ) );
+  wp_enqueue_style( 'donation-plugin-bootstrap-form-helper' );*/
   wp_register_style( 'donation-plugin-css', plugins_url( 'eas-donation-processor/css/scrollable-horizontal.css' ) );
   wp_enqueue_style( 'donation-plugin-css' );
+  wp_register_style( 'donation-plugin-flags', plugins_url( 'eas-donation-processor/css/flags.css' ) );
+  wp_enqueue_style( 'donation-plugin-flags' );
+  /*wp_register_style( 'donation-plugin-bootstrap-select', 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css' );
+  wp_enqueue_style( 'donation-plugin-bootstrap-select' );*/
 }
 
 add_action( 'wp_enqueue_scripts', 'register_donation_styles' );
@@ -63,6 +69,10 @@ function register_donation_scripts()
 {
   wp_register_script( 'donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array('jquery') );
   wp_enqueue_script( 'donation-plugin-bootstrapjs' );
+  /*wp_register_script( 'donation-plugin-bootstrap-select', '//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js', array('jquery', 'donation-plugin-bootstrapjs') );
+  wp_enqueue_script( 'donation-plugin-bootstrap-select' );*/
+  /*wp_register_script( 'donation-plugin-bootstrap-helper', plugins_url( 'eas-donation-processor/js/bootstrapformhelper/js/bootstrap-formhelpers.min.js' ), array('jquery') );
+  wp_enqueue_script( 'donation-plugin-bootstrap-helper' );*/
   wp_register_script( 'donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery') );
   wp_enqueue_script( 'donation-plugin-jqueryformjs' );
   wp_register_script( 'donation-plugin-stripe', '//checkout.stripe.com/checkout.js' );
@@ -70,6 +80,7 @@ function register_donation_scripts()
   wp_register_script( 'donation-plugin-form', plugins_url( 'eas-donation-processor/js/form.js' ), array('jquery', 'donation-plugin-stripe') );
   wp_localize_script( 'donation-plugin-form', 'wordpress_vars', array('plugin_path' => plugin_dir_url(__FILE__)));
   wp_enqueue_script( 'donation-plugin-form' );
+
 }
 
 add_action( 'wp_enqueue_scripts', 'register_donation_scripts' );

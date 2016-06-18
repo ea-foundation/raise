@@ -63,61 +63,79 @@ function donationForm($atts)
                 <h3>Meine Spende</h3>
             </div>
             <div class="row">
+                <div class="col-xs-12" id="donation-currency">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span id="selected-currency"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-eu" alt="€" /> EUR</a></span>
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-eu" alt="€" /> EUR</a></li>
+                            <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-ch" alt="CHF" /> CHF</a></li>
+                            <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-gb" alt="£" /> GBP</a></li>
+                            <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-us" alt="$" /> USD</a></li>
+                        </ul>
+                    </div>
+                    <input type="hidden" name="currency" value="EUR">
+                </div>
+            </div>
+            <div class="row">
                 <ul id="amounts" class="radio">
-                  <li class="col-sm-4">
+                  <li class="col-xs-4">
                     <input type="radio" class="radio" name="amount" value="15.00" tabindex="1" id="amount-15">
                     <label for="amount-15"><span class="cur curprefix"></span>15 <span class="cur curpostfix">€</span></label>
                   </li>
                   
-                  <li class="col-sm-4">
+                  <li class="col-xs-4">
                     <input type="radio" class="radio" name="amount" value="35.00" tabindex="2" id="amount-35">
                     <label for="amount-35"><span class="cur curprefix"></span>35 <span class="cur curpostfix">€</span></label>
                   </li>
                   
-                  <li class="col-sm-4">
+                  <li class="col-xs-4">
                     <input type="radio" class="radio" name="amount" value="50.00" tabindex="3" id="amount-50">
                     <label for="amount-50"><span class="cur curprefix"></span>50 <span class="cur curpostfix">€</span></label>
                   </li>
                   
-                  <li class="col-sm-4">
+                  <li class="col-xs-4">
                     <input type="radio" class="radio" name="amount" value="100.00" tabindex="4" id="amount-100">
                     <label for="amount-100"><span class="cur curprefix"></span>100 <span class="cur curpostfix">€</span></label>
                   </li>
                   
-                  <li class="col-sm-4">
+                  <li class="col-xs-4">
                     <input type="radio" class="radio" name="amount" value="250.00" tabindex="5" id="amount-250">
                     <label for="amount-250"><span class="cur curprefix"></span>250 <span class="cur curpostfix">€</span></label>
                   </li>
                   
-                  <li class="col-sm-4">
+                  <li class="col-xs-4">
                     <input type="radio" class="radio" name="amount" value="500.00" tabindex="6" id="amount-500">
                     <label for="amount-500"><span class="cur curprefix"></span>500 <span class="cur curpostfix">€</span></label>
                   </li>
                   
-                  <li class="col-sm-4">
+                  <li class="col-xs-4">
                     <input type="radio" class="radio" name="amount" value="1000.00" tabindex="7" id="amount-1000">
                     <label for="amount-1000"><span class="cur curprefix"></span>1000 <span class="cur curpostfix">€</span></label>
                   </li>
                   
-                  <li class="col-sm-8">
-                    <input type="text" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="Anderer Betrag" tabindex="8">
-                    <label for="amount-other" class="sr-only">Other</label>
+                  <li class="col-xs-8">
+                      <div class="input-group">
+                          <span class="input-group-addon curprefix curpostfix">€</span>
+                          <input type="text" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="Anderer Betrag" tabindex="8">
+                          <label for="amount-other" class="sr-only">Other</label>
+                      </div>
                   </li>
                 </ul>
             </div>
-            <div class="form-horizontal">
-                <div class="form-group form-group-sm">
-                    <label for="currency" class="col-xs-8 col-md-10 control-label" style="text-align: right">Währung</label>
-                    <div class="col-xs-4 col-md-2">
-                        <select name="currency" id="currency" class="form-control">
-                          <option value="EUR" selected="selected">€</option>
-                          <option value="USD">$</option>
-                          <option value="GBP">£</option>
-                          <option value="CHF">CHF </option>
-                        </select>
-                    </div>
+            <!--<div class="form-inline">
+                <div class="form-group">
+                    <label for="currency" class="control-label">Währung</label>
+                    <select name="currency" id="currency" class="form-control">
+                        <option value="EUR" selected="selected">€</option>
+                        <option value="USD">$</option>
+                        <option value="GBP">£</option>
+                        <option value="CHF">CHF </option>
+                    </select>
                 </div>
-            </div>
+            </div>-->
             <div class="buttons row">
                 <div class="col-sm-4 col-sm-offset-4">
                     <button type="button" class="btn btn-success btn-lg confirm" disabled="disabled">Bestätigen »</button>
@@ -205,7 +223,7 @@ function donationForm($atts)
                     <button type="button" class="btn btn-success btn-lg confirm" id="donationSubmit">Bestätigen »</button>
                 </div>
                 <div class="col-sm-3 col-sm-pull-6">
-                    <button type="button" class="btn btn-link unconfirm">« Zurück</button>
+                    <button type="button" class="btn btn-link unconfirm" id="donationGoBack">« Zurück</button>
                 </div>
             </div>
         </div>
@@ -222,6 +240,7 @@ function donationForm($atts)
             <p class="alert alert-danger hidden"></p>
         </div>
 
+      </div>
     </div>
   </div>
 

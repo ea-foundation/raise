@@ -11,7 +11,7 @@ var totalItems = 0;
   */ 
 var stripeHandler = StripeCheckout.configure({
     key: 'pk_test_6pRNASCoBOKtIshFeQd4XMUh',
-    image: wordpress_vars.plugin_path + '/images/eas-logo.png',
+    image: wordpress_vars.plugin_path + 'images/eas-logo.png',
     locale: 'auto',
     token: function(token) {
       // Use the token to create the charge with a server-side script.
@@ -20,8 +20,9 @@ var stripeHandler = StripeCheckout.configure({
       var tokenInput   = jQuery('<input type="hidden" name="stripeToken" />').val(token.id);
       var emailInput   = jQuery('<input type="hidden" name="stripeEmail" />').val(token.email);
       
-      // Disable submit button
+      // Disable submit button and back button
       jQuery('#donationSubmit', '#wizard').prop('disabled', true);
+      jQuery('#donationGoBack', '#wizard').prop('disabled', true);
       // Show spinner
       jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>');
 
@@ -36,8 +37,9 @@ var stripeHandler = StripeCheckout.configure({
                     // Something went wrong
                     alert(responseText);
 
-                    // Enable button
+                    // Enable buttons
                     jQuery('#donationSubmit', '#wizard').prop('disabled', false);
+                    jQuery('#donationGoBack', '#wizard').prop('disabled', false);
                 }
             }
       });
@@ -171,14 +173,20 @@ jQuery(document).ready(function() {
     });
 
     // currency stuff
-    jQuery('select#currency').change(function() {
-        // remove old currency
+    jQuery('#donation-currency ul li a').click(function() {
+        // emove old currency
         jQuery('.cur', '#wizard').text('');
+        
+        // Update and close dropdown
+        jQuery('#selected-currency').html(jQuery(this).html());
+        jQuery(this).parent().parent().parent().removeClass('open');
 
-        // set new currency
-        var currencySymbol = jQuery('select#currency option:selected').text();
+        // Set new currency
+        var currencySymbol = jQuery(this).find('img').attr('alt'); //jQuery('select#currency option:selected').text();
         var currencyClass  = jQuery.inArray(currencySymbol, prefixCurrencySymbols) >= 0 ? '.curprefix' : '.curpostfix';
         jQuery(currencyClass, '#wizard').text(currencySymbol);
+        jQuery('input[name=currency]').attr('value', jQuery.trim(jQuery(this).text()));
+        return false;
     });
     /*jQuery('#currency-link a').click(function() {
         jQuery('#currency-form').slideDown();
@@ -247,12 +255,14 @@ function getDonationAmount()
 
 function getDonationCurrencySymbol()
 {
-    return jQuery('select#currency option:selected', '#wizard').text();
+    return jQuery('#selected-currency > img').attr('alt');
+    //return jQuery('select#currency option:selected', '#wizard').text();
 }
 
 function getDonationCurrencyIsoCode()
 {
-    return jQuery('select#currency option:selected', '#wizard').val();
+    return jQuery('input[name=currency]').attr('value');
+    //return jQuery('select#currency option:selected', '#wizard').val();
 }
 
 /*function getDonorEmail()

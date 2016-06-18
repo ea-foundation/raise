@@ -1,23 +1,7 @@
 /* scrollable root element */
 
-/*html body {
-    margin: 0;
-    padding: 0;
-    font-family: "Helvetica Neue", HelveticaNeue, TeXGyreHeros, FreeSans, "Nimbus Sans L", "Liberation Sans", Arimo, Helvetica, Arial, sans-serif;
-    font-weight: 300;
-    font-size: 17px;
-    -webkit-text-size-adjust:none;
-}*/
-
 #wizard {
-    /*background:#fff url(/media/img/gradient/h600.png) repeat scroll 0 0;*/
-    /* border:1px solid #0078C1; */
     border-radius: 4px;
-    /*font-size:12px;*/
-    /*height:570px;*/
-    /*margin:20px auto;*/
-    /*width:440px;
-    overflow:hidden;*/
     position:relative;
 
     /* rounded corners for modern browsers */
@@ -30,13 +14,24 @@
     padding: 20px 20px;
 }
 
+@media (max-width: 767px) {
+    #wizard {
+        margin-left: -35px;
+        margin-right: -15px;
+    }
+
+    /*#wizard .col-xs-4 {
+        padding-left: 7px;
+        padding-right: 7px;
+    }*/
+}
+
 #wizard .page li {
     color: black;
 }
 
 /* title */
 #wizard h2 {
-    /*width: 100%;*/
     text-align: center;
     text-transform: uppercase;
     border-bottom:1px dotted #ccc;
@@ -52,11 +47,11 @@
 
 /* input fields */
 #wizard ul {
-    padding:0px !important;
+    padding:0px;
     margin:0px !important;
 }
 
-#wizard div#donation-carousel li {
+#wizard ul#amounts li {
     list-style-type:none;
     list-style-image:none;
     margin-bottom:20px;
@@ -164,6 +159,12 @@ ul#amounts li {
     white-space: nowrap;
 }
 
+@media (max-width: 767px) {
+    ul#amounts li {
+        font-size: smaller;
+    }
+}
+
 ul#amounts input {
     display: none;
 }
@@ -173,11 +174,18 @@ ul#amounts input[type=text] {
     height: 46px;
     font-size: inherit;
     /*line-height: 26px;*/
-    transition: background-color .15s linear;
-    border: 1px solid #DEDEDE;
-    border-radius: 5px;
+    /*transition: background-color .15s linear;
+    border: 1px solid #DEDEDE; */
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
     /* padding: 0 0 0 7px; */
-    font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;
+    /*font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;*/
+    backface-visibility: hidden;
+    /* box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 1px 1px #0078C1; */
+    border: 1px solid #08b;
+    -webkit-transition: background-color .15s linear,box-shadow .15s linear;
+    -moz-transition: background-color .15s linear,box-shadow .15s linear;
+    transition: background-color .15s linear,box-shadow .15s linear;
 }
 
 ul#amounts label:hover {
@@ -199,13 +207,30 @@ ul#amounts label {
     backface-visibility: hidden;
     display: block;
     padding: 5px 5px;
-    font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;
+    /*font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;*/
     font-weight: 700;
     text-align: center;
     color: #fff;
     margin: 1px 0 0 3px;
     cursor: pointer;
     outline: 0;
+    -webkit-transition: background-color .15s linear,box-shadow .15s linear;
+    -moz-transition: background-color .15s linear,box-shadow .15s linear;
+    transition: background-color .15s linear,box-shadow .15s linear;
+}
+
+ul#amounts span.input-group-addon {
+    background: #0078C1;
+    background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0.1,rgba(0,0,0,.1)),color-stop(1,rgba(255,255,255,.2)));
+    /* box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 1px 1px #003246; */
+    backface-visibility: hidden;
+    /*font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;*/
+    font-weight: 700;
+    padding: 5px 18px;
+    font-size: 100%;
+    color: #fff;
+    outline: 0;
+    border: 1px solid #08b;
     -webkit-transition: background-color .15s linear,box-shadow .15s linear;
     -moz-transition: background-color .15s linear,box-shadow .15s linear;
     transition: background-color .15s linear,box-shadow .15s linear;
@@ -286,3 +311,35 @@ img.float-left {
     from { transform: scale(1) rotate(0deg);}
     to { transform: scale(1) rotate(360deg);}
 }
+
+#wizard .dropdown-menu>li {
+    font-size: 14px !important;
+    line-height: 1.42857143;
+    margin-bottom: 0;
+}
+
+#wizard .dropdown-menu>li>a {
+    text-decoration: none;
+    padding: 3px 13px;
+    color: #333;
+}
+
+#donation-currency div {
+    margin: 5px 0 25px 0;
+}
+
+#donation-currency img.flag {
+    vertical-align: baseline;
+    margin-right: 2px;
+}
+
+#donation-currency .dropdown-menu>li>a:focus, #donation-currency .dropdown-menu>li>a:hover {
+    color: #262626;
+    text-decoration: none;
+    background-color: #f5f5f5;
+}
+
+
+
+
+
