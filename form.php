@@ -70,10 +70,10 @@ function donationForm($atts)
                             <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-eu" alt="€" /> EUR</a></li>
+                            <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-eu" alt="EUR" /> EUR</a></li>
                             <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-ch" alt="CHF" /> CHF</a></li>
-                            <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-gb" alt="£" /> GBP</a></li>
-                            <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-us" alt="$" /> USD</a></li>
+                            <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-gb" alt="GBP" /> GBP</a></li>
+                            <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-us" alt="USD" /> USD</a></li>
                         </ul>
                     </div>
                     <input type="hidden" name="currency" value="EUR">
@@ -82,45 +82,45 @@ function donationForm($atts)
             <div class="row">
                 <ul id="amounts" class="radio">
                   <li class="col-xs-4">
-                    <input type="radio" class="radio" name="amount" value="15.00" tabindex="1" id="amount-15">
-                    <label for="amount-15"><span class="cur curprefix"></span>15 <span class="cur curpostfix">€</span></label>
+                    <input type="radio" class="radio" name="amount" value="15" tabindex="1" id="amount-15">
+                    <label for="amount-15">15 €</label>
                   </li>
                   
                   <li class="col-xs-4">
-                    <input type="radio" class="radio" name="amount" value="35.00" tabindex="2" id="amount-35">
-                    <label for="amount-35"><span class="cur curprefix"></span>35 <span class="cur curpostfix">€</span></label>
+                    <input type="radio" class="radio" name="amount" value="35" tabindex="2" id="amount-35">
+                    <label for="amount-35">35 €</label>
                   </li>
                   
                   <li class="col-xs-4">
-                    <input type="radio" class="radio" name="amount" value="50.00" tabindex="3" id="amount-50">
-                    <label for="amount-50"><span class="cur curprefix"></span>50 <span class="cur curpostfix">€</span></label>
+                    <input type="radio" class="radio" name="amount" value="50" tabindex="3" id="amount-50">
+                    <label for="amount-50">50 €</label>
                   </li>
                   
                   <li class="col-xs-4">
-                    <input type="radio" class="radio" name="amount" value="100.00" tabindex="4" id="amount-100">
-                    <label for="amount-100"><span class="cur curprefix"></span>100 <span class="cur curpostfix">€</span></label>
+                    <input type="radio" class="radio" name="amount" value="100" tabindex="4" id="amount-100">
+                    <label for="amount-100">100 €</label>
                   </li>
                   
                   <li class="col-xs-4">
-                    <input type="radio" class="radio" name="amount" value="250.00" tabindex="5" id="amount-250">
-                    <label for="amount-250"><span class="cur curprefix"></span>250 <span class="cur curpostfix">€</span></label>
+                    <input type="radio" class="radio" name="amount" value="250" tabindex="5" id="amount-250">
+                    <label for="amount-250">250 €</label>
                   </li>
                   
                   <li class="col-xs-4">
-                    <input type="radio" class="radio" name="amount" value="500.00" tabindex="6" id="amount-500">
-                    <label for="amount-500"><span class="cur curprefix"></span>500 <span class="cur curpostfix">€</span></label>
+                    <input type="radio" class="radio" name="amount" value="500" tabindex="6" id="amount-500">
+                    <label for="amount-500">500 €</label>
                   </li>
                   
                   <li class="col-xs-4">
-                    <input type="radio" class="radio" name="amount" value="1000.00" tabindex="7" id="amount-1000">
-                    <label for="amount-1000"><span class="cur curprefix"></span>1000 <span class="cur curpostfix">€</span></label>
+                    <input type="radio" class="radio" name="amount" value="1000" tabindex="7" id="amount-1000">
+                    <label for="amount-1000">1000 €</label>
                   </li>
                   
                   <li class="col-xs-8">
                       <div class="input-group">
-                          <span class="input-group-addon curprefix curpostfix">€</span>
+                          <span class="input-group-addon">€</span>
                           <input type="text" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="Anderer Betrag" tabindex="8">
-                          <label for="amount-other" class="sr-only">Other</label>
+                          <label for="amount-other" class="sr-only">Anderer Betrag</label>
                       </div>
                   </li>
                 </ul>
@@ -166,12 +166,22 @@ function donationForm($atts)
             <div class="required">
               <div class="radio">
                   <label for="payment-creditcard">
-                    <input type="radio" class="radio" name="payment" value="Stripe" tabindex="18" id="payment-creditcard" checked="checked"> Kreditkarte
+                      <input type="radio" class="radio" name="payment" value="Stripe" tabindex="18" id="payment-creditcard" checked="checked">
+                      <img src="<?= plugins_url('images/visa.png', __FILE__) ?>" alt="Visa" width="38" height="23">
+                      <img src="<?= plugins_url('images/mastercard.png', __FILE__) ?>" alt="Mastercard" width="38" height="23">
+                      <img src="<?= plugins_url('images/americanexpress.png', __FILE__) ?>" alt="American Express" width="38" height="23">
                   </label>
               </div>
               <div class="radio">
                   <label for="payment-paypal">
-                      <input type="radio" class="radio" name="payment" value="PayPal" tabindex="19" id="payment-paypal"> PayPal
+                      <input type="radio" class="radio" name="payment" value="PayPal" tabindex="19" id="payment-paypal">
+                      <img src="<?= plugins_url('images/paypal.png', __FILE__) ?>" alt="Paypal" width="38" height="23">
+                  </label>
+              </div>
+              <div class="radio">
+                  <label for="payment-skrill">
+                      <input type="radio" class="radio" name="payment" value="Skrill" tabindex="21" id="payment-skrill">
+                      <img src="<?= plugins_url('images/skrill.png', __FILE__) ?>" alt="Skrill" width="38" height="23">
                   </label>
               </div>
               <div class="radio">
@@ -207,11 +217,6 @@ function donationForm($atts)
                       </div>
                   </div>
               </div> -->
-              <div class="radio">
-                  <label for="payment-skrill">
-                      <input type="radio" class="radio" name="payment" value="Skrill" tabindex="21" id="payment-skrill"> Skrill
-                  </label>
-              </div>
               <!-- <li>
                 <input type="radio" class="radio" name="payment" value="Banktransfer" tabindex="19" id="payment-bitpay">
                 <label for="payment-bitpay">BitPay</label>
@@ -233,10 +238,14 @@ function donationForm($atts)
 
         <!-- Confirmation -->
         <div class="item" id="donation-confirmation">
-            <p class="alert alert-success">
-                <img src="<?= plugins_url('images/success.png', __FILE__) ?>" alt="Success" width="18" height="18" class="foat-left">
-                <strong>Herzlichen Dank!</strong> Wir haben Ihre Spende erhalten.
-            </p>
+            <div class="alert alert-success">
+                <div class="response-icon float-left">
+                    <img src="<?= plugins_url('images/success.png', __FILE__) ?>" alt="Success" width="18" height="18">
+                </div>
+                <div class"response-text">
+                    <strong>Herzlichen Dank!</strong> Wir haben Ihre Spende erhalten.
+                </div>
+            </div>
             <p class="alert alert-danger hidden"></p>
         </div>
 

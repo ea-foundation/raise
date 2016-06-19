@@ -16,8 +16,8 @@
 
 @media (max-width: 767px) {
     #wizard {
-        margin-left: -35px;
-        margin-right: -15px;
+        margin-left: -45px;
+        margin-right: -30px;
     }
 
     /*#wizard .col-xs-4 {
@@ -77,7 +77,7 @@
     border-bottom:2px solid #789;
     width:100%;
     display:none;
-    z-index:2;
+    z-index:1031;
 }
 
 #wizard .error {
@@ -173,19 +173,36 @@ ul#amounts input[type=text] {
     display: block;
     height: 46px;
     font-size: inherit;
-    /*line-height: 26px;*/
-    /*transition: background-color .15s linear;
-    border: 1px solid #DEDEDE; */
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
-    /* padding: 0 0 0 7px; */
-    /*font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;*/
     backface-visibility: hidden;
-    /* box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 1px 1px #0078C1; */
     border: 1px solid #08b;
+    background: #0078C1;
+    background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0.1,rgba(0,0,0,.1)),color-stop(1,rgba(255,255,255,.2)));
+    box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 0 1px #003246;
+    backface-visibility: hidden;
+    /*font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;*/
+    font-weight: 700;
+    padding: 5px 15px;
+    font-size: 100%;
+    color: #fff;
+    outline: 0;
     -webkit-transition: background-color .15s linear,box-shadow .15s linear;
     -moz-transition: background-color .15s linear,box-shadow .15s linear;
     transition: background-color .15s linear,box-shadow .15s linear;
+}
+
+ul#amounts input[type=text].active {
+    background: #5cb85c;
+    box-shadow: inset 0 1px 1px 0 rgba(0,0,0,.3);
+    color: #fff;
+    border: 1px solid #fff;
+}
+
+@media (max-width: 767px) {
+    ul#amounts input[type=text] {
+        height: 38px;
+    }
 }
 
 ul#amounts label:hover {
@@ -207,7 +224,6 @@ ul#amounts label {
     backface-visibility: hidden;
     display: block;
     padding: 5px 5px;
-    /*font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;*/
     font-weight: 700;
     text-align: center;
     color: #fff;
@@ -222,22 +238,31 @@ ul#amounts label {
 ul#amounts span.input-group-addon {
     background: #0078C1;
     background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0.1,rgba(0,0,0,.1)),color-stop(1,rgba(255,255,255,.2)));
-    /* box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 1px 1px #003246; */
+    box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 0 1px #003246;
     backface-visibility: hidden;
-    /*font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;*/
+    cursor: pointer;
     font-weight: 700;
-    padding: 5px 18px;
+    padding: 5px 12px 5px 16px;
     font-size: 100%;
     color: #fff;
     outline: 0;
     border: 1px solid #08b;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
     -webkit-transition: background-color .15s linear,box-shadow .15s linear;
     -moz-transition: background-color .15s linear,box-shadow .15s linear;
     transition: background-color .15s linear,box-shadow .15s linear;
 }
 
+ul#amounts span.input-group-addon.active {
+    background: #5cb85c;
+    box-shadow: inset 0 1px 1px 0 rgba(0,0,0,.3);
+    color: #fff;
+    border: 1px solid #fff;
+}
+
 ul#amounts label.active {
-    background: #89cd46;
+    background: #5cb85c;
     box-shadow: inset 0 1px 2px 1px rgba(0,0,0,.3);
     color: #fff;
     border: 1px solid #fff;
@@ -246,6 +271,7 @@ ul#amounts label.active {
 button.confirm {
     width: 100%;
     text-transform: none;
+    letter-spacing: 1px;
 }
 
 button.unconfirm {
@@ -281,7 +307,8 @@ div#payment-method div.radio div label {
 }
 
 span.form-control-feedback {
-    margin-right: 15px;
+    /*margin-right: 15px;*/
+    padding-top: 0.26em;
 }
 
 div.required label {
@@ -293,7 +320,7 @@ div.tax-confirmation {
     padding-bottom: 25px;
 }
 
-img.float-left {
+div.float-left {
     float: left;
 }
 
@@ -339,7 +366,19 @@ img.float-left {
     background-color: #f5f5f5;
 }
 
+div#payment-method div.required {
+    padding-left: 15px;
+}
 
+div#donation-confirmation div.response-icon {
+    width: 25px;
+}
 
+div#donation-confirmation div.response-text {
+    padding-left: 10px;
+}
 
-
+.form-control::-webkit-input-placeholder { color: white; font-weight: 100 }
+.form-control:-moz-placeholder { color: white; font-weight: 100 }
+.form-control::-moz-placeholder { color: white; font-weight: 100 }
+.form-control:-ms-input-placeholder { color: white; font-weight: 100 }

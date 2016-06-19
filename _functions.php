@@ -14,7 +14,7 @@ function processDonation()
 
         // Convert amount to cents
         if (is_numeric($_POST['amount'])) {
-          $_POST['amount'] = (int) ($_POST['amount'] * 100);
+          $_POST['amount'] = (int)($_POST['amount'] * 100);
         } else {
           throw new Exception('Invalid amount.');
         }
@@ -44,7 +44,7 @@ function processDonation()
 
         die("success");
     } catch (Exception $e) {
-        die("An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us at <a href='mailto:info@ea-stiftung.org'>info@ea-stiftung.org</a>.");
+        die("An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us at info@ea-stiftung.org.");
     }
 }
 
@@ -60,8 +60,8 @@ function handleStripePayment($post)
     try {
         $charge = \Stripe\Charge::create(
             array(
-                "amount"      => $amount,
-                "currency"    => $currency, // in cents
+                "amount"      => $amount, // !!! in cents !!!
+                "currency"    => $currency,
                 "source"      => $token,
                 "description" => "Donation",
             )
@@ -71,7 +71,7 @@ function handleStripePayment($post)
         $donation = array(
             "time"     => date('r'),
             "currency" => $currency,
-            "amount"   => money_format('%i', $amount / 100),
+            "amount"   => $amount, //money_format('%i', $amount / 100),
             "type"     => "stripe",
             "email"    => $email,
         );

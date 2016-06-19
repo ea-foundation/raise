@@ -1,7 +1,16 @@
 /**
   * Settings
   */
-var prefixCurrencySymbols = ['$', '£', 'CHF '];
+var prefixCurrencySymbols = ['$', '£', 'CHF'];
+var currencies = {
+    "EUR": "%amount% €",
+    "CHF": "CHF %amount%",
+    "GBP": "£%amount%",
+    "USD": "$%amount%"
+};
+var placeholders          = {
+    "DE": "Anderer Betrag"
+}
 var buttonFinalText       = '%curprefix%%amount% %curpostfix% spenden »';
 var buttonConfirmText     = 'Bestätigen »';
 var totalItems = 0;
@@ -19,10 +28,7 @@ var stripeHandler = StripeCheckout.configure({
       //console.log(token);
       var tokenInput   = jQuery('<input type="hidden" name="stripeToken" />').val(token.id);
       var emailInput   = jQuery('<input type="hidden" name="stripeEmail" />').val(token.email);
-      
-      // Disable submit button and back button
-      jQuery('#donationSubmit', '#wizard').prop('disabled', true);
-      jQuery('#donationGoBack', '#wizard').prop('disabled', true);
+
       // Show spinner
       jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>');
 
@@ -34,15 +40,24 @@ var stripeHandler = StripeCheckout.configure({
                     jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>');
                     setTimeout(function() { carouselNext(); }, 1000);
                 } else {
-                    // Something went wrong
+                    // Something went wrong, show on confirmation page
                     alert(responseText);
 
                     // Enable buttons
-                    jQuery('#donationSubmit', '#wizard').prop('disabled', false);
-                    jQuery('#donationGoBack', '#wizard').prop('disabled', false);
+                    jQuery('#donationSubmit').prop('disabled', false);
+                    jQuery('#donationGoBack').prop('disabled', false);
+                    jQuery('#payment-method div.radio input').prop('disabled', false);
+
+                    //TODO Reset text of submit button
                 }
             }
       });
+
+      // Disable submit button, back button, and payment options
+      jQuery('#donationSubmit').prop('disabled', true);
+      jQuery('#donationGoBack').prop('disabled', true);
+      jQuery('#payment-method div.radio input').prop('disabled', true);
+
       return false;
     }
 });
@@ -158,15 +173,20 @@ jQuery(document).ready(function() {
     });
 
     // check radio button and show confirm button
-    jQuery('input#amount-other').click(function() {
+    jQuery('input#amount-other').focus(function() {
         jQuery('ul#amounts label').removeClass("active");
         jQuery('ul#amounts input:radio').prop('checked', false);
-        jQuery('input#amount-other').parent().addClass("required");
+        jQuery(this).addClass("active").parent().addClass('required');
+        jQuery(this).siblings('span.input-group-addon').addClass('active');
         enableConfirmButton(0);
     });
     jQuery('ul#amounts label').click(function() {
         jQuery('ul#amounts label').removeClass("active");
-        jQuery('input#amount-other').val('').parent().removeClass("required");
+        jQuery('input#amount-other')
+            .val('')
+            .removeClass("active")
+            .siblings('span.input-group-addon').removeClass('active')
+            .parent().removeClass("required");
         jQuery(this).addClass("active");
         enableConfirmButton(0);
         jQuery('button.confirm:first').click();
@@ -181,16 +201,30 @@ jQuery(document).ready(function() {
         jQuery('#selected-currency').html(jQuery(this).html());
         jQuery(this).parent().parent().parent().removeClass('open');
 
-        // Set new currency
-        var currencySymbol = jQuery(this).find('img').attr('alt'); //jQuery('select#currency option:selected').text();
-        var currencyClass  = jQuery.inArray(currencySymbol, prefixCurrencySymbols) >= 0 ? '.curprefix' : '.curpostfix';
-        jQuery(currencyClass, '#wizard').text(currencySymbol);
+        // Set new currency on buttons and on custom input field
+        var currencyCode   = jQuery(this).find('img').attr('alt');
+        var currencyString = currencies[currencyCode];
+        jQuery('ul#amounts>li>label').text(
+            function(i, val) {
+                return currencyString.replace('%amount%', jQuery(this).prev('input').attr('value')); 
+            }
+        );
+        jQuery('span.input-group-addon').text(jQuery.trim(currencyString.replace('%amount%', '')));
+
+        // Set curreny code to hidden field
         jQuery('input[name=currency]').attr('value', jQuery.trim(jQuery(this).text()));
         return false;
     });
-    /*jQuery('#currency-link a').click(function() {
-        jQuery('#currency-form').slideDown();
-    })*/
+
+    // Other amount placeholder
+    jQuery('input#amount-other').focus(function() {
+        jQuery(this).attr('placeholder', '');
+    }).blur(function() {
+        var placeholder = placeholders['DE'];
+        jQuery(this).attr('placeholder', placeholder);
+    }).siblings('span.input-group-addon').click(function() {
+        jQuery(this).siblings('input').focus();
+    });
 
     // show div with payment details
     var paymentPanels = jQuery('div#payment-method div.radio > div');
