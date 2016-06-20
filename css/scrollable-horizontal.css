@@ -242,7 +242,7 @@ ul#amounts span.input-group-addon {
     backface-visibility: hidden;
     cursor: pointer;
     font-weight: 700;
-    padding: 5px 12px 5px 16px;
+    padding: 5px 16px;
     font-size: 100%;
     color: #fff;
     outline: 0;
