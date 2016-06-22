@@ -14,6 +14,7 @@ var placeholders          = {
 var buttonFinalText       = '%curprefix%%amount% %curpostfix% spenden »';
 var buttonConfirmText     = 'Bestätigen »';
 var totalItems = 0;
+var slideTransitionInAction = false;
 
 /**
   * Stripe setup
@@ -75,15 +76,16 @@ stripeImage.src = wordpress_vars.plugin_path + 'images/eas-logo.png';
 jQuery(document).ready(function() {
 
     totalItems = jQuery('#wizard .item').length;
-    //var root = jQuery("#wizard").scrollable().navigator("#status");
    
-    // some variables that we need
-    //var api = root.scrollable(); 
+    // Some variables that we need
     var drawer = jQuery("#drawer");
 
-    // page count
-    //var pageCount = jQuery('div#wizard div.page').length;
+    // Page count
     jQuery('button.unconfirm').click(function(event) {
+        if (slideTransitionInAction) {
+            return false;
+        }
+
         var currentItem = jQuery('#wizard div.active').index();
 
         if (currentItem  < 1) {
@@ -97,8 +99,20 @@ jQuery(document).ready(function() {
         jQuery("#status li").removeClass("active").eq(currentItem - 1).addClass("active");
     });
 
-    // validation logic is done inside the onBeforeSeek callback
+    // Prevent interaction durign carousel slide
+    jQuery('#donation-carousel').on('slide.bs.carousel', function () {
+        slideTransitionInAction = true;
+    });
+    jQuery('#donation-carousel').on('slid.bs.carousel', function () {
+        slideTransitionInAction = false;
+    });
+
+    // Validation logic is done inside the onBeforeSeek callback
     jQuery('button.confirm').click(function(event) {
+        if (slideTransitionInAction) {
+            return false;
+        }
+
         var currentItem = jQuery('div.active', '#wizard').index() + 1;
 
         // check contents
@@ -172,7 +186,7 @@ jQuery(document).ready(function() {
         }
     });
 
-    // check radio button and show confirm button
+    // Click on other amount
     jQuery('input#amount-other').focus(function() {
         jQuery('ul#amounts label').removeClass("active");
         jQuery('ul#amounts input:radio').prop('checked', false);
@@ -180,7 +194,18 @@ jQuery(document).ready(function() {
         jQuery(this).siblings('span.input-group-addon').addClass('active');
         enableConfirmButton(0);
     });
+
+    // Click on amount label (buttons)
     jQuery('ul#amounts label').click(function() {
+        if (slideTransitionInAction) {
+            return false;
+        }
+
+        // See if already checked
+        if (jQuery('input[id=' + jQuery(this).attr('for') +']', '#wizard').prop('checked')) {
+            return false;
+        }
+
         jQuery('ul#amounts label').removeClass("active");
         jQuery('input#amount-other')
             .val('')
@@ -239,7 +264,7 @@ jQuery(document).ready(function() {
         // ... except the one taht was clicked
         jQuery(this).parent().next().children('div').addClass('required');
     });
-});
+}); // End jQuery(document).ready()
 
 
 
