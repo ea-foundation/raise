@@ -1,0 +1,31 @@
+<?php
+defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
+
+$sandboxMode = true; // Set to false on live system
+
+/**
+ * Contact
+ */
+$contactEmail = '';
+$contactName  = '';
+
+/**
+ * Stripe
+ * 
+ * See your keys here https://dashboard.stripe.com/account/apikeys
+ */
+$stripeLiveSecretKey    = ''; // Enter live secret key here
+$stripeLivePublicKey    = ''; // Enter live public key here
+$stripeSandboxSecretKey = ''; // Enter sandbox secret key here
+$stripeSandboxPublicKey = ''; // Enter sandbox public key here
+
+
+/**
+ * Paypal
+ *
+ * See your profile here
+ *     Sandbox: https://developer.paypal.com/developer/accounts > Profile > API Credentials
+ *     Live: https://www.paypal.com/businessprofile/mytools/apiaccess > Request API credentials
+ */
+$paypalLiveId        = ''; // Enter live email ID or secure merchant ID here
+$paypalSandboxId     = ''; // Enter sandbox email ID or secure merchant ID here

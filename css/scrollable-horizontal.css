@@ -287,12 +287,12 @@ div.no-padding-left {
     padding-left: 0;
 }
 
-div#payment-method input[type=radio] {
+div#payment-method-item input[type=radio] {
     /* margin-top: 0.3em; */
     width: auto;
 }
 
-div#payment-method div#directdebit-details {
+div#payment-method-item div#directdebit-details {
     display: none;
     margin: 10px 0 0 22px;
     padding: 18px 20px 15px 20px;
@@ -302,13 +302,18 @@ div#payment-method div#directdebit-details {
     -webkit-border-radius:5px;
 }
 
-div#payment-method div.radio div label {
+div#payment-method-item div.radio div label {
     padding-left: 0;
 }
 
-span.form-control-feedback {
-    /*margin-right: 15px;*/
-    padding-top: 0.26em;
+div#amount-item span.form-control-feedback {
+    line-height: 45px;
+}
+
+@media (max-width: 767px) {
+    div#amount-item span.form-control-feedback {
+        line-height: 38px;
+    }
 }
 
 div.required label {
@@ -366,7 +371,7 @@ div.float-left {
     background-color: #f5f5f5;
 }
 
-div#payment-method div.required {
+div#payment-method-item div.required {
     padding-left: 15px;
 }
 
@@ -378,7 +383,36 @@ div#donation-confirmation div.response-text {
     padding-left: 10px;
 }
 
-.form-control::-webkit-input-placeholder { color: white; font-weight: 100 }
-.form-control:-moz-placeholder { color: white; font-weight: 100 }
-.form-control::-moz-placeholder { color: white; font-weight: 100 }
-.form-control:-ms-input-placeholder { color: white; font-weight: 100 }
+div.donor-info {
+    padding: 38px 15px 0 25px;
+}
+
+div#payment-method-item input[type=radio] {
+    margin-top: 4px;
+}
+
+div#payment-method-item span.form-control-feedback {
+    margin-right: 15px;
+}
+
+div#payment-method-item .radio {
+    min-height: 15px;
+}
+
+div#payment-method-item .radio label {
+    margin-right: 10px;
+    margin-bottom: 5px;
+}
+
+div#payment-method-item .radio label:last-child {
+    margin-right: 0px;
+}
+
+.hidden {
+    display: none
+}
+
+div#amount-item .form-control::-webkit-input-placeholder { color: white; font-weight: 100 }
+div#amount-item .form-control:-moz-placeholder { color: white; font-weight: 100 }
+div#amount-item .form-control::-moz-placeholder { color: white; font-weight: 100 }
+div#amount-item .form-control:-ms-input-placeholder { color: white; font-weight: 100 }

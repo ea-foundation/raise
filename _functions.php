@@ -34,27 +34,32 @@ function processDonation()
             handleStripePayment($_POST);
         } else if ($_POST['payment'] == "PayPal") {
             //FIXME
-            echo gbs_paypalRedirect($_POST);
+            //handlePaypalPayment($_POST);
         } else if ($_POST['payment'] == "Skrill") {
             //FIXME
-            echo gbs_skrillRedirect($_POST);
+            //echo gbs_skrillRedirect($_POST);
         } else {
             throw new Exception('Payment method is invalid.');
         }
-
-        die("success");
+        
+        die(json_encode(array(
+            'success' => true,
+        )));
     } catch (Exception $e) {
-        die("An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us at info@ea-stiftung.org.");
+        die(json_encode(array(
+            'success' => false,
+            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us at " . $GLOBALS['contactEmail'] . ".",
+        )));
     }
 }
 
 function handleStripePayment($post)
 {
     // Get the credit card details submitted by the form
-    $email    = $post['stripeEmail'];
     $token    = $post['stripeToken'];
     $amount   = $post['amount'];
     $currency = $post['currency'];
+    $email    = $post['email'];
 
     // Create the charge on Stripe's servers - this will charge the user's card
     try {
@@ -84,7 +89,101 @@ function handleStripePayment($post)
     }
 }
 
-function gbs_allowedPostFields()
+/*function getPaypalPayKey()
+{
+    try {
+        $email     = $_POST['email'];
+        $amount    = $_POST['amount'];
+        $currency  = $_POST['currency'];
+        $returnUrl = $_SESSION['eas-donation-form-url'];
+
+        $qsConnector = strpos('?', $returnUrl) ? '&' : '?';
+        $content = array(
+            "actionType"      => "PAY",
+            "returnUrl"       => $returnUrl . $qsConnector . "provider=paypal&success=1",
+            "cancelUrl"       => $returnUrl . $qsConnector . "provider=paypal&success=0",
+            "requestEnvelope" => array("errorLanguage" => "en_US"),
+            "currencyCode"    => $currency,
+            "receiverList"    => array(
+                "receiver" => array(
+                    array(
+                        "email"  => $email,
+                        "amount" => $amount,
+                    )
+                )
+            )
+        );
+        $headers = array(
+            'X-PAYPAL-SECURITY-USERID: '      . $GLOBALS['paypalUserId'],
+            'X-PAYPAL-SECURITY-PASSWORD: '    . $GLOBALS['paypalPassword'],
+            'X-PAYPAL-SECURITY-SIGNATURE: '   . $GLOBALS['paypalSignature'],
+            'X-PAYPAL-DEVICE-IPADDRESS: '     . $_SERVER['REMOTE_ADDR'],
+            'X-PAYPAL-REQUEST-DATA-FORMAT: '  . 'JSON',
+            'X-PAYPAL-RESPONSE-DATA-FORMAT: ' . 'JSON',
+            'X-PAYPAL-APPLICATION-ID: '       . 'APP-80W284485P519543T',
+        );
+
+        //die(json_encode($content));
+
+        // Set Options for CURL
+        $curl = curl_init($GLOBALS['paypalPayKeyEndpoint']);
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        // Return Response to Application
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        // Execute call via http-POST
+        curl_setopt($curl, CURLOPT_POST, true);
+        // Set POST-Body
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($content));
+        // Set headers
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        // WARNING: This option should NOT be "false"
+        // Otherwise the connection is not secured
+        // You can turn it of if you're working on the test-system with no vital data
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+        // Load list file with up-to-date certificate authorities
+        //curl_setopt($curl, CURLOPT_CAINFO, 'ssl/server.crt');
+        // CURL-Execute & catch response
+        $jsonResponse = curl_exec($curl);
+        // Get HTTP-Status, abort if Status != 200 
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        if ($status != 200) {
+            die(json_encode(array(
+                'success' => false,
+                'error'   => "Error: Call to " . $GLOBALS['paypalUrlEndpoint'] . " failed with status $status, " .
+                             "response " . $jsonResponse . ", curl_error " . curl_error($curl) . ", curl_errno " . 
+                             curl_errno($curl) . ", HTTP-Status: " . $status,
+            )));
+        }
+        // Close connection
+        curl_close($curl);
+        
+        //Convert response into an array and extract the payKey
+        $response = json_decode($jsonResponse, true);
+        if ($response['responseEnvelope']['ack'] != 'Success') {
+            die("Error: " . $response['error'][0]['message']);
+        }
+
+        // Put user data in session. This way we can aboid that other people use it to spam our logs
+        $_SESSION['eas-paykey']   = $response['payKey'];
+        $_SESSION['eas-email']    = $email;
+        $_SESSION['eas-currency'] = $currency;
+        $_SESSION['eas-amount']   = (int)($amount * 100); // cents
+
+        // Return pay key
+        die(json_encode(array(
+            'success' => true,
+            'paykey'  => $response['payKey'],
+        )));
+    } catch(Exception $e) {
+        die(json_encode(array(
+            'success' => false,
+            'error'   => $e->getMessage(),
+        )));
+    }
+}*/
+
+/*function gbs_allowedPostFields()
 {
     return array(
         "amount",
@@ -160,7 +259,7 @@ function gbs_skrillRedirect($post)
     <input type="hidden" name="pay_from_email" value="<?php $post['email']; ?>">
     <input type="hidden" name="firstname" value="<?php echo $post['firstname']; ?>">
     <input type="hidden" name="lastname" value="<?php echo $post['lastname']; ?>">
-    <input type="hidden" name="confirmation_note" value="The world just got a bit brighter. Thanks for supporting our effective charities! If you haven't already, don't forget to go to reg-charity.org and become a REG member. And don't forget: You can reach us anytime at info@reg-charity.org"> <!--/* This is somehow not working */-->
+    <input type="hidden" name="confirmation_note" value="The world just got a bit brighter. Thanks for supporting our effective charities! If you haven't already, don't forget to go to reg-charity.org and become a REG member. And don't forget: You can reach us anytime at info@reg-charity.org"> <!-- This is somehow not working -->
     <input type="image" src="http://reg-charity.org/wp-content/uploads/2014/10/skrill-button.png" border="0" name="submit" alt="Pay by Skrill">
     </form>
     <script>
@@ -173,3 +272,4 @@ function gbs_skrillRedirect($post)
     $content = trim(preg_replace('/\s+/', ' ', $content));
     return $content;
 }
+*/

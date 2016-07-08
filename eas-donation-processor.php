@@ -12,20 +12,33 @@
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 
 require_once('vendor/autoload.php');
-require_once("_config.php");
+require_once("_apisetup.php");
 require_once("_functions.php");
 require_once("form.php");
+
+// Start session
+/*add_action('init', 'eas_start_session', 1);
+function eas_start_session() {
+    if (!session_id()) {
+        session_start();
+    }
+}*/
 
 // Set up ajax calls for processing donation
 add_action("wp_ajax_nopriv_donate", "eas_process_donation");
 add_action("wp_ajax_donate", "eas_process_donation");
-
 function eas_process_donation() {
     processDonation();
 }
 
+// Get Paypal payKey for donation
+/*add_action("wp_ajax_nopriv_paypal_paykey", "eas_process_paypal_paykey");
+add_action("wp_ajax_paypal_paykey", "eas_process_paypal_paykey");
+function eas_process_paypal_paykey() {
+    getPaypalPayKey();
+}
 
-/*add_action('eas_log_donation', 'eas_test', 10, 1);
+add_action('eas_log_donation', 'eas_test', 10, 1);
 
 function eas_test($donation) {
     //TODO echo json_encode($donation);
@@ -39,27 +52,22 @@ function eas_webhooks($hookpress_actions) {
     return $hookpress_actions;
 }
 
+// Add short code for donation form
 add_shortcode('donationForm','donationForm');
-
 
 /*
  * Additional Styles 
  */
 function register_donation_styles() {
-  wp_register_style( 'bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
-  wp_enqueue_style( 'bootstrap' );
-  /*wp_register_style( 'donation-plugin-bootstrap-form-helper', plugins_url( 'eas-donation-processor/js/bootstrapformhelper/css/bootstrap-formhelpers.min.css' ) );
-  wp_enqueue_style( 'donation-plugin-bootstrap-form-helper' );*/
-  wp_register_style( 'donation-plugin-css', plugins_url( 'eas-donation-processor/css/scrollable-horizontal.css' ) );
-  wp_enqueue_style( 'donation-plugin-css' );
-  wp_register_style( 'donation-plugin-flags', plugins_url( 'eas-donation-processor/css/flags.css' ) );
-  wp_enqueue_style( 'donation-plugin-flags' );
-  /*wp_register_style( 'donation-plugin-bootstrap-select', 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css' );
-  wp_enqueue_style( 'donation-plugin-bootstrap-select' );*/
+    wp_register_style( 'bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
+    wp_enqueue_style( 'bootstrap' );
+    wp_register_style( 'donation-plugin-css', plugins_url( 'eas-donation-processor/css/scrollable-horizontal.css' ) );
+    wp_enqueue_style( 'donation-plugin-css' );
+    wp_register_style( 'donation-plugin-flags', plugins_url( 'eas-donation-processor/css/flags.css' ) );
+    wp_enqueue_style( 'donation-plugin-flags' );
 }
 
 add_action( 'wp_enqueue_scripts', 'register_donation_styles' );
-
 
 
 /*
@@ -67,20 +75,23 @@ add_action( 'wp_enqueue_scripts', 'register_donation_styles' );
  */
 function register_donation_scripts()
 {
-  wp_register_script( 'donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array('jquery') );
-  wp_enqueue_script( 'donation-plugin-bootstrapjs' );
-  /*wp_register_script( 'donation-plugin-bootstrap-select', '//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js', array('jquery', 'donation-plugin-bootstrapjs') );
-  wp_enqueue_script( 'donation-plugin-bootstrap-select' );*/
-  /*wp_register_script( 'donation-plugin-bootstrap-helper', plugins_url( 'eas-donation-processor/js/bootstrapformhelper/js/bootstrap-formhelpers.min.js' ), array('jquery') );
-  wp_enqueue_script( 'donation-plugin-bootstrap-helper' );*/
-  wp_register_script( 'donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery') );
-  wp_enqueue_script( 'donation-plugin-jqueryformjs' );
-  wp_register_script( 'donation-plugin-stripe', '//checkout.stripe.com/checkout.js' );
-  wp_enqueue_script( 'donation-plugin-stripe' );
-  wp_register_script( 'donation-plugin-form', plugins_url( 'eas-donation-processor/js/form.js' ), array('jquery', 'donation-plugin-stripe') );
-  wp_localize_script( 'donation-plugin-form', 'wordpress_vars', array('plugin_path' => plugin_dir_url(__FILE__)));
-  wp_enqueue_script( 'donation-plugin-form' );
-
+    wp_register_script( 'donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array('jquery') );
+    wp_enqueue_script( 'donation-plugin-bootstrapjs' );
+    wp_register_script( 'donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery') );
+    wp_enqueue_script( 'donation-plugin-jqueryformjs' );
+    wp_register_script( 'donation-plugin-stripe', '//checkout.stripe.com/checkout.js' );
+    wp_enqueue_script( 'donation-plugin-stripe' );
+    //wp_register_script( 'donation-plugin-paypal', '//www.paypalobjects.com/js/external/dg.js' );
+    //wp_enqueue_script( 'donation-plugin-paypal' );
+    wp_register_script( 'donation-plugin-form', plugins_url( 'eas-donation-processor/js/form.js' ), array('jquery', 'donation-plugin-stripe') );
+    wp_localize_script( 'donation-plugin-form', 'wordpress_vars', array(
+        'plugin_path'           => plugin_dir_url(__FILE__),
+        'ajax_endpoint'         => admin_url('admin-ajax.php'),
+        'paypal_id'             => $GLOBALS['paypalId'],
+        'paypal_url'            => $GLOBALS['paypalUrl'],
+        'contact_name'          => $GLOBALS['contactName'],
+    ));
+    wp_enqueue_script( 'donation-plugin-form' );
 }
 
 add_action( 'wp_enqueue_scripts', 'register_donation_scripts' );
