@@ -63,60 +63,73 @@ function handleStripePayment($post)
 
     // Create the charge on Stripe's servers - this will charge the user's card
     try {
+        $customer = \Stripe\Customer::create(array(
+            'email'  => $email,
+            'source' => $token,
+        ));
+
         $charge = \Stripe\Charge::create(
             array(
-                "amount"      => $amount, // !!! in cents !!!
-                "currency"    => $currency,
-                "source"      => $token,
-                "description" => "Donation",
+                'customer'    => $customer->id,
+                'amount'      => $amount, // !!! in cents !!!
+                'currency'    => $currency,
+                'description' => 'Donation',
             )
         );
 
         // Prepare hook
         $donation = array(
-            "time"     => date('r'),
-            "currency" => $currency,
-            "amount"   => $amount, //money_format('%i', $amount / 100),
-            "type"     => "stripe",
-            "email"    => $email,
+            'time'     => date('r'),
+            'currency' => $currency,
+            'amount'   => money_format('%i', $amount / 100),
+            'type'     => 'stripe',
+            'email'    => $email,
         );
 
         // trigger hook for Zapier
         do_action('eas_log_donation', $donation);
-    } catch(\Stripe\Error\Card $e) {
+
+        // Send email
+        sendThankYouEmail($email);
+    } catch(\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
-        throw new Exception($e->getMessage());
+        throw new Exception($e->getMessage() . ' ' . $e->getStripeParam() . " : $email : $amount : $currency : $token");
     }
 }
 
-/*function getPaypalPayKey()
+function getPaypalPayKey()
 {
     try {
         $email     = $_POST['email'];
         $amount    = $_POST['amount'];
         $currency  = $_POST['currency'];
-        $returnUrl = $_SESSION['eas-donation-form-url'];
+        $returnUrl = admin_url('admin-ajax.php');
+        // Secret reference ID. Needed to prevent replay attack
+        $reqId = uniqid();
 
         $qsConnector = strpos('?', $returnUrl) ? '&' : '?';
         $content = array(
             "actionType"      => "PAY",
-            "returnUrl"       => $returnUrl . $qsConnector . "provider=paypal&success=1",
-            "cancelUrl"       => $returnUrl . $qsConnector . "provider=paypal&success=0",
-            "requestEnvelope" => array("errorLanguage" => "en_US"),
+            "returnUrl"       => $returnUrl . $qsConnector . "action=log&req=" . $reqId,
+            "cancelUrl"       => $returnUrl . $qsConnector . "action=log",
+            "requestEnvelope" => array(
+                "errorLanguage" => "en_US",
+                "detailLevel"   => "ReturnAll",
+            ),
             "currencyCode"    => $currency,
             "receiverList"    => array(
                 "receiver" => array(
                     array(
-                        "email"  => $email,
+                        "email"  => $GLOBALS['paypalEmailId'],
                         "amount" => $amount,
                     )
                 )
             )
         );
         $headers = array(
-            'X-PAYPAL-SECURITY-USERID: '      . $GLOBALS['paypalUserId'],
-            'X-PAYPAL-SECURITY-PASSWORD: '    . $GLOBALS['paypalPassword'],
-            'X-PAYPAL-SECURITY-SIGNATURE: '   . $GLOBALS['paypalSignature'],
+            'X-PAYPAL-SECURITY-USERID: '      . $GLOBALS['paypalApiUsername'],
+            'X-PAYPAL-SECURITY-PASSWORD: '    . $GLOBALS['paypalApiPassword'],
+            'X-PAYPAL-SECURITY-SIGNATURE: '   . $GLOBALS['paypalApiSignature'],
             'X-PAYPAL-DEVICE-IPADDRESS: '     . $_SERVER['REMOTE_ADDR'],
             'X-PAYPAL-REQUEST-DATA-FORMAT: '  . 'JSON',
             'X-PAYPAL-RESPONSE-DATA-FORMAT: ' . 'JSON',
@@ -150,7 +163,7 @@ function handleStripePayment($post)
         if ($status != 200) {
             die(json_encode(array(
                 'success' => false,
-                'error'   => "Error: Call to " . $GLOBALS['paypalUrlEndpoint'] . " failed with status $status, " .
+                'error'   => "Error: Call to " . $GLOBALS['paypalPayKeyEndpoint'] . " failed with status $status, " .
                              "response " . $jsonResponse . ", curl_error " . curl_error($curl) . ", curl_errno " . 
                              curl_errno($curl) . ", HTTP-Status: " . $status,
             )));
@@ -164,11 +177,11 @@ function handleStripePayment($post)
             die("Error: " . $response['error'][0]['message']);
         }
 
-        // Put user data in session. This way we can aboid that other people use it to spam our logs
-        $_SESSION['eas-paykey']   = $response['payKey'];
+        // Put user data in session. This way we can avoid other people using it to spam our logs
+        $_SESSION['eas-req-id']   = $reqId;
         $_SESSION['eas-email']    = $email;
         $_SESSION['eas-currency'] = $currency;
-        $_SESSION['eas-amount']   = (int)($amount * 100); // cents
+        $_SESSION['eas-amount']   = money_format('%i', $amount);
 
         // Return pay key
         die(json_encode(array(
@@ -181,68 +194,57 @@ function handleStripePayment($post)
             'error'   => $e->getMessage(),
         )));
     }
-}*/
-
-/*function gbs_allowedPostFields()
-{
-    return array(
-        "amount",
-        "amount_other",
-        "currency",
-        "title",
-        "firstname",
-        "lastname",
-        "address1",
-        "address2",
-        "address3",
-        "country",
-        "email",
-        "phone",
-        "payment",
-        "payment-details",
-    );
 }
 
-
-function gbs_paypalRedirect($post)
+function processPaypalLog()
 {
-    ob_start();
-?>
-    <p>You will be redirected to PayPal in a few seconds... If not, click <a href="javascript:document.getElementById('paypalRedirect').submit();">here</a>.</p>
-    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" id="paypalRedirect">
-    <input type="hidden" name="cmd" value="_donations">
-    <input type="hidden" name="business" value="PTCLVP4Y26VVY">
-    <input type="hidden" name="lc" value="CH">
-    <input type="hidden" name="item_name" value="Raising for Effective Giving">
-    <input type="hidden" name="currency_code" value="<?php echo $post['currency']; ?>">
-    <input type="hidden" name="amount" value="<?php echo $post['amount']; ?>">
-    <input type="hidden" name="first_name" value="<?php echo $post['firstname']; ?>">
-    <input type="hidden" name="last_name" value="<?php echo $post['lastname']; ?>">
-    <input type="hidden" name="email" value="<?php echo $post['email']; ?>">
-    <input type="hidden" name="no_note" value="1">
-    <input type="hidden" name="no_shipping" value="2">
-    <input type="hidden" name="rm" value="1">
-    <input type="hidden" name="return" value="http://reg-charity.org">
-    
-    <input type="hidden" name="bn" value="PP-DonationsBF:btn_donateCC_LG.gif:NonHosted">
-    <input type="image" src="http://reg-charity.org/wp-content/uploads/2014/07/PayPal-Logo.png" border="0" name="submit" alt="Pay with PayPal." style="width: 382px; height: 63px;">
-    <img alt="" border="0" src="https://www.paypalobjects.com/de_DE/i/scr/pixel.gif" width="1" height="1">
-    </form>
-    <script type="text/javascript">
-        var form = document.getElementById("paypalRedirect");
-        setTimeout(function() { form.submit(); }, 1000);
-    </script>
-<?php
-    
-    $content = ob_get_clean();
-    // remove line breaks
-    $content = trim(preg_replace('/\s+/', ' ', $content));
-    return $content;
+    if (isset($_GET['req']) && $_GET['req'] == $_SESSION['eas-req-id']) {
+        // Prepare hook
+        $donation = array(
+            "time"     => date('r'),
+            "currency" => $_SESSION['eas-currency'],
+            "amount"   => money_format('%i', $_SESSION['eas-amount']),
+            "type"     => "paypal",
+            "email"    => $_SESSION['eas-email'],
+        );
+
+        // Trigger hook for Zapier
+        do_action('eas_log_donation', $donation);
+
+        // Send email
+        sendThankYouEmail($email);
+
+        // Add method for showing confirmation
+        $script = "parent.showConfirmation();";
+    } else {
+        // Add method for unlocking buttons for trying again
+        $script = "parent.lockLastStep(false);";
+    }
+
+    // Die and send script to close flow
+    die('<!doctype html>
+         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <body><script>' . $script . ' parent.embeddedPPFlow.closeFlow(); close();
+         </script><body></html>');
 }
 
+function sendThankYouEmail($email)
+{
+    $subject = 'Thank you for your gift to EAS!';
 
+    $message = '<strong>Hi there!</strong>';
+    $message .= '<p>';
+    $message .= 'This is an automatically generated email to confirm your donation to the EA Foundation.';
+    $message .= '</p><p>';
+    $message .= 'Thank you so much for supporting our mission!';
+    $message .= '</p><p>';
+    $message .= 'The EA Foundation team';
+    $message .= '</p>';
 
+    wp_mail($email, $subject, $message);
+}
 
+/*
 
 function gbs_skrillRedirect($post)
 {
@@ -273,3 +275,27 @@ function gbs_skrillRedirect($post)
     return $content;
 }
 */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

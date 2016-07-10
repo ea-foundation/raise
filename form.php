@@ -144,14 +144,14 @@ function donationForm($atts)
                         <img src="<?= plugins_url('images/paypal.png', __FILE__) ?>" alt="Paypal" width="38" height="23">
                     </label>
 
-                    <label for="payment-skrill">
+                    <!-- <label for="payment-skrill">
                         <input type="radio" class="radio" name="payment" value="Skrill" tabindex="21" id="payment-skrill">
                         <img src="<?= plugins_url('images/skrill.png', __FILE__) ?>" alt="Skrill" width="38" height="23">
                     </label>
 
                     <label for="payment-banktransfer">
                         <input type="radio" class="radio" name="payment" value="Banktransfer" tabindex="20" id="payment-banktransfer"> Banküberweisung
-                    </label>
+                    </label> -->
                 </div>
                 <!-- <div class="radio">
                     <label for="payment-directdebit">
@@ -227,14 +227,14 @@ function donationForm($atts)
 </form>
 
 <!-- PayPal Adaptive payment form -->
-<!-- <form action="<?= $GLOBALS['paypalPaymentEndpoint'] ?>" target="PPDGFrame" class="standard hidden">
+<form action="<?= $GLOBALS['paypalPaymentEndpoint'] ?>" target="PPDGFrame" class="standard hidden">
     <input type="image" id="submitBtn" value="Pay with PayPal" src="https://www.paypalobjects.com/en_US/i/btn/btn_paynowCC_LG.gif">
     <input id="type" type="hidden" name="expType" value="light">
     <input id="paykey" type="hidden" name="paykey" value="">
 </form>
 <script type="text/javascript" charset="utf-8">
     var embeddedPPFlow = new PAYPAL.apps.DGFlow({trigger: 'submitBtn'});
-</script> -->
+</script>
 
 <div id="drawer">Bitte alle obligatorischen Felder ausfüllen.</div>
 

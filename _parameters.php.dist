@@ -14,11 +14,10 @@ $contactName  = '';
  * 
  * See your keys here https://dashboard.stripe.com/account/apikeys
  */
-$stripeLiveSecretKey    = ''; // Enter live secret key here
-$stripeLivePublicKey    = ''; // Enter live public key here
-$stripeSandboxSecretKey = ''; // Enter sandbox secret key here
-$stripeSandboxPublicKey = ''; // Enter sandbox public key here
-
+$stripeLiveSecretKey    = '';
+$stripeLivePublicKey    = '';
+$stripeSandboxSecretKey = '';
+$stripeSandboxPublicKey = '';
 
 /**
  * Paypal
@@ -27,5 +26,11 @@ $stripeSandboxPublicKey = ''; // Enter sandbox public key here
  *     Sandbox: https://developer.paypal.com/developer/accounts > Profile > API Credentials
  *     Live: https://www.paypal.com/businessprofile/mytools/apiaccess > Request API credentials
  */
-$paypalLiveId        = ''; // Enter live email ID or secure merchant ID here
-$paypalSandboxId     = ''; // Enter sandbox email ID or secure merchant ID here
+$paypalSandboxEmailId       = 'donate-facilitator@gbs-schweiz.org';
+$paypalSandboxApiUsername   = 'donate-facilitator_api1.gbs-schweiz.org';
+$paypalSandboxApiPassword   = 'W69PN2HDHDDNAUU7';
+$paypalSandboxApiSignature  = 'Ak32BHgZABliino4sbEsoaecOdI3AfQHk43IdURZUpGTKMpf5hVsodMn';
+$paypalLiveEmailId          = '';
+$paypalLiveApiUsername      = '';
+$paypalLiveApiPassword      = '';
+$paypalLiveApiSignature     = '';
