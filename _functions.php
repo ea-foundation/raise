@@ -221,6 +221,9 @@ function processPaypalLog()
         $script = "parent.lockLastStep(false);";
     }
 
+    // Make sure the contents can be displayed inside iFrame
+    header_remove('X-Frame-Options');
+
     // Die and send script to close flow
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
