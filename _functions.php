@@ -208,6 +208,9 @@ function processPaypalLog()
             "email"    => $_SESSION['eas-email'],
         );
 
+        // Reset request ID to prevent replay attacks
+        $_SESSION['eas-req-id'] = uniqid();
+
         // Trigger hook for Zapier
         do_action('eas_log_donation', $donation);
 

@@ -372,8 +372,7 @@ function handlePaypalDonation()
             action: 'paypal_paykey',
             email: getDonorEmail(),
             amount: getDonationAmount(),
-            currency: getDonationCurrencyIsoCode(),
-            returnUrl: location.href
+            currency: getDonationCurrencyIsoCode()
         }).done(function(responseText) {
             // On success
             var response = JSON.parse(responseText);
@@ -381,7 +380,6 @@ function handlePaypalDonation()
                 var message = 'error' in response ? response['error'] : responseText;
                 throw new Error(message);
             }
-            //alert(responseText + ' ' + response['paykey']);
 
             // Insert pay key in PayPal form
             jQuery('input[id=paykey]').val(response['paykey']);
