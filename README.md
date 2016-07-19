@@ -1,4 +1,4 @@
-# sentience-donation-processor
+# EAS Donation Processor
 Donation-Plugin for WordPress, inspired by the donation widget on Barack Obama's support page
 
 ## Documentation (work in progress)

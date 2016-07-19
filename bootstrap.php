@@ -34,9 +34,3 @@ $GLOBALS['paypalEmailId']         = $sandboxMode ? $paypalSandboxEmailId      : 
 $GLOBALS['paypalApiUsername']     = $sandboxMode ? $paypalSandboxApiUsername  : $paypalLiveApiUsername;
 $GLOBALS['paypalApiPassword']     = $sandboxMode ? $paypalSandboxApiPassword  : $paypalLiveApiPassword;
 $GLOBALS['paypalApiSignature']    = $sandboxMode ? $paypalSandboxApiSignature : $paypalLiveApiSignature;
-/*$GLOBALS['paypalId']  = $sandboxMode ? $paypalSandboxId : $paypalLiveId;
-$GLOBALS['paypalUrl'] = $sandboxMode ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
-*/;
-
-
-

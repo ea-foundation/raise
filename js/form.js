@@ -22,7 +22,7 @@ var slideTransitionInAction = false;
 var stripeHandler = StripeCheckout.configure({
     key: wordpress_vars.stripe_public_key,
     image: wordpress_vars.plugin_path + 'images/eas-logo.png',
-    color: 'white',
+    color: '#255A8E',
     locale: 'auto',
     token: function(token) {
         console.log("my object: %o", token);
@@ -92,14 +92,16 @@ jQuery(document).ready(function($) {
             return false;
         }
 
-        // go back
-        $('#donation-carousel').carousel('prev');
+        // Go to previous step
+        carouselPrev();
+
+        //$('#donation-carousel').carousel('prev');
 
         // update status bar
-        $("#status li").removeClass("active").eq(currentItem - 1).addClass("active");
+        //$("#status li").removeClass("active").eq(currentItem - 1).addClass("active");
     });
 
-    // Prevent interaction durign carousel slide
+    // Prevent interaction during carousel slide
     $('#donation-carousel').on('slide.bs.carousel', function () {
         slideTransitionInAction = true;
     });
@@ -107,8 +109,14 @@ jQuery(document).ready(function($) {
         slideTransitionInAction = false;
     });
 
+    // Prevent non-ajax form submission
+    $("#donationForm").submit(function(event) {
+        event.preventDefault();
+    });
+
     // Validation logic is done inside the onBeforeSeek callback
     $('button.confirm').click(function(event) {
+        event.preventDefault();
         if (slideTransitionInAction) {
             return false;
         }
@@ -128,22 +136,29 @@ jQuery(document).ready(function($) {
             var reqInputs = $('div.item.active .required :input', '#wizard');
             // ... which are empty or invalid
             var empty = reqInputs.filter(function() {
-                return $(this).val().replace(/\s*/g, '') == '' || ($(this).attr('type') == 'email' && !isValidEmail($(this).val().trim()));
+                return $(this).val().replace(/\s*/g, '') == '';
+            });
+
+            // Check invalid input
+            var invalid = inputs.filter(function() {
+                return ($(this).attr('id') == 'amount-other' && $(this).val() && isNaN($(this).val())) ||
+                       ($(this).attr('type') == 'email' && !isValidEmail($(this).val().trim()))
             });
 
             // Unchecked radio groups
             var emptyRadios = $('div.item.active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
 
             // If there are empty fields, then
-            if (empty.length + emptyRadios.length) {
+            if (empty.length + invalid.length + emptyRadios.length) {
                 // slide down the drawer
                 drawer.slideDown(function()  {     
                     // Colored flash effect
-                    drawer.css("backgroundColor", "#0078C1");
-                    setTimeout(function() { drawer.css("backgroundColor", "#fff"); }, 1000);
+                    drawer.css("backgroundColor", "#fff");
+                    //setTimeout(function() { drawer.css("backgroundColor", "#fff"); }, 1000);
                 });
 
-                // Add a error CSS for empty & required fields
+                // Add a error CSS for empty and invalid fields
+                empty = $.unique($.merge(empty, invalid));
                 empty.each(function(index) {
                     $(this).attr('aria-describedby', 'inputError2Status' + index)
                     $(this).parent().append('<span class="eas-error glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span><span id="inputError2Status' + index + '" class="eas-error sr-only">(error)</span>');
@@ -170,7 +185,7 @@ jQuery(document).ready(function($) {
                     handlePaypalDonation();
                     break;
                 default:
-                    $('#donationForm').ajaxSubmit();
+                    //$('#donationForm').ajaxSubmit();
             }
 
             // Done, wait for callback functions
@@ -181,20 +196,27 @@ jQuery(document).ready(function($) {
             // on penultimate page replace "confirm" with "donate X CHF"
             var foo = setTimeout(function() { showLastItem(currentItem) }, 200);
         } else {
-            // update status bar
-            $("#status li").removeClass("active").eq(currentItem).addClass("active");
-            // show next slide
-            $('#donation-carousel').carousel('next');
+            // Go to next slide
+            carouselNext();
         }
     });
 
     // Click on other amount
     $('input#amount-other').focus(function() {
+        if ($(this).hasClass("active")) {
+            return;
+        }
         $('ul#amounts label').removeClass("active");
         $('ul#amounts input:radio').prop('checked', false);
+        $(this).attr('placeholder', '');
         $(this).addClass("active").parent().addClass('required');
         $(this).siblings('span.input-group-addon').addClass('active');
         enableConfirmButton(0);
+    }).blur(function() {
+        var placeholder = placeholders['DE'];
+        $(this).attr('placeholder', placeholder);
+    }).siblings('span.input-group-addon').click(function() {
+        $(this).siblings('input').focus();
     });
 
     // Click on amount label (buttons)
@@ -209,14 +231,18 @@ jQuery(document).ready(function($) {
         }
 
         $('ul#amounts label').removeClass("active");
-        $('input#amount-other')
+
+        var otherInput = $('input#amount-other');
+        otherInput.siblings('span.eas-error').remove();
+        otherInput
             .val('')
             .removeClass("active")
             .siblings('span.input-group-addon').removeClass('active')
-            .parent().removeClass("required");
+            .parent().removeClass("required")
+            .parent().removeClass('has-error')
         $(this).addClass("active");
         enableConfirmButton(0);
-        $('button.confirm:first').click();
+        //$('button.confirm:first').click();
     });
 
     // currency stuff
@@ -241,16 +267,6 @@ jQuery(document).ready(function($) {
         // Set curreny code to hidden form field
         $('input#donationCurrency').attr('value', $.trim($(this).text()));
         return false;
-    });
-
-    // Other amount placeholder
-    $('input#amount-other').focus(function() {
-        $(this).attr('placeholder', '');
-    }).blur(function() {
-        var placeholder = placeholders['DE'];
-        $(this).attr('placeholder', placeholder);
-    }).siblings('span.input-group-addon').click(function() {
-        $(this).siblings('input').focus();
     });
 
     // show div with payment details
@@ -297,12 +313,15 @@ function showLastItem(currentItem)
 {
     // Change text of last confirm button
     jQuery('button.confirm:last', '#wizard').text(getLastButtonText());
+
+    // Go to next slide
+    carouselNext();
     
     // Update status bar
-    jQuery("#status li").removeClass("active").eq(currentItem).addClass("active");
+    //jQuery("#status li").removeClass("active").eq(currentItem).addClass("active");
 
     // Show next slide
-    jQuery('#donation-carousel').carousel('next');
+    //jQuery('#donation-carousel').carousel('next');
 }
 
 function getDonationAmount()
@@ -316,7 +335,7 @@ function getDonationAmount()
             amount = amount / 100;
             return (amount % 1 == 0) ? amount : amount.toFixed(2);
         } else {
-            return 15; // default donation
+            return 1; // default donation
         }
     }
 }
@@ -440,12 +459,16 @@ function carouselNext()
 
     // Move carousel
     jQuery('#donation-carousel').carousel('next');
+    
     // Update status bar
-    jQuery("#status li").removeClass("active").eq(currentItem).addClass("active");
+    var listItems = jQuery("#status li");
+    listItems.removeClass("active completed");
+    listItems.filter(function(index) { return index < currentItem }).addClass("completed");
+    listItems.eq(currentItem).addClass("active");
 }
 
 
-/*function carouselPrev()
+function carouselPrev()
 {
     var currentItem = jQuery('#wizard div.active').index() - 1;
 
@@ -455,10 +478,14 @@ function carouselNext()
 
     // Move carousel
     jQuery('#donation-carousel').carousel('prev');
+    
     // Update status bar
-    jQuery("#status li").removeClass("active").eq(currentItem).addClass("active");
+    var listItems = jQuery("#status li");
+    listItems.removeClass("active completed");
+    listItems.filter(function(index) { return index < currentItem }).addClass("completed");
+    listItems.eq(currentItem).addClass("active");
 }
-*/
+
 
 
 

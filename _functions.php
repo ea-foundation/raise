@@ -218,10 +218,11 @@ function processPaypalLog()
         sendThankYouEmail($email);
 
         // Add method for showing confirmation
-        $script = "parent.showConfirmation();";
+        $qsConnector = strpos('?', $_SERVER['eas-plugin-url']) ? '&' : '?';
+        $script = "if (window == top) { location.href = '" . $_SESSION['eas-plugin-url'] . $qsConnector . "success=true'; } else { parent.showConfirmation(); }";
     } else {
         // Add method for unlocking buttons for trying again
-        $script = "parent.lockLastStep(false);";
+        $script = "if (window == top) { location.href = '" . $_SESSION['eas-plugin-url'] . "'; } else { parent.lockLastStep(false); }";
     }
 
     // Make sure the contents can be displayed inside iFrame

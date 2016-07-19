@@ -3,7 +3,7 @@
 // Shortcode donation
 function donationForm($atts)
 {
-    if (isset($_GET['success']) && $_GET['success'] == '1') {
+    if (isset($_GET['success']) && $_GET['success'] == 'true') {
         // Set status to payed to prevent replay attacks on our logs
         $checkoutCssClass = '';
         $confirmationCssClass = ' active';
@@ -196,7 +196,7 @@ function donationForm($atts)
 
             <div class="buttons row">
                 <div class="col-sm-6 col-sm-push-3">
-                    <button type="button" class="btn btn-success btn-lg confirm" id="donation-submit">Bestätigen »</button>
+                    <button type="submit" class="btn btn-success btn-lg confirm" id="donation-submit">Bestätigen »</button>
                 </div>
                 <div class="col-sm-3 col-sm-pull-6">
                     <button type="button" class="btn btn-link unconfirm" id="donation-go-back">« Zurück</button>
@@ -236,7 +236,7 @@ function donationForm($atts)
     var embeddedPPFlow = new PAYPAL.apps.DGFlow({trigger: 'submitBtn'});
 </script>
 
-<div id="drawer">Bitte alle obligatorischen Felder ausfüllen.</div>
+<div id="drawer">Bitte alle obligatorischen Felder korrekt ausfüllen.</div>
 
 </div>
 

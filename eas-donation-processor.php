@@ -21,9 +21,9 @@ function eas_start_session() {
     if (!session_id()) {
         session_start();
     }
-    /*if (!isset($_SERVER['eas-plugin-url'])) {
-        $_SERVER['eas-plugin-url'] = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-    }*/
+    if (!preg_match('/admin-ajax\.php/', $_SERVER['REQUEST_URI'])) { // && !isset($_SESSION['eas-plugin-url'])
+        $_SESSION['eas-plugin-url'] = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+    }
 }
 
 // Set up ajax calls for processing donation
@@ -81,7 +81,7 @@ add_shortcode('donationForm','donationForm');
 function register_donation_styles() {
     wp_register_style( 'bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
     wp_enqueue_style( 'bootstrap' );
-    wp_register_style( 'donation-plugin-css', plugins_url( 'eas-donation-processor/css/scrollable-horizontal.css' ) );
+    wp_register_style( 'donation-plugin-css', plugins_url( 'eas-donation-processor/css/form.css' ) );
     wp_enqueue_style( 'donation-plugin-css' );
     wp_register_style( 'donation-plugin-flags', plugins_url( 'eas-donation-processor/css/flags.css' ) );
     wp_enqueue_style( 'donation-plugin-flags' );
@@ -108,8 +108,6 @@ function register_donation_scripts()
         'plugin_path'       => plugin_dir_url(__FILE__),
         'ajax_endpoint'     => admin_url('admin-ajax.php'),
         'stripe_public_key' => $GLOBALS['stripePublicKey'],
-        'paypal_id'         => $GLOBALS['paypalId'],
-        'paypal_url'        => $GLOBALS['paypalUrl'],
         'contact_name'      => $GLOBALS['contactName'],
     ));
     wp_enqueue_script( 'donation-plugin-form' );

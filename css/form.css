@@ -1,12 +1,12 @@
 /* scrollable root element */
 
 #wizard {
-    border-radius: 4px;
+    border-radius: 6px;
     position:relative;
 
     /* rounded corners for modern browsers */
-    -moz-border-radius:5px;
-    -webkit-border-radius:5px;
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
 }
 
 /* single donation carousel item */
@@ -138,20 +138,26 @@
 }
 
 #status li.active span {
-    background: #666666;
+    background: #0078C1;
     color: #fff;
     font-weight: bold;
 }
 
 #status li.active {
-    /*color:#fff;
-    background-color:#0078C1;
-    font-weight:normal;*/
     text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8);
-    color: #666666;
+    color: #0078C1;
 }
 
+#status li.completed {
+    text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8);
+    color: #666666; /* #4cae4c; */
+}
 
+#status li.completed span {
+    background: #666666; /* #4cae4c; */
+    color: #fff;
+    font-weight: bold;
+}
 
 ul#amounts li {
     display: block;
@@ -173,13 +179,13 @@ ul#amounts input[type=text] {
     display: block;
     height: 46px;
     font-size: inherit;
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
     backface-visibility: hidden;
     border: 1px solid #08b;
     background: #0078C1;
-    background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0.1,rgba(0,0,0,.1)),color-stop(1,rgba(255,255,255,.2)));
-    box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 0 1px #003246;
+    /* background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0.1,rgba(0,0,0,.1)),color-stop(1,rgba(255,255,255,.2)));*/
+    /* box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 0 1px #003246; */
     backface-visibility: hidden;
     /*font-family: 'Gotham SSm 4r','Gotham SSm A','Gotham SSm B',"Helvetica Neue",Helvetica,Segoe,"Segoe UI","Segoe WP",Calibri,Arial,clean,sans-serif;*/
     font-weight: 700;
@@ -187,16 +193,16 @@ ul#amounts input[type=text] {
     font-size: 100%;
     color: #fff;
     outline: 0;
-    -webkit-transition: background-color .15s linear,box-shadow .15s linear;
+    /*-webkit-transition: background-color .15s linear,box-shadow .15s linear;
     -moz-transition: background-color .15s linear,box-shadow .15s linear;
-    transition: background-color .15s linear,box-shadow .15s linear;
+    transition: background-color .15s linear,box-shadow .15s linear;*/
 }
 
 ul#amounts input[type=text].active {
     background: #5cb85c;
-    box-shadow: inset 0 1px 1px 0 rgba(0,0,0,.3);
+    /* box-shadow: inset 0 1px 1px 0 rgba(0,0,0,.3); */
     color: #fff;
-    border: 1px solid #fff;
+    border: 1px solid #4cae4c;
 }
 
 @media (max-width: 767px) {
@@ -206,7 +212,7 @@ ul#amounts input[type=text].active {
 }
 
 ul#amounts label:hover {
-    box-shadow: inset 0 1px 1px 1px #1297c9,0 1px 1px 1px #083f54;
+    /* box-shadow: inset 0 1px 1px 1px #1297c9,0 1px 1px 1px #083f54; */
     -webkit-transition: background .1s linear;
     -moz-transition: background .1s linear;
     transition: background .1s linear;
@@ -217,10 +223,8 @@ ul#amounts label:hover {
 
 ul#amounts label {
     background: #0078C1;
-    background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0.1,rgba(0,0,0,.1)),color-stop(1,rgba(255,255,255,.2)));
     border: 1px solid #08b;
-    border-radius: 3px;
-    box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 1px 1px #003246;
+    border-radius: 6px;
     backface-visibility: hidden;
     display: block;
     padding: 5px 5px;
@@ -230,15 +234,10 @@ ul#amounts label {
     margin: 1px 0 0 3px;
     cursor: pointer;
     outline: 0;
-    -webkit-transition: background-color .15s linear,box-shadow .15s linear;
-    -moz-transition: background-color .15s linear,box-shadow .15s linear;
-    transition: background-color .15s linear,box-shadow .15s linear;
 }
 
 ul#amounts span.input-group-addon {
     background: #0078C1;
-    background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0.1,rgba(0,0,0,.1)),color-stop(1,rgba(255,255,255,.2)));
-    box-shadow: inset 0 1px 1px 0 rgba(255,255,255,.4),0 1px 0 1px #003246;
     backface-visibility: hidden;
     cursor: pointer;
     font-weight: 700;
@@ -247,25 +246,21 @@ ul#amounts span.input-group-addon {
     color: #fff;
     outline: 0;
     border: 1px solid #08b;
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-    -webkit-transition: background-color .15s linear,box-shadow .15s linear;
-    -moz-transition: background-color .15s linear,box-shadow .15s linear;
-    transition: background-color .15s linear,box-shadow .15s linear;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
 }
 
 ul#amounts span.input-group-addon.active {
     background: #5cb85c;
-    box-shadow: inset 0 1px 1px 0 rgba(0,0,0,.3);
     color: #fff;
-    border: 1px solid #fff;
+    border: 1px solid #4cae4c;
 }
 
 ul#amounts label.active {
     background: #5cb85c;
-    box-shadow: inset 0 1px 2px 1px rgba(0,0,0,.3);
+    /* box-shadow: inset 0 1px 2px 1px rgba(0,0,0,.3); */
     color: #fff;
-    border: 1px solid #fff;
+    border: 1px solid #4cae4c;
 }
 
 button.confirm {
@@ -298,8 +293,9 @@ div#payment-method-item div#directdebit-details {
     padding: 18px 20px 15px 20px;
     font-size: 12px;
     background-color: lightgray;
-    -moz-border-radius:5px;
-    -webkit-border-radius:5px;
+    border-radius: 6px;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
 }
 
 div#payment-method-item div.radio div label {
