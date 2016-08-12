@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * AJAX method
+ */
 function processDonation()
 {
     try {
@@ -29,12 +33,11 @@ function processDonation()
         unset($_POST['payment-directdebit-bankaccount']);
         unset($_POST['payment-directdebit-method']);*/
         
-        // output
+        // Output
         if ($_POST['payment'] == "Stripe") {
             handleStripePayment($_POST);
-        } else if ($_POST['payment'] == "PayPal") {
-            //FIXME
-            //handlePaypalPayment($_POST);
+        } else if ($_POST['payment'] == "Banktransfer") {
+            handleBankTransferPayment($_POST);
         } else if ($_POST['payment'] == "Skrill") {
             //FIXME
             //echo gbs_skrillRedirect($_POST);
@@ -53,6 +56,9 @@ function processDonation()
     }
 }
 
+/**
+ * Process Stripe payment
+ */
 function handleStripePayment($post)
 {
     // Get the credit card details submitted by the form
@@ -84,9 +90,16 @@ function handleStripePayment($post)
             'amount'   => money_format('%i', $amount / 100),
             'type'     => 'stripe',
             'email'    => $email,
+            'purpose'  => isset($post['purpose'])  ? $post['purpose']  : '',
+            'name'     => isset($post['name'])     ? $post['name']     : '',
+            'address1' => isset($post['address1']) ? $post['address1'] : '',
+            'address2' => isset($post['address2']) ? $post['address2'] : '',
+            'zip'      => isset($post['zip'])      ? $post['zip']      : '',
+            'city'     => isset($post['city'])     ? $post['city']     : '',
+            'country'  => isset($post['country'])  ? $post['country']  : '',
         );
 
-        // trigger hook for Zapier
+        // Trigger hook for Zapier
         do_action('eas_log_donation', $donation);
 
         // Send email
@@ -97,6 +110,41 @@ function handleStripePayment($post)
     }
 }
 
+
+/**
+ * Process bank transfer payment (simply log it)
+ */
+function handleBankTransferPayment($post)
+{
+    // Prepare hook
+    $donation = array(
+        'time'     => date('r'),
+        'currency' => $post['currency'],
+        'amount'   => money_format('%i', $post['amount'] / 100),
+        'type'     => 'bank transfer',
+        'email'    => $post['email'],
+        'purpose'  => isset($post['purpose'])  ? $post['purpose']  : '',
+        'name'     => isset($post['name'])     ? $post['name']     : '',
+        'address1' => isset($post['address1']) ? $post['address1'] : '',
+        'address2' => isset($post['address2']) ? $post['address2'] : '',
+        'zip'      => isset($post['zip'])      ? $post['zip']      : '',
+        'city'     => isset($post['city'])     ? $post['city']     : '',
+        'country'  => isset($post['country'])  ? $post['country']  : '',
+    );
+
+    // Trigger hook for Zapier
+    do_action('eas_log_donation', $donation);
+
+    // Send email
+    sendThankYouEmail($email);
+}
+
+
+/**
+ * AJAX method
+ * Returns Paypal pay key for donation and stores
+ * user input in session until user is forwarded back from Paypal
+ */
 function getPaypalPayKey()
 {
     try {
@@ -104,8 +152,7 @@ function getPaypalPayKey()
         $amount    = $_POST['amount'];
         $currency  = $_POST['currency'];
         $returnUrl = admin_url('admin-ajax.php');
-        // Secret reference ID. Needed to prevent replay attack
-        $reqId = uniqid();
+        $reqId = uniqid(); // Secret reference ID. Needed to prevent replay attack
 
         $qsConnector = strpos('?', $returnUrl) ? '&' : '?';
         $content = array(
@@ -182,6 +229,14 @@ function getPaypalPayKey()
         $_SESSION['eas-email']    = $email;
         $_SESSION['eas-currency'] = $currency;
         $_SESSION['eas-amount']   = money_format('%i', $amount);
+        // Optional fields
+        $_SESSION['eas-purpose']  = isset($_POST['purpose'])  ? $_POST['purpose']  : '';
+        $_SESSION['eas-name']     = isset($_POST['name'])     ? $_POST['name']     : '';
+        $_SESSION['eas-address1'] = isset($_POST['address1']) ? $_POST['address1'] : '';
+        $_SESSION['eas-address2'] = isset($_POST['address2']) ? $_POST['address2'] : '';
+        $_SESSION['eas-zip']      = isset($_POST['zip'])      ? $_POST['zip']      : '';
+        $_SESSION['eas-city']     = isset($_POST['city'])     ? $_POST['city']     : '';
+        $_SESSION['eas-country']  = isset($_POST['country'])  ? $_POST['country']  : '';
 
         // Return pay key
         die(json_encode(array(
@@ -196,6 +251,12 @@ function getPaypalPayKey()
     }
 }
 
+/**
+ * AJAX method
+ * User is forwarded here after successful Paypal transaction.
+ * Takes user data from session and sends them to the Google sheet.
+ * Sends thank you email.
+ */
 function processPaypalLog()
 {
     if (isset($_GET['req']) && $_GET['req'] == $_SESSION['eas-req-id']) {
@@ -205,7 +266,14 @@ function processPaypalLog()
             "currency" => $_SESSION['eas-currency'],
             "amount"   => money_format('%i', $_SESSION['eas-amount']),
             "type"     => "paypal",
+            "purpose"  => $_SESSION['eas-purpose'],
             "email"    => $_SESSION['eas-email'],
+            "name"     => $_SESSION['eas-name'],
+            "address1" => $_SESSION['eas-address1'],
+            "address2" => $_SESSION['eas-address2'],
+            "zip"      => $_SESSION['eas-zip'],
+            "city"     => $_SESSION['eas-city'],
+            "country"  => $_SESSION['eas-country'],
         );
 
         // Reset request ID to prevent replay attacks
@@ -219,10 +287,10 @@ function processPaypalLog()
 
         // Add method for showing confirmation
         $qsConnector = strpos('?', $_SERVER['eas-plugin-url']) ? '&' : '?';
-        $script = "if (window == top) { location.href = '" . $_SESSION['eas-plugin-url'] . $qsConnector . "success=true'; } else { parent.showConfirmation(); }";
+        $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.showConfirmation(); close();";
     } else {
         // Add method for unlocking buttons for trying again
-        $script = "if (window == top) { location.href = '" . $_SESSION['eas-plugin-url'] . "'; } else { parent.lockLastStep(false); }";
+        $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.lockLastStep(false); close();";
     }
 
     // Make sure the contents can be displayed inside iFrame
@@ -231,22 +299,20 @@ function processPaypalLog()
     // Die and send script to close flow
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>' . $script . ' parent.embeddedPPFlow.closeFlow(); close();
-         </script><body></html>');
+         <body><script>' . $script . '</script><body></html>');
 }
 
+/**
+ * Email Message
+ */
 function sendThankYouEmail($email)
 {
     $subject = 'Thank you for your gift to EAS!';
 
-    $message = '<strong>Hi there!</strong>';
-    $message .= '<p>';
-    $message .= 'This is an automatically generated email to confirm your donation to the EA Foundation.';
-    $message .= '</p><p>';
-    $message .= 'Thank you so much for supporting our mission!';
-    $message .= '</p><p>';
-    $message .= 'The EA Foundation team';
-    $message .= '</p>';
+    $message = "Hi there!\n\n";
+    $message .= "This is an automatically generated email to confirm your donation to the EA Foundation.\n\n";
+    $message .= "Thank you so much for supporting our mission!\n\n";
+    $message .= "The EA Foundation team\n\n";
 
     wp_mail($email, $subject, $message);
 }

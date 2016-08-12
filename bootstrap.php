@@ -10,6 +10,10 @@ require_once("_functions.php");
 $GLOBALS['contactEmail'] = $contactEmail;
 $GLOBALS['contactName']  = $contactName;
 
+/**
+ * Purposes
+ */
+$GLOBALS['donationPurposes'] = $donationPurposes;
 
 /**
  * Stripe

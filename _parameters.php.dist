@@ -10,6 +10,13 @@ $contactEmail = '';
 $contactName  = '';
 
 /**
+ * Purposes (input value => drop down label)
+ */
+$donationPurposes = array(
+    'Unrestricted' => 'Wo es am dringendsten benötigt wird',
+);
+
+/**
  * Stripe
  * 
  * See your keys here https://dashboard.stripe.com/account/apikeys

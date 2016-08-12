@@ -32,7 +32,7 @@ var stripeHandler = StripeCheckout.configure({
         //var emailInput = jQuery('<input type="hidden" name="stripeEmail" />').val(token.email);
 
         // Show spinner
-        jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>');
+        showSpinnerOnLastButton();
 
         // Send form
         jQuery('form#donationForm').append(tokenInput).ajaxSubmit({
@@ -62,7 +62,7 @@ var stripeHandler = StripeCheckout.configure({
         return false;
     }
 });
-// preload stripe image
+// Preload stripe image
 var stripeImage = new Image();
 stripeImage.src = wordpress_vars.plugin_path + 'images/eas-logo.png';
 
@@ -184,6 +184,9 @@ jQuery(document).ready(function($) {
                 case 'payment-paypal':
                     handlePaypalDonation();
                     break;
+                case 'payment-banktransfer':
+                    handleBankTransferDonation();
+                    break;
                 default:
                     //$('#donationForm').ajaxSubmit();
             }
@@ -269,7 +272,14 @@ jQuery(document).ready(function($) {
         return false;
     });
 
-    // show div with payment details
+    // Donation purpose stuff
+    $('#donation-purpose input[type=radio]').change(function() {
+        $('#selected-purpose').text($(this).parent().contents().filter(function() {
+            return this.nodeType == 3;
+        }).text());
+    });
+
+    // Show div with payment details
     var paymentPanels = $('div#payment-method-item div.radio > div');
     $('div#payment-method-item input[name=payment]').change(function() {
         // slide all panels up
@@ -281,6 +291,18 @@ jQuery(document).ready(function($) {
         paymentPanels.children('div').removeClass('required');
         // ... except the one taht was clicked
         $(this).parent().next().children('div').addClass('required');
+    });
+
+    // Tax reeipt toggle
+    $('input#tax-receipt').change(function() {
+        // Toggle donor form display and required class
+        if ($('div#donor-extra-info').css('display') == 'none') {
+            $('div#donor-extra-info').slideDown();
+            $('div#donor-extra-info div.optionally-required').addClass('required');
+        } else {
+            $('div#donor-extra-info').slideUp();
+            $('div#donor-extra-info div.optionally-required').removeClass('required');
+        }
     });
 }); // End jQuery(document).ready()
 
@@ -352,11 +374,6 @@ function getDonationCurrencyIsoCode()
     //return jQuery('select#currency option:selected', '#wizard').val();
 }
 
-function getDonorEmail()
-{
-    return jQuery('input#donation-email').val();
-}
-
 /**
  * Handle Stripe donation
  */
@@ -367,7 +384,7 @@ function handleStripeDonation()
         description: 'Spende',
         amount: getDonationAmount() * 100,
         currency: getDonationCurrencyIsoCode(),
-        email: getDonorEmail()
+        email: getDonorInfo('email')
     });
 }
 
@@ -377,21 +394,25 @@ function handleStripeDonation()
 function handlePaypalDonation()
 {
     // Show spinner right away
-    jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>');
+    showSpinnerOnLastButton();
 
     // Disable confirm button, email and checkboxes
-    jQuery('#donation-submit').prop('disabled', true);
-    jQuery('input#donation-email').prop('disabled', true);
-    jQuery('#donation-go-back').prop('disabled', true);
-    jQuery('#payment-method-item div.radio input').prop('disabled', true);
+    lockLastStep(true);
 
     try {
         // Get payKey
         jQuery.post(wordpress_vars.ajax_endpoint, {
             action: 'paypal_paykey',
-            email: getDonorEmail(),
+            email: getDonorInfo('email'),
             amount: getDonationAmount(),
-            currency: getDonationCurrencyIsoCode()
+            currency: getDonationCurrencyIsoCode(),
+            purpose: getDonorSelection('purpose'),
+            name: getDonorInfo('name'),
+            address1: getDonorInfo('address-1'),
+            address2: getDonorInfo('address-2'),
+            zip: getDonorInfo('zip'),
+            city: getDonorInfo('city'),
+            country: getDonorInfo('country')
         }).done(function(responseText) {
             // On success
             var response = JSON.parse(responseText);
@@ -408,34 +429,58 @@ function handlePaypalDonation()
             // Should only happen on internal server error
             throw new Error(responseText);
         });
-        // Make paypal form and submit (redirect)
-        /*var qsConnector = location.href.indexOf('?') > -1 ? '&' : '?';
-        var returnUrl   = location.href + qsConnector + 'success=1';
-        var form        = jQuery("<form/>", { action: wordpress_vars.paypal_url, method: 'post', style: 'display: none' });
-        form.append([
-            jQuery("<input>",  { type: 'hidden',  name: 'cmd', value: '_donations' }),
-            jQuery("<input>",  { type: 'hidden',  name: 'business', value: wordpress_vars.paypal_id }),
-            jQuery("<input>",  { type: 'hidden',  name: 'lc', value: 'CH' }),
-            jQuery("<input>",  { type: 'hidden',  name: 'item_name', value: wordpress_vars.contact_name }),
-            jQuery("<input>",  { type: 'hidden',  name: 'currency_code', value: getDonationCurrencyIsoCode() }),
-            jQuery("<input>",  { type: 'hidden',  name: 'amount', value: getDonationAmount() }),
-            jQuery("<input>",  { type: 'hidden',  name: 'email', value: getDonorEmail() }),
-            jQuery("<input>",  { type: 'hidden',  name: 'no_note', value: 1 }),
-            jQuery("<input>",  { type: 'hidden',  name: 'no_shipping', value: 2 }),
-            jQuery("<input>",  { type: 'hidden',  name: 'rm', value: 1 }),
-            jQuery("<input>",  { type: 'hidden',  name: 'return', value: returnUrl })
-        ]).appendTo('body').submit();*/
     } catch (ex) {
         alert(ex.message);
     }
+}
+
+function handleBankTransferDonation()
+{
+    // Show spinner
+    showSpinnerOnLastButton();
+
+    // Send form
+    jQuery('form#donationForm').ajaxSubmit({
+        success: function(responseText, statusText, xhr, form) {
+            try {
+                var response = JSON.parse(responseText);
+                if (!('success' in response) || !response['success']) {
+                    var message = 'error' in response ? response['error'] : responseText;
+                    throw new Error(message);
+                }
+
+                // Everything worked! Display bank account info on confirmation page
+                jQuery('#receiver-bank-details').show();
+
+                // Change glyphicon from "spinner" to "OK" and go to confirmation page
+                showConfirmation();
+            } catch (ex) {
+                // Something went wrong, show on confirmation page
+                alert(ex.message);
+
+                // Enable buttons
+                lockLastStep(false);
+            }
+        }
+    });
+
+    // Disable submit button, back button, and payment options
+    lockLastStep(true);
+}
+
+function showSpinnerOnLastButton()
+{
+    jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>');
 }
 
 function lockLastStep(locked)
 {
     jQuery('#donation-submit').prop('disabled', locked);
     jQuery('#donation-go-back').prop('disabled', locked);
-    jQuery('input#donation-email').prop('disabled', locked);
-    jQuery('#payment-method-item div.radio input').prop('disabled', locked);
+    jQuery('div.donor-info input', '#payment-method-item').prop('disabled', locked);
+    jQuery('div.donor-info button', '#payment-method-item').prop('disabled', locked);
+    jQuery('div.radio input', '#payment-method-item').prop('disabled', locked);
+    jQuery('div.checkbox input', '#payment-method-item').prop('disabled', locked);
 
     if (!locked) {
         // Restore submit button
@@ -486,7 +531,15 @@ function carouselPrev()
     listItems.eq(currentItem).addClass("active");
 }
 
+function getDonorInfo(name)
+{
+    return jQuery('input#donor-' + name).val();
+}
 
+function getDonorSelection(name)
+{
+    return jQuery('input[name=' + name + ']:checked').val();
+}
 
 
 

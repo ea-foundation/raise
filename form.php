@@ -130,7 +130,7 @@ function donationForm($atts)
                     <a href="#"><span>Mehr</span></a>
                 </label>
             </div> -->
-            <div class="required">
+            <div class="form-group required payment-info">
                 <div class="radio">
                     <label for="payment-creditcard">
                         <input type="radio" class="radio" name="payment" value="Stripe" tabindex="18" id="payment-creditcard" checked="checked">
@@ -147,11 +147,11 @@ function donationForm($atts)
                     <!-- <label for="payment-skrill">
                         <input type="radio" class="radio" name="payment" value="Skrill" tabindex="21" id="payment-skrill">
                         <img src="<?= plugins_url('images/skrill.png', __FILE__) ?>" alt="Skrill" width="38" height="23">
-                    </label>
+                    </label> -->
 
                     <label for="payment-banktransfer">
                         <input type="radio" class="radio" name="payment" value="Banktransfer" tabindex="20" id="payment-banktransfer"> Banküberweisung
-                    </label> -->
+                    </label>
                 </div>
                 <!-- <div class="radio">
                     <label for="payment-directdebit">
@@ -187,12 +187,87 @@ function donationForm($atts)
                 </li> -->
             </div>
 
-            <div class="form-group required donor-info">
-                <label for="email" class="col-sm-2 control-label">E-Mail</label>
+            <div class="form-group donor-info" id="donation-purpose">
+                <label for="donor-email" class="col-sm-3 control-label">Verwendungszweck</label>
                 <div class="col-sm-9">
-                    <input type="email" class="form-control text" name="email" id="donation-email" placeholder="E-Mail Adresse">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span id="selected-purpose">Wo es am dringendsten benötigt wird</span>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <?php
+                            $checked = 'checked';
+                            foreach ($GLOBALS['donationPurposes'] as $value => $label) {
+                                echo '<li><label for="purpose-' . strtolower($value) . '"><input type="radio" id="purpose-' . strtolower($value) . '" name="purpose" value="' . $value . '" class="hidden" '  . $checked . '>' . htmlspecialchars($label) . '</label></li>';
+                                $checked = '';
+                            }
+                        ?>
+                    </ul>
                 </div>
             </div>
+
+            <div class="form-group required donor-info">
+                <label for="donor-email" class="col-sm-3 control-label">E-Mail</label>
+                <div class="col-sm-9">
+                    <input type="email" class="form-control text" name="email" id="donor-email" placeholder="E-Mail Adresse">
+                </div>
+            </div>
+
+            <div class="form-group donor-info">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="tax-receipt" value="1"> Ich möchte einen Steuerbeleg für Deutschland oder die Schweiz.
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donor extra info start -->
+            <div id="donor-extra-info">
+                <div class="form-group donor-info optionally-required">
+                    <label for="donor-name" class="col-sm-3 control-label">Name</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control text" name="name" id="donor-name" placeholder="Monika Mustermann">
+                    </div>
+                </div>
+
+                <div class="form-group donor-info optionally-required">
+                    <label for="donor-address-1" class="col-sm-3 control-label">Adresse (Zeile 1)</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control text" name="address1" id="donor-address-1" placeholder="Kantstraße 71">
+                    </div>
+                </div>
+
+                <div class="form-group donor-info">
+                    <label for="donor-address-2" class="col-sm-3 control-label">Adresse (Zeile 2)</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control text" name="address2" id="donor-address-2" placeholder="">
+                    </div>
+                </div>
+
+                <div class="form-group donor-info optionally-required">
+                    <label for="donor-zip" class="col-sm-3 control-label">Postleitzahl</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control text" name="zip" id="donor-zip" placeholder="10627">
+                    </div>
+                </div>
+
+                <div class="form-group donor-info optionally-required">
+                    <label for="donor-city" class="col-sm-3 control-label">Ort</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control text" name="city" id="donor-city" placeholder="Berlin">
+                    </div>
+                </div>
+
+                <div class="form-group donor-info optionally-required">
+                    <label for="donor-country" class="col-sm-3 control-label">Land</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control text" name="country" id="donor-country" placeholder="Deutschland">
+                    </div>
+                </div>
+            </div>
+            <!-- Donor extra info end -->
 
             <div class="buttons row">
                 <div class="col-sm-6 col-sm-push-3">
@@ -209,15 +284,46 @@ function donationForm($atts)
 
         <!-- Confirmation -->
         <div class="item<?= $confirmationCssClass ?>" id="donation-confirmation">
-            <div class="alert alert-success">
-                <div class="response-icon float-left">
+            <div class="alert alert-success flexible">
+                <div class="response-icon noflex">
                     <img src="<?= plugins_url('images/success.png', __FILE__) ?>" alt="Success" width="18" height="18">
                 </div>
                 <div class"response-text">
-                    <strong>Herzlichen Dank!</strong> Wir haben Ihre Spende erhalten.
+                    <strong>Herzlichen Dank für Ihre Spende!</strong>
                 </div>
             </div>
-            <p class="alert alert-danger hidden"></p>
+            <div id="receiver-bank-details" style="display: none">
+                <h2>Überweisungen aus Deutschland</h2>
+                <div>
+                    <p>
+                        <strong>IBAN:</strong> DE40 5605 1790 0002 2222 22<br />
+                        <strong>BIC/SWIFT:</strong> MALADE51SIM<br />
+                        <strong>Konto-Nr:</strong> 2 222 222<br />
+                        <strong>BLZ:</strong> 560 517 90<br />
+                        <strong>Bank:</strong> Kreissparkasse Rhein-Hunsrück, Vor dem Tor 1, DE-55469 Simmern<br />
+                        <strong>Empfänger:</strong> Giordano-Bruno-Stiftung, Auf Fasel 16, DE-55430 Oberwesel<br />
+                        <strong>Vermerk:</strong> GBS Schweiz
+                    </p>
+                    <p>Die in Deutschland ansässige Giordano-Bruno-Stiftung (gbs) nimmt Spenden aus Deutschland ab EUR 100.- für Sentience Politics entgegen und leitet sie direkt weiter in die Schweiz. Spenden an die gbs können in Deutschland bei der Steuererklärung geltend gemacht werden.</p>
+                    <p>Die Spendenbescheinigung wird von gbs in Deutschland ausgestellt und per Briefpost versandt. Bitte geben Sie in den Überweisungsdetails Ihre Postanschrift an.</p>
+                    <p>Nehmen Sie bei Fragen gerne mit uns <a href="/kontakt">Kontakt</a> auf.
+                </div>
+                <h2>Überweisungen aus der Schweiz und aus anderen Ländern</h2>
+                <div>
+                    <p>
+                        <strong>Begünstigter:</strong> Effective Altruism Foundation, Efringerstrasse 25, CH-4057 Basel, Switzerland<br />
+                        <strong>IBAN CHF:</strong> CH67 0023 3233 1775 4501 N<br />
+                        <strong>IBAN EUR:</strong> CH20 0023 3233 1775 4560 D<br />
+                        <strong>IBAN USD:</strong> CH79 0023 3233 1775 4561 F<br />
+                        <strong>IBAN GBP:</strong> CH08 0023 3233 1775 4562 T<br />
+                        <strong>BIC/SWIFT:</strong> UBSWCHZH80A<br />
+                        <strong>Bank:</strong> UBS Switzerland AG, Aeschenvorstadt 1, CH-4051 Basel, Switzerland
+                    </p>
+                    <p>Die Stiftung für Effektiven Altruismus ist im Kanton Basel-Stadt und somit schweizweit als allgemeinnützige Organisation anerkannt. Spenden an die EAS können gemäß den kantonalen Regelungen bei den Steuererklärung geltend gemacht werden.</p>
+                    <p>Sie erhalten Ihre Steuerbescheinigung per E-Mail. Falls sie eine postalische Bestätigung benötigen, teilen Sie uns dies und Ihre Anschrift bitte anhand des untenstehenden Formulars mit.</p>
+                    <p>Nehmen Sie bitte <a href="/kontakt">Kontakt</a> mit uns auf, falls Sie steuerbefreit aus anderen Ländern an die EAS spenden möchten.
+                </div>
+            </div>
         </div>
 
       </div>

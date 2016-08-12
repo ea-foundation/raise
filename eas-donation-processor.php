@@ -62,15 +62,15 @@ function eas_webhooks($hookpress_actions) {
 }
 
 // Email stuff
-add_filter('wp_mail_from', 'custom_wp_mail_from');
-function custom_wp_mail_from( $original_email_address ) {
+add_filter('wp_mail_from', function($original_email_address) {
     return $GLOBALS['contactEmail'];
-}
-add_filter('wp_mail_from_name', 'custom_wp_mail_from_name');
-function custom_wp_mail_from_name($original_email_from) {
+}, 1);
+add_filter('wp_mail_from_name', function($original_email_from) {
     return $GLOBALS['contactName'];
-}
-add_filter('wp_mail_content_type', create_function( '', 'return "text/html";' ));
+}, 1);
+/*add_filter('wp_mail_content_type', function($original_content_type) {
+    return 'text/html';
+}, 1);*/
 
 // Add short code for donation form
 add_shortcode('donationForm','donationForm');
