@@ -214,6 +214,7 @@ jQuery(document).ready(function($) {
         $(this).attr('placeholder', '');
         $(this).addClass("active").parent().addClass('required');
         $(this).siblings('span.input-group-addon').addClass('active');
+        $(this).siblings('label').addClass('active');
         enableConfirmButton(0);
     }).blur(function() {
         var placeholder = placeholders['DE'];
@@ -233,6 +234,10 @@ jQuery(document).ready(function($) {
             return false;
         }
 
+        // Check if element has already been selected
+        var firstSelection = $('ul#amounts label.active').length == 0;
+
+        // Remove active css class from all items
         $('ul#amounts label').removeClass("active");
 
         var otherInput = $('input#amount-other');
@@ -244,21 +249,30 @@ jQuery(document).ready(function($) {
             .parent().removeClass("required")
             .parent().removeClass('has-error')
         $(this).addClass("active");
-        enableConfirmButton(0);
-        //$('button.confirm:first').click();
+
+        // Automatically go to next slide
+        if (firstSelection) {
+            enableConfirmButton(0);
+            $('button.confirm:first').click();
+        }
     });
 
     // currency stuff
-    $('#donation-currency ul li a').click(function() {
+    $('#donation-currency ul label').click(function() {
+        var currencyCode = $(this).find('input').val();
+
         // Remove old currency
         $('.cur', '#wizard').text('');
         
         // Update and close dropdown
-        $('#selected-currency').html($(this).html());
+        $('#selected-currency-flag')
+            .removeClass()
+            .addClass($(this).find('img').prop('class'))
+            .prop('alt', $(this).find('img').prop('alt'));
+        $('#selected-currency').text(currencyCode);
         $(this).parent().parent().parent().removeClass('open');
 
         // Set new currency on buttons and on custom input field
-        var currencyCode   = $(this).find('img').attr('alt');
         var currencyString = currencies[currencyCode];
         $('ul#amounts>li>label').text(
             function(i, val) {
@@ -266,10 +280,6 @@ jQuery(document).ready(function($) {
             }
         );
         $('span.input-group-addon').text($.trim(currencyString.replace('%amount%', '')));
-
-        // Set curreny code to hidden form field
-        $('input#donationCurrency').attr('value', $.trim($(this).text()));
-        return false;
     });
 
     // Donation purpose stuff
@@ -293,7 +303,7 @@ jQuery(document).ready(function($) {
         $(this).parent().next().children('div').addClass('required');
     });
 
-    // Tax reeipt toggle
+    // Tax receipt toggle
     $('input#tax-receipt').change(function() {
         // Toggle donor form display and required class
         if ($('div#donor-extra-info').css('display') == 'none') {
@@ -338,12 +348,6 @@ function showLastItem(currentItem)
 
     // Go to next slide
     carouselNext();
-    
-    // Update status bar
-    //jQuery("#status li").removeClass("active").eq(currentItem).addClass("active");
-
-    // Show next slide
-    //jQuery('#donation-carousel').carousel('next');
 }
 
 function getDonationAmount()
@@ -362,16 +366,9 @@ function getDonationAmount()
     }
 }
 
-function getDonationCurrencySymbol()
-{
-    return jQuery('#selected-currency > img').attr('alt');
-    //return jQuery('select#currency option:selected', '#wizard').text();
-}
-
 function getDonationCurrencyIsoCode()
 {
-    return jQuery('input[name=currency]').attr('value');
-    //return jQuery('select#currency option:selected', '#wizard').val();
+    return jQuery('input[name=currency]:checked').val();
 }
 
 /**
@@ -409,7 +406,6 @@ function handlePaypalDonation()
             purpose: getDonorSelection('purpose'),
             name: getDonorInfo('name'),
             address1: getDonorInfo('address-1'),
-            address2: getDonorInfo('address-2'),
             zip: getDonorInfo('zip'),
             city: getDonorInfo('city'),
             country: getDonorInfo('country')

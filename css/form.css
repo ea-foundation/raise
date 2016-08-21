@@ -85,7 +85,7 @@
 }
 
 #status li {
-    font-size: 70%;
+    font-size: 90%;
     list-style-type: none;
     list-style-image: none;
     float: left;
@@ -334,7 +334,6 @@ div.float-left {
     margin-bottom: 0;
 }
 
-#wizard .dropdown-menu>li>a,
 #wizard .dropdown-menu>li>label {
     text-decoration: none;
     padding: 8px 13px;
@@ -342,6 +341,11 @@ div.float-left {
     font-weight: normal;
     width: 100%;
     cursor: pointer;
+    margin-bottom: 0;
+}
+
+#wizard .dropdown-menu>li>label img {
+    margin-right: 5px;
 }
 
 #donation-currency div {
@@ -363,6 +367,10 @@ div.payment-info {
     padding: 8px 0 15px 33px;
 }
 
+div.payment-info img {
+    margin-top: -2px;
+}
+
 div.donor-info {
     padding-left: 15px;
     padding-right: 15px;
@@ -377,7 +385,7 @@ div#donation-confirmation div.response-text {
 }
 
 div#payment-method-item input[type=radio] {
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 div#payment-method-item span.form-control-feedback {

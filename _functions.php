@@ -93,7 +93,6 @@ function handleStripePayment($post)
             'purpose'  => isset($post['purpose'])  ? $post['purpose']  : '',
             'name'     => isset($post['name'])     ? $post['name']     : '',
             'address1' => isset($post['address1']) ? $post['address1'] : '',
-            'address2' => isset($post['address2']) ? $post['address2'] : '',
             'zip'      => isset($post['zip'])      ? $post['zip']      : '',
             'city'     => isset($post['city'])     ? $post['city']     : '',
             'country'  => isset($post['country'])  ? $post['country']  : '',
@@ -126,7 +125,6 @@ function handleBankTransferPayment($post)
         'purpose'  => isset($post['purpose'])  ? $post['purpose']  : '',
         'name'     => isset($post['name'])     ? $post['name']     : '',
         'address1' => isset($post['address1']) ? $post['address1'] : '',
-        'address2' => isset($post['address2']) ? $post['address2'] : '',
         'zip'      => isset($post['zip'])      ? $post['zip']      : '',
         'city'     => isset($post['city'])     ? $post['city']     : '',
         'country'  => isset($post['country'])  ? $post['country']  : '',
@@ -233,7 +231,6 @@ function getPaypalPayKey()
         $_SESSION['eas-purpose']  = isset($_POST['purpose'])  ? $_POST['purpose']  : '';
         $_SESSION['eas-name']     = isset($_POST['name'])     ? $_POST['name']     : '';
         $_SESSION['eas-address1'] = isset($_POST['address1']) ? $_POST['address1'] : '';
-        $_SESSION['eas-address2'] = isset($_POST['address2']) ? $_POST['address2'] : '';
         $_SESSION['eas-zip']      = isset($_POST['zip'])      ? $_POST['zip']      : '';
         $_SESSION['eas-city']     = isset($_POST['city'])     ? $_POST['city']     : '';
         $_SESSION['eas-country']  = isset($_POST['country'])  ? $_POST['country']  : '';
@@ -270,7 +267,6 @@ function processPaypalLog()
             "email"    => $_SESSION['eas-email'],
             "name"     => $_SESSION['eas-name'],
             "address1" => $_SESSION['eas-address1'],
-            "address2" => $_SESSION['eas-address2'],
             "zip"      => $_SESSION['eas-zip'],
             "city"     => $_SESSION['eas-city'],
             "country"  => $_SESSION['eas-country'],

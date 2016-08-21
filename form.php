@@ -45,17 +45,17 @@ function donationForm($atts)
                   <div class="col-xs-12" id="donation-currency">
                       <div class="btn-group">
                           <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                              <span id="selected-currency"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-eu" alt="€" /> EUR</a></span>
+                              <img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" id="selected-currency-flag" class="flag flag-eu" alt="EUR">
+                              <span id="selected-currency">EUR</span>
                               <span class="caret"></span>
                           </button>
                           <ul class="dropdown-menu">
-                              <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-eu" alt="EUR" /> EUR</a></li>
-                              <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-ch" alt="CHF" /> CHF</a></li>
-                              <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-gb" alt="GBP" /> GBP</a></li>
-                              <li><a href="#"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-us" alt="USD" /> USD</a></li>
+                              <li><label for="currency-eur"><input type="radio" id="currency-eur" name="currency" value="EUR" class="hidden" checked><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-eu" alt="EUR">EUR</label></li>
+                              <li><label for="currency-chf"><input type="radio" id="currency-chf" name="currency" value="CHF" class="hidden"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-ch" alt="CHF">CHF</label></li>
+                              <li><label for="currency-gbp"><input type="radio" id="currency-gbp" name="currency" value="GBP" class="hidden"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-gb" alt="GBP">GBP</label></li>
+                              <li><label for="currency-usd"><input type="radio" id="currency-usd" name="currency" value="USD" class="hidden"><img src="<?= plugins_url('images/blank.gif', __FILE__) ?>" class="flag flag-us" alt="USD">USD</label></li>
                           </ul>
                       </div>
-                      <input type="hidden" name="currency" id="donationCurrency" value="EUR">
                   </div>
               </div>
               <div class="row">
@@ -233,16 +233,9 @@ function donationForm($atts)
                 </div>
 
                 <div class="form-group donor-info optionally-required">
-                    <label for="donor-address-1" class="col-sm-3 control-label">Adresse (Zeile 1)</label>
+                    <label for="donor-address-1" class="col-sm-3 control-label">Adresse</label>
                     <div class="col-sm-9">
                         <input type="text" class="form-control text" name="address1" id="donor-address-1" placeholder="Kantstraße 71">
-                    </div>
-                </div>
-
-                <div class="form-group donor-info">
-                    <label for="donor-address-2" class="col-sm-3 control-label">Adresse (Zeile 2)</label>
-                    <div class="col-sm-9">
-                        <input type="text" class="form-control text" name="address2" id="donor-address-2" placeholder="">
                     </div>
                 </div>
 
