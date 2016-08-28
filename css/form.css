@@ -364,7 +364,7 @@ div.float-left {
 }
 
 div.payment-info {
-    padding: 8px 0 15px 33px;
+    padding: 8px 0 10px 33px;
 }
 
 div.payment-info img {
@@ -419,6 +419,23 @@ div.noflex {
 
 div#donor-extra-info {
     display: none;
+}
+
+div#secure-transaction p {
+    position: relative;
+    top: 0;
+    left: 0px;
+    margin-top: 12px;
+    color: #b2b2b2;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+@media (max-width: 767px) {
+    div#secure-transaction p {
+        right: 0px;
+        text-align: right;
+    }
 }
 
 div#amount-item .form-control::-webkit-input-placeholder { color: white; font-weight: 100 }

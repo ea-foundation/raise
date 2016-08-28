@@ -75,19 +75,25 @@ add_filter('wp_mail_from_name', function($original_email_from) {
 // Add short code for donation form
 add_shortcode('donationForm','donationForm');
 
+// Add translations
+add_action('plugins_loaded', 'eas_load_textdomain');
+function eas_load_textdomain() {
+    load_plugin_textdomain('eas-donation-processor', false, dirname(plugin_basename(__FILE__)) . '/lang/');
+}
+
 /*
  * Additional Styles 
  */
 function register_donation_styles() {
-    wp_register_style( 'bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
-    wp_enqueue_style( 'bootstrap' );
-    wp_register_style( 'donation-plugin-css', plugins_url( 'eas-donation-processor/css/form.css' ) );
-    wp_enqueue_style( 'donation-plugin-css' );
-    wp_register_style( 'donation-plugin-flags', plugins_url( 'eas-donation-processor/css/flags.css' ) );
-    wp_enqueue_style( 'donation-plugin-flags' );
+    wp_register_style('bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
+    wp_enqueue_style('bootstrap');
+    wp_register_style('donation-plugin-css', plugins_url('eas-donation-processor/css/form.css' ));
+    wp_enqueue_style('donation-plugin-css');
+    wp_register_style('donation-plugin-flags', plugins_url('eas-donation-processor/css/flags.css'));
+    wp_enqueue_style('donation-plugin-flags');
 }
 
-add_action( 'wp_enqueue_scripts', 'register_donation_styles' );
+add_action('wp_enqueue_scripts', 'register_donation_styles');
 
 
 /*
@@ -95,25 +101,26 @@ add_action( 'wp_enqueue_scripts', 'register_donation_styles' );
  */
 function register_donation_scripts()
 {
-    wp_register_script( 'donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array('jquery') );
-    wp_enqueue_script( 'donation-plugin-bootstrapjs' );
-    wp_register_script( 'donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery') );
-    wp_enqueue_script( 'donation-plugin-jqueryformjs' );
-    wp_register_script( 'donation-plugin-stripe', '//checkout.stripe.com/checkout.js' );
-    wp_enqueue_script( 'donation-plugin-stripe' );
-    wp_register_script( 'donation-plugin-paypal', '//www.paypalobjects.com/js/external/dg.js' );
-    wp_enqueue_script( 'donation-plugin-paypal' );
-    wp_register_script( 'donation-plugin-form', plugins_url( 'eas-donation-processor/js/form.js' ), array('jquery', 'donation-plugin-stripe') );
-    wp_localize_script( 'donation-plugin-form', 'wordpress_vars', array(
-        'plugin_path'       => plugin_dir_url(__FILE__),
-        'ajax_endpoint'     => admin_url('admin-ajax.php'),
-        'stripe_public_key' => $GLOBALS['stripePublicKey'],
-        'contact_name'      => $GLOBALS['contactName'],
+    wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array('jquery'));
+    wp_enqueue_script('donation-plugin-bootstrapjs');
+    wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
+    wp_enqueue_script('donation-plugin-jqueryformjs');
+    wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
+    wp_enqueue_script('donation-plugin-stripe');
+    wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/js/external/dg.js');
+    wp_enqueue_script('donation-plugin-paypal');
+    wp_register_script('donation-plugin-form', plugins_url( 'eas-donation-processor/js/form.js' ), array('jquery', 'donation-plugin-stripe'));
+    wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
+        'plugin_path'        => plugin_dir_url(__FILE__),
+        'ajax_endpoint'      => admin_url('admin-ajax.php'),
+        'stripe_public_key'  => $GLOBALS['stripePublicKey'],
+        'contact_name'       => $GLOBALS['contactName'],
+        'donate_button_text' =>  __("Donate %currency-amount%", 'eas-donation-processor'),
     ));
-    wp_enqueue_script( 'donation-plugin-form' );
+    wp_enqueue_script('donation-plugin-form');
 }
 
-add_action( 'wp_enqueue_scripts', 'register_donation_scripts' );
+add_action('wp_enqueue_scripts', 'register_donation_scripts');
 
 
 

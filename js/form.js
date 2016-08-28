@@ -1,20 +1,16 @@
 /**
   * Settings
   */
-var prefixCurrencySymbols = ['$', '£', 'CHF'];
 var currencies = {
     "EUR": "%amount% €",
     "CHF": "CHF %amount%",
     "GBP": "£%amount%",
     "USD": "$%amount%"
 };
-var placeholders = {
-    "DE": "Anderer Betrag"
-}
-var buttonFinalText   = '%currency-amount% spenden »';
-var buttonConfirmText = 'Bestätigen »';
-var totalItems  = 0;
+var buttonFinalText = wordpress_vars.donate_button_text + ' »';
+var totalItems = 0;
 var slideTransitionInAction = false;
+var otherAmountPlaceholder = null;
 
 /**
   * Stripe setup
@@ -211,14 +207,16 @@ jQuery(document).ready(function($) {
         }
         $('ul#amounts label').removeClass("active");
         $('ul#amounts input:radio').prop('checked', false);
+        if (otherAmountPlaceholder == null) {
+            otherAmountPlaceholder = $(this).attr('placeholder');
+        }
         $(this).attr('placeholder', '');
         $(this).addClass("active").parent().addClass('required');
         $(this).siblings('span.input-group-addon').addClass('active');
         $(this).siblings('label').addClass('active');
         enableConfirmButton(0);
     }).blur(function() {
-        var placeholder = placeholders['DE'];
-        $(this).attr('placeholder', placeholder);
+        $(this).attr('placeholder', otherAmountPlaceholder);
     }).siblings('span.input-group-addon').click(function() {
         $(this).siblings('input').focus();
     });

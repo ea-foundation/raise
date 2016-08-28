@@ -13,7 +13,7 @@ $contactName  = '';
  * Purposes (input value => drop down label)
  */
 $donationPurposes = array(
-    'Unrestricted' => 'Wo es am dringendsten benötigt wird',
+    'Unrestricted' => 'Where it is most needed',
 );
 
 /**

@@ -24,9 +24,9 @@ function donationForm($atts)
     <!-- Status bar -->
     <div id="status" class="row">
         <ol>
-            <li class="col-xs-4<?= $checkoutCssClass ?>"><span>1</span> Betrag</li>
-            <li class="col-xs-4"><span>2</span> Zahlung</li>
-            <li class="col-xs-4<?= $confirmationCssClass ?>"><span>3</span> Bestätigung</li>
+            <li class="col-xs-4<?= $checkoutCssClass ?>"><span>1</span> <?php _e('Amount', 'eas-donation-processor') ?></li>
+            <li class="col-xs-4"><span>2</span> <?php _e('Payment', 'eas-donation-processor') ?></li>
+            <li class="col-xs-4<?= $confirmationCssClass ?>"><span>3</span> <?php _e('Finish', 'eas-donation-processor') ?></li>
         </ol>
     </div>
  
@@ -39,7 +39,7 @@ function donationForm($atts)
           <!-- Amount -->
           <div class="item<?= $checkoutCssClass ?>" id="amount-item">
               <div class="sr-only">
-                  <h3>Meine Spende</h3>
+                  <h3><?php _e('My Donation', 'eas-donation-processor') ?></h3>
               </div>
               <div class="row">
                   <div class="col-xs-12" id="donation-currency">
@@ -98,16 +98,22 @@ function donationForm($atts)
                     <li class="col-xs-8">
                         <div class="input-group">
                             <span class="input-group-addon">€</span>
-                            <input type="text" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="Anderer Betrag" tabindex="8">
-                            <label for="amount-other" class="sr-only">Anderer Betrag</label>
+                            <input type="text" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'eas-donation-processor') ?>" tabindex="8">
+                            <label for="amount-other" class="sr-only"><?php _e('Other', 'eas-donation-processor') ?></label>
                         </div>
                     </li>
                   </ul>
               </div>
               <div class="buttons row">
                   <div class="col-sm-4 col-sm-offset-4">
-                      <button type="button" class="btn btn-success btn-lg confirm" disabled="disabled">Bestätigen »</button>
+                      <button type="button" class="btn btn-success btn-lg confirm" disabled="disabled"><?php _e('Next', 'eas-donation-processor') ?> »</button>
                   </div>
+                  <!-- <div class="col-sm-4" id="secure-transaction">
+                      <p>
+                          <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+                          <?php _e('Secure', 'eas-donation-processor') ?>
+                      </p>
+                  </div> -->
               </div>
           </div>
 
@@ -121,7 +127,7 @@ function donationForm($atts)
         <!-- Payment -->
         <div class="item" id="payment-method-item">
             <div class="sr-only">
-              <h3>Wählen Sie eine Zahlungsart</h3>
+              <h3><?php _e('Choose a payment method', 'eas-donation-processor') ?></h3>
             </div>
             <!--
             <div class="checkbox alert alert-info">
@@ -150,7 +156,7 @@ function donationForm($atts)
                     </label> -->
 
                     <label for="payment-banktransfer">
-                        <input type="radio" class="radio" name="payment" value="Banktransfer" tabindex="20" id="payment-banktransfer"> Banküberweisung
+                        <input type="radio" class="radio" name="payment" value="Banktransfer" tabindex="20" id="payment-banktransfer"> <?php _e('Bank transfer', 'eas-donation-processor') ?>
                     </label>
                 </div>
                 <!-- <div class="radio">
@@ -188,17 +194,17 @@ function donationForm($atts)
             </div>
 
             <div class="form-group donor-info" id="donation-purpose">
-                <label for="donor-email" class="col-sm-3 control-label">Verwendungszweck</label>
+                <label for="donor-email" class="col-sm-3 control-label"><?php _e('Purpose', 'eas-donation-processor') ?></label>
                 <div class="col-sm-9">
                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span id="selected-purpose">Wo es am dringendsten benötigt wird</span>
+                        <span id="selected-purpose"><?php _e('Where it is most needed', 'eas-donation-processor') ?></span>
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu">
                         <?php
                             $checked = 'checked';
                             foreach ($GLOBALS['donationPurposes'] as $value => $label) {
-                                echo '<li><label for="purpose-' . strtolower($value) . '"><input type="radio" id="purpose-' . strtolower($value) . '" name="purpose" value="' . $value . '" class="hidden" '  . $checked . '>' . htmlspecialchars($label) . '</label></li>';
+                                echo '<li><label for="purpose-' . strtolower($value) . '"><input type="radio" id="purpose-' . strtolower($value) . '" name="purpose" value="' . $value . '" class="hidden" '  . $checked . '>' . __(htmlspecialchars($label), 'eas-donation-processor') . '</label></li>';
                                 $checked = '';
                             }
                         ?>
@@ -207,9 +213,9 @@ function donationForm($atts)
             </div>
 
             <div class="form-group required donor-info">
-                <label for="donor-email" class="col-sm-3 control-label">E-Mail</label>
+                <label for="donor-email" class="col-sm-3 control-label"><?php _e('Email', 'eas-donation-processor') ?></label>
                 <div class="col-sm-9">
-                    <input type="email" class="form-control text" name="email" id="donor-email" placeholder="E-Mail Adresse">
+                    <input type="email" class="form-control text" name="email" id="donor-email" placeholder="<?php _e('Email address', 'eas-donation-processor') ?>">
                 </div>
             </div>
 
@@ -217,7 +223,7 @@ function donationForm($atts)
                 <div class="col-sm-offset-3 col-sm-9">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="tax-receipt" value="1"> Ich möchte einen Steuerbeleg für Deutschland oder die Schweiz.
+                            <input type="checkbox" id="tax-receipt" value="1"> <?php _e('I need a tax receipt for Germany or Switzerland.', 'eas-donation-processor') ?>
                         </label>
                     </div>
                 </div>
@@ -226,35 +232,35 @@ function donationForm($atts)
             <!-- Donor extra info start -->
             <div id="donor-extra-info">
                 <div class="form-group donor-info optionally-required">
-                    <label for="donor-name" class="col-sm-3 control-label">Name</label>
+                    <label for="donor-name" class="col-sm-3 control-label"><?php _e('Name', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
                         <input type="text" class="form-control text" name="name" id="donor-name" placeholder="Monika Mustermann">
                     </div>
                 </div>
 
                 <div class="form-group donor-info optionally-required">
-                    <label for="donor-address-1" class="col-sm-3 control-label">Adresse</label>
+                    <label for="donor-address-1" class="col-sm-3 control-label"><?php _e('Address', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
                         <input type="text" class="form-control text" name="address1" id="donor-address-1" placeholder="Kantstraße 71">
                     </div>
                 </div>
 
                 <div class="form-group donor-info optionally-required">
-                    <label for="donor-zip" class="col-sm-3 control-label">Postleitzahl</label>
+                    <label for="donor-zip" class="col-sm-3 control-label"><?php _e('Zip code', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
                         <input type="text" class="form-control text" name="zip" id="donor-zip" placeholder="10627">
                     </div>
                 </div>
 
                 <div class="form-group donor-info optionally-required">
-                    <label for="donor-city" class="col-sm-3 control-label">Ort</label>
+                    <label for="donor-city" class="col-sm-3 control-label"><?php _e('City', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
                         <input type="text" class="form-control text" name="city" id="donor-city" placeholder="Berlin">
                     </div>
                 </div>
 
                 <div class="form-group donor-info optionally-required">
-                    <label for="donor-country" class="col-sm-3 control-label">Land</label>
+                    <label for="donor-country" class="col-sm-3 control-label"><?php _e('Country', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
                         <input type="text" class="form-control text" name="country" id="donor-country" placeholder="Deutschland">
                     </div>
@@ -264,10 +270,16 @@ function donationForm($atts)
 
             <div class="buttons row">
                 <div class="col-sm-6 col-sm-push-3">
-                    <button type="submit" class="btn btn-success btn-lg confirm" id="donation-submit">Bestätigen »</button>
+                    <button type="submit" class="btn btn-success btn-lg confirm" id="donation-submit"><?php _e('Next', 'eas-donation-processor') ?> »</button>
                 </div>
-                <div class="col-sm-3 col-sm-pull-6">
-                    <button type="button" class="btn btn-link unconfirm" id="donation-go-back">« Zurück</button>
+                <div class="col-xs-6 col-sm-3 col-sm-pull-6">
+                    <button type="button" class="btn btn-link unconfirm" id="donation-go-back">« <?php _e('Back', 'eas-donation-processor') ?></button>
+                </div>
+                <div class="col-xs-6 col-sm-3" id="secure-transaction">
+                    <p>
+                        <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+                        <?php _e('Secure', 'eas-donation-processor') ?>
+                    </p>
                 </div>
             </div>
         </div>
@@ -278,43 +290,54 @@ function donationForm($atts)
         <!-- Confirmation -->
         <div class="item<?= $confirmationCssClass ?>" id="donation-confirmation">
             <div class="alert alert-success flexible">
-                <div class="response-icon noflex">
+                <!-- <div class="response-icon noflex">
                     <img src="<?= plugins_url('images/success.png', __FILE__) ?>" alt="Success" width="18" height="18">
-                </div>
+                </div> -->
                 <div class"response-text">
-                    <strong>Herzlichen Dank für Ihre Spende!</strong>
+                    <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
+                    <strong><?php _e('Thank you so much for your donation!', 'eas-donation-processor') ?></strong>
                 </div>
             </div>
             <div id="receiver-bank-details" style="display: none">
-                <h2>Überweisungen aus Deutschland</h2>
+                <h2><?php _e('Transfers from Germany', 'eas-donation-processor') ?></h2>
                 <div>
                     <p>
                         <strong>IBAN:</strong> DE40 5605 1790 0002 2222 22<br />
                         <strong>BIC/SWIFT:</strong> MALADE51SIM<br />
-                        <strong>Konto-Nr:</strong> 2 222 222<br />
-                        <strong>BLZ:</strong> 560 517 90<br />
-                        <strong>Bank:</strong> Kreissparkasse Rhein-Hunsrück, Vor dem Tor 1, DE-55469 Simmern<br />
-                        <strong>Empfänger:</strong> Giordano-Bruno-Stiftung, Auf Fasel 16, DE-55430 Oberwesel<br />
-                        <strong>Vermerk:</strong> GBS Schweiz
+                        <strong><?php _e('Account number', 'eas-donation-processor') ?>:</strong> 2 222 222<br />
+                        <strong><?php _e('BLZ', 'eas-donation-processor') ?>:</strong> 560 517 90<br />
+                        <strong><?php _e('Bank', 'eas-donation-processor') ?>:</strong> Kreissparkasse Rhein-Hunsrück, Vor dem Tor 1, DE-55469 Simmern<br />
+                        <strong><?php _e('Recipient', 'eas-donation-processor') ?>:</strong> Giordano-Bruno-Stiftung, Auf Fasel 16, DE-55430 Oberwesel<br />
+                        <strong><?php _e('Note', 'eas-donation-processor') ?>:</strong> GBS Schweiz
                     </p>
-                    <p>Die in Deutschland ansässige Giordano-Bruno-Stiftung (gbs) nimmt Spenden aus Deutschland ab EUR 100.- für Sentience Politics entgegen und leitet sie direkt weiter in die Schweiz. Spenden an die gbs können in Deutschland bei der Steuererklärung geltend gemacht werden.</p>
-                    <p>Die Spendenbescheinigung wird von gbs in Deutschland ausgestellt und per Briefpost versandt. Bitte geben Sie in den Überweisungsdetails Ihre Postanschrift an.</p>
-                    <p>Nehmen Sie bei Fragen gerne mit uns <a href="/kontakt">Kontakt</a> auf.
+                    <p>
+                        <?php _e('The Germany-based Giordano Bruno Foundation (gbs) accepts donations from Germany from EUR 100 up for Sentience Politics and forwards them directly to Switzerland.', 'eas-donation-processor') ?>
+                        <?php _e('Donations to gbs can be asserted in the tax return in Germany.', 'eas-donation-processor') ?>
+                    </p>
+                    <p>
+                        <?php _e('The tax receipt will be issued by gbs in Germany and sent via mail.', 'eas-donation-processor') ?>
+                        <?php _e('Please specify your postal address in the bank transfer details.', 'eas-donation-processor') ?>
+                    </p>
+                    <p><?php _e('If you have any questions, please <a href="/contact-us">contact us</a>.', 'eas-donation-processor') ?></p>
                 </div>
-                <h2>Überweisungen aus der Schweiz und aus anderen Ländern</h2>
+                <h2><?php _e('Transfers from Switzerland and other countries', 'eas-donation-processor') ?></h2>
                 <div>
                     <p>
-                        <strong>Begünstigter:</strong> Effective Altruism Foundation, Efringerstrasse 25, CH-4057 Basel, Switzerland<br />
+                        <strong><?php _e('Beneficiary', 'eas-donation-processor') ?>:</strong> Effective Altruism Foundation, Efringerstrasse 25, CH-4057 Basel, Switzerland<br />
                         <strong>IBAN CHF:</strong> CH67 0023 3233 1775 4501 N<br />
                         <strong>IBAN EUR:</strong> CH20 0023 3233 1775 4560 D<br />
                         <strong>IBAN USD:</strong> CH79 0023 3233 1775 4561 F<br />
                         <strong>IBAN GBP:</strong> CH08 0023 3233 1775 4562 T<br />
                         <strong>BIC/SWIFT:</strong> UBSWCHZH80A<br />
-                        <strong>Bank:</strong> UBS Switzerland AG, Aeschenvorstadt 1, CH-4051 Basel, Switzerland
+                        <strong><?php _e('Bank', 'eas-donation-processor') ?>:</strong> UBS Switzerland AG, Aeschenvorstadt 1, CH-4051 Basel, Switzerland
                     </p>
-                    <p>Die Stiftung für Effektiven Altruismus ist im Kanton Basel-Stadt und somit schweizweit als allgemeinnützige Organisation anerkannt. Spenden an die EAS können gemäß den kantonalen Regelungen bei den Steuererklärung geltend gemacht werden.</p>
-                    <p>Sie erhalten Ihre Steuerbescheinigung per E-Mail. Falls sie eine postalische Bestätigung benötigen, teilen Sie uns dies und Ihre Anschrift bitte anhand des untenstehenden Formulars mit.</p>
-                    <p>Nehmen Sie bitte <a href="/kontakt">Kontakt</a> mit uns auf, falls Sie steuerbefreit aus anderen Ländern an die EAS spenden möchten.
+                    <p>
+                        <?php _e('The Effective Altruism Foundation is recognized as a non-profit organization in the canton of Basel-City and, therefore, in the whole of Switzerland.', 'eas-donation-processor') ?>
+                        <?php _e('Donations to EAF can be invoked in the tax return in accordance with cantonal regulations.', 'eas-donation-processor') ?>
+                    </p>
+                    <p>
+                        <?php _e('Please <a href="/contact-us">contact us</a> if you want to make a tax-exempt donation from another country.', 'eas-donation-processor') ?>
+                    </p>
                 </div>
             </div>
         </div>
@@ -335,7 +358,7 @@ function donationForm($atts)
     var embeddedPPFlow = new PAYPAL.apps.DGFlow({trigger: 'submitBtn'});
 </script>
 
-<div id="drawer">Bitte alle obligatorischen Felder korrekt ausfüllen.</div>
+<div id="drawer"><?php _e('Please fill out all required fields correctly.', 'eas-donation-processor') ?></div>
 
 </div>
 
