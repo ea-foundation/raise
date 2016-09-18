@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eas-donation-processor\n"
-"POT-Creation-Date: 2016-08-28 17:28+0200\n"
+"POT-Creation-Date: 2016-09-18 17:36+0200\n"
 "PO-Revision-Date: 2016-08-26 15:39+0200\n"
 "Last-Translator: \n"
 "Language-Team: EA Stiftung <info@ea-stiftung.org>\n"
@@ -10,174 +10,93 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.8\n"
+"X-Generator: Poedit 1.8.9\n"
 "X-Poedit-Basepath: ..\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: __;_e\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: eas-donation-processor.php:118
+#: eas-donation-processor.php:166
 msgid "Donate %currency-amount%"
 msgstr ""
 
-#: form.php:27
+#: eas-donation-processor.php:167
+msgid "Donation"
+msgstr ""
+
+#: form.php:73
 msgid "Amount"
 msgstr ""
 
-#: form.php:28
+#: form.php:74
 msgid "Payment"
 msgstr ""
 
-#: form.php:29
+#: form.php:75
 msgid "Finish"
 msgstr ""
 
-#: form.php:42
+#: form.php:88
 msgid "My Donation"
 msgstr ""
 
-#: form.php:63
-msgid "Secure"
-msgstr ""
-
-#: form.php:107 form.php:108
+#: form.php:128 form.php:129
 msgid "Other"
 msgstr ""
 
-#: form.php:115 form.php:273
+#: form.php:138 form.php:270
 msgid "Next"
 msgstr ""
 
-#: form.php:130
-msgid "Choose a payment method"
+#: form.php:143 form.php:278
+msgid "Secure"
 msgstr ""
 
 #: form.php:159
+msgid "Choose a payment method"
+msgstr ""
+
+#: form.php:188
 msgid "Bank transfer"
 msgstr ""
 
-#: form.php:197
+#: form.php:194
 msgid "Purpose"
 msgstr ""
 
-#: form.php:200
-msgid "Where it is most needed"
-msgstr ""
-
-#: form.php:216
+#: form.php:213
 msgid "Email"
 msgstr ""
 
-#: form.php:218
-msgid "Email address"
-msgstr ""
-
-#: form.php:226
+#: form.php:223
 msgid "I need a tax receipt for Germany or Switzerland."
 msgstr ""
 
-#: form.php:235
+#: form.php:232
 msgid "Name"
 msgstr ""
 
-#: form.php:242
+#: form.php:239
 msgid "Address"
 msgstr ""
 
-#: form.php:249
+#: form.php:246
 msgid "Zip code"
 msgstr ""
 
-#: form.php:256
+#: form.php:253
 msgid "City"
 msgstr ""
 
-#: form.php:263
+#: form.php:260
 msgid "Country"
 msgstr ""
 
-#: form.php:276
+#: form.php:273
 msgid "Back"
 msgstr ""
 
-#: form.php:291
-msgid "Thank you so much for your donation!"
-msgstr ""
-
-#: form.php:295
-msgid "Transfers from Germany"
-msgstr ""
-
-#: form.php:300
-msgid "Account number"
-msgstr ""
-
-#: form.php:301
-msgid "BLZ"
-msgstr ""
-
-#: form.php:302 form.php:325
-msgid "Bank"
-msgstr ""
-
-#: form.php:303
-msgid "Recipient"
-msgstr ""
-
-#: form.php:304
-msgid "Note"
-msgstr ""
-
-#: form.php:307
-msgid ""
-"The Germany-based Giordano Bruno Foundation (gbs) accepts donations from "
-"Germany from EUR 100 up for Sentience Politics and forwards them directly to "
-"Switzerland."
-msgstr ""
-
-#: form.php:308
-msgid "Donations to gbs can be asserted in the tax return in Germany."
-msgstr ""
-
-#: form.php:311
-msgid "The tax receipt will be issued by gbs in Germany and sent via mail."
-msgstr ""
-
-#: form.php:312
-msgid "Please specify your postal address in the bank transfer details."
-msgstr ""
-
-#: form.php:314
-msgid "If you have any questions, please <a href=\"/contact-us\">contact us</a>."
-msgstr ""
-
-#: form.php:316
-msgid "Transfers from Switzerland and other countries"
-msgstr ""
-
-#: form.php:319
-msgid "Beneficiary"
-msgstr ""
-
-#: form.php:328
-msgid ""
-"The Effective Altruism Foundation is recognized as a non-profit organization "
-"in the canton of Basel-City and, therefore, in the whole of Switzerland."
-msgstr ""
-
-#: form.php:329
-msgid ""
-"Donations to EAF can be invoked in the tax return in accordance with cantonal "
-"regulations."
-msgstr ""
-
-#: form.php:332
-msgid ""
-"Please <a href=\"/contact-us\">contact us</a> if you want to make a tax-exempt "
-"donation from another country."
-msgstr ""
-
-#: form.php:354
+#: form.php:320
 msgid "Please fill out all required fields correctly."
 msgstr ""

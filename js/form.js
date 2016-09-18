@@ -1,66 +1,21 @@
 /**
   * Settings
   */
-var currencies = {
-    "EUR": "%amount% €",
-    "CHF": "CHF %amount%",
-    "GBP": "£%amount%",
-    "USD": "$%amount%"
-};
+var easFormName     = 'default'; // This gets overwritten by a script embedded in the form
+var easMode         = 'live';    // This gets overwritten by a script embedded in the form
+var currencies      = wordpress_vars.amount_patterns;
+var stripeHandlers  = null;
 var buttonFinalText = wordpress_vars.donate_button_text + ' »';
-var totalItems = 0;
+var totalItems      = 0;
 var slideTransitionInAction = false;
-var otherAmountPlaceholder = null;
+var otherAmountPlaceholder  = null;
 
-/**
-  * Stripe setup
-  */ 
-var stripeHandler = StripeCheckout.configure({
-    key: wordpress_vars.stripe_public_key,
-    image: wordpress_vars.plugin_path + 'images/eas-logo.png',
-    color: '#255A8E',
-    locale: 'auto',
-    token: function(token) {
-        console.log("my object: %o", token);
-        // Use the token to create the charge with a server-side script.
-        // You can access the token ID with `token.id`
-        var tokenInput = jQuery('<input type="hidden" name="stripeToken" />').val(token.id);
-        //var emailInput = jQuery('<input type="hidden" name="stripeEmail" />').val(token.email);
 
-        // Show spinner
-        showSpinnerOnLastButton();
 
-        // Send form
-        jQuery('form#donationForm').append(tokenInput).ajaxSubmit({
-            success: function(responseText, statusText, xhr, form) {
-                try {
-                    var response = JSON.parse(responseText);
-                    if (!('success' in response) || !response['success']) {
-                        var message = 'error' in response ? response['error'] : responseText;
-                        throw new Error(message);
-                    }
 
-                    // Everything worked! Change glyphicon from "spinner" to "OK" and go to confirmation page
-                    showConfirmation();
-                } catch (ex) {
-                    // Something went wrong, show on confirmation page
-                    alert(ex.message);
-
-                    // Enable buttons
-                    lockLastStep(false);
-                }
-            }
-        });
-
-        // Disable submit button, back button, and payment options
-        lockLastStep(true);
-
-        return false;
-    }
-});
-// Preload stripe image
+// Preload Stripe image
 var stripeImage = new Image();
-stripeImage.src = wordpress_vars.plugin_path + 'images/eas-logo.png';
+stripeImage.src = wordpress_vars.plugin_path + 'images/logo.png';
 
 
 
@@ -70,6 +25,53 @@ stripeImage.src = wordpress_vars.plugin_path + 'images/eas-logo.png';
   * Form setup
   */
 jQuery(document).ready(function($) {
+    /**
+     * Stripe setup
+     */
+    stripeHandler = StripeCheckout.configure({
+        key: wordpress_vars.stripe_public_keys[easFormName][easMode],
+        image: wordpress_vars.plugin_path + 'images/logo.png',
+        color: '#255A8E',
+        locale: 'auto',
+        token: function(token) {
+            //console.log("my object: %o", token);
+            // Use the token to create the charge with a server-side script.
+            // You can access the token ID with `token.id`
+            var tokenInput = jQuery('<input type="hidden" name="stripeToken" />').val(token.id);
+            //var emailInput = jQuery('<input type="hidden" name="stripeEmail" />').val(token.email);
+
+            // Show spinner
+            showSpinnerOnLastButton();
+
+            // Send form
+            jQuery('form#donationForm').append(tokenInput).ajaxSubmit({
+                success: function(responseText, statusText, xhr, form) {
+                    try {
+                        var response = JSON.parse(responseText);
+                        if (!('success' in response) || !response['success']) {
+                            var message = 'error' in response ? response['error'] : responseText;
+                            throw new Error(message);
+                        }
+
+                        // Everything worked! Change glyphicon from "spinner" to "OK" and go to confirmation page
+                        showConfirmation('stripe');
+                    } catch (ex) {
+                        // Something went wrong, show on confirmation page
+                        alert(ex.message);
+
+                        // Enable buttons
+                        lockLastStep(false);
+                    }
+                }
+            });
+
+            // Disable submit button, back button, and payment options
+            lockLastStep(true);
+
+            return false;
+        }
+    });
+
 
     totalItems = $('#wizard .item').length;
    
@@ -271,7 +273,7 @@ jQuery(document).ready(function($) {
         $(this).parent().parent().parent().removeClass('open');
 
         // Set new currency on buttons and on custom input field
-        var currencyString = currencies[currencyCode];
+        var currencyString = currencies[easFormName][currencyCode];
         $('ul#amounts>li>label').text(
             function(i, val) {
                 return currencyString.replace('%amount%', $(this).prev('input').attr('value')); 
@@ -331,18 +333,18 @@ function enableConfirmButton(n)
     jQuery('button.confirm:eq(' + n + ')').removeAttr('disabled');
 }
 
-function getLastButtonText()
+function getLastButtonText(formName)
 {
     var amount         = getDonationAmount();
     var currencyCode   = getDonationCurrencyIsoCode();
-    var currencyAmount = currencies[currencyCode].replace('%amount%', amount);
+    var currencyAmount = currencies[formName][currencyCode].replace('%amount%', amount);
     return buttonFinalText.replace('%currency-amount%', currencyAmount);
 }
 
 function showLastItem(currentItem)
 {
     // Change text of last confirm button
-    jQuery('button.confirm:last', '#wizard').text(getLastButtonText());
+    jQuery('button.confirm:last', '#wizard').text(getLastButtonText(easFormName));
 
     // Go to next slide
     carouselNext();
@@ -375,8 +377,8 @@ function getDonationCurrencyIsoCode()
 function handleStripeDonation()
 {
     stripeHandler.open({
-        name: wordpress_vars.contact_name,
-        description: 'Spende',
+        name: wordpress_vars.organization,
+        description: wordpress_vars.donation,
         amount: getDonationAmount() * 100,
         currency: getDonationCurrencyIsoCode(),
         email: getDonorInfo('email')
@@ -398,12 +400,15 @@ function handlePaypalDonation()
         // Get payKey
         jQuery.post(wordpress_vars.ajax_endpoint, {
             action: 'paypal_paykey',
+            form: getFormName(),
+            mode: getFormMode(),
+            language: getFormLanguage(),
             email: getDonorInfo('email'),
             amount: getDonationAmount(),
             currency: getDonationCurrencyIsoCode(),
             purpose: getDonorSelection('purpose'),
             name: getDonorInfo('name'),
-            address1: getDonorInfo('address-1'),
+            address: getDonorInfo('address'),
             zip: getDonorInfo('zip'),
             city: getDonorInfo('city'),
             country: getDonorInfo('country')
@@ -443,11 +448,9 @@ function handleBankTransferDonation()
                     throw new Error(message);
                 }
 
-                // Everything worked! Display bank account info on confirmation page
-                jQuery('#receiver-bank-details').show();
-
+                // Everything worked! Display short code content on confirmation page
                 // Change glyphicon from "spinner" to "OK" and go to confirmation page
-                showConfirmation();
+                showConfirmation('banktransfer');
             } catch (ex) {
                 // Something went wrong, show on confirmation page
                 alert(ex.message);
@@ -478,13 +481,24 @@ function lockLastStep(locked)
 
     if (!locked) {
         // Restore submit button
-        jQuery('button.confirm:last', '#wizard').html(getLastButtonText());
+        jQuery('button.confirm:last', '#wizard').html(getLastButtonText(easFormName));
     }
 }
 
-function showConfirmation()
+function showConfirmation(paymentProvider)
 {
+    // Hide all payment provider related divs on confirmation page except the ones from paymentProvider
+    jQuery('#payment-method-providers input[name=payment]').each(function(index) {
+        var provider = jQuery(this).attr('value').toLowerCase();
+        if (paymentProvider != provider) {
+            jQuery('#shortcode-content > div.eas-' + provider).hide();
+        }
+    });
+
+    // Hide spinner
     jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>');
+    
+    // Move to confirmation page after 1 second
     setTimeout(carouselNext, 1000);
 }
 
@@ -534,6 +548,22 @@ function getDonorSelection(name)
 {
     return jQuery('input[name=' + name + ']:checked').val();
 }
+
+function getFormName()
+{
+    return jQuery('input#eas-form-name').val();
+}
+
+function getFormMode()
+{
+    return jQuery('input#eas-form-mode').val();
+}
+
+function getFormLanguage()
+{
+    return jQuery('input#eas-form-language').val();
+}
+
 
 
 

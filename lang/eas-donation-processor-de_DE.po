@@ -1,197 +1,158 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eas-donation-processor\n"
-"POT-Creation-Date: 2016-08-28 17:28+0200\n"
-"PO-Revision-Date: 2016-08-28 17:30+0200\n"
+"POT-Creation-Date: 2016-09-18 17:36+0200\n"
+"PO-Revision-Date: 2016-09-18 17:36+0200\n"
 "Last-Translator: \n"
 "Language-Team: EA Stiftung <info@ea-stiftung.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.8\n"
+"X-Generator: Poedit 1.8.9\n"
 "X-Poedit-Basepath: ..\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: __;_e\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: eas-donation-processor.php:118
+#: eas-donation-processor.php:166
 msgid "Donate %currency-amount%"
 msgstr "%currency-amount% spenden"
 
-#: form.php:27
+#: eas-donation-processor.php:167
+msgid "Donation"
+msgstr "Spende"
+
+#: form.php:73
 msgid "Amount"
 msgstr "Betrag"
 
-#: form.php:28
+#: form.php:74
 msgid "Payment"
 msgstr "Zahlung"
 
-#: form.php:29
+#: form.php:75
 msgid "Finish"
 msgstr "Bestätigung"
 
-#: form.php:42
+#: form.php:88
 msgid "My Donation"
 msgstr "Meine Spende"
 
-#: form.php:63
-msgid "Secure"
-msgstr "Sicher"
-
-#: form.php:107 form.php:108
+#: form.php:128 form.php:129
 msgid "Other"
 msgstr "Anderer Betrag"
 
-#: form.php:115 form.php:273
+#: form.php:138 form.php:270
 msgid "Next"
 msgstr "Weiter"
 
-#: form.php:130
+#: form.php:143 form.php:278
+msgid "Secure"
+msgstr "Sichere Verbindung"
+
+#: form.php:159
 msgid "Choose a payment method"
 msgstr "Wählen Sie eine Zahlungsart"
 
-#: form.php:159
+#: form.php:188
 msgid "Bank transfer"
 msgstr "Banküberweisung"
 
-#: form.php:197
+#: form.php:194
 msgid "Purpose"
 msgstr "Verwendungszweck"
 
-#: form.php:200
-msgid "Where it is most needed"
-msgstr "Wo es am dringendsten benötigt wird"
-
-#: form.php:216
+#: form.php:213
 msgid "Email"
 msgstr "E-Mail"
 
-#: form.php:218
-msgid "Email address"
-msgstr "E-Mail Adresse"
-
-#: form.php:226
+#: form.php:223
 msgid "I need a tax receipt for Germany or Switzerland."
 msgstr "Ich möchte einen Steuerbeleg für Deutschland oder die Schweiz."
 
-#: form.php:235
+#: form.php:232
 msgid "Name"
 msgstr "Name"
 
-#: form.php:242
+#: form.php:239
 msgid "Address"
 msgstr "Adresse"
 
-#: form.php:249
+#: form.php:246
 msgid "Zip code"
 msgstr "Postleitzahl"
 
-#: form.php:256
+#: form.php:253
 msgid "City"
 msgstr "Ort"
 
-#: form.php:263
+#: form.php:260
 msgid "Country"
 msgstr "Land"
 
-#: form.php:276
+#: form.php:273
 msgid "Back"
 msgstr "Zurück"
 
-#: form.php:291
-msgid "Thank you so much for your donation!"
-msgstr "Herzlichen Dank für Ihre Spende!"
-
-#: form.php:295
-msgid "Transfers from Germany"
-msgstr "Überweisungen aus Deutschland"
-
-#: form.php:300
-msgid "Account number"
-msgstr "Kontonummer"
-
-#: form.php:301
-msgid "BLZ"
-msgstr "BLZ"
-
-#: form.php:302 form.php:325
-msgid "Bank"
-msgstr "Bank"
-
-#: form.php:303
-msgid "Recipient"
-msgstr "Empfänger"
-
-#: form.php:304
-msgid "Note"
-msgstr "Vermerk"
-
-#: form.php:307
-msgid ""
-"The Germany-based Giordano Bruno Foundation (gbs) accepts donations from "
-"Germany from EUR 100 up for Sentience Politics and forwards them directly to "
-"Switzerland."
-msgstr ""
-"Die in Deutschland ansässige Giordano-Bruno-Stiftung (gbs) nimmt Spenden aus "
-"Deutschland ab EUR 100.- für Sentience Politics entgegen und leitet sie "
-"direkt weiter in die Schweiz."
-
-#: form.php:308
-msgid "Donations to gbs can be asserted in the tax return in Germany."
-msgstr ""
-"Spenden an die gbs können in Deutschland bei der Steuererklärung geltend "
-"gemacht werden."
-
-#: form.php:311
-msgid "The tax receipt will be issued by gbs in Germany and sent via mail."
-msgstr ""
-"Die Spendenbescheinigung wird von gbs in Deutschland ausgestellt und per "
-"Briefpost versandt."
-
-#: form.php:312
-msgid "Please specify your postal address in the bank transfer details."
-msgstr "Bitte geben Sie in den Überweisungsdetails Ihre Postanschrift an."
-
-#: form.php:314
-msgid ""
-"If you have any questions, please <a href=\"/contact-us\">contact us</a>."
-msgstr ""
-"Nehmen Sie bei Fragen gerne mit uns <a href=\"/kontakt\">Kontakt</a> auf."
-
-#: form.php:316
-msgid "Transfers from Switzerland and other countries"
-msgstr "Überweisungen aus der Schweiz und aus anderen Ländern"
-
-#: form.php:319
-msgid "Beneficiary"
-msgstr "Begünstigter"
-
-#: form.php:328
-msgid ""
-"The Effective Altruism Foundation is recognized as a non-profit organization "
-"in the canton of Basel-City and, therefore, in the whole of Switzerland."
-msgstr ""
-"Die Stiftung für Effektiven Altruismus ist im Kanton Basel-Stadt und somit "
-"schweizweit als allgemeinnützige Organisation anerkannt."
-
-#: form.php:329
-msgid ""
-"Donations to EAF can be invoked in the tax return in accordance with "
-"cantonal regulations."
-msgstr ""
-"Spenden an die EAS können gemäß den kantonalen Regelungen bei den "
-"Steuererklärung geltend gemacht werden."
-
-#: form.php:332
-msgid ""
-"Please <a href=\"/contact-us\">contact us</a> if you want to make a tax-"
-"exempt donation from another country."
-msgstr ""
-"Nehmen Sie bitte <a href=\"/kontakt\">Kontakt</a> mit uns auf, falls Sie "
-"steuerbefreit aus anderen Ländern an die EAS spenden möchten."
-
-#: form.php:354
+#: form.php:320
 msgid "Please fill out all required fields correctly."
 msgstr "Bitte alle obligatorischen Felder korrekt ausfüllen."
+
+#~ msgid "Transfers from Germany"
+#~ msgstr "Überweisungen aus Deutschland"
+
+#~ msgid "Account number"
+#~ msgstr "Kontonummer"
+
+#~ msgid "BLZ"
+#~ msgstr "BLZ"
+
+#~ msgid "Bank"
+#~ msgstr "Bank"
+
+#~ msgid "Recipient"
+#~ msgstr "Empfänger"
+
+#~ msgid "Note"
+#~ msgstr "Vermerk"
+
+#~ msgid "The Germany-based Giordano Bruno Foundation (gbs) accepts donations from Germany from EUR 100 up for Sentience Politics and forwards them directly to Switzerland."
+#~ msgstr "Die in Deutschland ansässige Giordano-Bruno-Stiftung (gbs) nimmt Spenden aus Deutschland ab EUR 100.- für Sentience Politics entgegen und leitet sie direkt weiter in die Schweiz."
+
+#~ msgid "Donations to gbs can be asserted in the tax return in Germany."
+#~ msgstr "Spenden an die gbs können in Deutschland bei der Steuererklärung geltend gemacht werden."
+
+#~ msgid "The tax receipt will be issued by gbs in Germany and sent via mail."
+#~ msgstr "Die Spendenbescheinigung wird von gbs in Deutschland ausgestellt und per Briefpost versandt."
+
+#~ msgid "Please specify your postal address in the bank transfer details."
+#~ msgstr "Bitte geben Sie in den Überweisungsdetails Ihre Postanschrift an."
+
+#~ msgid "If you have any questions, please <a href=\"/contact-us\">contact us</a>."
+#~ msgstr "Nehmen Sie bei Fragen gerne mit uns <a href=\"/kontakt\">Kontakt</a> auf."
+
+#~ msgid "Transfers from Switzerland and other countries"
+#~ msgstr "Überweisungen aus der Schweiz und aus anderen Ländern"
+
+#~ msgid "Beneficiary"
+#~ msgstr "Begünstigter"
+
+#~ msgid "The Effective Altruism Foundation is recognized as a non-profit organization in the canton of Basel-City and, therefore, in the whole of Switzerland."
+#~ msgstr "Die Stiftung für Effektiven Altruismus ist im Kanton Basel-Stadt und somit schweizweit als allgemeinnützige Organisation anerkannt."
+
+#~ msgid "Donations to EAF can be invoked in the tax return in accordance with cantonal regulations."
+#~ msgstr "Spenden an die EAS können gemäß den kantonalen Regelungen bei den Steuererklärung geltend gemacht werden."
+
+#~ msgid "Please <a href=\"/contact-us\">contact us</a> if you want to make a tax-exempt donation from another country."
+#~ msgstr "Nehmen Sie bitte <a href=\"/kontakt\">Kontakt</a> mit uns auf, falls Sie steuerbefreit aus anderen Ländern an die EAS spenden möchten."
+
+#~ msgid "Where it is most needed"
+#~ msgstr "Wo es am dringendsten benötigt wird"
+
+#~ msgid "Email address"
+#~ msgstr "E-Mail-Adresse"
+
+#~ msgid "Thank you so much for your donation!"
+#~ msgstr "Herzlichen Dank für Ihre Spende!"

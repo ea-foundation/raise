@@ -1,0 +1,112 @@
+<?php /* DO NOT REMOVE THIS LINE! AND NEVER SEND THIS FILE TO THE CLIENT! */ defined('ABSPATH') or die('No script kiddies please!'); ?>
+{
+    "organization": "Stiftung für Effektiven Altruismus",
+    "forms": {
+        "default": {
+            "amount": {
+                "button": [15, 35, 50, 100, 250, 500, 1000],
+                "custom": true,
+                "currency": {
+                    "eur": {
+                        "pattern": "%amount% €",
+                        "country_flag": "eu"
+                    },
+                    "chf": {
+                        "pattern": "CHF %amount%",
+                        "country_flag": "ch"
+                    },
+                    "gbp": {
+                        "pattern": "£%amount%",
+                        "country_flag": "gb"
+                    },
+                    "usd": {
+                        "pattern": "$%amount%",
+                        "country_flag": "us"
+                    }
+                }
+            },
+            "payment": {
+                "purpose": {
+                    "Unrestricted": "Where it is most needed",
+                    "Sentience Politics": "Sentience Politics",
+                    "REG": "Raising for Effective Giving",
+                    "EA-Outreach": "EA-Outreach",
+                    "FRI": "Foundational Research Institute"
+                },
+                "provider": {
+                    "stripe": {
+                        "live": {
+                            "secret_key": "",
+                            "public_key": ""
+                        },
+                        "sandbox": {
+                            "secret_key": "",
+                            "public_key": ""
+                        }
+                    },
+                    "paypal": {
+                        "live": {
+                            "email_id": "",
+                            "api_username": "",
+                            "api_password": "",
+                            "api_signature": ""
+                        },
+                        "sandbox": {
+                            "email_id": "",
+                            "api_username": "",
+                            "api_password": "",
+                            "api_signature": ""
+                        }
+                    }
+                }
+            },
+            "finish": {
+                "fallback_language": "en",
+                "success_message": {
+                    "en": "Thank you very much for your donation!",
+                    "de": "Herzlichen Dank für Ihre Spende!"
+                },
+                "email": {
+                    "address": "",
+                    "sender": "",
+                    "contents": {
+                        "en": {
+                            "subject": "Your donation",
+                            "text": "Hi there\n\nThank you very much for your donation."
+                        },
+                        "de": {
+                            "subject": "Ihre Spende",
+                            "text": "Guten Tag\n\nHerzlichen Dank für Ihre Spende."
+                        }
+                    }
+                }
+            },
+            "logging" : {
+                "web_hook": "default"
+            }
+        },
+        "my_special_form": {
+            "amount": {
+                "button": [1, 2, 3, 4, 5, 6, 7]
+            },
+            "payment": {
+                "purpose": {
+                    "AMF": "Against Malaria Foundation",
+                    "GiveDirectly": "GiveDirectly",
+                    "SCI": "Schistosomiasis Control Initiative",
+                    "New Incentives": "New Incentives",
+                    "Sentience Politics": "Sentience Politics",
+                    "Animal Ethics": "Animal Ethics"
+                },
+                "provider": {
+                    "stripe": {
+                        "sandbox": {
+                            "secret_key": "",
+                            "public_key": ""
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
