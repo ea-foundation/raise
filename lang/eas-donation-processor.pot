@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eas-donation-processor\n"
-"POT-Creation-Date: 2016-09-18 17:36+0200\n"
+"POT-Creation-Date: 2016-09-19 02:16+0200\n"
 "PO-Revision-Date: 2016-08-26 15:39+0200\n"
 "Last-Translator: \n"
 "Language-Team: EA Stiftung <info@ea-stiftung.org>\n"
@@ -17,86 +17,90 @@ msgstr ""
 "X-Poedit-KeywordsList: __;_e\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: eas-donation-processor.php:166
+#: eas-donation-processor.php:174
 msgid "Donate %currency-amount%"
 msgstr ""
 
-#: eas-donation-processor.php:167
+#: eas-donation-processor.php:175
 msgid "Donation"
 msgstr ""
 
-#: form.php:73
+#: form.php:76
 msgid "Amount"
 msgstr ""
 
-#: form.php:74
+#: form.php:77
 msgid "Payment"
 msgstr ""
 
-#: form.php:75
+#: form.php:78
 msgid "Finish"
 msgstr ""
 
-#: form.php:88
+#: form.php:91
 msgid "My Donation"
 msgstr ""
 
-#: form.php:128 form.php:129
+#: form.php:131 form.php:132
 msgid "Other"
 msgstr ""
 
-#: form.php:138 form.php:270
+#: form.php:141 form.php:279
 msgid "Next"
 msgstr ""
 
-#: form.php:143 form.php:278
+#: form.php:146 form.php:287
 msgid "Secure"
 msgstr ""
 
-#: form.php:159
+#: form.php:162
 msgid "Choose a payment method"
 msgstr ""
 
-#: form.php:188
+#: form.php:191
 msgid "Bank transfer"
 msgstr ""
 
-#: form.php:194
+#: form.php:200
+msgid "Where it is most needed"
+msgstr ""
+
+#: form.php:203
 msgid "Purpose"
 msgstr ""
 
-#: form.php:213
+#: form.php:222
 msgid "Email"
 msgstr ""
 
-#: form.php:223
+#: form.php:232
 msgid "I need a tax receipt for Germany or Switzerland."
 msgstr ""
 
-#: form.php:232
+#: form.php:241
 msgid "Name"
 msgstr ""
 
-#: form.php:239
+#: form.php:248
 msgid "Address"
 msgstr ""
 
-#: form.php:246
+#: form.php:255
 msgid "Zip code"
 msgstr ""
 
-#: form.php:253
+#: form.php:262
 msgid "City"
 msgstr ""
 
-#: form.php:260
+#: form.php:269
 msgid "Country"
 msgstr ""
 
-#: form.php:273
+#: form.php:282
 msgid "Back"
 msgstr ""
 
-#: form.php:320
+#: form.php:329
 msgid "Please fill out all required fields correctly."
 msgstr ""

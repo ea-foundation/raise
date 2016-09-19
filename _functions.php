@@ -150,7 +150,7 @@ function handleBankTransferPayment($post)
     );
 
     // Trigger hook for Zapier
-    triggerHook($form, $donation);
+    triggerHook($post['form'], $donation);
 
     // Send email
     sendThankYouEmail($post['email'], $post['form'], $post['language']);

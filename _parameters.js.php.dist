@@ -106,6 +106,13 @@
                         }
                     }
                 }
+            },
+            "finish": {
+                "fallback_language": "en",
+                "success_message": {
+                    "de": "Es hat geklappt!",
+                    "en": "It worked!"
+                }
             }
         }
     }

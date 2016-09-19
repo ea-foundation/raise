@@ -19,10 +19,6 @@ require_once("form.php");
 
 // Load parameters
 $easSettingString = get_option('settings');
-if (empty($easSettingString)) {
-    die('Save form settings under Settings > Donation Settings');
-}
-
 $easSettings      = json_decode($easSettingString, true);
 $easOrganization  = isset($easSettings['organization']) ? $easSettings['organization'] : '';
 

@@ -20,14 +20,12 @@ function donationForm($atts, $content = null)
     // Load settings
     $easForms = $GLOBALS['easForms'];
     if (empty($easForms[$name])) {
-        die('No settings found for form ' . $name);
+        echo 'No settings found for form ' . $name . '. See Settings > Donation Settings';
+        return;
     }
 
     $easSettings = $easForms[$name];
     $language    = reset(explode('_', get_locale(), 2));
-    /*echo '<pre>';
-    var_dump($easForms[$name]);
-    echo '</pre>';*/
 
     // Get user country using freegeoip.net
     if (isset($easSettings["amount.currency"])) {
@@ -196,6 +194,12 @@ function donationForm($atts, $content = null)
                 </div>
 
                 <div class="form-group donor-info" id="donation-purpose">
+                    <?php
+                        // This is a dummy array. It contains labels that need to get into the translation files (.pot and .po)
+                        $toTranslate = array(
+                            __('Where it is most needed', 'eas-donation-processor'),
+                        );
+                    ?>
                     <label for="donor-email" class="col-sm-3 control-label"><?php _e('Purpose', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -327,8 +331,11 @@ function donationForm($atts, $content = null)
 </div>
 
 <?php
-  $content = ob_get_clean();
-  return $content;
+    /*echo '<pre>';
+    var_dump($easForms[$name]);
+    echo '</pre>';*/
+    $content = ob_get_clean();
+    return $content;
 }
 
 

@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eas-donation-processor\n"
-"POT-Creation-Date: 2016-09-18 17:36+0200\n"
-"PO-Revision-Date: 2016-09-18 17:36+0200\n"
+"POT-Creation-Date: 2016-09-19 02:16+0200\n"
+"PO-Revision-Date: 2016-09-19 02:16+0200\n"
 "Last-Translator: \n"
 "Language-Team: EA Stiftung <info@ea-stiftung.org>\n"
 "Language: de\n"
@@ -16,87 +16,91 @@ msgstr ""
 "X-Poedit-KeywordsList: __;_e\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: eas-donation-processor.php:166
+#: eas-donation-processor.php:174
 msgid "Donate %currency-amount%"
 msgstr "%currency-amount% spenden"
 
-#: eas-donation-processor.php:167
+#: eas-donation-processor.php:175
 msgid "Donation"
 msgstr "Spende"
 
-#: form.php:73
+#: form.php:76
 msgid "Amount"
 msgstr "Betrag"
 
-#: form.php:74
+#: form.php:77
 msgid "Payment"
 msgstr "Zahlung"
 
-#: form.php:75
+#: form.php:78
 msgid "Finish"
 msgstr "Bestätigung"
 
-#: form.php:88
+#: form.php:91
 msgid "My Donation"
 msgstr "Meine Spende"
 
-#: form.php:128 form.php:129
+#: form.php:131 form.php:132
 msgid "Other"
 msgstr "Anderer Betrag"
 
-#: form.php:138 form.php:270
+#: form.php:141 form.php:279
 msgid "Next"
 msgstr "Weiter"
 
-#: form.php:143 form.php:278
+#: form.php:146 form.php:287
 msgid "Secure"
 msgstr "Sichere Verbindung"
 
-#: form.php:159
+#: form.php:162
 msgid "Choose a payment method"
 msgstr "Wählen Sie eine Zahlungsart"
 
-#: form.php:188
+#: form.php:191
 msgid "Bank transfer"
 msgstr "Banküberweisung"
 
-#: form.php:194
+#: form.php:200
+msgid "Where it is most needed"
+msgstr "Wo es am dringendsten benötigt wird"
+
+#: form.php:203
 msgid "Purpose"
 msgstr "Verwendungszweck"
 
-#: form.php:213
+#: form.php:222
 msgid "Email"
 msgstr "E-Mail"
 
-#: form.php:223
+#: form.php:232
 msgid "I need a tax receipt for Germany or Switzerland."
 msgstr "Ich möchte einen Steuerbeleg für Deutschland oder die Schweiz."
 
-#: form.php:232
+#: form.php:241
 msgid "Name"
 msgstr "Name"
 
-#: form.php:239
+#: form.php:248
 msgid "Address"
 msgstr "Adresse"
 
-#: form.php:246
+#: form.php:255
 msgid "Zip code"
 msgstr "Postleitzahl"
 
-#: form.php:253
+#: form.php:262
 msgid "City"
 msgstr "Ort"
 
-#: form.php:260
+#: form.php:269
 msgid "Country"
 msgstr "Land"
 
-#: form.php:273
+#: form.php:282
 msgid "Back"
 msgstr "Zurück"
 
-#: form.php:320
+#: form.php:329
 msgid "Please fill out all required fields correctly."
 msgstr "Bitte alle obligatorischen Felder korrekt ausfüllen."
 
@@ -147,9 +151,6 @@ msgstr "Bitte alle obligatorischen Felder korrekt ausfüllen."
 
 #~ msgid "Please <a href=\"/contact-us\">contact us</a> if you want to make a tax-exempt donation from another country."
 #~ msgstr "Nehmen Sie bitte <a href=\"/kontakt\">Kontakt</a> mit uns auf, falls Sie steuerbefreit aus anderen Ländern an die EAS spenden möchten."
-
-#~ msgid "Where it is most needed"
-#~ msgstr "Wo es am dringendsten benötigt wird"
 
 #~ msgid "Email address"
 #~ msgstr "E-Mail-Adresse"
