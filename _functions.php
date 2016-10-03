@@ -64,21 +64,35 @@ function handleStripePayment($post)
     // Create the charge on Stripe's servers - this will charge the user's card
     try {
         // Get the credit card details submitted by the form
-        $form     = $post['form'];
-        $mode     = $post['mode'];
-        $language = $post['language'];
-        $token    = $post['stripeToken'];
-        $amount   = $post['amount'];
-        $currency = $post['currency'];
-        $email    = $post['email'];
+        $form      = $post['form'];
+        $mode      = $post['mode'];
+        $language  = $post['language'];
+        $token     = $post['stripeToken'];
+        $publicKey = $post['stripePublicKey'];
+        $amount    = $post['amount'];
+        $currency  = $post['currency'];
+        $email     = $post['email'];
 
-        // Make sure we have the settings
-        if (empty($GLOBALS['easForms'][$form]["payment.provider.stripe.$mode.secret_key"])) {
-            throw new \Exception("Form settings not found : $form : $mode");
+        // Find the secret key that goes with the public key
+        $formSettings = $GLOBALS['easForms'][$form];
+        $secretKey    = '';
+        foreach ($formSettings as $key => $value) {
+            if ($value === $publicKey) {
+                $secretKeyKey = preg_replace('#public_key$#', 'secret_key', $key);
+                $secretKey    = $formSettings[$secretKeyKey];
+                break;
+            }
         }
 
-        // Load secret key
-        \Stripe\Stripe::setApiKey($GLOBALS['easForms'][$form]["payment.provider.stripe.$mode.secret_key"]);
+        //throw new Exception('Key: ' . $secretKeyKey . ', PK: ' . $publicKey . ', SK: ' . $secretKey);
+
+        // Make sure we have the settings
+        if (empty($secretKey)) {
+            throw new \Exception("No form settings found for key $publicKey ($form : $mode)");
+        }
+
+        //TODO Load secret key
+        \Stripe\Stripe::setApiKey($secretKey);
 
         // Make customer
         $customer = \Stripe\Customer::create(array(
@@ -111,7 +125,7 @@ function handleStripePayment($post)
             'address'  => isset($post['address'])  ? $post['address'] : '',
             'zip'      => isset($post['zip'])      ? $post['zip']     : '',
             'city'     => isset($post['city'])     ? $post['city']    : '',
-            'country'  => isset($post['country'])  ? $post['country'] : '',
+            'country'  => isset($post['country'])  ? getEnglishNameByCountryCode($post['country']) : '',
         );
 
         // Trigger hook for Zapier
@@ -177,26 +191,19 @@ function triggerHook($form, $donation)
 function getPaypalPayKey()
 {
     try {
-        $form      = $_POST['form'];
-        $mode      = $_POST['mode'];
-        $language  = $_POST['language'];
-        $email     = $_POST['email'];
-        $amount    = $_POST['amount'];
-        $currency  = $_POST['currency'];
-        $returnUrl = admin_url('admin-ajax.php');
-        $reqId = uniqid(); // Secret reference ID. Needed to prevent replay attack
+        $form       = $_POST['form'];
+        $mode       = $_POST['mode'];
+        $language   = $_POST['language'];
+        $email      = $_POST['email'];
+        $amount     = $_POST['amount'];
+        $currency   = $_POST['currency'];
+        $taxReceipt = $_POST['tax_receipt'];
+        $country    = isset($_POST['country']) ? $_POST['country'] : '';
+        $returnUrl  = admin_url('admin-ajax.php');
+        $reqId      = uniqid(); // Secret reference ID. Needed to prevent replay attack
 
-        // Make sure we have all the settings
-        if (empty($GLOBALS['easForms'][$form]["payment.provider.paypal.$mode.email_id"]) ||
-            empty($GLOBALS['easForms'][$form]["payment.provider.paypal.$mode.api_username"]) ||
-            empty($GLOBALS['easForms'][$form]["payment.provider.paypal.$mode.api_password"]) ||
-            empty($GLOBALS['easForms'][$form]["payment.provider.paypal.$mode.api_signature"])
-        ) {
-            throw new \Exception("Form settings not found : $form : $mode");
-        }
-
-        // Extract settings of the form we're talking about
-        $formSettings = $GLOBALS['easForms'][$form];
+        // Get best Paypal account for donation
+        $paypalAccount = getBestPaypalAccount($form, $mode, $taxReceipt, $currency, $country);
 
         $qsConnector = strpos('?', $returnUrl) ? '&' : '?';
         $content = array(
@@ -211,7 +218,7 @@ function getPaypalPayKey()
             "receiverList"    => array(
                 "receiver" => array(
                     array(
-                        "email"  => $formSettings["payment.provider.paypal.$mode.email_id"],
+                        "email"  => $paypalAccount['email_id'],
                         "amount" => $amount,
                     )
                 )
@@ -219,9 +226,9 @@ function getPaypalPayKey()
         );
 
         $headers = array(
-            'X-PAYPAL-SECURITY-USERID: '      . $formSettings["payment.provider.paypal.$mode.api_username"],
-            'X-PAYPAL-SECURITY-PASSWORD: '    . $formSettings["payment.provider.paypal.$mode.api_password"],
-            'X-PAYPAL-SECURITY-SIGNATURE: '   . $formSettings["payment.provider.paypal.$mode.api_signature"],
+            'X-PAYPAL-SECURITY-USERID: '      . $paypalAccount['api_username'],
+            'X-PAYPAL-SECURITY-PASSWORD: '    . $paypalAccount['api_password'],
+            'X-PAYPAL-SECURITY-SIGNATURE: '   . $paypalAccount['api_signature'],
             'X-PAYPAL-DEVICE-IPADDRESS: '     . $_SERVER['REMOTE_ADDR'],
             'X-PAYPAL-REQUEST-DATA-FORMAT: '  . 'JSON',
             'X-PAYPAL-RESPONSE-DATA-FORMAT: ' . 'JSON',
@@ -270,20 +277,21 @@ function getPaypalPayKey()
         }
 
         // Put user data in session. This way we can avoid other people using it to spam our logs
-        $_SESSION['eas-form']     = $form;
-        $_SESSION['eas-mode']     = $mode;
-        $_SESSION['eas-language'] = $language;
-        $_SESSION['eas-req-id']   = $reqId;
-        $_SESSION['eas-email']    = $email;
-        $_SESSION['eas-currency'] = $currency;
-        $_SESSION['eas-amount']   = money_format('%i', $amount);
+        $_SESSION['eas-form']        = $form;
+        $_SESSION['eas-mode']        = $mode;
+        $_SESSION['eas-language']    = $language;
+        $_SESSION['eas-req-id']      = $reqId;
+        $_SESSION['eas-email']       = $email;
+        $_SESSION['eas-currency']    = $currency;
+        $_SESSION['eas-country']     = $country;
+        $_SESSION['eas-amount']      = money_format('%i', $amount);
+        $_SESSION['eas-tax-receipt'] = $taxReceipt;
         // Optional fields
-        $_SESSION['eas-purpose']  = isset($_POST['purpose'])  ? $_POST['purpose']  : '';
-        $_SESSION['eas-name']     = isset($_POST['name'])     ? $_POST['name']     : '';
+        $_SESSION['eas-purpose'] = isset($_POST['purpose']) ? $_POST['purpose'] : '';
+        $_SESSION['eas-name']    = isset($_POST['name'])    ? $_POST['name']    : '';
         $_SESSION['eas-address'] = isset($_POST['address']) ? $_POST['address'] : '';
-        $_SESSION['eas-zip']      = isset($_POST['zip'])      ? $_POST['zip']      : '';
-        $_SESSION['eas-city']     = isset($_POST['city'])     ? $_POST['city']     : '';
-        $_SESSION['eas-country']  = isset($_POST['country'])  ? $_POST['country']  : '';
+        $_SESSION['eas-zip']     = isset($_POST['zip'])     ? $_POST['zip']     : '';
+        $_SESSION['eas-city']    = isset($_POST['city'])    ? $_POST['city']    : '';
 
         // Return pay key
         die(json_encode(array(
@@ -296,6 +304,78 @@ function getPaypalPayKey()
             'error'   => $e->getMessage(),
         )));
     }
+}
+
+/*
+ * Get best Paypal account
+ */
+function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $country)
+{
+    // Make things lowercase
+    $currency = strtolower($currency);
+    $country  = strtolower($country);
+
+    // Extract settings of the form we're talking about
+    $formSettings = $GLOBALS['easForms'][$form];
+
+    // Check all possible settings
+    $hasCountrySetting  = isset($formSettings["payment.provider.paypal_$country.$mode.email_id"]);
+    $hasCurrencySetting = isset($formSettings["payment.provider.paypal_$currency.$mode.email_id"]);
+    $hasDefaultSetting  = isset($formSettings["payment.provider.paypal.$mode.email_id"]);
+    
+    // Check if there are settings for a country where the chosen currency is used.
+    // This is only relevant if the donor does not need a donation receipt (always related 
+    // to specific country) and if there are no currency specific settings
+    $hasCountryOfCurrencySetting = false;
+    $countryOfCurrency           = '';
+    if (!$taxReceiptNeeded && !$hasCurrencySetting) {
+        $countries = getCountriesByCurrency($currency);
+        foreach ($countries as $country) {
+            if (isset($formSettings["payment.provider.paypal_$country.$mode.email_id"])) {
+                $hasCountryOfCurrencySetting = true;
+                $countryOfCurrency = $country;
+                break;
+            }
+        }
+    }
+
+    if ($taxReceiptNeeded && $hasCountrySetting) {
+        // Use country specific key
+        $paypalAccount = array(
+            'email_id'      => $formSettings["payment.provider.paypal_$country.$mode.email_id"],
+            'api_username'  => $formSettings["payment.provider.paypal_$country.$mode.api_username"],
+            'api_password'  => $formSettings["payment.provider.paypal_$country.$mode.api_password"],
+            'api_signature' => $formSettings["payment.provider.paypal_$country.$mode.api_signature"],
+        );
+    } else if ($hasCurrencySetting) {
+        // Use currency specific key
+        $paypalAccount = array(
+            'email_id'      => $formSettings["payment.provider.paypal_$currency.$mode.email_id"],
+            'api_username'  => $formSettings["payment.provider.paypal_$currency.$mode.api_username"],
+            'api_password'  => $formSettings["payment.provider.paypal_$currency.$mode.api_password"],
+            'api_signature' => $formSettings["payment.provider.paypal_$currency.$mode.api_signature"],
+        );
+    } else if ($hasCountryOfCurrencySetting) {
+        // Use key of a country where the chosen currency is used
+        $paypalAccount = array(
+            'email_id'      => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.email_id"],
+            'api_username'  => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_username"],
+            'api_password'  => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_password"],
+            'api_signature' => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_signature"],
+        );
+    } else if ($hasDefaultSetting) {
+        // Use default key
+        $paypalAccount = array(
+            'email_id'      => $formSettings["payment.provider.paypal.$mode.email_id"],
+            'api_username'  => $formSettings["payment.provider.paypal.$mode.api_username"],
+            'api_password'  => $formSettings["payment.provider.paypal.$mode.api_password"],
+            'api_signature' => $formSettings["payment.provider.paypal.$mode.api_signature"],
+        );
+    } else {
+        throw new \Exception('No Paypal settings found');
+    }
+
+    return $paypalAccount;
 }
 
 /**
@@ -322,7 +402,7 @@ function processPaypalLog()
             "address"  => $_SESSION['eas-address'],
             "zip"      => $_SESSION['eas-zip'],
             "city"     => $_SESSION['eas-city'],
-            "country"  => $_SESSION['eas-country'],
+            "country"  => getEnglishNameByCountryCode($_SESSION['eas-country']),
         );
 
         // Reset request ID to prevent replay attacks
@@ -455,10 +535,6 @@ function getUserCountry($userIp = null)
         $userIp = getUserIp();
     }
 
-    /*echo '<pre>IP: ';
-    var_dump($userIp);
-    echo '</pre>';*/
-
     try {
         if (!empty($userIp)) {
             $curl = curl_init();
@@ -496,265 +572,423 @@ function getUserCurrency($countryCode = null)
         $countryCode = $userCountry['code'];
     }
 
-    /*echo '<pre>Country code: ';
-    var_dump($countryCode);
-    echo '</pre>';*/
+    $mapping = $GLOBALS['country2currency'];
 
-    $countryCurrencies = array(
-        "NZ" => "NZD",
-        "CK" => "NZD",
-        "NU" => "NZD",
-        "PN" => "NZD",
-        "TK" => "NZD",
-        "AU" => "AUD",
-        "CX" => "AUD",
-        "CC" => "AUD",
-        "HM" => "AUD",
-        "KI" => "AUD",
-        "NR" => "AUD",
-        "NF" => "AUD",
-        "TV" => "AUD",
-        "AS" => "EUR",
-        "AD" => "EUR",
-        "AT" => "EUR",
-        "BE" => "EUR",
-        "FI" => "EUR",
-        "FR" => "EUR",
-        "GF" => "EUR",
-        "TF" => "EUR",
-        "DE" => "EUR",
-        "GR" => "EUR",
-        "GP" => "EUR",
-        "IE" => "EUR",
-        "IT" => "EUR",
-        "LU" => "EUR",
-        "MQ" => "EUR",
-        "YT" => "EUR",
-        "MC" => "EUR",
-        "NL" => "EUR",
-        "PT" => "EUR",
-        "RE" => "EUR",
-        "WS" => "EUR",
-        "SM" => "EUR",
-        "SI" => "EUR",
-        "ES" => "EUR",
-        "VA" => "EUR",
-        "GS" => "GBP",
-        "GB" => "GBP",
-        "JE" => "GBP",
-        "IO" => "USD",
-        "GU" => "USD",
-        "MH" => "USD",
-        "FM" => "USD",
-        "MP" => "USD",
-        "PW" => "USD",
-        "PR" => "USD",
-        "TC" => "USD",
-        "US" => "USD",
-        "UM" => "USD",
-        "VG" => "USD",
-        "VI" => "USD",
-        "HK" => "HKD",
-        "CA" => "CAD",
-        "JP" => "JPY",
-        "AF" => "AFN",
-        "AL" => "ALL",
-        "DZ" => "DZD",
-        "AI" => "XCD",
-        "AG" => "XCD",
-        "DM" => "XCD",
-        "GD" => "XCD",
-        "MS" => "XCD",
-        "KN" => "XCD",
-        "LC" => "XCD",
-        "VC" => "XCD",
-        "AR" => "ARS",
-        "AM" => "AMD",
-        "AW" => "ANG",
-        "AN" => "ANG",
-        "AZ" => "AZN",
-        "BS" => "BSD",
-        "BH" => "BHD",
-        "BD" => "BDT",
-        "BB" => "BBD",
-        "BY" => "BYR",
-        "BZ" => "BZD",
-        "BJ" => "XOF",
-        "BF" => "XOF",
-        "GW" => "XOF",
-        "CI" => "XOF",
-        "ML" => "XOF",
-        "NE" => "XOF",
-        "SN" => "XOF",
-        "TG" => "XOF",
-        "BM" => "BMD",
-        "BT" => "INR",
-        "IN" => "INR",
-        "BO" => "BOB",
-        "BW" => "BWP",
-        "BV" => "NOK",
-        "NO" => "NOK",
-        "SJ" => "NOK",
-        "BR" => "BRL",
-        "BN" => "BND",
-        "BG" => "BGN",
-        "BI" => "BIF",
-        "KH" => "KHR",
-        "CM" => "XAF",
-        "CF" => "XAF",
-        "TD" => "XAF",
-        "CG" => "XAF",
-        "GQ" => "XAF",
-        "GA" => "XAF",
-        "CV" => "CVE",
-        "KY" => "KYD",
-        "CL" => "CLP",
-        "CN" => "CNY",
-        "CO" => "COP",
-        "KM" => "KMF",
-        "CD" => "CDF",
-        "CR" => "CRC",
-        "HR" => "HRK",
-        "CU" => "CUP",
-        "CY" => "CYP",
-        "CZ" => "CZK",
-        "DK" => "DKK",
-        "FO" => "DKK",
-        "GL" => "DKK",
-        "DJ" => "DJF",
-        "DO" => "DOP",
-        "TP" => "IDR",
-        "ID" => "IDR",
-        "EC" => "ECS",
-        "EG" => "EGP",
-        "SV" => "SVC",
-        "ER" => "ETB",
-        "ET" => "ETB",
-        "EE" => "EEK",
-        "FK" => "FKP",
-        "FJ" => "FJD",
-        "PF" => "XPF",
-        "NC" => "XPF",
-        "WF" => "XPF",
-        "GM" => "GMD",
-        "GE" => "GEL",
-        "GI" => "GIP",
-        "GT" => "GTQ",
-        "GN" => "GNF",
-        "GY" => "GYD",
-        "HT" => "HTG",
-        "HN" => "HNL",
-        "HU" => "HUF",
-        "IS" => "ISK",
-        "IR" => "IRR",
-        "IQ" => "IQD",
-        "IL" => "ILS",
-        "JM" => "JMD",
-        "JO" => "JOD",
-        "KZ" => "KZT",
-        "KE" => "KES",
-        "KP" => "KPW",
-        "KR" => "KRW",
-        "KW" => "KWD",
-        "KG" => "KGS",
-        "LA" => "LAK",
-        "LV" => "LVL",
-        "LB" => "LBP",
-        "LS" => "LSL",
-        "LR" => "LRD",
-        "LY" => "LYD",
-        "LI" => "CHF",
-        "CH" => "CHF",
-        "LT" => "LTL",
-        "MO" => "MOP",
-        "MK" => "MKD",
-        "MG" => "MGA",
-        "MW" => "MWK",
-        "MY" => "MYR",
-        "MV" => "MVR",
-        "MT" => "EUR",
-        "MR" => "MRO",
-        "MU" => "MUR",
-        "MX" => "MXN",
-        "MD" => "MDL",
-        "MN" => "MNT",
-        "MA" => "MAD",
-        "EH" => "MAD",
-        "MZ" => "MZN",
-        "MM" => "MMK",
-        "NA" => "NAD",
-        "NP" => "NPR",
-        "NI" => "NIO",
-        "NG" => "NGN",
-        "OM" => "OMR",
-        "PK" => "PKR",
-        "PA" => "PAB",
-        "PG" => "PGK",
-        "PY" => "PYG",
-        "PE" => "PEN",
-        "PH" => "PHP",
-        "PL" => "PLN",
-        "QA" => "QAR",
-        "RO" => "RON",
-        "RU" => "RUB",
-        "RW" => "RWF",
-        "ST" => "STD",
-        "SA" => "SAR",
-        "SC" => "SCR",
-        "SL" => "SLL",
-        "SG" => "SGD",
-        "SK" => "SKK",
-        "SB" => "SBD",
-        "SO" => "SOS",
-        "ZA" => "ZAR",
-        "LK" => "LKR",
-        "SD" => "SDG",
-        "SR" => "SRD",
-        "SZ" => "SZL",
-        "SE" => "SEK",
-        "SY" => "SYP",
-        "TW" => "TWD",
-        "TJ" => "TJS",
-        "TZ" => "TZS",
-        "TH" => "THB",
-        "TO" => "TOP",
-        "TT" => "TTD",
-        "TN" => "TND",
-        "TR" => "TRY",
-        "TM" => "TMT",
-        "UG" => "UGX",
-        "UA" => "UAH",
-        "AE" => "AED",
-        "UY" => "UYU",
-        "UZ" => "UZS",
-        "VU" => "VUV",
-        "VE" => "VEF",
-        "VN" => "VND",
-        "YE" => "YER",
-        "ZM" => "ZMK",
-        "ZW" => "ZWD",
-        "AX" => "EUR",
-        "AO" => "AOA",
-        "AQ" => "AQD",
-        "BA" => "BAM",
-        "CD" => "CDF",
-        "GH" => "GHS",
-        "GG" => "GGP",
-        "IM" => "GBP",
-        "LA" => "LAK",
-        "MO" => "MOP",
-        "ME" => "EUR",
-        "PS" => "JOD",
-        "BL" => "EUR",
-        "SH" => "GBP",
-        "MF" => "ANG",
-        "PM" => "EUR",
-        "RS" => "RSD",
-        "USAF" => "USD",
+    return isset($mapping[$countryCode]) ? $mapping[$countryCode] : null;
+}
+
+/**
+ * Get list of countries
+ * Format array("country code" => array(0 => "translated name", 1 => "English name"))
+ *
+ * @param string[] Country list gets filtered, e.g. array('CH') will only return Switzerland
+ */
+function getSortedCountryList($countryCodeFilters = array())
+{
+    $countries = array(
+        "AF" => __("Afghanistan", "eas-donation-processor"),
+        "AX" => __("Åland Islands", "eas-donation-processor"),
+        "AL" => __("Albania", "eas-donation-processor"),
+        "DZ" => __("Algeria", "eas-donation-processor"),
+        "AS" => __("American Samoa", "eas-donation-processor"),
+        "AD" => __("Andorra", "eas-donation-processor"),
+        "AO" => __("Angola", "eas-donation-processor"),
+        "AI" => __("Anguilla", "eas-donation-processor"),
+        "AQ" => __("Antarctica", "eas-donation-processor"),
+        "AG" => __("Antigua and Barbuda", "eas-donation-processor"),
+        "AR" => __("Argentina", "eas-donation-processor"),
+        "AM" => __("Armenia", "eas-donation-processor"),
+        "AW" => __("Aruba", "eas-donation-processor"),
+        "AU" => __("Australia", "eas-donation-processor"),
+        "AT" => __("Austria", "eas-donation-processor"),
+        "AZ" => __("Azerbaijan", "eas-donation-processor"),
+        "BS" => __("Bahamas", "eas-donation-processor"),
+        "BH" => __("Bahrain", "eas-donation-processor"),
+        "BD" => __("Bangladesh", "eas-donation-processor"),
+        "BB" => __("Barbados", "eas-donation-processor"),
+        "BY" => __("Belarus", "eas-donation-processor"),
+        "BE" => __("Belgium", "eas-donation-processor"),
+        "BZ" => __("Belize", "eas-donation-processor"),
+        "BJ" => __("Benin", "eas-donation-processor"),
+        "BM" => __("Bermuda", "eas-donation-processor"),
+        "BT" => __("Bhutan", "eas-donation-processor"),
+        "BO" => __("Bolivia, Plurinational State of", "eas-donation-processor"),
+        "BQ" => __("Bonaire, Sint Eustatius and Saba", "eas-donation-processor"),
+        "BA" => __("Bosnia and Herzegovina", "eas-donation-processor"),
+        "BW" => __("Botswana", "eas-donation-processor"),
+        "BV" => __("Bouvet Island", "eas-donation-processor"),
+        "BR" => __("Brazil", "eas-donation-processor"),
+        "IO" => __("British Indian Ocean Territory", "eas-donation-processor"),
+        "BN" => __("Brunei Darussalam", "eas-donation-processor"),
+        "BG" => __("Bulgaria", "eas-donation-processor"),
+        "BF" => __("Burkina Faso", "eas-donation-processor"),
+        "BI" => __("Burundi", "eas-donation-processor"),
+        "KH" => __("Cambodia", "eas-donation-processor"),
+        "CM" => __("Cameroon", "eas-donation-processor"),
+        "CA" => __("Canada", "eas-donation-processor"),
+        "CV" => __("Cape Verde", "eas-donation-processor"),
+        "KY" => __("Cayman Islands", "eas-donation-processor"),
+        "CF" => __("Central African Republic", "eas-donation-processor"),
+        "TD" => __("Chad", "eas-donation-processor"),
+        "CL" => __("Chile", "eas-donation-processor"),
+        "CN" => __("China", "eas-donation-processor"),
+        "CX" => __("Christmas Island", "eas-donation-processor"),
+        "CC" => __("Cocos (Keeling) Islands", "eas-donation-processor"),
+        "CO" => __("Colombia", "eas-donation-processor"),
+        "KM" => __("Comoros", "eas-donation-processor"),
+        "CG" => __("Congo, Republic of", "eas-donation-processor"),
+        "CD" => __("Congo, Democratic Republic of the", "eas-donation-processor"),
+        "CK" => __("Cook Islands", "eas-donation-processor"),
+        "CR" => __("Costa Rica", "eas-donation-processor"),
+        "CI" => __("Côte d'Ivoire", "eas-donation-processor"),
+        "HR" => __("Croatia", "eas-donation-processor"),
+        "CU" => __("Cuba", "eas-donation-processor"),
+        "CW" => __("Curaçao", "eas-donation-processor"),
+        "CY" => __("Cyprus", "eas-donation-processor"),
+        "CZ" => __("Czech Republic", "eas-donation-processor"),
+        "DK" => __("Denmark", "eas-donation-processor"),
+        "DJ" => __("Djibouti", "eas-donation-processor"),
+        "DM" => __("Dominica", "eas-donation-processor"),
+        "DO" => __("Dominican Republic", "eas-donation-processor"),
+        "EC" => __("Ecuador", "eas-donation-processor"),
+        "EG" => __("Egypt", "eas-donation-processor"),
+        "SV" => __("El Salvador", "eas-donation-processor"),
+        "GQ" => __("Equatorial Guinea", "eas-donation-processor"),
+        "ER" => __("Eritrea", "eas-donation-processor"),
+        "EE" => __("Estonia", "eas-donation-processor"),
+        "ET" => __("Ethiopia", "eas-donation-processor"),
+        "FK" => __("Falkland Islands (Malvinas)", "eas-donation-processor"),
+        "FO" => __("Faroe Islands", "eas-donation-processor"),
+        "FJ" => __("Fiji", "eas-donation-processor"),
+        "FI" => __("Finland", "eas-donation-processor"),
+        "FR" => __("France", "eas-donation-processor"),
+        "GF" => __("French Guiana", "eas-donation-processor"),
+        "PF" => __("French Polynesia", "eas-donation-processor"),
+        "TF" => __("French Southern Territories", "eas-donation-processor"),
+        "GA" => __("Gabon", "eas-donation-processor"),
+        "GM" => __("Gambia", "eas-donation-processor"),
+        "GE" => __("Georgia", "eas-donation-processor"),
+        "DE" => __("Germany", "eas-donation-processor"),
+        "GH" => __("Ghana", "eas-donation-processor"),
+        "GI" => __("Gibraltar", "eas-donation-processor"),
+        "GR" => __("Greece", "eas-donation-processor"),
+        "GL" => __("Greenland", "eas-donation-processor"),
+        "GD" => __("Grenada", "eas-donation-processor"),
+        "GP" => __("Guadeloupe", "eas-donation-processor"),
+        "GU" => __("Guam", "eas-donation-processor"),
+        "GT" => __("Guatemala", "eas-donation-processor"),
+        "GG" => __("Guernsey", "eas-donation-processor"),
+        "GN" => __("Guinea", "eas-donation-processor"),
+        "GW" => __("Guinea-Bissau", "eas-donation-processor"),
+        "GY" => __("Guyana", "eas-donation-processor"),
+        "HT" => __("Haiti", "eas-donation-processor"),
+        "HM" => __("Heard Island and McDonald Islands", "eas-donation-processor"),
+        "VA" => __("Holy See (Vatican City State)", "eas-donation-processor"),
+        "HN" => __("Honduras", "eas-donation-processor"),
+        "HK" => __("Hong Kong", "eas-donation-processor"),
+        "HU" => __("Hungary", "eas-donation-processor"),
+        "IS" => __("Iceland", "eas-donation-processor"),
+        "IN" => __("India", "eas-donation-processor"),
+        "ID" => __("Indonesia", "eas-donation-processor"),
+        "IR" => __("Iran, Islamic Republic of", "eas-donation-processor"),
+        "IQ" => __("Iraq", "eas-donation-processor"),
+        "IE" => __("Ireland", "eas-donation-processor"),
+        "IM" => __("Isle of Man", "eas-donation-processor"),
+        "IL" => __("Israel", "eas-donation-processor"),
+        "IT" => __("Italy", "eas-donation-processor"),
+        "JM" => __("Jamaica", "eas-donation-processor"),
+        "JP" => __("Japan", "eas-donation-processor"),
+        "JE" => __("Jersey", "eas-donation-processor"),
+        "JO" => __("Jordan", "eas-donation-processor"),
+        "KZ" => __("Kazakhstan", "eas-donation-processor"),
+        "KE" => __("Kenya", "eas-donation-processor"),
+        "KI" => __("Kiribati", "eas-donation-processor"),
+        "KP" => __("Korea, Democratic People's Republic of", "eas-donation-processor"),
+        "KR" => __("Korea, Republic of", "eas-donation-processor"),
+        "KW" => __("Kuwait", "eas-donation-processor"),
+        "KG" => __("Kyrgyzstan", "eas-donation-processor"),
+        "LA" => __("Lao People's Democratic Republic", "eas-donation-processor"),
+        "LV" => __("Latvia", "eas-donation-processor"),
+        "LB" => __("Lebanon", "eas-donation-processor"),
+        "LS" => __("Lesotho", "eas-donation-processor"),
+        "LR" => __("Liberia", "eas-donation-processor"),
+        "LY" => __("Libya", "eas-donation-processor"),
+        "LI" => __("Liechtenstein", "eas-donation-processor"),
+        "LT" => __("Lithuania", "eas-donation-processor"),
+        "LU" => __("Luxembourg", "eas-donation-processor"),
+        "MO" => __("Macao", "eas-donation-processor"),
+        "MK" => __("Macedonia, Former Yugoslav Republic of", "eas-donation-processor"),
+        "MG" => __("Madagascar", "eas-donation-processor"),
+        "MW" => __("Malawi", "eas-donation-processor"),
+        "MY" => __("Malaysia", "eas-donation-processor"),
+        "MV" => __("Maldives", "eas-donation-processor"),
+        "ML" => __("Mali", "eas-donation-processor"),
+        "MT" => __("Malta", "eas-donation-processor"),
+        "MH" => __("Marshall Islands", "eas-donation-processor"),
+        "MQ" => __("Martinique", "eas-donation-processor"),
+        "MR" => __("Mauritania", "eas-donation-processor"),
+        "MU" => __("Mauritius", "eas-donation-processor"),
+        "YT" => __("Mayotte", "eas-donation-processor"),
+        "MX" => __("Mexico", "eas-donation-processor"),
+        "FM" => __("Micronesia, Federated States of", "eas-donation-processor"),
+        "MD" => __("Moldova, Republic of", "eas-donation-processor"),
+        "MC" => __("Monaco", "eas-donation-processor"),
+        "MN" => __("Mongolia", "eas-donation-processor"),
+        "ME" => __("Montenegro", "eas-donation-processor"),
+        "MS" => __("Montserrat", "eas-donation-processor"),
+        "MA" => __("Morocco", "eas-donation-processor"),
+        "MZ" => __("Mozambique", "eas-donation-processor"),
+        "MM" => __("Myanmar", "eas-donation-processor"),
+        "NA" => __("Namibia", "eas-donation-processor"),
+        "NR" => __("Nauru", "eas-donation-processor"),
+        "NP" => __("Nepal", "eas-donation-processor"),
+        "NL" => __("Netherlands", "eas-donation-processor"),
+        "NC" => __("New Caledonia", "eas-donation-processor"),
+        "NZ" => __("New Zealand", "eas-donation-processor"),
+        "NI" => __("Nicaragua", "eas-donation-processor"),
+        "NE" => __("Niger", "eas-donation-processor"),
+        "NG" => __("Nigeria", "eas-donation-processor"),
+        "NU" => __("Niue", "eas-donation-processor"),
+        "NF" => __("Norfolk Island", "eas-donation-processor"),
+        "MP" => __("Northern Mariana Islands", "eas-donation-processor"),
+        "NO" => __("Norway", "eas-donation-processor"),
+        "OM" => __("Oman", "eas-donation-processor"),
+        "PK" => __("Pakistan", "eas-donation-processor"),
+        "PW" => __("Palau", "eas-donation-processor"),
+        "PS" => __("Palestinian Territory, Occupied", "eas-donation-processor"),
+        "PA" => __("Panama", "eas-donation-processor"),
+        "PG" => __("Papua New Guinea", "eas-donation-processor"),
+        "PY" => __("Paraguay", "eas-donation-processor"),
+        "PE" => __("Peru", "eas-donation-processor"),
+        "PH" => __("Philippines", "eas-donation-processor"),
+        "PN" => __("Pitcairn", "eas-donation-processor"),
+        "PL" => __("Poland", "eas-donation-processor"),
+        "PT" => __("Portugal", "eas-donation-processor"),
+        "PR" => __("Puerto Rico", "eas-donation-processor"),
+        "QA" => __("Qatar", "eas-donation-processor"),
+        "RE" => __("Réunion", "eas-donation-processor"),
+        "RO" => __("Romania", "eas-donation-processor"),
+        "RU" => __("Russian Federation", "eas-donation-processor"),
+        "RW" => __("Rwanda", "eas-donation-processor"),
+        "SH" => __("Saint Helena, Ascension and Tristan da Cunha", "eas-donation-processor"),
+        "KN" => __("Saint Kitts and Nevis", "eas-donation-processor"),
+        "LC" => __("Saint Lucia", "eas-donation-processor"),
+        "PM" => __("Saint Pierre and Miquelon", "eas-donation-processor"),
+        "VC" => __("Saint Vincent and the Grenadines", "eas-donation-processor"),
+        "WS" => __("Samoa", "eas-donation-processor"),
+        "SM" => __("San Marino", "eas-donation-processor"),
+        "ST" => __("Sao Tome and Principe", "eas-donation-processor"),
+        "SA" => __("Saudi Arabia", "eas-donation-processor"),
+        "SN" => __("Senegal", "eas-donation-processor"),
+        "RS" => __("Serbia", "eas-donation-processor"),
+        "SC" => __("Seychelles", "eas-donation-processor"),
+        "SL" => __("Sierra Leone", "eas-donation-processor"),
+        "SG" => __("Singapore", "eas-donation-processor"),
+        "SK" => __("Slovakia", "eas-donation-processor"),
+        "SI" => __("Slovenia", "eas-donation-processor"),
+        "SB" => __("Solomon Islands", "eas-donation-processor"),
+        "SO" => __("Somalia", "eas-donation-processor"),
+        "ZA" => __("South Africa", "eas-donation-processor"),
+        "GS" => __("South Georgia and the South Sandwich Islands", "eas-donation-processor"),
+        "SS" => __("South Sudan", "eas-donation-processor"),
+        "ES" => __("Spain", "eas-donation-processor"),
+        "LK" => __("Sri Lanka", "eas-donation-processor"),
+        "SD" => __("Sudan", "eas-donation-processor"),
+        "SR" => __("Suriname", "eas-donation-processor"),
+        "SJ" => __("Svalbard and Jan Mayen", "eas-donation-processor"),
+        "SZ" => __("Swaziland", "eas-donation-processor"),
+        "SE" => __("Sweden", "eas-donation-processor"),
+        "CH" => __("Switzerland", "eas-donation-processor"),
+        "SY" => __("Syrian Arab Republic", "eas-donation-processor"),
+        "TW" => __("Taiwan, Province of China", "eas-donation-processor"),
+        "TJ" => __("Tajikistan", "eas-donation-processor"),
+        "TZ" => __("Tanzania, United Republic of", "eas-donation-processor"),
+        "TH" => __("Thailand", "eas-donation-processor"),
+        "TL" => __("Timor-Leste", "eas-donation-processor"),
+        "TG" => __("Togo", "eas-donation-processor"),
+        "TK" => __("Tokelau", "eas-donation-processor"),
+        "TO" => __("Tonga", "eas-donation-processor"),
+        "TT" => __("Trinidad and Tobago", "eas-donation-processor"),
+        "TN" => __("Tunisia", "eas-donation-processor"),
+        "TR" => __("Turkey", "eas-donation-processor"),
+        "TM" => __("Turkmenistan", "eas-donation-processor"),
+        "TC" => __("Turks and Caicos Islands", "eas-donation-processor"),
+        "TV" => __("Tuvalu", "eas-donation-processor"),
+        "UG" => __("Uganda", "eas-donation-processor"),
+        "UA" => __("Ukraine", "eas-donation-processor"),
+        "AE" => __("United Arab Emirates", "eas-donation-processor"),
+        "GB" => __("United Kingdom", "eas-donation-processor"),
+        "US" => __("United States", "eas-donation-processor"),
+        "UM" => __("United States Minor Outlying Islands", "eas-donation-processor"),
+        "UY" => __("Uruguay", "eas-donation-processor"),
+        "UZ" => __("Uzbekistan", "eas-donation-processor"),
+        "VU" => __("Vanuatu", "eas-donation-processor"),
+        "VE" => __("Venezuela, Bolivarian Republic of", "eas-donation-processor"),
+        "VN" => __("Viet Nam", "eas-donation-processor"),
+        "VG" => __("Virgin Islands, British", "eas-donation-processor"),
+        "VI" => __("Virgin Islands, U.S.", "eas-donation-processor"),
+        "WF" => __("Wallis and Futuna", "eas-donation-processor"),
+        "EH" => __("Western Sahara", "eas-donation-processor"),
+        "YE" => __("Yemen", "eas-donation-processor"),
+        "ZM" => __("Zambia", "eas-donation-processor"),
+        "ZW" => __("Zimbabwe", "eas-donation-processor"),
     );
 
-    return isset($countryCurrencies[$countryCode]) ? $countryCurrencies[$countryCode] : null;
+    $countriesEn = $GLOBALS['code2country'];
+
+    // Sort by value
+    asort($countries);
+
+    // Merge
+    $result = array_merge_recursive($countries, $countriesEn);
+    
+    // Filter
+    if ($countryCodeFilters) {
+        $resultSubset = array();
+        foreach ($countryCodeFilters as $countryCodeFilter) {
+            if (isset($result[$countryCodeFilter])) {
+                $resultSubset[$countryCodeFilter] = $result[$countryCodeFilter];
+            }
+        }
+        $result = $resultSubset;
+    }
+    
+    return $result;
 }
+
+/**
+ * Get English country name 
+ *
+ * @param string $countryCode E.g. "CH" or "US"
+ * @return string E.g. "Switzerland" or "United States"
+ */
+function getEnglishNameByCountryCode($countryCode)
+{
+    $countryCode = strtoupper($countryCode);
+    return isset($GLOBALS['code2country'][$countryCode]) ? $GLOBALS['code2country'][$countryCode] : $countryCode;
+}
+
+/**
+ * Get array with country codes where currency is used
+ *
+ * @param string $currency E.g. "CHF"
+ * @return array E.g. array("LI", "CH")
+ */
+function getCountriesByCurrency($currency)
+{
+    $mapping = $GLOBALS['currency2country'];
+
+    if (isset($mapping[$currency])) {
+        return $mapping[$currency];
+    } else {
+        return array();
+    }
+}
+
+/**
+ * Get Stripe public keys for the form
+ * 
+ * E.g.
+ * [
+ *     'default' => ['sandbox' => 'default_sandbox_key', 'live' => 'default_live_key'],
+ *     'ch'      => ['sandbox' => 'ch_sandbox_key',  'live' => 'ch_live_key'],
+ *     'gb'      => ['sandbox' => 'gb_sandbox_key',  'live' => 'gb_live_key'],
+ *     'de'      => ['sandbox' => 'de_sandbox_key',  'live' => 'de_live_key'],
+ *     'chf'     => ['sandbox' => 'chf_sandbox_key', 'live' => 'chf_live_key'],
+ *     'eur'     => ['sandbox' => 'eur_sandbox_key', 'live' => 'eur_live_key'],
+ *     'usd'     => ['sandbox' => 'usd_sandbox_key', 'live' => 'usd_live_key']
+ * ]
+ *
+ * @param array $form Settings array of the form
+ * @return array 
+ */
+function getStripePublicKeys(array $form)
+{
+    $formStripeKeys = array();
+
+    // Load Stripe sandbox/live default public keys
+    $defaultStripeKeys = array();
+    if (isset($form['payment.provider.stripe.sandbox.public_key'])) {
+        $defaultStripeKeys['sandbox'] = $form['payment.provider.stripe.sandbox.public_key'];
+    }
+    if (isset($form['payment.provider.stripe.live.public_key'])) {
+        $defaultStripeKeys['live'] = $form['payment.provider.stripe.live.public_key'];
+    }
+    $formStripeKeys['default'] = $defaultStripeKeys;
+
+    // Load Stripe non-default settings (per country or per currency)
+    $nonDefaultStripeKeys = array_map(function($key, $value) {
+        if (preg_match('#^payment\.provider\.stripe_([^\.]+)\.(sandbox|live)\.public_key$#', $key, $matches)) {
+            return array(
+                'domain' => $matches[1], // e.g. ch, de, eur, usd, etc.
+                'mode'   => $matches[2], // live or sandbox
+                'key'    => $value,      // the Stripe public key
+            );
+        } else {
+            return array();
+        }
+    }, array_keys($form), array_values($form));
+
+    // Get rid of empty entries and then save everything to $formStripeKeys
+    $nonDefaultStripeKeys = array_filter($nonDefaultStripeKeys, 'count');
+    foreach ($nonDefaultStripeKeys as $val) {
+        $formStripeKeys[$val['domain']][$val['mode']] = $val['key'];
+    }
+
+    return $formStripeKeys;
+}
+
+/**
+ * Get Paypal accounts
+ * 
+ * E.g.
+ * [
+ *     'default' => ['sandbox', 'live'],
+ *     'ch'      => ['sandbox', 'live'],
+ *     'gb'      => ['sandbox', 'live'],
+ *     'de'      => ['sandbox', 'live'],
+ *     'chf'     => ['sandbox', 'live'],
+ *     'eur'     => ['sandbox', 'live'],
+ *     'usd'     => ['sandbox', 'live']
+ * ]
+ *
+ * param array $form Settings array of the form
+ * return array 
+ */
+/*function getPaypalAccounts(array $form)
+{
+    $formPaypalAccounts = array();
+
+    // Load default Paypal account
+    $defaultPaypalAccount = array();
+    if (isset($form['payment.provider.paypal.sandbox.email_id'])) {
+        $defaultPaypalAccount[] = 'sandbox';
+    }
+    if (isset($form['payment.provider.paypal.live.email_id'])) {
+        $defaultPaypalAccount[] = 'live';
+    }
+    $formPaypalAccounts['default'] = $defaultPaypalAccount;
+
+    // Load Paypal non-default accounts (per country or per currency)
+    $nonDefaultPaypalAccounts = array_map(function($key, $value) {
+        if (preg_match('#^payment\.provider\.paypal_([^\.]+)\.(sandbox|live)\.email_id$#', $key, $matches)) {
+            return array(
+                'domain' => $matches[1], // e.g. ch, de, eur, usd, etc.
+                'mode'   => $matches[2], // live or sandbox
+            );
+        } else {
+            return array();
+        }
+    }, array_keys($form), array_values($form));
+
+    // Get rid of empty entries and then save everything to $formPaypalAccounts
+    $nonDefaultPaypalAccounts = array_filter($nonDefaultPaypalAccounts, 'count');
+    foreach ($nonDefaultPaypalAccounts as $val) {
+        $formPaypalAccounts[$val['domain']][] = $val['mode'];
+    }
+
+    return $formPaypalAccounts;
+}*/
 
 /*
 

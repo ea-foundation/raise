@@ -114,8 +114,10 @@ function eas_json_settings_editor() {
 function register_donation_styles() {
     wp_register_style('bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
     wp_enqueue_style('bootstrap');
-    wp_register_style('donation-plugin-css', plugins_url('eas-donation-processor/css/form.css' ));
+    wp_register_style('donation-plugin-css', plugins_url('eas-donation-processor/css/form.css'));
     wp_enqueue_style('donation-plugin-css');
+    wp_register_style('donation-combobox-css', plugins_url('eas-donation-processor/css/bootstrap-combobox.css'));
+    wp_enqueue_style('donation-combobox-css');
     wp_register_style('donation-plugin-flags', plugins_url('eas-donation-processor/css/flags.css'));
     wp_enqueue_style('donation-plugin-flags');
 }
@@ -142,18 +144,10 @@ function register_donation_scripts()
         }
     }
 
-    // Stripe
-    $stripeKeys = array();
+    // Get Stripe public keys + Paypal accounts
+    $stripeKeys     = array();
     foreach ($easForms as $formName => $form) {
-        // Sandbox setting
-        if (isset($form['payment.provider.stripe.sandbox.public_key'])) {
-            $stripeKeys[$formName]['sandbox'] = $form['payment.provider.stripe.sandbox.public_key'];
-        }
-
-        // Live setting
-        if (isset($form['payment.provider.stripe.live.public_key'])) {
-            $stripeKeys[$formName]['live'] = $form['payment.provider.stripe.live.public_key'];
-        }        
+        $stripeKeys[$formName]     = getStripePublicKeys($form);
     }
 
     wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array('jquery'));
@@ -173,8 +167,11 @@ function register_donation_scripts()
         'organization'       => $easOrganization,
         'donate_button_text' => __("Donate %currency-amount%", "eas-donation-processor"),
         'donation'           => __("Donation", "eas-donation-processor"),
+        'currency2country'   => $GLOBALS['currency2country'],
     ));
     wp_enqueue_script('donation-plugin-form');
+    wp_register_script('donation-combobox', plugins_url('eas-donation-processor/js/bootstrap-combobox.js'));
+    wp_enqueue_script('donation-combobox');
 }
 
 add_action('wp_enqueue_scripts', 'register_donation_scripts');

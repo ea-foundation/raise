@@ -44,7 +44,55 @@
                             "public_key": ""
                         }
                     },
+                    "stripe_ch": {
+                        "live": {
+                            "secret_key": "",
+                            "public_key": ""
+                        },
+                        "sandbox": {
+                            "secret_key": "",
+                            "public_key": ""
+                        }
+                    },
+                    "stripe_chf": {
+                        "live": {
+                            "secret_key": "",
+                            "public_key": ""
+                        },
+                        "sandbox": {
+                            "secret_key": "",
+                            "public_key": ""
+                        }
+                    },
                     "paypal": {
+                        "live": {
+                            "email_id": "",
+                            "api_username": "",
+                            "api_password": "",
+                            "api_signature": ""
+                        },
+                        "sandbox": {
+                            "email_id": "",
+                            "api_username": "",
+                            "api_password": "",
+                            "api_signature": ""
+                        }
+                    },
+                    "paypal_de": {
+                        "live": {
+                            "email_id": "",
+                            "api_username": "",
+                            "api_password": "",
+                            "api_signature": ""
+                        },
+                        "sandbox": {
+                            "email_id": "",
+                            "api_username": "",
+                            "api_password": "",
+                            "api_signature": ""
+                        }
+                    },
+                    "paypal_eur": {
                         "live": {
                             "email_id": "",
                             "api_username": "",

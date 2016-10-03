@@ -9,7 +9,7 @@
 
 /* single donation carousel item */
 #wizard .item {
-    padding: 20px 20px;
+    padding: 20px 20px; /* 200px 20px; */
 }
 
 @media (max-width: 767px) {
@@ -328,6 +328,11 @@ div.float-left {
     left: auto;
 }
 
+#wizard div.donor-extra-info .dropdown-menu {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
 #wizard .dropdown-menu>li {
     font-size: 14px !important;
     line-height: 1.42857143;
@@ -435,6 +440,17 @@ div#secure-transaction p {
         text-align: right;
     }
 }
+
+div.combobox-container input {
+    margin-bottom: 0 !important;
+    border-radius: 0;
+    border-top-left-radius: 4px !important;
+    border-bottom-left-radius: 4px !important;
+}
+
+.dropdown-menu>li>a, .dropdown-menu>li>a:hover{
+    text-decoration: none !important;
+} 
 
 div#amount-item .form-control::-webkit-input-placeholder { color: white; font-weight: 100 }
 div#amount-item .form-control:-moz-placeholder { color: white; font-weight: 100 }

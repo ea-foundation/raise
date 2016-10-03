@@ -1,14 +1,18 @@
 /**
   * Settings
   */
-var easFormName     = 'default'; // This gets overwritten by a script embedded in the form
-var easMode         = 'live';    // This gets overwritten by a script embedded in the form
-var currencies      = wordpress_vars.amount_patterns;
-var stripeHandlers  = null;
-var buttonFinalText = wordpress_vars.donate_button_text + ' »';
-var totalItems      = 0;
+var easFormName      = 'default'; // This gets overwritten in a script embedded in the form
+var easMode          = 'live';    // This gets overwritten in a script embedded in the form
+var userCountry      = '';
+var selectedCurrency = '';
+var currencies       = wordpress_vars.amount_patterns;
+var stripeHandlers   = null;
+var buttonFinalText  = wordpress_vars.donate_button_text + ' »';
+var totalItems       = 0;
+var taxReceiptNeeded = false;
 var slideTransitionInAction = false;
 var otherAmountPlaceholder  = null;
+var currentStripeKey = '';
 
 
 
@@ -19,8 +23,6 @@ stripeImage.src = wordpress_vars.plugin_path + 'images/logo.png';
 
 
 
-
-
 /**
   * Form setup
   */
@@ -28,49 +30,17 @@ jQuery(document).ready(function($) {
     /**
      * Stripe setup
      */
-    stripeHandler = StripeCheckout.configure({
-        key: wordpress_vars.stripe_public_keys[easFormName][easMode],
-        image: wordpress_vars.plugin_path + 'images/logo.png',
-        color: '#255A8E',
-        locale: 'auto',
-        token: function(token) {
-            //console.log("my object: %o", token);
-            // Use the token to create the charge with a server-side script.
-            // You can access the token ID with `token.id`
-            var tokenInput = jQuery('<input type="hidden" name="stripeToken" />').val(token.id);
-            //var emailInput = jQuery('<input type="hidden" name="stripeEmail" />').val(token.email);
+    loadStripeHandler();
 
-            // Show spinner
-            showSpinnerOnLastButton();
 
-            // Send form
-            jQuery('form#donationForm').append(tokenInput).ajaxSubmit({
-                success: function(responseText, statusText, xhr, form) {
-                    try {
-                        var response = JSON.parse(responseText);
-                        if (!('success' in response) || !response['success']) {
-                            var message = 'error' in response ? response['error'] : responseText;
-                            throw new Error(message);
-                        }
-
-                        // Everything worked! Change glyphicon from "spinner" to "OK" and go to confirmation page
-                        showConfirmation('stripe');
-                    } catch (ex) {
-                        // Something went wrong, show on confirmation page
-                        alert(ex.message);
-
-                        // Enable buttons
-                        lockLastStep(false);
-                    }
-                }
-            });
-
-            // Disable submit button, back button, and payment options
-            lockLastStep(true);
-
-            return false;
-        }
+    // Country combobox setup
+    $('.combobox', '#wizard').combobox({
+        matcher: function (item) {
+            return item.toLowerCase().indexOf(this.query.toLowerCase()) == 0;
+        },
+        appendId: '-auto'
     });
+
 
 
     totalItems = $('#wizard .item').length;
@@ -92,11 +62,6 @@ jQuery(document).ready(function($) {
 
         // Go to previous step
         carouselPrev();
-
-        //$('#donation-carousel').carousel('prev');
-
-        // update status bar
-        //$("#status li").removeClass("active").eq(currentItem - 1).addClass("active");
     });
 
     // Prevent interaction during carousel slide
@@ -121,7 +86,7 @@ jQuery(document).ready(function($) {
 
         var currentItem = $('div.active', '#wizard').index() + 1;
 
-        // check contents
+        // Check contents
         if (currentItem <= totalItems) {
             // Get all fields inside the page
             var inputs = $('div.item.active :input', '#wizard');
@@ -158,9 +123,15 @@ jQuery(document).ready(function($) {
                 // Add a error CSS for empty and invalid fields
                 empty = $.unique($.merge(empty, invalid));
                 empty.each(function(index) {
-                    $(this).attr('aria-describedby', 'inputError2Status' + index)
-                    $(this).parent().append('<span class="eas-error glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span><span id="inputError2Status' + index + '" class="eas-error sr-only">(error)</span>');
-                    $(this).parent().parent().addClass('has-error');
+                    // Don't add X icon to combobox. It looks bad
+                    if ($(this).attr('type') != 'hidden' && $(this).attr('id') != 'donor-country-auto') {
+                        if ($(this).attr('id') != 'donor-country') {
+                            $(this).parent().append('<span class="eas-error glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>');
+                        }
+                        $(this).parent().parent().addClass('has-error');
+                        $(this).attr('aria-describedby', 'inputError2Status' + index)
+                        $(this).parent().append('<span id="inputError2Status' + index + '" class="eas-error sr-only">(error)</span>');
+                    }
                 });
 
 
@@ -257,9 +228,10 @@ jQuery(document).ready(function($) {
         }
     });
 
-    // currency stuff
-    $('#donation-currency ul label').click(function() {
-        var currencyCode = $(this).find('input').val();
+    // Currency stuff
+    $('#donation-currency input[name=currency]').change(function() {
+        var selectedCurrencyInput = $(this).filter(':checked');
+        selectedCurrency          = selectedCurrencyInput.val();
 
         // Remove old currency
         $('.cur', '#wizard').text('');
@@ -267,26 +239,47 @@ jQuery(document).ready(function($) {
         // Update and close dropdown
         $('#selected-currency-flag')
             .removeClass()
-            .addClass($(this).find('img').prop('class'))
-            .prop('alt', $(this).find('img').prop('alt'));
-        $('#selected-currency').text(currencyCode);
-        $(this).parent().parent().parent().removeClass('open');
+            .addClass(selectedCurrencyInput.siblings('img').prop('class'))
+            .prop('alt', selectedCurrencyInput.siblings('img').prop('alt'));
+        $('#selected-currency').text(selectedCurrency);
+        $(this).parent().parent().parent().parent().removeClass('open');
 
         // Set new currency on buttons and on custom input field
-        var currencyString = currencies[easFormName][currencyCode];
+        var currencyString = currencies[easFormName][selectedCurrency];
         $('ul#amounts>li>label').text(
             function(i, val) {
                 return currencyString.replace('%amount%', $(this).prev('input').attr('value')); 
             }
         );
-        $('span.input-group-addon').text($.trim(currencyString.replace('%amount%', '')));
+        $('ul#amounts span.input-group-addon').text($.trim(currencyString.replace('%amount%', '')));
+
+        // Reload Stripe handler
+        loadStripeHandler();
     });
 
-    // Donation purpose stuff
+    // Purpose dropdown stuff
     $('#donation-purpose input[type=radio]').change(function() {
         $('#selected-purpose').text($(this).parent().contents().filter(function() {
             return this.nodeType == 3;
         }).text());
+    });
+
+    // Country dropdown stuff
+    $('#donor-extra-info select#donor-country').change(function() {
+        // Reload Stripe handler
+        var option      = $(this).find('option:selected');
+        var countryCode = option.val();
+
+        if (!!countryCode) {
+            userCountry = countryCode;
+
+            // Make sure it's displyed correctly (autocomplete may mess with it)
+            $('input#donor-country-auto').val(option.text());
+            $('#donor-extra-info input[name=country]').val(countryCode);
+
+            // Reload stripe handlers
+            loadStripeHandler();
+        }
     });
 
     // Show div with payment details
@@ -305,6 +298,7 @@ jQuery(document).ready(function($) {
 
     // Tax receipt toggle
     $('input#tax-receipt').change(function() {
+        taxReceiptNeeded = $(this).is(':checked');
         // Toggle donor form display and required class
         if ($('div#donor-extra-info').css('display') == 'none') {
             $('div#donor-extra-info').slideDown();
@@ -313,6 +307,8 @@ jQuery(document).ready(function($) {
             $('div#donor-extra-info').slideUp();
             $('div#donor-extra-info div.optionally-required').removeClass('required');
         }
+        // Reload stripe settings
+        loadStripeHandler();
     });
 }); // End jQuery(document).ready()
 
@@ -368,7 +364,8 @@ function getDonationAmount()
 
 function getDonationCurrencyIsoCode()
 {
-    return jQuery('input[name=currency]:checked').val();
+    //return jQuery('input[name=currency]:checked').val();
+    return selectedCurrency;
 }
 
 /**
@@ -406,12 +403,13 @@ function handlePaypalDonation()
             email: getDonorInfo('email'),
             amount: getDonationAmount(),
             currency: getDonationCurrencyIsoCode(),
-            purpose: getDonorSelection('purpose'),
+            purpose: getDonorRadioSelection('purpose'),
+            tax_receipt: taxReceiptNeeded,
             name: getDonorInfo('name'),
             address: getDonorInfo('address'),
             zip: getDonorInfo('zip'),
             city: getDonorInfo('city'),
-            country: getDonorInfo('country')
+            country: getDonorSelectInfo('country')
         }).done(function(responseText) {
             // On success
             var response = JSON.parse(responseText);
@@ -502,6 +500,117 @@ function showConfirmation(paymentProvider)
     setTimeout(carouselNext, 1000);
 }
 
+function loadStripeHandler()
+{
+    console.log('Loading Stripe handler...');
+    // Lock form
+    lockLastStep(true);
+
+    // Get best matching key
+    var stripeSettings = wordpress_vars.stripe_public_keys[easFormName];
+    var newStripeKey   = '';
+
+    // Check all possible settings
+    var hasCountrySetting  = checkNestedArray(stripeSettings, userCountry.toLowerCase(), easMode);
+    var hasCurrencySetting = checkNestedArray(stripeSettings, selectedCurrency.toLowerCase(), easMode);
+    var hasDefaultSetting  = checkNestedArray(stripeSettings, 'default', easMode);
+    
+    // Check if there are settings for a country where the chosen currency is used.
+    // This is only relevant if the donor does not need a donation receipt (always related 
+    // to specific country) and if there are no currency specific settings
+    var hasCountryOfCurrencySetting = false;
+    var countryOfCurrency           = '';
+    if (!taxReceiptNeeded && !hasCurrencySetting) {
+        var countries = getCountriesByCurrency(selectedCurrency);
+        for (var i = 0; i < countries.length; i++) {
+            if (checkNestedArray(stripeSettings, countries[i].toLowerCase(), easMode)) {
+                hasCountryOfCurrencySetting = true;
+                countryOfCurrency = countries[i];
+                break;
+            }
+        }
+    }
+    
+    if (taxReceiptNeeded && hasCountrySetting) {
+        // Use country specific key
+        console.log('Special settings for country ' + userCountry);
+        newStripeKey = stripeSettings[userCountry.toLowerCase()][easMode];
+    } else if (hasCurrencySetting) {
+        // Use currency specific key
+        console.log('Special settings for currency ' + selectedCurrency);
+        newStripeKey = stripeSettings[selectedCurrency.toLowerCase()][easMode];
+    } else if (hasCountryOfCurrencySetting) {
+        // Use key of a country where the chosen currency is used
+        console.log('Special settings for currency country ' + countryOfCurrency);
+        newStripeKey = stripeSettings[countryOfCurrency.toLowerCase()][easMode];
+    } else if (hasDefaultSetting) {
+        // Use default key
+        console.log('Default settings');
+        newStripeKey = stripeSettings['default'][easMode];
+    } else {
+        throw new Error('No Stripe settings found');
+    }
+
+    // Check if the key changed
+    if (currentStripeKey == newStripeKey) {
+        console.log('Same key. Done.');
+        // Unlock form
+        lockLastStep(false);
+        return;
+    }
+
+    // Create new Stripe handler
+    stripeHandler = StripeCheckout.configure({
+        key: newStripeKey,
+        image: wordpress_vars.plugin_path + 'images/logo.png',
+        color: '#255A8E',
+        locale: 'auto',
+        token: function(token) {
+            //console.log("my object: %o", token);
+            var tokenInput = jQuery('<input type="hidden" name="stripeToken">').val(token.id);
+            var keyInput   = jQuery('<input type="hidden" name="stripePublicKey">').val(newStripeKey);
+
+            // Show spinner
+            showSpinnerOnLastButton();
+
+            // Send form
+            jQuery('form#donationForm').append(tokenInput).append(keyInput).ajaxSubmit({
+                success: function(responseText, statusText, xhr, form) {
+                    try {
+                        var response = JSON.parse(responseText);
+                        if (!('success' in response) || !response['success']) {
+                            var message = 'error' in response ? response['error'] : responseText;
+                            throw new Error(message);
+                        }
+
+                        // Everything worked! Change glyphicon from "spinner" to "OK" and go to confirmation page
+                        showConfirmation('stripe');
+                    } catch (ex) {
+                        // Something went wrong, show on confirmation page
+                        alert(ex.message);
+
+                        // Enable buttons
+                        lockLastStep(false);
+                    }
+                }
+            });
+
+            // Disable submit button, back button, and payment options
+            lockLastStep(true);
+
+            return false;
+        }
+    });
+
+    // Update currentStripeKey
+    currentStripeKey = newStripeKey;
+
+    // Unlock last step
+    lockLastStep(false);
+
+    console.log('Done');
+}
+
 function carouselNext()
 {
     var currentItem = jQuery('#wizard div.active').index() + 1;
@@ -544,7 +653,12 @@ function getDonorInfo(name)
     return jQuery('input#donor-' + name).val();
 }
 
-function getDonorSelection(name)
+function getDonorSelectInfo(name)
+{
+    return jQuery('select#donor-' + name + ' option:selected').val();
+}
+
+function getDonorRadioSelection(name)
 {
     return jQuery('input[name=' + name + ']:checked').val();
 }
@@ -562,6 +676,38 @@ function getFormMode()
 function getFormLanguage()
 {
     return jQuery('input#eas-form-language').val();
+}
+
+/**
+ * Check if all nested array keys exist. Corresponds to PHP isset()
+ */
+function checkNestedArray(obj /*, level1, level2, ... levelN*/) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    
+    for (var i = 0; i < args.length; i++) {
+        if (!obj || !obj.hasOwnProperty(args[i])) {
+            return false;
+        }
+        obj = obj[args[i]];
+    }
+
+    return true;
+}
+
+/**
+ * Get array with country codes where currency is used
+ *
+ * E.g. "CHF" returns ["CH", "LI"]
+ */
+function getCountriesByCurrency(currency)
+{
+    var mapping = wordpress_vars.currency2country;
+
+    if (currency in mapping) {
+        return mapping[currency];
+    } else {
+        return [];
+    }
 }
 
 

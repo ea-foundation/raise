@@ -23,7 +23,7 @@ class EasDonationProcessorOptionsPage
         // This page will be under "Settings"
         add_options_page(
             'EAS Donation Processor', 
-            'Donation Settings', 
+            'Donation Plugin', 
             'manage_options', 
             'eas-donation-settings',
             array( $this, 'create_admin_page' )

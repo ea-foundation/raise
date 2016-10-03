@@ -36,8 +36,10 @@ function donationForm($atts, $content = null)
     } else {
         $supportedCurrencies = array();
     }
+    $userCountry                = getUserCountry();
+    $userCountryCode            = $userCountry['code'];
+    $userCurrency               = getUserCurrency($userCountryCode);
     $supportedCurrencyCodes     = array_keys($supportedCurrencies);
-    $userCurrency               = getUserCurrency();
     $preselectedCurrency        = $userCurrency && in_array($userCurrency, $supportedCurrencyCodes) ? $userCurrency : reset($supportedCurrencyCodes);
     $preselectedCurrencyFlag    = $preselectedCurrency && isset($supportedCurrencies[$preselectedCurrency]['country_flag']) ? $supportedCurrencies[$preselectedCurrency]['country_flag'] : '';
     $preselectedCurrencyPattern = $preselectedCurrency && isset($supportedCurrencies[$preselectedCurrency]['pattern']) ? $supportedCurrencies[$preselectedCurrency]['pattern'] : '';
@@ -60,8 +62,10 @@ function donationForm($atts, $content = null)
 <form action="<?php echo admin_url('admin-ajax.php') ?>" method="post" id="donationForm" class="form-horizontal">
 
 <script>
-    easFormName = "<?php echo $name ?>";
-    easMode     = "<?php echo $mode ?>";
+    easFormName      = "<?php echo $name ?>";
+    easMode          = "<?php echo $mode ?>";
+    userCountry      = "<?php echo $userCountryCode ?>";
+    selectedCurrency = "<?php echo $preselectedCurrency ?>";
 </script>
 <input type="hidden" name="action" value="donate"> <!-- ajax key -->
 <input type="hidden" name="form" value="<?php echo $name ?>" id="eas-form-name"> <!-- form name -->
@@ -193,30 +197,38 @@ function donationForm($atts, $content = null)
                     </div>
                 </div>
 
-                <div class="form-group donor-info" id="donation-purpose">
-                    <?php
-                        // This is a dummy array. It contains labels that need to get into the translation files (.pot and .po)
-                        $toTranslate = array(
-                            __('Where it is most needed', 'eas-donation-processor'),
-                        );
-                    ?>
-                    <label for="donor-email" class="col-sm-3 control-label"><?php _e('Purpose', 'eas-donation-processor') ?></label>
-                    <div class="col-sm-9">
-                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span id="selected-purpose"><?php _e(reset(array_values($easSettings['payment.purpose'])), 'eas-donation-processor') ?></span>
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <?php
-                                $checked = 'checked';
-                                foreach ($easSettings['payment.purpose'] as $value => $label) {
-                                    echo '<li><label for="purpose-' . strtolower($value) . '"><input type="radio" id="purpose-' . strtolower($value) . '" name="purpose" value="' . $value . '" class="hidden" '  . $checked . '>' . __($label, 'eas-donation-processor') . '</label></li>';
-                                    $checked = '';
-                                }
-                            ?>
-                        </ul>
+                <?php
+                    if (!empty($easSettings['payment.purpose'])):
+                        $firstItem = reset(array_values($easSettings['payment.purpose']));
+                        if (is_array($firstItem)) {
+                            $firstItem = isset($firstItem[$language]) ? $firstItem[$language] : reset(array_values($firstItem));
+                        }
+                ?>
+                    <div class="form-group donor-info" id="donation-purpose">
+                        <label for="donor-email" class="col-sm-3 control-label"><?php _e('Purpose', 'eas-donation-processor') ?></label>
+                        <div class="col-sm-9">
+                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span id="selected-purpose"><?php echo $firstItem ?></span>
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <?php
+                                    $checked = 'checked';
+                                    foreach ($easSettings['payment.purpose'] as $value => $labels) {
+                                        // Check if there are language settings
+                                        if (is_array($labels)) {
+                                            $label = isset($labels[$language]) ? $labels[$language] : reset(array_values($labels));
+                                        } else {
+                                            $label = $labels;
+                                        }
+                                        echo '<li><label for="purpose-' . strtolower($value) . '"><input type="radio" id="purpose-' . strtolower($value) . '" name="purpose" value="' . $value . '" class="hidden" '  . $checked . '>' . $label . '</label></li>';
+                                        $checked = '';
+                                    }
+                                ?>
+                            </ul>
+                        </div>
                     </div>
-                </div>
+                <?php endif; ?>
 
                 <div class="form-group required donor-info">
                     <label for="donor-email" class="col-sm-3 control-label"><?php _e('Email', 'eas-donation-processor') ?></label>
@@ -229,7 +241,7 @@ function donationForm($atts, $content = null)
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="tax-receipt" value="1"> <?php _e('I need a tax receipt for Germany or Switzerland.', 'eas-donation-processor') ?>
+                                <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1"> <?php _e('I need a tax receipt for Germany or Switzerland.', 'eas-donation-processor') ?>
                             </label>
                         </div>
                     </div>
@@ -268,7 +280,16 @@ function donationForm($atts, $content = null)
                     <div class="form-group donor-info optionally-required">
                         <label for="donor-country" class="col-sm-3 control-label"><?php _e('Country', 'eas-donation-processor') ?></label>
                         <div class="col-sm-9">
-                            <input type="text" class="form-control text" name="country" id="donor-country" placeholder="">
+                            <select class="combobox" name="country" id="donor-country">
+                                <option></option>
+                                <?php
+                                    $countries = getSortedCountryList();
+                                    foreach ($countries as $code => $country) {
+                                        $checked = $userCountryCode == $code ? 'selected' : '';
+                                        echo '<option value="' . $code . '" '  . $checked . '>' . $country[0] . '</option>';
+                                    }
+                                ?>
+                            </select>
                         </div>
                     </div>
                 </div>
