@@ -27,7 +27,10 @@
             },
             "payment": {
                 "purpose": {
-                    "Unrestricted": "Where it is most needed",
+                    "Unrestricted": {
+                        "en": "Where it is most needed",
+                        "de": "Wo es am nötigsten ist"
+                    },
                     "Sentience Politics": "Sentience Politics",
                     "REG": "Raising for Effective Giving",
                     "EA-Outreach": "EA-Outreach",

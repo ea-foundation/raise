@@ -155,12 +155,12 @@ function handleBankTransferPayment($post)
         'amount'   => money_format('%i', $post['amount'] / 100),
         'type'     => 'bank transfer',
         'email'    => $post['email'],
-        'purpose'  => isset($post['purpose'])  ? $post['purpose']  : '',
-        'name'     => isset($post['name'])     ? $post['name']     : '',
-        'address' => isset($post['address']) ? $post['address'] : '',
-        'zip'      => isset($post['zip'])      ? $post['zip']      : '',
-        'city'     => isset($post['city'])     ? $post['city']     : '',
-        'country'  => isset($post['country'])  ? $post['country']  : '',
+        'purpose'  => isset($post['purpose']) ? $post['purpose']  : '',
+        'name'     => isset($post['name'])    ? $post['name']     : '',
+        'address'  => isset($post['address']) ? $post['address'] : '',
+        'zip'      => isset($post['zip'])     ? $post['zip']      : '',
+        'city'     => isset($post['city'])    ? $post['city']     : '',
+        'country'  => isset($post['country']) ? getEnglishNameByCountryCode($post['country']) : '',
     );
 
     // Trigger hook for Zapier
