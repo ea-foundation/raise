@@ -401,6 +401,7 @@ function handlePaypalDonation()
             mode: getFormMode(),
             language: getFormLanguage(),
             email: getDonorInfo('email'),
+            mailinglist: getDonorInfo('mailinglist'),
             amount: getDonationAmount(),
             currency: getDonationCurrencyIsoCode(),
             purpose: getDonorRadioSelection('purpose'),

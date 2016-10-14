@@ -91,7 +91,7 @@ function handleStripePayment($post)
             throw new \Exception("No form settings found for key $publicKey ($form : $mode)");
         }
 
-        //TODO Load secret key
+        // Load secret key
         \Stripe\Stripe::setApiKey($secretKey);
 
         // Make customer
@@ -128,8 +128,18 @@ function handleStripePayment($post)
             'country'  => isset($post['country'])  ? getEnglishNameByCountryCode($post['country']) : '',
         );
 
-        // Trigger hook for Zapier
-        triggerHook($form, $donation);
+        // Trigger logging web hook for Zapier
+        triggerLoggingWebHooks($form, $donation);
+
+        // Trigger mailing list web hook for Zapier
+        if (isset($post['mailinglist']) && $post['mailinglist'] == 1) {
+            $subscription = array(
+                'email' => $email,
+                'name'  => isset($post['name']) ? $post['name'] : '',
+            );
+
+            triggerMailingListWebHooks($form, $subscription);
+        }
 
         // Send email
         sendThankYouEmail($email, $form, $language);
@@ -164,21 +174,47 @@ function handleBankTransferPayment($post)
     );
 
     // Trigger hook for Zapier
-    triggerHook($post['form'], $donation);
+    triggerLoggingWebHooks($post['form'], $donation);
+
+    // Triger mailing list web hook for Zapier
+    if (isset($post['mailinglist']) && $post['mailinglist'] == 1) {
+        $subscription = array(
+            'email' => $post['email'],
+            'name'  => isset($post['name']) ? $post['name'] : '',
+        );
+
+        triggerMailingListWebHooks($post['form'], $subscription);
+    }
 
     // Send email
     sendThankYouEmail($post['email'], $post['form'], $post['language']);
 }
 
 /**
- * Send web hook to Zapier. See Settings > Webhooks
+ * Send logging web hook to Zapier. See Settings > Webhooks
  */
-function triggerHook($form, $donation)
+function triggerLoggingWebHooks($form, $donation)
 {
-    // Trigger hook for Zapier
-    if (isset($GLOBALS['easForms'][$form]['logging.web_hook'])) {
-        $suffix = preg_replace('/[^\w]+/', '_', trim($GLOBALS['easForms'][$form]['logging.web_hook']));
-        do_action('eas_log_donation_' . $suffix, $donation);
+    // Trigger hooks for Zapier
+    if (isset($GLOBALS['easForms'][$form]['web_hook.logging']) && is_array($GLOBALS['easForms'][$form]['web_hook.logging'])) {
+        foreach ($GLOBALS['easForms'][$form]['web_hook.logging'] as $hook) {
+            $suffix = preg_replace('/[^\w]+/', '_', trim($hook));
+            do_action('eas_donation_logging_' . $suffix, $donation);
+        }
+    }
+}
+
+/**
+ * Send mailing_list web hook to Zapier. See Settings > Webhooks
+ */
+function triggerMailingListWebHooks($form, $subscription)
+{
+    // Trigger hooks for Zapier
+    if (isset($GLOBALS['easForms'][$form]['web_hook.mailing_list']) && is_array($GLOBALS['easForms'][$form]['web_hook.mailing_list'])) {
+        foreach ($GLOBALS['easForms'][$form]['web_hook.mailing_list'] as $hook) {
+            $suffix = preg_replace('/[^\w]+/', '_', trim($hook));
+            do_action('eas_donation_mailinglist_' . $suffix, $subscription);
+        }
     }
 }
 
@@ -287,11 +323,12 @@ function getPaypalPayKey()
         $_SESSION['eas-amount']      = money_format('%i', $amount);
         $_SESSION['eas-tax-receipt'] = $taxReceipt;
         // Optional fields
-        $_SESSION['eas-purpose'] = isset($_POST['purpose']) ? $_POST['purpose'] : '';
-        $_SESSION['eas-name']    = isset($_POST['name'])    ? $_POST['name']    : '';
-        $_SESSION['eas-address'] = isset($_POST['address']) ? $_POST['address'] : '';
-        $_SESSION['eas-zip']     = isset($_POST['zip'])     ? $_POST['zip']     : '';
-        $_SESSION['eas-city']    = isset($_POST['city'])    ? $_POST['city']    : '';
+        $_SESSION['eas-mailinglist'] = isset($_POST['mailinglist']) ? $_POST['mailinglist'] == 1 : false;
+        $_SESSION['eas-purpose']     = isset($_POST['purpose'])     ? $_POST['purpose']          : '';
+        $_SESSION['eas-name']        = isset($_POST['name'])        ? $_POST['name']             : '';
+        $_SESSION['eas-address']     = isset($_POST['address'])     ? $_POST['address']          : '';
+        $_SESSION['eas-zip']         = isset($_POST['zip'])         ? $_POST['zip']              : '';
+        $_SESSION['eas-city']        = isset($_POST['city'])        ? $_POST['city']             : '';
 
         // Return pay key
         die(json_encode(array(
@@ -408,8 +445,18 @@ function processPaypalLog()
         // Reset request ID to prevent replay attacks
         $_SESSION['eas-req-id'] = uniqid();
 
-        // Trigger hook for Zapier
-        triggerHook($_SESSION['eas-form'], $donation);
+        // Trigger logging web hook for Zapier
+        triggerLoggingWebHooks($_SESSION['eas-form'], $donation);
+
+        // Trigger mailing list web hook for Zapier
+        if ($_SESSION['eas-mailinglist']) {
+            $subscription = array(
+                'email' => $_SESSION['eas-email'],
+                'name'  => $_SESSION['eas-name'],
+            );
+            
+            triggerMailingListWebHooks($_SESSION['eas-form'], $subscription);
+        }
 
         // Send email
         sendThankYouEmail($_SESSION['eas-email'], $_SESSION['eas-form'], $_SESSION['eas-language']);
@@ -492,19 +539,30 @@ function sendThankYouEmail($email, $form, $language)
  */
 function flattenSettings($settings, &$result, $parentKey = '')
 {
-    if (!is_array($settings) || 
-        preg_match('/payment\.purpose$/', $parentKey) ||
-        preg_match('/amount\.currency$/', $parentKey) ||
-        preg_match('/amount\.button$/', $parentKey)
+    // Return scalar values, numeric arrays and special values
+    if (!is_array($settings)
+        || !hasStringKeys($settings)
+        // IMPORTANT: Add parameters here that should be overwritten completely in non-default forms
+        || preg_match('/payment\.purpose$/', $parentKey)
+        || preg_match('/amount\.currency$/', $parentKey) 
+        //|| preg_match('/amount\.button$/', $parentKey)
     ) {
         $result[$parentKey] = $settings;
         return;
     }
     
+    // Do recursion on rest
     foreach ($settings as $key => $item) {
         $flattenedKey = !empty($parentKey) ? $parentKey . '.' . $key : $key;
         flattenSettings($item, $result, $flattenedKey);
     }
+}
+
+/**
+ * Check if array has string keys
+ */
+function hasStringKeys(array $array) {
+    return count(array_filter(array_keys($array), 'is_string')) > 0;
 }
 
 /**

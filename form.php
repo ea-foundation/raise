@@ -237,7 +237,19 @@ function donationForm($atts, $content = null)
                     </div>
                 </div>
 
-                <div class="form-group donor-info">
+                <!-- Mailing list -->
+                <div class="form-group donor-info" style="margin-top: -20px">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1" checked> <?php _e('Subscribe me to EA updates', 'eas-donation-processor') ?>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tax receipt -->
+                <div class="form-group donor-info" style="margin-top: -5px">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>

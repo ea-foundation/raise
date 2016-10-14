@@ -75,14 +75,25 @@ function eas_process_paypal_log() {
 }
 
 
-// Add hook for saving stuff with hook press and zapier to Google spreadsheets
+// Add hook that tells the HookPress plugin about our Zapier hooks
 function eas_webhooks($hookpress_actions) {
     $easForms = $GLOBALS['easForms'];
 
     foreach ($easForms as $formName => $formSettings) {
-        if (isset($formSettings['logging.web_hook'])) {
-            $suffix = preg_replace('/[^\w]+/', '_', trim($formSettings['logging.web_hook']));
-            $hookpress_actions['eas_log_donation_' . $suffix] = array('donation');
+        // Logging
+        if (isset($formSettings['web_hook.logging']) && is_array($formSettings['web_hook.logging'])) {
+            foreach ($formSettings['web_hook.logging'] as $hook) {
+                $suffix = preg_replace('/[^\w]+/', '_', trim($hook));
+                $hookpress_actions['eas_donation_logging_' . $suffix] = array('donation');
+            }
+        }
+
+        // Mailing lists
+        if (isset($formSettings['web_hook.mailing_list']) && is_array($formSettings['web_hook.mailing_list'])) {
+            foreach ($formSettings['web_hook.mailing_list'] as $hook) {
+                $suffix = preg_replace('/[^\w]+/', '_', trim($hook));
+                $hookpress_actions['eas_donation_mailinglist_' . $suffix] = array('subscription');
+            }
         }
     }
     
