@@ -253,7 +253,7 @@ function donationForm($atts, $content = null)
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1"> <?php _e('I need a tax receipt for Germany or Switzerland.', 'eas-donation-processor') ?>
+                                <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1"> <?php _e('I need a tax receipt for Germany or Switzerland', 'eas-donation-processor') ?>
                             </label>
                         </div>
                     </div>
