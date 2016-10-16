@@ -132,8 +132,9 @@
                     }
                 }
             },
-            "logging" : {
-                "web_hook": "default"
+            "web_hook" : {
+                "logging": ["default"],
+                "mailing_list": ["mailchimp"]
             }
         },
         "my_special_form": {
@@ -151,6 +152,10 @@
                 },
                 "provider": {
                     "stripe": {
+                        "live": {
+                            "secret_key": "",
+                            "public_key": ""
+                        },
                         "sandbox": {
                             "secret_key": "",
                             "public_key": ""
