@@ -536,7 +536,7 @@ function showConfirmation(paymentProvider)
 
 function loadStripeHandler()
 {
-    console.log('Loading Stripe handler...');
+    //console.log('Loading Stripe handler...');
     // Lock form
     lockLastStep(true);
 
@@ -567,19 +567,19 @@ function loadStripeHandler()
     
     if (taxReceiptNeeded && hasCountrySetting) {
         // Use country specific key
-        console.log('Special settings for country ' + userCountry);
+        //console.log('Special settings for country ' + userCountry);
         newStripeKey = stripeSettings[userCountry.toLowerCase()][easMode];
     } else if (hasCurrencySetting) {
         // Use currency specific key
-        console.log('Special settings for currency ' + selectedCurrency);
+        //console.log('Special settings for currency ' + selectedCurrency);
         newStripeKey = stripeSettings[selectedCurrency.toLowerCase()][easMode];
     } else if (hasCountryOfCurrencySetting) {
         // Use key of a country where the chosen currency is used
-        console.log('Special settings for currency country ' + countryOfCurrency);
+        //console.log('Special settings for currency country ' + countryOfCurrency);
         newStripeKey = stripeSettings[countryOfCurrency.toLowerCase()][easMode];
     } else if (hasDefaultSetting) {
         // Use default key
-        console.log('Default settings');
+        //console.log('Default settings');
         newStripeKey = stripeSettings['default'][easMode];
     } else {
         throw new Error('No Stripe settings found');
@@ -587,7 +587,7 @@ function loadStripeHandler()
 
     // Check if the key changed
     if (currentStripeKey == newStripeKey) {
-        console.log('Same key. Done.');
+        //console.log('Same key. Done.');
         // Unlock form
         lockLastStep(false);
         return;
@@ -642,7 +642,7 @@ function loadStripeHandler()
     // Unlock last step
     lockLastStep(false);
 
-    console.log('Done');
+    //console.log('Done');
 }
 
 function carouselNext()
