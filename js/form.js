@@ -13,6 +13,8 @@ var taxReceiptNeeded = false;
 var slideTransitionInAction = false;
 var otherAmountPlaceholder  = null;
 var currentStripeKey = '';
+var frequency        = 'once';
+var monthlySupport   = ['payment-creditcard'];
 
 
 
@@ -192,6 +194,37 @@ jQuery(document).ready(function($) {
         $(this).attr('placeholder', otherAmountPlaceholder);
     }).siblings('span.input-group-addon').click(function() {
         $(this).siblings('input').focus();
+    });
+
+    // Click on frequency labels
+    $('ul#frequency label').click(function() {
+        // Make new label active
+        $(this).parent().parent().find('label').removeClass('active');
+        $(this).addClass('active');
+        frequency = $(this).siblings('input').val();
+
+        // Hide payment options that do not support monthly
+        var paymentOptions = $('#payment-method-providers label');
+        if (frequency == 'monthly') {
+            var checked = false;
+            paymentOptions.each(function(index) {
+                if ($.inArray($(this).attr('for'), monthlySupport) == -1) {
+                    $(this).css('display', 'none');
+                    $(this).find('input').prop('checked', false);
+                } else {
+                    // Check first possible option
+                    if (!checked) {
+                        checked = true;
+                        $(this).find('input').prop('checked', true);
+                    }
+                }
+            });
+        } else {
+            // Make all options visible again
+            paymentOptions.each(function(index) {
+                $(this).css('display', 'inline-block');
+            });
+        }
     });
 
     // Click on amount label (buttons)

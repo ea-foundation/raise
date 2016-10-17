@@ -114,6 +114,21 @@ function donationForm($atts, $content = null)
                        </div>
                     </div>
                 </div>
+
+                <div class="row">
+                    <ul id="frequency" class="col-xs-12">
+                        <li>
+                            <input type="radio" class="radio" name="frequency" value="once" id="frequency-once" checked>
+                            <label for="frequency-once" class="active"><?php _e('Give once', 'eas-donation-processor') ?></label>
+                        </li><li>
+                            <input type="radio" class="radio" name="frequency" value="monthly" id="frequency-monthly">
+                            <label for="frequency-monthly"><?php _e('Give monthly', 'eas-donation-processor') ?></label>
+                        </li>
+                    </ul>
+                    <!-- <button type="button" class="btn btn-link active"><?php _e('Give once', 'eas-donation-processor') ?></button>
+                    <button type="button" class="btn btn-link"><?php _e('Give monthly', 'eas-donation-processor') ?></button>-->
+                </div>
+
                 <div class="row">
                   <ul id="amounts" class="radio">
                       <?php

@@ -72,6 +72,7 @@ function handleStripePayment($post)
         $amount    = $post['amount'];
         $currency  = $post['currency'];
         $email     = $post['email'];
+        $frequency = $post['frequency'];
 
         // Find the secret key that goes with the public key
         $formSettings = $GLOBALS['easForms'][$form];
@@ -94,11 +95,11 @@ function handleStripePayment($post)
         // Load secret key
         \Stripe\Stripe::setApiKey($secretKey);
 
+        // Get customer settings
+        $customerSettings = getStripeCustomerSettings($post);
+
         // Make customer
-        $customer = \Stripe\Customer::create(array(
-            'email'  => $email,
-            'source' => $token,
-        ));
+        $customer = \Stripe\Customer::create($customerSettings);
 
         // Make charge
         $charge = \Stripe\Charge::create(
@@ -112,20 +113,21 @@ function handleStripePayment($post)
 
         // Prepare hook
         $donation = array(
-            'form'     => $form,
-            'mode'     => $mode,
-            'language' => $language,
-            'time'     => date('r'),
-            'currency' => $currency,
-            'amount'   => money_format('%i', $amount / 100),
-            'type'     => 'stripe',
-            'email'    => $email,
-            'purpose'  => isset($post['purpose'])  ? $post['purpose'] : '',
-            'name'     => isset($post['name'])     ? $post['name']    : '',
-            'address'  => isset($post['address'])  ? $post['address'] : '',
-            'zip'      => isset($post['zip'])      ? $post['zip']     : '',
-            'city'     => isset($post['city'])     ? $post['city']    : '',
-            'country'  => isset($post['country'])  ? getEnglishNameByCountryCode($post['country']) : '',
+            'form'      => $form,
+            'mode'      => $mode,
+            'language'  => $language,
+            'time'      => date('r'),
+            'currency'  => $currency,
+            'amount'    => money_format('%i', $amount / 100),
+            'type'      => 'stripe',
+            'email'     => $email,
+            'frequency' => $frequency,
+            'purpose'   => isset($post['purpose'])  ? $post['purpose'] : '',
+            'name'      => isset($post['name'])     ? $post['name']    : '',
+            'address'   => isset($post['address'])  ? $post['address'] : '',
+            'zip'       => isset($post['zip'])      ? $post['zip']     : '',
+            'city'      => isset($post['city'])     ? $post['city']    : '',
+            'country'   => isset($post['country'])  ? getEnglishNameByCountryCode($post['country']) : '',
         );
 
         // Trigger logging web hook for Zapier
@@ -149,6 +151,58 @@ function handleStripePayment($post)
     }
 }
 
+/**
+ * Get customer settings (once/monthly)
+ *
+ * @param array post
+ * @return array
+ */
+function getStripeCustomerSettings($post)
+{
+    $token     = $post['stripeToken'];
+    $email     = $post['email'];
+    $amount    = $post['amount'];
+    $currency  = $post['currency'];
+    $frequency = $post['frequency'];
+
+    if ($frequency == 'monthly') {
+        $planId = 'donation-month-' . $currency . '-' . money_format('%i', $amount / 100);
+        
+        try {
+            // Try fetching an existing plan
+            $plan = \Stripe\Plan::retrieve($planId);
+        } catch (\Exception $e) {
+            // Create a new plan
+            $params = array(
+                'amount'   => $amount,
+                'interval' => 'month',
+                'name'     => 'Monthly donation of ' . $currency . ' ' . money_format('%i', $amount / 100),
+                'currency' => $currency,
+                'id'       => $planId,
+            );
+
+            $plan = \Stripe\Plan::create($params);
+
+            if (!$plan instanceof \Stripe\Plan) {
+                throw new \Exception('Credit card API is down. Please try later.');
+            }
+
+            $plan->save();
+        }
+
+        return array(
+            'email'  => $email,
+            'plan'   => $planId,
+            'source' => $token,
+        );
+    } else {
+        // frequency = 'once'
+        return array(
+            'email'  => $email,
+            'source' => $token,
+        );
+    }
+}
 
 /**
  * Process bank transfer payment (simply log it)
@@ -454,7 +508,7 @@ function processPaypalLog()
                 'email' => $_SESSION['eas-email'],
                 'name'  => $_SESSION['eas-name'],
             );
-            
+
             triggerMailingListWebHooks($_SESSION['eas-form'], $subscription);
         }
 

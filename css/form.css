@@ -354,7 +354,7 @@ div.float-left {
 }
 
 #donation-currency div {
-    margin: 5px 0 25px 0;
+    margin: 5px 0 10px 0;
 }
 
 #donation-currency img.flag {
@@ -456,3 +456,62 @@ div#amount-item .form-control::-webkit-input-placeholder { color: white; font-we
 div#amount-item .form-control:-moz-placeholder { color: white; font-weight: 100 }
 div#amount-item .form-control::-moz-placeholder { color: white; font-weight: 100 }
 div#amount-item .form-control:-ms-input-placeholder { color: white; font-weight: 100 }
+
+
+ul#frequency {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-flex-wrap: wrap;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+}
+
+ul#frequency {
+    padding:0px;
+    margin:0px !important;
+}
+
+ul#frequency li {
+    display: inline;
+    list-style-type:none;
+    list-style-image:none;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+@media (max-width: 767px) {
+    ul#frequency li {
+        font-size: smaller;
+    }
+}
+
+ul#frequency input {
+    display: none;
+}
+
+ul#frequency label {
+    text-transform: uppercase;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #999;
+    font-weight: 700;
+    margin-top: 10px;
+    padding: 0;
+    outline: 0;
+}
+
+ul#frequency li:not(:last-child) {
+    margin-right: 20px;
+}
+
+ul#frequency label.active {
+    color: #1297c9;
+    border-bottom: 2px solid #1297c9;
+}
