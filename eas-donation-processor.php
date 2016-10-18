@@ -162,13 +162,9 @@ function register_donation_scripts()
     }
 
     wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array('jquery'));
-    wp_enqueue_script('donation-plugin-bootstrapjs');
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
-    wp_enqueue_script('donation-plugin-jqueryformjs');
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
-    wp_enqueue_script('donation-plugin-stripe');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/js/external/dg.js');
-    wp_enqueue_script('donation-plugin-paypal');
     wp_register_script('donation-plugin-form', plugins_url( 'eas-donation-processor/js/form.js' ), array('jquery', 'donation-plugin-stripe'));
     wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
         'plugin_path'        => plugin_dir_url(__FILE__),
@@ -180,9 +176,7 @@ function register_donation_scripts()
         'donation'           => __("Donation", "eas-donation-processor"),
         'currency2country'   => $GLOBALS['currency2country'],
     ));
-    wp_enqueue_script('donation-plugin-form');
     wp_register_script('donation-combobox', plugins_url('eas-donation-processor/js/bootstrap-combobox.js'));
-    wp_enqueue_script('donation-combobox');
 }
 
 add_action('wp_enqueue_scripts', 'register_donation_scripts');

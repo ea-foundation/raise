@@ -1,10 +1,10 @@
 /**
   * Settings
   */
-var easFormName      = 'default'; // This gets overwritten in a script embedded in the form
-var easMode          = 'live';    // This gets overwritten in a script embedded in the form
-var userCountry      = '';
-var selectedCurrency = '';
+var easFormName      = easDonationConfig.formName;
+var easMode          = easDonationConfig.mode;
+var userCountry      = easDonationConfig.userCountry;
+var selectedCurrency = easDonationConfig.selectedCurrency;
 var currencies       = wordpress_vars.amount_patterns;
 var stripeHandlers   = null;
 var buttonFinalText  = wordpress_vars.donate_button_text + ' »';
