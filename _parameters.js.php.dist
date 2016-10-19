@@ -135,6 +135,10 @@
             "web_hook" : {
                 "logging": ["default"],
                 "mailing_list": ["mailchimp"]
+            },
+            "features": {
+                "newsletter_checkbox": true,
+                "newsletter_checkbox_checked": true
             }
         },
         "my_special_form": {
