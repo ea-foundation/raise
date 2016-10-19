@@ -8,6 +8,14 @@
  */
 function donationForm($atts, $content = null)
 {
+    // enqueue previously registered scripts (to prevent them loading on every page load)
+    wp_enqueue_script('donation-plugin-bootstrapjs');
+    wp_enqueue_script('donation-plugin-jqueryformjs');
+    wp_enqueue_script('donation-plugin-stripe');
+    wp_enqueue_script('donation-plugin-paypal');
+    wp_enqueue_script('donation-plugin-form');
+    wp_enqueue_script('donation-combobox');
+
     // Extract shortcode attributes (name becomes $name, etc.)
     extract(shortcode_atts(array(
         'name' => 'default',
@@ -62,10 +70,12 @@ function donationForm($atts, $content = null)
 <form action="<?php echo admin_url('admin-ajax.php') ?>" method="post" id="donationForm" class="form-horizontal">
 
 <script>
-    easFormName      = "<?php echo $name ?>";
-    easMode          = "<?php echo $mode ?>";
-    userCountry      = "<?php echo $userCountryCode ?>";
-    selectedCurrency = "<?php echo $preselectedCurrency ?>";
+    var easDonationConfig = {
+        formName:           "<?php echo $name ?>",
+        mode:               "<?php echo $mode ?>",
+        userCountry:        "<?php echo $userCountryCode ?>",
+        selectedCurrency:   "<?php echo $preselectedCurrency ?>"
+    }
 </script>
 <input type="hidden" name="action" value="donate"> <!-- ajax key -->
 <input type="hidden" name="form" value="<?php echo $name ?>" id="eas-form-name"> <!-- form name -->
@@ -370,9 +380,9 @@ function donationForm($atts, $content = null)
     <input id="type" type="hidden" name="expType" value="light">
     <input id="paykey" type="hidden" name="paykey" value="">
 </form>
-<script type="text/javascript" charset="utf-8">
-    var embeddedPPFlow = new PAYPAL.apps.DGFlow({trigger: 'submitBtn'});
-</script>
+<?php 
+    wp_add_inline_script('donation-plugin-form', "var embeddedPPFlow = new PAYPAL.apps.DGFlow({trigger: 'submitBtn'});"); // append to scripts instead of inline because main JS is loaded at the end
+?>
 
 <div id="drawer"><?php _e('Please fill out all required fields correctly.', 'eas-donation-processor') ?></div>
 
