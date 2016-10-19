@@ -263,15 +263,17 @@ function donationForm($atts, $content = null)
                 </div>
 
                 <!-- Mailing list -->
+                <?php if ($easSettings['features.newsletter_checkbox']): ?>
                 <div class="form-group donor-info" style="margin-top: -20px">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1" checked> <?php _e('Subscribe me to EA updates', 'eas-donation-processor') ?>
+                                <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1" <?php if ($easSettings['features.newsletter_checkbox_checked']) { echo 'checked'; } ?>> <?php _e('Subscribe me to EA updates', 'eas-donation-processor') ?>
                             </label>
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <!-- Tax receipt -->
                 <div class="form-group donor-info" style="margin-top: -5px">
