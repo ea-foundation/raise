@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: http://www.ea-stiftung.org
  * Description: This plugin processes donations to EAS
- * Version: 0.0.1
+ * Version: 0.0.2
  * Author: Naoki Peter
  * Author URI: http://www.0x1.ch
  * License: proprietary
@@ -16,6 +16,16 @@ require_once("_globals.php");
 require_once("_options.php");
 require_once("_functions.php");
 require_once("form.php");
+
+// check for new version of plugin
+require 'plugin-update-checker/plugin-update-checker.php';
+$className = PucFactory::getLatestClassVersion('PucGitHubChecker');
+$myUpdateChecker = new $className(
+    'https://github.com/GBS-Schweiz/eas-donation-processor',
+    __FILE__,
+    'master'
+);
+$myUpdateChecker->setAccessToken('93a8387a061d14040a5932e12ef31d90a1be419a'); // read only
 
 // Load parameters
 $easSettingString = get_option('settings');
