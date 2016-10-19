@@ -1,5 +1,3 @@
 .DS_Store
-/vendor/*
 _parameters.php
 _parameters.js.php
-composer.lock
