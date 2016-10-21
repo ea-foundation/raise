@@ -423,43 +423,35 @@ function handlePaypalDonation()
     // Show spinner right away
     showSpinnerOnLastButton();
 
-    // Disable confirm button, email and checkboxes
-    lockLastStep(true);
-
     try {
-        // Get payKey
-        jQuery.post(wordpress_vars.ajax_endpoint, {
-            action: 'paypal_paykey',
-            form: getFormName(),
-            mode: getFormMode(),
-            language: getFormLanguage(),
-            email: getDonorInfo('email'),
-            mailinglist: getDonorInfo('mailinglist'),
-            amount: getDonationAmount(),
-            currency: getDonationCurrencyIsoCode(),
-            purpose: getDonorRadioSelection('purpose'),
-            tax_receipt: taxReceiptNeeded,
-            name: getDonorInfo('name'),
-            address: getDonorInfo('address'),
-            zip: getDonorInfo('zip'),
-            city: getDonorInfo('city'),
-            country: getDonorSelectInfo('country')
-        }).done(function(responseText) {
-            // On success
-            var response = JSON.parse(responseText);
-            if (!('success' in response) || !response['success']) {
-                var message = 'error' in response ? response['error'] : responseText;
-                throw new Error(message);
-            }
+        // Change form action (endpoint) and action input
+        jQuery('form#donationForm').attr('action', wordpress_vars.ajax_endpoint);
+        jQuery('form#donationForm input[name=action]').val('paypal_paykey');
 
-            // Insert pay key in PayPal form
-            jQuery('input[id=paykey]').val(response['paykey']);
-            // Open lightbox
-            jQuery('input[id=submitBtn]').click();
-        }).fail(function(responseText) {
-            // Should only happen on internal server error
-            throw new Error(responseText);
+        // Get pay key
+        jQuery('form#donationForm').ajaxSubmit({
+            success: function(responseText, statusText, xhr, form) {
+                // Take the pay key and start the PayPal flow
+                var response = JSON.parse(responseText);
+                if (!('success' in response) || !response['success']) {
+                    var message = 'error' in response ? response['error'] : responseText;
+                    throw new Error(message);
+                }
+
+                // Insert pay key in PayPal form
+                jQuery('input[id=paykey]').val(response['paykey']);
+                
+                // Open PayPal lightbox
+                jQuery('input[id=submitBtn]').click();
+            },
+            error: function(responseText) {
+                // Should only happen on internal server error
+                throw new Error(responseText);
+            }
         });
+
+        // Disable confirm button, email and checkboxes
+        lockLastStep(true);
     } catch (ex) {
         alert(ex.message);
     }
@@ -685,31 +677,6 @@ function carouselPrev()
 function getDonorInfo(name)
 {
     return jQuery('input#donor-' + name).val();
-}
-
-function getDonorSelectInfo(name)
-{
-    return jQuery('select#donor-' + name + ' option:selected').val();
-}
-
-function getDonorRadioSelection(name)
-{
-    return jQuery('input[name=' + name + ']:checked').val();
-}
-
-function getFormName()
-{
-    return jQuery('input#eas-form-name').val();
-}
-
-function getFormMode()
-{
-    return jQuery('input#eas-form-mode').val();
-}
-
-function getFormLanguage()
-{
-    return jQuery('input#eas-form-language').val();
 }
 
 /**

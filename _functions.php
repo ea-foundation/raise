@@ -8,20 +8,17 @@
 function processDonation()
 {
     try {
-        // Do some cosmetics on form data
-        $keys = array_keys($_POST);
-
         // Replace amount-other
-        if (in_array('amount_other', $keys) && !empty($_POST['amount_other'])) {
-          $_POST['amount'] = $_POST['amount_other'];
+        if (!empty($_POST['amount_other'])) {
+            $_POST['amount'] = $_POST['amount_other'];
         }
         unset($_POST['amount_other']);
 
         // Convert amount to cents
         if (is_numeric($_POST['amount'])) {
-          $_POST['amount'] = (int)($_POST['amount'] * 100);
+            $_POST['amount'] = (int)($_POST['amount'] * 100);
         } else {
-          throw new Exception('Invalid amount.');
+            throw new Exception('Invalid amount.');
         }
 
         // add payment-details
@@ -217,20 +214,21 @@ function handleBankTransferPayment($post)
 {
     // Prepare hook
     $donation = array(
-        'form'     => $post['form'],
-        'mode'     => $post['mode'],
-        'language' => $post['language'],
-        'time'     => date('r'),
-        'currency' => $post['currency'],
-        'amount'   => money_format('%i', $post['amount'] / 100),
-        'type'     => 'bank transfer',
-        'email'    => $post['email'],
-        'purpose'  => isset($post['purpose']) ? $post['purpose']  : '',
-        'name'     => isset($post['name'])    ? $post['name']     : '',
-        'address'  => isset($post['address']) ? $post['address'] : '',
-        'zip'      => isset($post['zip'])     ? $post['zip']      : '',
-        'city'     => isset($post['city'])    ? $post['city']     : '',
-        'country'  => isset($post['country']) ? getEnglishNameByCountryCode($post['country']) : '',
+        'form'      => $post['form'],
+        'mode'      => $post['mode'],
+        'language'  => $post['language'],
+        'time'      => date('r'),
+        'currency'  => $post['currency'],
+        'amount'    => money_format('%i', $post['amount'] / 100),
+        'type'      => 'bank transfer',
+        'email'     => $post['email'],
+        'frequency' => $post['frequency'],
+        'purpose'   => isset($post['purpose']) ? $post['purpose']  : '',
+        'name'      => isset($post['name'])    ? $post['name']     : '',
+        'address'   => isset($post['address']) ? $post['address'] : '',
+        'zip'       => isset($post['zip'])     ? $post['zip']      : '',
+        'city'      => isset($post['city'])    ? $post['city']     : '',
+        'country'   => isset($post['country']) ? getEnglishNameByCountryCode($post['country']) : '',
     );
 
     // Trigger hook for Zapier
@@ -294,6 +292,12 @@ function triggerMailingListWebHooks($form, $subscription)
 function getPaypalPayKey($post)
 {
     try {
+        // Replace amount_other
+        if (!empty($post['amount_other'])) {
+            $post['amount'] = $post['amount_other'];
+        }
+        unset($post['amount_other']);
+
         $form       = $post['form'];
         $mode       = $post['mode'];
         $language   = $post['language'];
@@ -301,7 +305,8 @@ function getPaypalPayKey($post)
         $amount     = $post['amount'];
         $currency   = $post['currency'];
         $taxReceipt = $post['tax_receipt'];
-        $country    = isset($post['country']) ? $post['country'] : '';
+        $country    = $post['country'];
+        $frequency  = $post['frequency'];
         $returnUrl  = admin_url('admin-ajax.php');
         $reqId      = uniqid(); // Secret reference ID. Needed to prevent replay attack
 
@@ -389,6 +394,7 @@ function getPaypalPayKey($post)
         $_SESSION['eas-country']     = $country;
         $_SESSION['eas-amount']      = money_format('%i', $amount);
         $_SESSION['eas-tax-receipt'] = $taxReceipt;
+        $_SESSION['eas-frequency']   = $frequency;
         // Optional fields
         $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) ? $post['mailinglist'] == 1 : false;
         $_SESSION['eas-purpose']     = isset($post['purpose'])     ? $post['purpose']          : '';
@@ -501,20 +507,21 @@ function processPaypalLog()
     if (isset($_GET['req']) && $_GET['req'] == $_SESSION['eas-req-id']) {
         // Prepare hook
         $donation = array(
-            "form"     => $_SESSION['eas-form'],
-            "mode"     => $_SESSION['eas-mode'],
-            "language" => $_SESSION['eas-language'],
-            "time"     => date('r'),
-            "currency" => $_SESSION['eas-currency'],
-            "amount"   => money_format('%i', $_SESSION['eas-amount']),
-            "type"     => "paypal",
-            "purpose"  => $_SESSION['eas-purpose'],
-            "email"    => $_SESSION['eas-email'],
-            "name"     => $_SESSION['eas-name'],
-            "address"  => $_SESSION['eas-address'],
-            "zip"      => $_SESSION['eas-zip'],
-            "city"     => $_SESSION['eas-city'],
-            "country"  => getEnglishNameByCountryCode($_SESSION['eas-country']),
+            "form"      => $_SESSION['eas-form'],
+            "mode"      => $_SESSION['eas-mode'],
+            "language"  => $_SESSION['eas-language'],
+            "time"      => date('r'),
+            "currency"  => $_SESSION['eas-currency'],
+            "amount"    => money_format('%i', $_SESSION['eas-amount']),
+            "frequency" => $_SESSION['eas-frequency'],
+            "type"      => "paypal",
+            "purpose"   => $_SESSION['eas-purpose'],
+            "email"     => $_SESSION['eas-email'],
+            "name"      => $_SESSION['eas-name'],
+            "address"   => $_SESSION['eas-address'],
+            "zip"       => $_SESSION['eas-zip'],
+            "city"      => $_SESSION['eas-city'],
+            "country"   => getEnglishNameByCountryCode($_SESSION['eas-country']),
         );
 
         // Reset request ID to prevent replay attacks
