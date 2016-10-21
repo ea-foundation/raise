@@ -135,10 +135,6 @@
             "web_hook" : {
                 "logging": ["default"],
                 "mailing_list": ["mailchimp"]
-            },
-            "features": {
-                "newsletter_checkbox": true,
-                "newsletter_checkbox_checked": true
             }
         },
         "my_special_form": {
@@ -150,9 +146,9 @@
                     "AMF": "Against Malaria Foundation",
                     "GiveDirectly": "GiveDirectly",
                     "SCI": "Schistosomiasis Control Initiative",
-                    "New Incentives": "New Incentives",
-                    "Sentience Politics": "Sentience Politics",
-                    "Animal Ethics": "Animal Ethics"
+                    "NI": "New Incentives",
+                    "Sentience": "Sentience Politics",
+                    "AnimalEthics": "Animal Ethics"
                 },
                 "provider": {
                     "stripe": {

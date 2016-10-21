@@ -1,3 +1,4 @@
 .DS_Store
-_parameters.php
 _parameters.js.php
+vendor/composer/autoload_static.php
+vendor/composer/LICENSE
