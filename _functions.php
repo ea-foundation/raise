@@ -1,8 +1,9 @@
 <?php
 
-
 /**
- * AJAX method
+ * AJAX endpoint that deals with submitted donation data
+ *
+ * @return string JSON response
  */
 function processDonation()
 {
@@ -58,6 +59,9 @@ function processDonation()
 
 /**
  * Process Stripe payment
+ *
+ * @param array $post POST data from donation form
+ * @throws \Exception On error from Stripe API
  */
 function handleStripePayment($post)
 {
@@ -154,7 +158,7 @@ function handleStripePayment($post)
 /**
  * Get customer settings (once/monthly)
  *
- * @param array post
+ * @param array $post Donation form data
  * @return array
  */
 function getStripeCustomerSettings($post)
@@ -206,6 +210,8 @@ function getStripeCustomerSettings($post)
 
 /**
  * Process bank transfer payment (simply log it)
+ *
+ * @param array $post Donation form POST data
  */
 function handleBankTransferPayment($post)
 {
@@ -246,6 +252,9 @@ function handleBankTransferPayment($post)
 
 /**
  * Send logging web hook to Zapier. See Settings > Webhooks
+ *
+ * @param string $form Form name
+ * @param array $donation Donation data for logging
  */
 function triggerLoggingWebHooks($form, $donation)
 {
@@ -260,6 +269,9 @@ function triggerLoggingWebHooks($form, $donation)
 
 /**
  * Send mailing_list web hook to Zapier. See Settings > Webhooks
+ *
+ * @param string $form Form name
+ * @param array $subscription Subscription data for mailing list
  */
 function triggerMailingListWebHooks($form, $subscription)
 {
@@ -274,21 +286,22 @@ function triggerMailingListWebHooks($form, $subscription)
 
 
 /**
- * AJAX method
- * Returns Paypal pay key for donation and stores
+ * AJAX endpoint that returns Paypal pay key for donation. It stores
  * user input in session until user is forwarded back from Paypal
+ *
+ * @param array $post Donation form POST data
  */
-function getPaypalPayKey()
+function getPaypalPayKey($post)
 {
     try {
-        $form       = $_POST['form'];
-        $mode       = $_POST['mode'];
-        $language   = $_POST['language'];
-        $email      = $_POST['email'];
-        $amount     = $_POST['amount'];
-        $currency   = $_POST['currency'];
-        $taxReceipt = $_POST['tax_receipt'];
-        $country    = isset($_POST['country']) ? $_POST['country'] : '';
+        $form       = $post['form'];
+        $mode       = $post['mode'];
+        $language   = $post['language'];
+        $email      = $post['email'];
+        $amount     = $post['amount'];
+        $currency   = $post['currency'];
+        $taxReceipt = $post['tax_receipt'];
+        $country    = isset($post['country']) ? $post['country'] : '';
         $returnUrl  = admin_url('admin-ajax.php');
         $reqId      = uniqid(); // Secret reference ID. Needed to prevent replay attack
 
@@ -377,12 +390,12 @@ function getPaypalPayKey()
         $_SESSION['eas-amount']      = money_format('%i', $amount);
         $_SESSION['eas-tax-receipt'] = $taxReceipt;
         // Optional fields
-        $_SESSION['eas-mailinglist'] = isset($_POST['mailinglist']) ? $_POST['mailinglist'] == 1 : false;
-        $_SESSION['eas-purpose']     = isset($_POST['purpose'])     ? $_POST['purpose']          : '';
-        $_SESSION['eas-name']        = isset($_POST['name'])        ? $_POST['name']             : '';
-        $_SESSION['eas-address']     = isset($_POST['address'])     ? $_POST['address']          : '';
-        $_SESSION['eas-zip']         = isset($_POST['zip'])         ? $_POST['zip']              : '';
-        $_SESSION['eas-city']        = isset($_POST['city'])        ? $_POST['city']             : '';
+        $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) ? $post['mailinglist'] == 1 : false;
+        $_SESSION['eas-purpose']     = isset($post['purpose'])     ? $post['purpose']          : '';
+        $_SESSION['eas-name']        = isset($post['name'])        ? $post['name']             : '';
+        $_SESSION['eas-address']     = isset($post['address'])     ? $post['address']          : '';
+        $_SESSION['eas-zip']         = isset($post['zip'])         ? $post['zip']              : '';
+        $_SESSION['eas-city']        = isset($post['city'])        ? $post['city']             : '';
 
         // Return pay key
         die(json_encode(array(
@@ -397,8 +410,15 @@ function getPaypalPayKey()
     }
 }
 
-/*
+/**
  * Get best Paypal account
+ *
+ * @param string $form
+ * @param string $mode
+ * @param bool   $taxReceiptNeeded
+ * @param string $currency
+ * @param string $country
+ * @return array PayPal API data: ['email_id' => '...', api_username' => '...', 'api_password' => '...', 'api_signature' => '...']
  */
 function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $country)
 {
@@ -470,10 +490,11 @@ function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $count
 }
 
 /**
- * AJAX method
+ * AJAX endpoint for handling donatino logging for PayPal.
  * User is forwarded here after successful Paypal transaction.
  * Takes user data from session and sends them to the Google sheet.
- * Sends thank you email.
+ * 
+ * @return string HTML with script that terminates the PayPal flow and shows the thank you step
  */
 function processPaypalLog()
 {
@@ -534,6 +555,9 @@ function processPaypalLog()
 
 /**
  * Filter for changing sender email address
+ *
+ * @param string $original_email_address
+ * @return string
  */
 function easEmailAddress($original_email_address)
 {
@@ -543,6 +567,9 @@ function easEmailAddress($original_email_address)
 
 /**
  * Filter for changing email sender
+ *
+ * @param string $original_email_from
+ * @return string
  */
 function easEmailFrom($original_email_from)
 {
@@ -552,6 +579,9 @@ function easEmailFrom($original_email_from)
 
 /**
  * Filter for changing email content type
+ *
+ * @param string $original_content_type
+ * @return string
  */
 function easEmailContentType($original_content_type)
 {
@@ -559,20 +589,28 @@ function easEmailContentType($original_content_type)
 }
 
 /**
- * Email Message
+ * Send email mit thank you message
+ *
+ * @param string $email User email address
+ * @param string $form Form name
+ * @param string $language Email language
  */
 function sendThankYouEmail($email, $form, $language)
 {
-    $easForms = $GLOBALS['easForms'];
+    // Only send email if we have settings (might not be the case if we're dealing with script kiddies)
+    if (isset($GLOBALS['easForms'][$form])) {
+        $formSettings = $GLOBALS['easForms'][$form];
 
-    if (isset($easForms[$form]["finish.email.contents.$language.subject"]) && isset($easForms[$form]["finish.email.contents.$language.text"])) {
-        $subject = $easForms[$form]["finish.email.contents.$language.subject"];
-        $message = $easForms[$form]["finish.email.contents.$language.text"];
+        // Get email subject and text
+        $subject = isset($formSettings["finish.email.contents.$language.subject"]) ? $formSettings["finish.email.contents.$language.subject"] : defaultOption($form, "finish.email.contents", "subject");
+        $message = isset($formSettings["finish.email.contents.$language.text"]) ? $formSettings["finish.email.contents.$language.text"] : defaultOption($form, "finish.email.contents", "text");
 
         //throw new \Exception("$email : $form : $language : $subject : $message");
 
+        // The filters below need to access the settings
+        $GLOBALS['currentEasFormSettings'] = $formSettings;
+
         // Add email hooks
-        $GLOBALS['currentEasFormSettings'] = isset($GLOBALS['easForms'][$form]) ? $GLOBALS['easForms'][$form] : array();
         add_filter('wp_mail_from', 'easEmailAddress', 20, 1);
         add_filter('wp_mail_from_name', 'easEmailFrom', 20, 1);
         //add_filter('wp_mail_content_type', 'easEmailContentType', 20, 1);
@@ -589,7 +627,13 @@ function sendThankYouEmail($email, $form, $language)
 
 
 /**
- * Flatten settings array
+ * Auxiliary function for recursively falttening the settings array.
+ * The flattening does not affect numeric arrays and the not partially 
+ * overwritable properties 'payment.purpose' and 'amount.currency'.
+ *
+ * @param array  $settings  Option array from WordPress
+ * @param array  $result    Falttened result array
+ * @param string $parentKey Parent node path
  */
 function flattenSettings($settings, &$result, $parentKey = '')
 {
@@ -613,7 +657,10 @@ function flattenSettings($settings, &$result, $parentKey = '')
 }
 
 /**
- * Check if array has string keys
+ * Auxiliary function for checking if array has string keys
+ *
+ * @param array $array The array in question
+ * @return bool
  */
 function hasStringKeys(array $array) {
     return count(array_filter(array_keys($array), 'is_string')) > 0;
@@ -621,6 +668,8 @@ function hasStringKeys(array $array) {
 
 /**
  * Get user IP address
+ *
+ * @return string|null
  */
 function getUserIp()
 {
@@ -639,7 +688,10 @@ function getUserIp()
 }
 
 /**
- * Get user country from freegeoip.net, e.g. as array('code' => 'CH', 'name' => 'Switzerland')
+ * Get user country from freegeoip.net, e.g. as ['code' => 'CH', 'name' => 'Switzerland']
+ *
+ * @param string $userIp
+ * @param array
  */
 function getUserCountry($userIp = null)
 {
@@ -673,6 +725,9 @@ function getUserCountry($userIp = null)
 
 /**
  * Get user currency
+ *
+ * @param string $countryCode E.g. 'CH'
+ * @return string
  */
 function getUserCurrency($countryCode = null)
 {
@@ -690,10 +745,19 @@ function getUserCurrency($countryCode = null)
 }
 
 /**
- * Get list of countries
- * Format array("country code" => array(0 => "translated name", 1 => "English name"))
+ * Get list of countries. Keys is country code, value a numeric
+ * array in which the first element is the translated country
+ * name and the second element the English country name.
  *
- * @param string[] Country list gets filtered, e.g. array('CH') will only return Switzerland
+ * E.g. for a visitor on the German website you get
+ * [
+ *   "DE" => [0 => "Deutschland", 1 => "Germany"],
+ *   "CH" => [0 => "Schweiz", 1 => "Switzerland"],
+ *   ...
+ * ]
+ *
+ * @param array|string[] Country list gets filtered, e.g. array('CH') will only return Switzerland
+ * @return array
  */
 function getSortedCountryList($countryCodeFilters = array())
 {
@@ -1051,56 +1115,27 @@ function getStripePublicKeys(array $form)
 }
 
 /**
- * Get Paypal accounts
- * 
- * E.g.
- * [
- *     'default' => ['sandbox', 'live'],
- *     'ch'      => ['sandbox', 'live'],
- *     'gb'      => ['sandbox', 'live'],
- *     'de'      => ['sandbox', 'live'],
- *     'chf'     => ['sandbox', 'live'],
- *     'eur'     => ['sandbox', 'live'],
- *     'usd'     => ['sandbox', 'live']
- * ]
+ * Get the first form setting that matches the key prefix.
+ * This method is meant to be used for multilingual properties.
+ * The first language serves as the fallback language.
  *
- * param array $form Settings array of the form
- * return array 
+ * @param string $form Form name
+ * @param string $keyPrefix E.g. 'finish.success_message'
+ * @param string $keyPostfix E.g. 'subject'
+ * @return string E.g. 'finish.success_message.en'
  */
-/*function getPaypalAccounts(array $form)
+function defaultOption($form, $keyPrefix, $keyPostfix = '')
 {
-    $formPaypalAccounts = array();
-
-    // Load default Paypal account
-    $defaultPaypalAccount = array();
-    if (isset($form['payment.provider.paypal.sandbox.email_id'])) {
-        $defaultPaypalAccount[] = 'sandbox';
+    $formKeys = array_keys($GLOBALS['easForms'][$form]);
+    $pattern  = '^' . $keyPrefix;
+    if (!empty($keyPostfix)) {
+        $pattern .= '.*' . $keyPostfix . '$';
     }
-    if (isset($form['payment.provider.paypal.live.email_id'])) {
-        $defaultPaypalAccount[] = 'live';
-    }
-    $formPaypalAccounts['default'] = $defaultPaypalAccount;
-
-    // Load Paypal non-default accounts (per country or per currency)
-    $nonDefaultPaypalAccounts = array_map(function($key, $value) {
-        if (preg_match('#^payment\.provider\.paypal_([^\.]+)\.(sandbox|live)\.email_id$#', $key, $matches)) {
-            return array(
-                'domain' => $matches[1], // e.g. ch, de, eur, usd, etc.
-                'mode'   => $matches[2], // live or sandbox
-            );
-        } else {
-            return array();
-        }
-    }, array_keys($form), array_values($form));
-
-    // Get rid of empty entries and then save everything to $formPaypalAccounts
-    $nonDefaultPaypalAccounts = array_filter($nonDefaultPaypalAccounts, 'count');
-    foreach ($nonDefaultPaypalAccounts as $val) {
-        $formPaypalAccounts[$val['domain']][] = $val['mode'];
-    }
-
-    return $formPaypalAccounts;
-}*/
+    $prefixKeys = array_filter($formKeys, function($key) use ($pattern) {
+        return preg_match('#' . $pattern . '#', $key);
+    });
+    return $GLOBALS['easForms'][$form][reset($prefixKeys)];
+}
 
 /*
 

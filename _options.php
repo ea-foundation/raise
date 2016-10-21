@@ -39,7 +39,9 @@ class EasDonationProcessorOptionsPage
         $settings = json_decode(get_option('settings'), true);
 
         // Load default settings
-        $defaultSettings = file_get_contents(plugin_dir_path(__FILE__) . "_parameters.js.php");
+        $customSettings  = plugin_dir_path(__FILE__) . "_parameters.js.php";
+        $settingsFile    = file_exists($customSettings) ? $customSettings : $customSettings . '.dist';
+        $defaultSettings = file_get_contents($settingsFile);
         $defaultSettings = json_decode(trim(end(explode('?>', $defaultSettings, 2))), true);
         
         if (empty($settings) || count($settings) <= 1) {
@@ -68,7 +70,7 @@ class EasDonationProcessorOptionsPage
                 var editor = new JSONEditor(container, options);
                 editor.set(<?php echo json_encode($settings) ?>);
 
-                // Stringify editor JSON and put in into hidden form field before submitting the form
+                // Stringify editor JSON and put it into hidden form field before submitting the form
                 jQuery('#donation-setting-form').submit(function() {
                     // Sringify JSON and save it
                     var json = JSON.stringify(editor.get());

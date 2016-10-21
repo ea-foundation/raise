@@ -5,6 +5,7 @@
  *
  * @param array $atts Valid keys are name (form name) and live (mode)
  * @param string $content Page contents for donation confirmation step
+ * @return string HTML form contents
  */
 function donationForm($atts, $content = null)
 {
@@ -361,7 +362,7 @@ function donationForm($atts, $content = null)
                     </div> -->
                     <div class"response-text">
                         <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
-                        <strong><?php echo isset($easSettings["finish.success_message.$language"]) ? $easSettings["finish.success_message.$language"] : $easSettings["finish.success_message." . $easSettings["finish.fallback_language"]] ?></strong>
+                        <strong><?php echo isset($easSettings["finish.success_message.$language"]) ? $easSettings["finish.success_message.$language"] : defaultOption($name, 'finish.success_message') ?></strong>
                     </div>
                 </div>
                 <div id="shortcode-content">

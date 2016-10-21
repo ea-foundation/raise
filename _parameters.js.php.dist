@@ -112,7 +112,6 @@
                 }
             },
             "finish": {
-                "fallback_language": "en",
                 "success_message": {
                     "en": "Thank you very much for your donation!",
                     "de": "Herzlichen Dank für Ihre Spende!"
@@ -164,7 +163,6 @@
                 }
             },
             "finish": {
-                "fallback_language": "en",
                 "success_message": {
                     "de": "Es hat geklappt!",
                     "en": "It worked!"

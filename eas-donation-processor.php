@@ -74,7 +74,7 @@ function eas_process_donation() {
 add_action("wp_ajax_nopriv_paypal_paykey", "eas_process_paypal_paykey");
 add_action("wp_ajax_paypal_paykey", "eas_process_paypal_paykey");
 function eas_process_paypal_paykey() {
-    getPaypalPayKey();
+    getPaypalPayKey($_POST);
 }
 
 // Log Paypal transaction
