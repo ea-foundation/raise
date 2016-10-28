@@ -1,6 +1,6 @@
 /**
-  * Settings
-  */
+ * Settings
+ */
 var easFormName      = easDonationConfig.formName;
 var easMode          = easDonationConfig.mode;
 var userCountry      = easDonationConfig.userCountry;
@@ -26,8 +26,8 @@ stripeImage.src = wordpress_vars.plugin_path + 'images/logo.png';
 
 
 /**
-  * Form setup
-  */
+ * Form setup
+ */
 jQuery(document).ready(function($) {
     /**
      * Stripe setup

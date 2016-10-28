@@ -496,7 +496,7 @@ function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $count
 }
 
 /**
- * AJAX endpoint for handling donatino logging for PayPal.
+ * AJAX endpoint for handling donation logging for PayPal.
  * User is forwarded here after successful Paypal transaction.
  * Takes user data from session and sends them to the Google sheet.
  * 
@@ -649,8 +649,7 @@ function flattenSettings($settings, &$result, $parentKey = '')
         || !hasStringKeys($settings)
         // IMPORTANT: Add parameters here that should be overwritten completely in non-default forms
         || preg_match('/payment\.purpose$/', $parentKey)
-        || preg_match('/amount\.currency$/', $parentKey) 
-        //|| preg_match('/amount\.button$/', $parentKey)
+        || preg_match('/amount\.currency$/', $parentKey)
     ) {
         $result[$parentKey] = $settings;
         return;
