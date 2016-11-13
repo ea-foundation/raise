@@ -53,8 +53,8 @@
 
 /* validation error message bar */
 #drawer {
-    /*background:#fff url(/media/img/gradient/h80.png) repeat-x scroll 0 0;*/
-    _background-color:#fff;
+    color: #a94442;
+    background-color: #fff;
     overflow:visible;
     position:fixed;
     left:0;
@@ -62,7 +62,7 @@
     text-align:center;
     padding:15px;
     font-size:18px;
-    border-bottom:2px solid #789;
+    border-bottom:2px solid #a94442;
     width:100%;
     display:none;
     z-index:1031;

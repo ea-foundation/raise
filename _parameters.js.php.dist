@@ -4,7 +4,7 @@
     "forms": {
         "default": {
             "amount": {
-                "button": [15, 35, 50, 100, 250, 500, 1000],
+                "button": [35, 75, 150, 250, 500, 1000, 2000],
                 "custom": true,
                 "currency": {
                     "eur": {
@@ -72,13 +72,15 @@
                             "email_id": "",
                             "api_username": "",
                             "api_password": "",
-                            "api_signature": ""
+                            "api_signature": "",
+                            "application_id": ""
                         },
                         "sandbox": {
                             "email_id": "",
                             "api_username": "",
                             "api_password": "",
-                            "api_signature": ""
+                            "api_signature": "",
+                            "application_id": "APP-80W284485P519543T"
                         }
                     },
                     "paypal_de": {
@@ -86,13 +88,15 @@
                             "email_id": "",
                             "api_username": "",
                             "api_password": "",
-                            "api_signature": ""
+                            "api_signature": "",
+                            "application_id": ""
                         },
                         "sandbox": {
                             "email_id": "",
                             "api_username": "",
                             "api_password": "",
-                            "api_signature": ""
+                            "api_signature": "",
+                            "application_id": "APP-80W284485P519543T"
                         }
                     },
                     "paypal_eur": {
@@ -100,13 +104,15 @@
                             "email_id": "",
                             "api_username": "",
                             "api_password": "",
-                            "api_signature": ""
+                            "api_signature": "",
+                            "application_id": ""
                         },
                         "sandbox": {
                             "email_id": "",
                             "api_username": "",
                             "api_password": "",
-                            "api_signature": ""
+                            "api_signature": "",
+                            "application_id": "APP-80W284485P519543T"
                         }
                     }
                 }

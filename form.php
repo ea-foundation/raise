@@ -141,30 +141,41 @@ function donationForm($atts, $content = null)
                 </div>
 
                 <div class="row">
-                  <ul id="amounts" class="radio">
-                      <?php
-                          $tabIndex = 0;
-                          foreach ($easSettings["amount.button"] as $amount) {
-                              echo '<li class="col-xs-4">';
-                              echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndex . '" id="amount-' . $amount . '">';
-                              echo '    <label for="amount-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
-                              echo '</li>';
-                          }
+                    <ul id="amounts" class="radio">
+                        <?php
+                            // Once buttons
+                            $tabIndex = 0;
+                            foreach ($easSettings["amount.button"] as $amount) {
+                                echo '<li class="col-xs-4 amount-once">';
+                                echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndex . '" id="amount-' . $amount . '">';
+                                echo '    <label for="amount-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
+                                echo '</li>';
+                            }
 
-                          // Custom amount field
-                          if ($easSettings["amount.custom"]) {
-                      ?>
+                            // Monthly buttons (if present)
+                            $tabIndexMonthly = $tabIndex;
+                            if (isset($easSettings["amount.button_monthly"])) {
+                                foreach ($easSettings["amount.button_monthly"] as $amount) {
+                                    echo '<li class="col-xs-4 amount-monthly hidden">';
+                                    echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndexMonthly . '" id="amount-' . $amount . '" disabled>';
+                                    echo '    <label for="amount-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
+                                    echo '</li>';
+                                }
+                            }
+                        ?>
+                           
+                        <?php if ($easSettings["amount.custom"]): ?>
                       
-                      <li class="col-xs-<?php echo  12 - (4 * $tabIndex % 12) ?>">
-                          <div class="input-group">
-                              <span class="input-group-addon"><?php echo trim(str_replace('%amount%', '', $preselectedCurrencyPattern)); ?></span>
-                              <input type="text" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'eas-donation-processor') ?>" tabindex="<?php echo ++$tabIndex ?>">
-                              <label for="amount-other" class="sr-only"><?php _e('Other', 'eas-donation-processor') ?></label>
-                          </div>
-                      </li>
+                            <li class="col-xs-<?php echo  12 - (4 * $tabIndex % 12) ?>">
+                                <div class="input-group">
+                                   <span class="input-group-addon"><?php echo trim(str_replace('%amount%', '', $preselectedCurrencyPattern)); ?></span>
+                                    <input type="text" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'eas-donation-processor') ?>" tabindex="<?php echo ++$tabIndexMonthly ?>">
+                                    <label for="amount-other" class="sr-only"><?php _e('Other', 'eas-donation-processor') ?></label>
+                                </div>
+                            </li>
 
-                      <?php } ?>
-                  </ul>
+                        <?php endif; ?>
+                    </ul>
                 </div>
                 <div class="buttons row">
                     <div class="col-sm-4 col-sm-offset-4">
@@ -223,6 +234,23 @@ function donationForm($atts, $content = null)
                     </div>
                 </div>
 
+                <!-- Name -->
+                <div class="form-group required donor-info">
+                    <label for="donor-name" class="col-sm-3 control-label"><?php _e('Name', 'eas-donation-processor') ?></label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control text" name="name" id="donor-name" placeholder="">
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group required donor-info">
+                    <label for="donor-email" class="col-sm-3 control-label"><?php _e('Email', 'eas-donation-processor') ?></label>
+                    <div class="col-sm-9">
+                        <input type="email" class="form-control text" name="email" id="donor-email" placeholder="">
+                    </div>
+                </div>
+
+                <!-- Purpose -->
                 <?php
                     if (!empty($easSettings['payment.purpose'])):
                         $firstItem = reset(array_values($easSettings['payment.purpose']));
@@ -256,16 +284,9 @@ function donationForm($atts, $content = null)
                     </div>
                 <?php endif; ?>
 
-                <div class="form-group required donor-info">
-                    <label for="donor-email" class="col-sm-3 control-label"><?php _e('Email', 'eas-donation-processor') ?></label>
-                    <div class="col-sm-9">
-                        <input type="email" class="form-control text" name="email" id="donor-email" placeholder="">
-                    </div>
-                </div>
-
                 <!-- Mailing list -->
                 <?php if (!empty($easSettings['web_hook.mailing_list'])): ?>
-                <div class="form-group donor-info" style="margin-top: -20px">
+                <div class="form-group donor-info">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>
@@ -277,7 +298,7 @@ function donationForm($atts, $content = null)
                 <?php endif; ?>
 
                 <!-- Tax receipt -->
-                <div class="form-group donor-info" style="margin-top: -5px">
+                <div class="form-group donor-info" style="margin-top: -15px">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>
@@ -289,13 +310,6 @@ function donationForm($atts, $content = null)
 
                 <!-- Donor extra info start -->
                 <div id="donor-extra-info">
-                    <div class="form-group donor-info optionally-required">
-                        <label for="donor-name" class="col-sm-3 control-label"><?php _e('Name', 'eas-donation-processor') ?></label>
-                        <div class="col-sm-9">
-                            <input type="text" class="form-control text" name="name" id="donor-name" placeholder="">
-                        </div>
-                    </div>
-
                     <div class="form-group donor-info optionally-required">
                         <label for="donor-address" class="col-sm-3 control-label"><?php _e('Address', 'eas-donation-processor') ?></label>
                         <div class="col-sm-9">

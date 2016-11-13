@@ -116,11 +116,11 @@ function handleStripePayment($post)
         $donation = array(
             'form'      => $form,
             'mode'      => $mode,
-            'language'  => $language,
+            'language'  => strtoupper($language),
             'time'      => date('r'),
             'currency'  => $currency,
             'amount'    => money_format('%i', $amount / 100),
-            'type'      => 'stripe',
+            'type'      => 'Stripe',
             'email'     => $email,
             'frequency' => $frequency,
             'purpose'   => isset($post['purpose'])  ? $post['purpose'] : '',
@@ -216,11 +216,11 @@ function handleBankTransferPayment($post)
     $donation = array(
         'form'      => $post['form'],
         'mode'      => $post['mode'],
-        'language'  => $post['language'],
+        'language'  => strtoupper($post['language']),
         'time'      => date('r'),
         'currency'  => $post['currency'],
         'amount'    => money_format('%i', $post['amount'] / 100),
-        'type'      => 'bank transfer',
+        'type'      => 'Bank Transfer',
         'email'     => $post['email'],
         'frequency' => $post['frequency'],
         'purpose'   => isset($post['purpose']) ? $post['purpose']  : '',
@@ -340,7 +340,7 @@ function getPaypalPayKey($post)
             'X-PAYPAL-DEVICE-IPADDRESS: '     . $_SERVER['REMOTE_ADDR'],
             'X-PAYPAL-REQUEST-DATA-FORMAT: '  . 'JSON',
             'X-PAYPAL-RESPONSE-DATA-FORMAT: ' . 'JSON',
-            'X-PAYPAL-APPLICATION-ID: '       . 'APP-80W284485P519543T',
+            'X-PAYPAL-APPLICATION-ID: '       . $paypalAccount['application_id'],
         );
 
         //die(json_encode($content));
@@ -498,7 +498,7 @@ function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $count
 /**
  * AJAX endpoint for handling donation logging for PayPal.
  * User is forwarded here after successful Paypal transaction.
- * Takes user data from session and sends them to the Google sheet.
+ * Takes user data from session and triggers the web hooks.
  * 
  * @return string HTML with script that terminates the PayPal flow and shows the thank you step
  */
@@ -509,12 +509,12 @@ function processPaypalLog()
         $donation = array(
             "form"      => $_SESSION['eas-form'],
             "mode"      => $_SESSION['eas-mode'],
-            "language"  => $_SESSION['eas-language'],
+            "language"  => strtoupper($_SESSION['eas-language']),
             "time"      => date('r'),
             "currency"  => $_SESSION['eas-currency'],
             "amount"    => money_format('%i', $_SESSION['eas-amount']),
             "frequency" => $_SESSION['eas-frequency'],
-            "type"      => "paypal",
+            "type"      => "PayPal",
             "purpose"   => $_SESSION['eas-purpose'],
             "email"     => $_SESSION['eas-email'],
             "name"      => $_SESSION['eas-name'],
@@ -1141,6 +1141,34 @@ function defaultOption($form, $keyPrefix, $keyPostfix = '')
         return preg_match('#' . $pattern . '#', $key);
     });
     return $GLOBALS['easForms'][$form][reset($prefixKeys)];
+}
+
+/**
+ * Get best localized value for settings that can be either a string 
+ * or an array with a value per locale
+ *
+ * @param string|array $setting
+ * @return string|array|null
+ */
+function getBestValue($setting)
+{
+    if (is_string($setting)) {
+        return $setting;
+    }  
+
+    if (is_array($setting) && count($setting) > 0) {
+        // Chosse the best translation
+        $language = reset(explode('_', get_locale(), 2));
+        if (isset($setting[$language])) {
+            // The locale of the page
+            return $setting[$language];
+        } else {
+            // Pick the value of the first language (default)
+            return reset($setting);
+        }
+    } else {
+        return null;
+    }
 }
 
 /*

@@ -7,7 +7,6 @@ var userCountry      = easDonationConfig.userCountry;
 var selectedCurrency = easDonationConfig.selectedCurrency;
 var currencies       = wordpress_vars.amount_patterns;
 var stripeHandlers   = null;
-var buttonFinalText  = wordpress_vars.donate_button_text + ' »';
 var totalItems       = 0;
 var taxReceiptNeeded = false;
 var slideTransitionInAction = false;
@@ -196,6 +195,20 @@ jQuery(document).ready(function($) {
         $(this).siblings('input').focus();
     });
 
+    // Other amount formatting 1: Only 0-9 and '.' are valid symbols
+    $('input#amount-other').change(function() {
+        var value = $(this).val().replace(/[^\d\.]/gm,'');
+        $(this).val(value);
+    });
+
+    // Other amount formatting 2: Only 0-9 and '.' are valid symbols
+    $('input#amount-other').keypress(function(event) {
+        var keyCode = event.which;
+        if (!(48 <= keyCode && keyCode <= 57) && keyCode != 190 && keyCode != 46) {
+            return false;
+        }
+    });
+
     // Click on frequency labels
     $('ul#frequency label').click(function() {
         // Make new label active
@@ -206,6 +219,8 @@ jQuery(document).ready(function($) {
         // Hide payment options that do not support monthly
         var paymentOptions = $('#payment-method-providers label');
         if (frequency == 'monthly') {
+            var toHide = 'amount-once';
+            var toShow = 'amount-monthly';
             var checked = false;
             paymentOptions.each(function(index) {
                 if ($.inArray($(this).attr('for'), monthlySupport) == -1) {
@@ -220,10 +235,38 @@ jQuery(document).ready(function($) {
                 }
             });
         } else {
+            var toHide = 'amount-monthly';
+            var toShow = 'amount-once';
+
             // Make all options visible again
             paymentOptions.each(function(index) {
                 $(this).css('display', 'inline-block');
             });
+        }
+
+        // Switch buttons if necessary
+        var buttonsToShow = $('ul#amounts li.' + toShow);
+        if (buttonsToShow.length > 0) {
+            // Hide buttons
+            $('ul#amounts li.' + toHide)
+                .addClass('hidden')
+                .find('input')
+                .prop('checked', false)
+                .prop('disabled', true);
+
+            // Remove active labels
+            $('ul#amounts label').removeClass('active');
+            
+            // Show buttons
+            buttonsToShow
+                .removeClass('hidden')
+                .find('input')
+                .prop('disabled', false);
+
+            // Diable next button unless custom field is selected
+            if (!$('input#amount-other').hasClass('active')) {
+                disableConfirmButton(0);
+            }
         }
     });
 
@@ -359,14 +402,20 @@ function isValidEmail(email) {
 
 function enableConfirmButton(n)
 {
-    jQuery('button.confirm:eq(' + n + ')').removeAttr('disabled');
+    jQuery('button.confirm:eq(' + n + ')').prop('disabled', false);
+}
+
+function disableConfirmButton(n)
+{
+    jQuery('button.confirm:eq(' + n + ')').prop('disabled', true);
 }
 
 function getLastButtonText(formName)
 {
-    var amount         = getDonationAmount();
-    var currencyCode   = getDonationCurrencyIsoCode();
-    var currencyAmount = currencies[formName][currencyCode].replace('%amount%', amount);
+    var amount           = getDonationAmount();
+    var currencyCode     = getDonationCurrencyIsoCode();
+    var currencyAmount   = currencies[formName][currencyCode].replace('%amount%', amount);
+    var buttonFinalText  = frequency == 'monthly' ? wordpress_vars.donate_button_monthly + ' »' : wordpress_vars.donate_button_once + ' »';
     return buttonFinalText.replace('%currency-amount%', currencyAmount);
 }
 

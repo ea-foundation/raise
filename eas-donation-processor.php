@@ -30,7 +30,12 @@ $myUpdateChecker->setAccessToken('93a8387a061d14040a5932e12ef31d90a1be419a'); //
 // Load parameters
 $easSettingString = get_option('settings');
 $easSettings      = json_decode($easSettingString, true);
-$easOrganization  = isset($easSettings['organization']) ? $easSettings['organization'] : '';
+
+// Load organization in current language
+$easOrganization = isset($easSettings['organization']) ? getBestValue($easSettings['organization']) : null;
+if (is_null($easOrganization)) {
+    $easOrganization = '';
+}
 
 // Load settings of default form, if any
 $flattenedDefaultSettings = array();
@@ -40,11 +45,13 @@ if (isset($easSettings['forms']['default'])) {
 $easForms = array('default' => $flattenedDefaultSettings);
 
 // Get custom form settings
-foreach ($easSettings['forms'] as $name => $extraSettings) {
-    if ($name != 'default') {
-        $flattenedExtraSettings = array();
-        flattenSettings($extraSettings, $flattenedExtraSettings);
-        $easForms[$name] = array_merge($easForms['default'], $flattenedExtraSettings);
+if (isset($easSettings['forms'])) {
+    foreach ($easSettings['forms'] as $name => $extraSettings) {
+        if ($name != 'default') {
+            $flattenedExtraSettings = array();
+            flattenSettings($extraSettings, $flattenedExtraSettings);
+            $easForms[$name] = array_merge($easForms['default'], $flattenedExtraSettings);
+        }
     }
 }
 
@@ -177,14 +184,15 @@ function register_donation_scripts()
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/js/external/dg.js');
     wp_register_script('donation-plugin-form', plugins_url( 'eas-donation-processor/js/form.js' ), array('jquery', 'donation-plugin-stripe'));
     wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
-        'plugin_path'        => plugin_dir_url(__FILE__),
-        'ajax_endpoint'      => admin_url('admin-ajax.php'),
-        'amount_patterns'    => $amountPatterns,
-        'stripe_public_keys' => $stripeKeys,
-        'organization'       => $easOrganization,
-        'donate_button_text' => __("Donate %currency-amount%", "eas-donation-processor"),
-        'donation'           => __("Donation", "eas-donation-processor"),
-        'currency2country'   => $GLOBALS['currency2country'],
+        'plugin_path'           => plugin_dir_url(__FILE__),
+        'ajax_endpoint'         => admin_url('admin-ajax.php'),
+        'amount_patterns'       => $amountPatterns,
+        'stripe_public_keys'    => $stripeKeys,
+        'organization'          => $easOrganization,
+        'donate_button_once'    => __("Donate %currency-amount%", "eas-donation-processor"),
+        'donate_button_monthly' => __("Donate %currency-amount% per month", "eas-donation-processor"),
+        'donation'              => __("Donation", "eas-donation-processor"),
+        'currency2country'      => $GLOBALS['currency2country'],
     ));
     wp_register_script('donation-combobox', plugins_url('eas-donation-processor/js/bootstrap-combobox.js'));
 }
