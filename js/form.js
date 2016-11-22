@@ -287,6 +287,7 @@ jQuery(document).ready(function($) {
         // Remove active css class from all items
         $('ul#amounts label').removeClass("active");
 
+        // Handle other input
         var otherInput = $('input#amount-other');
         otherInput.siblings('span.eas-error').remove();
         otherInput
@@ -295,6 +296,8 @@ jQuery(document).ready(function($) {
             .siblings('span.input-group-addon').removeClass('active')
             .parent().removeClass("required")
             .parent().removeClass('has-error')
+
+        // Mark this as active
         $(this).addClass("active");
 
         // Automatically go to next slide

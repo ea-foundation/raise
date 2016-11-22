@@ -147,8 +147,8 @@ function donationForm($atts, $content = null)
                             $tabIndex = 0;
                             foreach ($easSettings["amount.button"] as $amount) {
                                 echo '<li class="col-xs-4 amount-once">';
-                                echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndex . '" id="amount-' . $amount . '">';
-                                echo '    <label for="amount-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
+                                echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndex . '" id="amount-once-' . $amount . '">';
+                                echo '    <label for="amount-once-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
                                 echo '</li>';
                             }
 
@@ -157,8 +157,8 @@ function donationForm($atts, $content = null)
                             if (isset($easSettings["amount.button_monthly"])) {
                                 foreach ($easSettings["amount.button_monthly"] as $amount) {
                                     echo '<li class="col-xs-4 amount-monthly hidden">';
-                                    echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndexMonthly . '" id="amount-' . $amount . '" disabled>';
-                                    echo '    <label for="amount-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
+                                    echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndexMonthly . '" id="amount-monthly-' . $amount . '" disabled>';
+                                    echo '    <label for="amount-monthly-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
                                     echo '</li>';
                                 }
                             }
