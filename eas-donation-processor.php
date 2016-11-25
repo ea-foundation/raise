@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: EAS Donation Processor
- * Plugin URI: http://www.ea-stiftung.org
- * Description: This plugin processes donations to EAS
- * Version: 0.1.1
+ * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
+ * Description: Process donations
+ * Version: 0.1.3
  * Author: Naoki Peter
  * Author URI: http://www.0x1.ch
  * License: proprietary
