@@ -1,4 +1,5 @@
-<?php
+<?php if (!defined('ABSPATH')) exit;
+
 class EasDonationProcessorOptionsPage
 {
     /**

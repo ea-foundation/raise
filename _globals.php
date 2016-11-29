@@ -1,5 +1,4 @@
-<?php
-defined('ABSPATH') or die('No script kiddies please!');
+<?php if (!defined('ABSPATH')) exit;
 
 /**
  * Paypal

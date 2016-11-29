@@ -1,4 +1,4 @@
-<?php
+<?php if (!defined('ABSPATH')) exit;
 
 /**
  * AJAX endpoint that deals with submitted donation data
@@ -343,8 +343,6 @@ function getPaypalPayKey($post)
             'X-PAYPAL-APPLICATION-ID: '       . $paypalAccount['application_id'],
         );
 
-        //die(json_encode($content));
-
         // Set Options for CURL
         $curl = curl_init($GLOBALS['paypalPayKeyEndpoint'][$mode]);
         curl_setopt($curl, CURLOPT_HEADER, false);
@@ -459,34 +457,38 @@ function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $count
     if ($taxReceiptNeeded && $hasCountrySetting) {
         // Use country specific key
         $paypalAccount = array(
-            'email_id'      => $formSettings["payment.provider.paypal_$country.$mode.email_id"],
-            'api_username'  => $formSettings["payment.provider.paypal_$country.$mode.api_username"],
-            'api_password'  => $formSettings["payment.provider.paypal_$country.$mode.api_password"],
-            'api_signature' => $formSettings["payment.provider.paypal_$country.$mode.api_signature"],
+            'email_id'       => $formSettings["payment.provider.paypal_$country.$mode.email_id"],
+            'api_username'   => $formSettings["payment.provider.paypal_$country.$mode.api_username"],
+            'api_password'   => $formSettings["payment.provider.paypal_$country.$mode.api_password"],
+            'api_signature'  => $formSettings["payment.provider.paypal_$country.$mode.api_signature"],
+            'application_id' => $formSettings["payment.provider.paypal_$country.$mode.application_id"],
         );
     } else if ($hasCurrencySetting) {
         // Use currency specific key
         $paypalAccount = array(
-            'email_id'      => $formSettings["payment.provider.paypal_$currency.$mode.email_id"],
-            'api_username'  => $formSettings["payment.provider.paypal_$currency.$mode.api_username"],
-            'api_password'  => $formSettings["payment.provider.paypal_$currency.$mode.api_password"],
-            'api_signature' => $formSettings["payment.provider.paypal_$currency.$mode.api_signature"],
+            'email_id'       => $formSettings["payment.provider.paypal_$currency.$mode.email_id"],
+            'api_username'   => $formSettings["payment.provider.paypal_$currency.$mode.api_username"],
+            'api_password'   => $formSettings["payment.provider.paypal_$currency.$mode.api_password"],
+            'api_signature'  => $formSettings["payment.provider.paypal_$currency.$mode.api_signature"],
+            'application_id' => $formSettings["payment.provider.paypal_$currency.$mode.application_id"],
         );
     } else if ($hasCountryOfCurrencySetting) {
         // Use key of a country where the chosen currency is used
         $paypalAccount = array(
-            'email_id'      => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.email_id"],
-            'api_username'  => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_username"],
-            'api_password'  => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_password"],
-            'api_signature' => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_signature"],
+            'email_id'       => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.email_id"],
+            'api_username'   => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_username"],
+            'api_password'   => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_password"],
+            'api_signature'  => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_signature"],
+            'application_id' => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.application_id"],
         );
     } else if ($hasDefaultSetting) {
         // Use default key
         $paypalAccount = array(
-            'email_id'      => $formSettings["payment.provider.paypal.$mode.email_id"],
-            'api_username'  => $formSettings["payment.provider.paypal.$mode.api_username"],
-            'api_password'  => $formSettings["payment.provider.paypal.$mode.api_password"],
-            'api_signature' => $formSettings["payment.provider.paypal.$mode.api_signature"],
+            'email_id'       => $formSettings["payment.provider.paypal.$mode.email_id"],
+            'api_username'   => $formSettings["payment.provider.paypal.$mode.api_username"],
+            'api_password'   => $formSettings["payment.provider.paypal.$mode.api_password"],
+            'api_signature'  => $formSettings["payment.provider.paypal.$mode.api_signature"],
+            'application_id' => $formSettings["payment.provider.paypal.$mode.application_id"],
         );
     } else {
         throw new \Exception('No Paypal settings found');
