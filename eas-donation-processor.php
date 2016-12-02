@@ -205,11 +205,11 @@ function create_campaign_post_type() {
     register_post_type( 'eas_campaign',
         array(
             'labels' => array(
-                'name'          => __('Campaigns'),
-                'singular_name' => __('Campaign'),
-                'add_new_item'  => __('Add New Campaign'),
-                'edit_item'     => __('Edit Campaign'),
-                'new_item'      => __('New Campaign')
+                'name'          => __("Campaigns", "eas-donation-processor"),
+                'singular_name' => __("Campaign", "eas-donation-processor"),
+                'add_new_item'  => __("Add New Campaign", "eas-donation-processor"),
+                'edit_item'     => __("Edit Campaign", "eas-donation-processor"),
+                'new_item'      => __("New Campaign", "eas-donation-processor"),
             ),
             'supports'            => array('title', 'author', 'custom-fields'),
             'public'              => true,
@@ -226,11 +226,11 @@ function create_doantion_post_type() {
     register_post_type( 'eas_donation',
         array(
             'labels' => array(
-                'name'          => __('Campaign Donations'),
-                'singular_name' => __('Campaign Donation'),
-                'add_new_item'  => __('Add New Donation'),
-                'edit_item'     => __('Edit Donation'),
-                'new_item'      => __('New Donation')
+                'name'          => __("Campaign Donations", "eas-donation-processor"),
+                'singular_name' => __("Campaign Donation", "eas-donation-processor"),
+                'add_new_item'  => __("Add New Donation", "eas-donation-processor"),
+                'edit_item'     => __("Edit Donation", "eas-donation-processor"),
+                'new_item'      => __("New Donation", "eas-donation-processor"),
             ),
             'supports'            => array('title', 'custom-fields'),
             'public'              => true,
