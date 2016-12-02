@@ -515,3 +515,7 @@ ul#frequency label.active {
     color: #1297c9;
     border-bottom: 2px solid #1297c9;
 }
+
+a.button-link {
+    text-decoration: none !important;
+}
