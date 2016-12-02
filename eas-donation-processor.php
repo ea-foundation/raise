@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.1.4
+ * Version: 0.1.5
  * Author: Naoki Peter
  * Author URI: http://www.0x1.ch
  * License: proprietary
@@ -17,7 +17,7 @@ require_once("_options.php");
 require_once("_functions.php");
 require_once("form.php");
 
-// check for new version of plugin
+// Check for new version of plugin
 require 'plugin-update-checker/plugin-update-checker.php';
 $className = PucFactory::getLatestClassVersion('PucGitHubChecker');
 $myUpdateChecker = new $className(
@@ -90,7 +90,6 @@ add_action("wp_ajax_log", "eas_process_paypal_log");
 function eas_process_paypal_log() {
     processPaypalLog();
 }
-
 
 // Add hook that tells the HookPress plugin about our Zapier hooks
 function eas_webhooks($hookpress_actions) {
@@ -200,6 +199,47 @@ function register_donation_scripts()
 add_action('wp_enqueue_scripts', 'register_donation_scripts');
 
 
+// Register matching campaign post type
+add_action( 'init', 'create_campaign_post_type' );
+function create_campaign_post_type() {
+    register_post_type( 'eas_campaign',
+        array(
+            'labels' => array(
+                'name'          => __('Campaigns'),
+                'singular_name' => __('Campaign'),
+                'add_new_item'  => __('Add New Campaign'),
+                'edit_item'     => __('Edit Campaign'),
+                'new_item'      => __('New Campaign')
+            ),
+            'supports'            => array('title', 'author', 'custom-fields'),
+            'public'              => true,
+            'has_archive'         => true,
+            'menu_icon'           => 'dashicons-lightbulb',
+            'exclude_from_search' => 'true',
+        )
+    );
+}
+
+// Register matching campaign donation post type
+add_action( 'init', 'create_doantion_post_type' );
+function create_doantion_post_type() {
+    register_post_type( 'eas_donation',
+        array(
+            'labels' => array(
+                'name'          => __('Campaign Donations'),
+                'singular_name' => __('Campaign Donation'),
+                'add_new_item'  => __('Add New Donation'),
+                'edit_item'     => __('Edit Donation'),
+                'new_item'      => __('New Donation')
+            ),
+            'supports'            => array('title', 'custom-fields'),
+            'public'              => true,
+            'has_archive'         => true,
+            'menu_icon'           => 'dashicons-heart',
+            'exclude_from_search' => 'true',
+        )
+    );
+}
 
 
 

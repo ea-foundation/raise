@@ -242,6 +242,19 @@ function donationForm($atts, $content = null)
                     </div>
                 </div>
 
+                <!-- Donate anonymously (matching campaigns) -->
+                <?php if (!empty($easSettings['campaign']) && !empty($easSettings['payment.extra_fields.anonymous']) && $easSettings['payment.extra_fields.anonymous']): ?>
+                <div class="form-group donor-info" style="margin-top: -17px">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="anonymous" id="donor-anonymous" value="1"> <?php _e('Don\'t publish my name', 'eas-donation-processor') ?>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <!-- Email -->
                 <div class="form-group required donor-info">
                     <label for="donor-email" class="col-sm-3 control-label"><?php _e('Email', 'eas-donation-processor') ?></label>
@@ -282,6 +295,16 @@ function donationForm($atts, $content = null)
                             </ul>
                         </div>
                     </div>
+                <?php endif; ?>
+
+                <!-- Comment -->
+                <?php if (!empty($easSettings['payment.extra_fields.comment']) && $easSettings['payment.extra_fields.comment']): ?>
+                <div class="form-group donor-info">
+                    <label for="donor-comment" class="col-sm-3 control-label"><?php _e('Public comment', 'eas-donation-processor') ?> (<?php _e('optional', 'eas-donation-processor') ?>)</label>
+                    <div class="col-sm-9">
+                        <textarea class="form-control" rows="3" name="comment" id="donor-comment"></textarea>
+                    </div>
+                </div>
                 <?php endif; ?>
 
                 <!-- Mailing list -->
@@ -406,9 +429,6 @@ function donationForm($atts, $content = null)
 </div>
 
 <?php
-    /*echo '<pre>';
-    var_dump($easForms[$name]);
-    echo '</pre>';*/
     $content = ob_get_clean();
     return $content;
 }

@@ -70,10 +70,14 @@ function handleStripePayment($post)
         $language  = $post['language'];
         $token     = $post['stripeToken'];
         $publicKey = $post['stripePublicKey'];
-        $amount    = $post['amount'];
+        $amountInt = $post['amount'];
+        $amount    = money_format('%i', $amountInt / 100);
         $currency  = $post['currency'];
         $email     = $post['email'];
         $frequency = $post['frequency'];
+        $name      = $post['name'];
+        $anonymous = isset($post['anonymous']) ? $post['anonymous'] : false;
+        $comment   = isset($post['comment'])   ? $post['comment']   : '';
 
         // Find the secret key that goes with the public key
         $formSettings = $GLOBALS['easForms'][$form];
@@ -106,7 +110,7 @@ function handleStripePayment($post)
         $charge = \Stripe\Charge::create(
             array(
                 'customer'    => $customer->id,
-                'amount'      => $amount, // !!! in cents !!!
+                'amount'      => $amountInt, // !!! in cents !!!
                 'currency'    => $currency,
                 'description' => 'Donation',
             )
@@ -119,16 +123,17 @@ function handleStripePayment($post)
             'language'  => strtoupper($language),
             'time'      => date('r'),
             'currency'  => $currency,
-            'amount'    => money_format('%i', $amount / 100),
+            'amount'    => $amount,
             'type'      => 'Stripe',
             'email'     => $email,
             'frequency' => $frequency,
             'purpose'   => isset($post['purpose'])  ? $post['purpose'] : '',
-            'name'      => isset($post['name'])     ? $post['name']    : '',
+            'name'      => $name,
             'address'   => isset($post['address'])  ? $post['address'] : '',
             'zip'       => isset($post['zip'])      ? $post['zip']     : '',
             'city'      => isset($post['city'])     ? $post['city']    : '',
             'country'   => isset($post['country'])  ? getEnglishNameByCountryCode($post['country']) : '',
+            'comment'   => $comment,
         );
 
         // Trigger logging web hook for Zapier
@@ -144,8 +149,18 @@ function handleStripePayment($post)
             triggerMailingListWebHooks($form, $subscription);
         }
 
+        // Save matching challenge donation post
+        saveMatchingChallengeDonationPost(
+            $form,
+            $anonymous ? 'Anonymous' : $name,
+            $currency,
+            $amount,
+            $frequency,
+            $comment
+        );
+
         // Send email
-        sendThankYouEmail($email, $form, $language);
+        //sendThankYouEmail($email, $form, $language);
     } catch(\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
         throw new Exception($e->getMessage() . ' ' . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency : $token");
@@ -212,6 +227,10 @@ function getStripeCustomerSettings($post)
  */
 function handleBankTransferPayment($post)
 {
+    $amount    = money_format('%i', $post['amount'] / 100);
+    $comment   = isset($post['comment'])   ? $post['comment']    : '';
+    $anonymous = isset($post['anonymous']) ? $post['anonymous']  : false;
+
     // Prepare hook
     $donation = array(
         'form'      => $post['form'],
@@ -219,16 +238,17 @@ function handleBankTransferPayment($post)
         'language'  => strtoupper($post['language']),
         'time'      => date('r'),
         'currency'  => $post['currency'],
-        'amount'    => money_format('%i', $post['amount'] / 100),
+        'amount'    => $amount,
         'type'      => 'Bank Transfer',
         'email'     => $post['email'],
         'frequency' => $post['frequency'],
         'purpose'   => isset($post['purpose']) ? $post['purpose']  : '',
         'name'      => isset($post['name'])    ? $post['name']     : '',
-        'address'   => isset($post['address']) ? $post['address'] : '',
+        'address'   => isset($post['address']) ? $post['address']  : '',
         'zip'       => isset($post['zip'])     ? $post['zip']      : '',
         'city'      => isset($post['city'])    ? $post['city']     : '',
         'country'   => isset($post['country']) ? getEnglishNameByCountryCode($post['country']) : '',
+        'comment'   => $comment,
     );
 
     // Trigger hook for Zapier
@@ -244,8 +264,18 @@ function handleBankTransferPayment($post)
         triggerMailingListWebHooks($post['form'], $subscription);
     }
 
+    // Save matching challenge donation post
+    saveMatchingChallengeDonationPost(
+        $post['form'],
+        $anonymous ? 'Anonymous' : $post['name'],
+        $post['currency'],
+        $amount,
+        $post['frequency'],
+        $comment
+    );
+
     // Send email
-    sendThankYouEmail($post['email'], $post['form'], $post['language']);
+    //sendThankYouEmail($post['email'], $post['form'], $post['language']);
 }
 
 /**
@@ -400,6 +430,8 @@ function getPaypalPayKey($post)
         $_SESSION['eas-address']     = isset($post['address'])     ? $post['address']          : '';
         $_SESSION['eas-zip']         = isset($post['zip'])         ? $post['zip']              : '';
         $_SESSION['eas-city']        = isset($post['city'])        ? $post['city']             : '';
+        $_SESSION['eas-comment']     = isset($post['comment'])     ? $post['comment']          : '';
+        $_SESSION['eas-anonymous']   = isset($post['anonymous'])   ? $post['anonymous']        : '';
 
         // Return pay key
         die(json_encode(array(
@@ -507,6 +539,8 @@ function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $count
 function processPaypalLog()
 {
     if (isset($_GET['req']) && $_GET['req'] == $_SESSION['eas-req-id']) {
+        $amount = money_format('%i', $_SESSION['eas-amount']);
+
         // Prepare hook
         $donation = array(
             "form"      => $_SESSION['eas-form'],
@@ -514,7 +548,7 @@ function processPaypalLog()
             "language"  => strtoupper($_SESSION['eas-language']),
             "time"      => date('r'),
             "currency"  => $_SESSION['eas-currency'],
-            "amount"    => money_format('%i', $_SESSION['eas-amount']),
+            "amount"    => $amount,
             "frequency" => $_SESSION['eas-frequency'],
             "type"      => "PayPal",
             "purpose"   => $_SESSION['eas-purpose'],
@@ -524,6 +558,7 @@ function processPaypalLog()
             "zip"       => $_SESSION['eas-zip'],
             "city"      => $_SESSION['eas-city'],
             "country"   => getEnglishNameByCountryCode($_SESSION['eas-country']),
+            "comment"   => $_SESSION['eas-comment'],
         );
 
         // Reset request ID to prevent replay attacks
@@ -542,8 +577,18 @@ function processPaypalLog()
             triggerMailingListWebHooks($_SESSION['eas-form'], $subscription);
         }
 
+        // Save matching challenge donation post
+        saveMatchingChallengeDonationPost(
+            $_SESSION['eas-form'],
+            $_SESSION['eas-anonymous'] ? 'Anonymous' : $_SESSION['eas-name'],
+            $_SESSION['eas-currency'],
+            $amount,
+            $_SESSION['eas-frequency'],
+            $_SESSION['eas-comment']
+        );
+
         // Send email
-        sendThankYouEmail($_SESSION['eas-email'], $_SESSION['eas-form'], $_SESSION['eas-language']);
+        //sendThankYouEmail($_SESSION['eas-email'], $_SESSION['eas-form'], $_SESSION['eas-language']);
 
         // Add method for showing confirmation
         $qsConnector = strpos('?', $_SERVER['eas-plugin-url']) ? '&' : '?';
@@ -560,6 +605,45 @@ function processPaypalLog()
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
          <body><script>' . $script . '</script><body></html>');
+}
+
+/**
+ * Save matching challenge donation (custom post) if a matching challenge campaign is linked to the form
+ *
+ * @param string $form
+ * @param string $name
+ * @param string $currency
+ * @param int    $amount
+ * @param string $frequency
+ * @param string $comment
+ * @param bool   $publish
+ */
+function saveMatchingChallengeDonationPost($form, $name, $currency, $amount, $frequency, $comment, $publish = true)
+{
+    $settings = $formSettings = $GLOBALS['easForms'][$form];
+
+    if (empty($settings["campaign"])) {
+        // No matching campaign set
+        return;
+    }
+
+    $matchingCampaign = $settings["campaign"];
+
+    // Save donation as a custom post
+    $newPost = array(
+        'post_title'  => "$name contributed $currency $amount ($frequency) to matching campaign (ID = $matchingCampaign)",
+        'post_type'   => "eas_donation",
+        'post_status' => $publish ? 'publish' : 'pending',
+    );
+    $postId = wp_insert_post($newPost);
+
+    // Add custom fields
+    add_post_meta($postId, 'name', $name);
+    add_post_meta($postId, 'currency', $currency);
+    add_post_meta($postId, 'amount', preg_replace('#\.00$#', '', $amount));
+    add_post_meta($postId, 'frequency', $frequency);
+    add_post_meta($postId, 'campaign', $matchingCampaign);
+    add_post_meta($postId, 'comment', $comment);
 }
 
 /**
