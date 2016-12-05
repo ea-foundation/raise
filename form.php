@@ -9,7 +9,7 @@
  */
 function donationForm($atts, $content = null)
 {
-    // enqueue previously registered scripts (to prevent them loading on every page load)
+    // Enqueue previously registered scripts (to prevent them loading on every page load)
     wp_enqueue_script('donation-plugin-bootstrapjs');
     wp_enqueue_script('donation-plugin-jqueryformjs');
     wp_enqueue_script('donation-plugin-stripe');
@@ -394,16 +394,13 @@ function donationForm($atts, $content = null)
             <!-- Confirmation -->
             <div class="item<?php echo $confirmationCssClass ?>" id="donation-confirmation">
                 <div class="alert alert-success flexible">
-                    <!-- <div class="response-icon noflex">
-                        <img src="<?php echo plugins_url('images/success.png', __FILE__) ?>" alt="Success" width="18" height="18">
-                    </div> -->
                     <div class"response-text">
                         <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
                         <strong><?php echo isset($easSettings["finish.success_message.$language"]) ? $easSettings["finish.success_message.$language"] : defaultOption($name, 'finish.success_message') ?></strong>
                     </div>
                 </div>
                 <div id="shortcode-content">
-                    <?php echo !empty($content) ? $content : '' ?>
+                    <?php echo !empty($content) ? do_shortcode($content) : '' ?>
                 </div>
             </div>
 
@@ -429,8 +426,7 @@ function donationForm($atts, $content = null)
 </div>
 
 <?php
-    $content = ob_get_clean();
-    return $content;
+    return ob_get_clean();
 }
 
 

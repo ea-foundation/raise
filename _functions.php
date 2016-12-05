@@ -160,7 +160,7 @@ function handleStripePayment($post)
         );
 
         // Send email
-        //sendThankYouEmail($email, $form, $language);
+        sendThankYouEmail($email, $form, $language);
     } catch(\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
         throw new Exception($e->getMessage() . ' ' . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency : $token");
@@ -275,7 +275,7 @@ function handleBankTransferPayment($post)
     );
 
     // Send email
-    //sendThankYouEmail($post['email'], $post['form'], $post['language']);
+    sendThankYouEmail($post['email'], $post['form'], $post['language']);
 }
 
 /**
@@ -588,7 +588,7 @@ function processPaypalLog()
         );
 
         // Send email
-        //sendThankYouEmail($_SESSION['eas-email'], $_SESSION['eas-form'], $_SESSION['eas-language']);
+        sendThankYouEmail($_SESSION['eas-email'], $_SESSION['eas-form'], $_SESSION['eas-language']);
 
         // Add method for showing confirmation
         $qsConnector = strpos('?', $_SERVER['eas-plugin-url']) ? '&' : '?';
