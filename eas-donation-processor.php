@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.1.7
+ * Version: 0.1.8
  * Author: Naoki Peter
  * Author URI: http://www.0x1.ch
  * License: proprietary
@@ -14,7 +14,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 require_once('vendor/autoload.php');
 require_once("_globals.php");
 require_once("_options.php");
-require_once("_functions.php");
+require_once("functions.php");
 require_once("form.php");
 
 // Check for new version of plugin
@@ -202,16 +202,16 @@ add_action('wp_enqueue_scripts', 'register_donation_scripts');
 // Register matching campaign post type
 add_action( 'init', 'create_campaign_post_type' );
 function create_campaign_post_type() {
-    register_post_type( 'eas_campaign',
+    register_post_type( 'eas_fundraiser',
         array(
             'labels' => array(
-                'name'          => __("Campaigns", "eas-donation-processor"),
-                'singular_name' => __("Campaign", "eas-donation-processor"),
-                'add_new_item'  => __("Add New Campaign", "eas-donation-processor"),
-                'edit_item'     => __("Edit Campaign", "eas-donation-processor"),
-                'new_item'      => __("New Campaign", "eas-donation-processor"),
+                'name'          => __("Fundraisers", "eas-donation-processor"),
+                'singular_name' => __("Fundraiser", "eas-donation-processor"),
+                'add_new_item'  => __("Add New Fundraiser", "eas-donation-processor"),
+                'edit_item'     => __("Edit Fundraiser", "eas-donation-processor"),
+                'new_item'      => __("New Fundraiser", "eas-donation-processor"),
             ),
-            'supports'            => array('title', 'author', 'custom-fields'),
+            'supports'            => array('title', 'author'),
             'public'              => true,
             'has_archive'         => true,
             'menu_icon'           => 'dashicons-lightbulb',
@@ -226,8 +226,8 @@ function create_doantion_post_type() {
     register_post_type( 'eas_donation',
         array(
             'labels' => array(
-                'name'          => __("Campaign Donations", "eas-donation-processor"),
-                'singular_name' => __("Campaign Donation", "eas-donation-processor"),
+                'name'          => __("Fundraiser Donations", "eas-donation-processor"),
+                'singular_name' => __("Fundraiser Donation", "eas-donation-processor"),
                 'add_new_item'  => __("Add New Donation", "eas-donation-processor"),
                 'edit_item'     => __("Edit Donation", "eas-donation-processor"),
                 'new_item'      => __("New Donation", "eas-donation-processor"),

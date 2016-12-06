@@ -1,6 +1,9 @@
 <?php /* DO NOT REMOVE THIS LINE! AND NEVER SEND THIS FILE TO THE CLIENT! */ defined('ABSPATH') or die('No script kiddies please!'); ?>
 {
-    "organization": "Stiftung für Effektiven Altruismus",
+    "organization": {
+        "en": "Effective Altruism Foundation",
+        "de": "Stiftung für Effektiven Altruismus"
+    },
     "forms": {
         "default": {
             "amount": {
@@ -174,7 +177,8 @@
                     "de": "Es hat geklappt!",
                     "en": "It worked!"
                 }
-            }
+            },
+            "campaign": 1
         }
     }
 }
