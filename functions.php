@@ -30,7 +30,7 @@ function processDonation()
         unset($_POST['payment-directdebit-frequency']);
         unset($_POST['payment-directdebit-bankaccount']);
         unset($_POST['payment-directdebit-method']);*/
-        
+
         // Output
         if ($_POST['payment'] == "Stripe") {
             handleStripePayment($_POST);
@@ -42,7 +42,7 @@ function processDonation()
         } else {
             throw new Exception('Payment method is invalid.');
         }
-        
+
         die(json_encode(array(
             'success' => true,
         )));
@@ -183,7 +183,7 @@ function getStripeCustomerSettings($post)
 
     if ($frequency == 'monthly') {
         $planId = 'donation-month-' . $currency . '-' . money_format('%i', $amount / 100);
-        
+
         try {
             // Try fetching an existing plan
             $plan = \Stripe\Plan::retrieve($planId);
@@ -393,19 +393,19 @@ function getPaypalPayKey($post)
         //curl_setopt($curl, CURLOPT_CAINFO, 'ssl/server.crt');
         // CURL-Execute & catch response
         $jsonResponse = curl_exec($curl);
-        // Get HTTP-Status, abort if Status != 200 
+        // Get HTTP-Status, abort if Status != 200
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         if ($status != 200) {
             die(json_encode(array(
                 'success' => false,
                 'error'   => "Error: Call to " . $GLOBALS['paypalPayKeyEndpoint'][$mode] . " failed with status $status, " .
-                             "response " . $jsonResponse . ", curl_error " . curl_error($curl) . ", curl_errno " . 
+                             "response " . $jsonResponse . ", curl_error " . curl_error($curl) . ", curl_errno " .
                              curl_errno($curl) . ", HTTP-Status: " . $status,
             )));
         }
         // Close connection
         curl_close($curl);
-        
+
         //Convert response into an array and extract the payKey
         $response = json_decode($jsonResponse, true);
         if ($response['responseEnvelope']['ack'] != 'Success') {
@@ -469,9 +469,9 @@ function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $count
     $hasCountrySetting  = isset($formSettings["payment.provider.paypal_$country.$mode.email_id"]);
     $hasCurrencySetting = isset($formSettings["payment.provider.paypal_$currency.$mode.email_id"]);
     $hasDefaultSetting  = isset($formSettings["payment.provider.paypal.$mode.email_id"]);
-    
+
     // Check if there are settings for a country where the chosen currency is used.
-    // This is only relevant if the donor does not need a donation receipt (always related 
+    // This is only relevant if the donor does not need a donation receipt (always related
     // to specific country) and if there are no currency specific settings
     $hasCountryOfCurrencySetting = false;
     $countryOfCurrency           = '';
@@ -533,7 +533,7 @@ function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $count
  * AJAX endpoint for handling donation logging for PayPal.
  * User is forwarded here after successful Paypal transaction.
  * Takes user data from session and triggers the web hooks.
- * 
+ *
  * @return string HTML with script that terminates the PayPal flow and shows the thank you step
  */
 function processPaypalLog()
@@ -721,7 +721,7 @@ function sendThankYouEmail($email, $form, $language)
 
 /**
  * Auxiliary function for recursively falttening the settings array.
- * The flattening does not affect numeric arrays and the not partially 
+ * The flattening does not affect numeric arrays and the not partially
  * overwritable properties 'payment.purpose' and 'amount.currency'.
  *
  * @param array  $settings  Option array from WordPress
@@ -740,7 +740,7 @@ function flattenSettings($settings, &$result, $parentKey = '')
         $result[$parentKey] = $settings;
         return;
     }
-    
+
     // Do recursion on rest
     foreach ($settings as $key => $item) {
         $flattenedKey = !empty($parentKey) ? $parentKey . '.' . $key : $key;
@@ -769,7 +769,7 @@ function getUserIp()
     //return '84.227.243.215'; // CH
 
     $ipFields = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
-    
+
     foreach ($ipFields as $ipField) {
         if (isset($_SERVER[$ipField])) {
             return $_SERVER[$ipField];
@@ -796,7 +796,7 @@ function getUserCountry($userIp = null)
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_URL, "http://freegeoip.net/json/" . $userIp);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            $output = curl_exec($curl); 
+            $output = curl_exec($curl);
             curl_close($curl);
 
             $response = json_decode($output, true);
@@ -1109,7 +1109,7 @@ function getSortedCountryList($countryCodeFilters = array())
 
     // Merge
     $result = array_merge_recursive($countries, $countriesEn);
-    
+
     // Filter
     if ($countryCodeFilters) {
         $resultSubset = array();
@@ -1120,12 +1120,12 @@ function getSortedCountryList($countryCodeFilters = array())
         }
         $result = $resultSubset;
     }
-    
+
     return $result;
 }
 
 /**
- * Get English country name 
+ * Get English country name
  *
  * @param string $countryCode E.g. "CH" or "US"
  * @return string E.g. "Switzerland" or "United States"
@@ -1155,7 +1155,7 @@ function getCountriesByCurrency($currency)
 
 /**
  * Get Stripe public keys for the form
- * 
+ *
  * E.g.
  * [
  *     'default' => ['sandbox' => 'default_sandbox_key', 'live' => 'default_live_key'],
@@ -1168,7 +1168,7 @@ function getCountriesByCurrency($currency)
  * ]
  *
  * @param array $form Settings array of the form
- * @return array 
+ * @return array
  */
 function getStripePublicKeys(array $form)
 {
@@ -1230,7 +1230,7 @@ function defaultOption($form, $keyPrefix, $keyPostfix = '')
 }
 
 /**
- * Get best localized value for settings that can be either a string 
+ * Get best localized value for settings that can be either a string
  * or an array with a value per locale
  *
  * @param string|array $setting
@@ -1240,11 +1240,12 @@ function getBestValue($setting)
 {
     if (is_string($setting)) {
         return $setting;
-    }  
+    }
 
     if (is_array($setting) && count($setting) > 0) {
         // Chosse the best translation
-        $language = reset(explode('_', get_locale(), 2));
+        $segments = explode('_', get_locale(), 2);
+        $language = reset($segments);
         if (isset($setting[$language])) {
             // The locale of the page
             return $setting[$language];
@@ -1288,27 +1289,3 @@ function gbs_skrillRedirect($post)
     return $content;
 }
 */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
