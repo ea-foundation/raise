@@ -576,6 +576,11 @@ function showConfirmation(paymentProvider)
     
     // Move to confirmation page after 1 second
     setTimeout(carouselNext, 1000);
+
+    // Update fundraiser widgets if present on the same page
+    if (typeof updateFundraiser === 'function') {
+        updateFundraiser();
+    }
 }
 
 function loadStripeHandler()
