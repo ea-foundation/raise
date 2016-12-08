@@ -34,7 +34,8 @@ function donationForm($atts, $content = null)
     }
 
     $easSettings = $easForms[$name];
-    $language    = reset(explode('_', get_locale(), 2));
+    $segments = explode('_', get_locale(), 2);
+    $language = reset($segments);
 
     // Get user country using freegeoip.net
     if (isset($easSettings["amount.currency"])) {
@@ -93,7 +94,7 @@ function donationForm($atts, $content = null)
             <li class="col-xs-4<?php echo $confirmationCssClass ?>"><span>3</span> <?php _e('Finish', 'eas-donation-processor') ?></li>
         </ol>
     </div>
- 
+
     <!-- Scrollable items -->
     <div id="donation-carousel" class="carousel slide" data-ride="carousel" data-interval="false" data-wrap="false" data-keyboard="false">
         <div class="carousel-inner" role="listbox">
@@ -163,9 +164,9 @@ function donationForm($atts, $content = null)
                                 }
                             }
                         ?>
-                           
+
                         <?php if ($easSettings["amount.custom"]): ?>
-                      
+
                             <li class="col-xs-<?php echo  12 - (4 * $tabIndex % 12) ?>">
                                 <div class="input-group">
                                    <span class="input-group-addon"><?php echo trim(str_replace('%amount%', '', $preselectedCurrencyPattern)); ?></span>
@@ -195,7 +196,7 @@ function donationForm($atts, $content = null)
 
 
 
-          
+
 
             <!-- Payment -->
             <div class="item" id="payment-method-item">
@@ -217,7 +218,7 @@ function donationForm($atts, $content = null)
                             <img src="<?php echo plugins_url('images/mastercard.png', __FILE__) ?>" alt="Mastercard" width="38" height="23">
                             <img src="<?php echo plugins_url('images/americanexpress.png', __FILE__) ?>" alt="American Express" width="38" height="23">
                         </label>
-      
+
                         <label for="payment-paypal">
                             <input type="radio" class="radio" name="payment" value="PayPal" tabindex="19" id="payment-paypal">
                             <img src="<?php echo plugins_url('images/paypal.png', __FILE__) ?>" alt="Paypal" width="38" height="23">
@@ -417,7 +418,7 @@ function donationForm($atts, $content = null)
     <input id="type" type="hidden" name="expType" value="light">
     <input id="paykey" type="hidden" name="paykey" value="">
 </form>
-<?php 
+<?php
     wp_add_inline_script('donation-plugin-form', "var embeddedPPFlow = new PAYPAL.apps.DGFlow({trigger: 'submitBtn'});"); // append to scripts instead of inline because main JS is loaded at the end
 ?>
 
@@ -428,17 +429,3 @@ function donationForm($atts, $content = null)
 <?php
     return ob_get_clean();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
