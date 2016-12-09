@@ -37,6 +37,10 @@ function donationForm($atts, $content = null)
     $segments = explode('_', get_locale(), 2);
     $language = reset($segments);
 
+    /*echo '<pre>';
+    var_dump($easSettings);
+    echo '</pre>';*/
+
     // Get user country using freegeoip.net
     if (isset($easSettings["amount.currency"])) {
         $supportedCurrencies = array();

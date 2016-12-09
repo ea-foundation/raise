@@ -76,8 +76,8 @@ function handleStripePayment($post)
         $email     = $post['email'];
         $frequency = $post['frequency'];
         $name      = $post['name'];
-        $anonymous = isset($post['anonymous']) ? $post['anonymous'] : false;
-        $comment   = isset($post['comment'])   ? $post['comment']   : '';
+        $anonymous = get($post['anonymous'], false);
+        $comment   = get($post['comment'], '');
 
         // Find the secret key that goes with the public key
         $formSettings = $GLOBALS['easForms'][$form];
@@ -127,11 +127,11 @@ function handleStripePayment($post)
             'type'      => 'Stripe',
             'email'     => $email,
             'frequency' => $frequency,
-            'purpose'   => isset($post['purpose'])  ? $post['purpose'] : '',
+            'purpose'   => get($post['purpose'], ''),
             'name'      => $name,
-            'address'   => isset($post['address'])  ? $post['address'] : '',
-            'zip'       => isset($post['zip'])      ? $post['zip']     : '',
-            'city'      => isset($post['city'])     ? $post['city']    : '',
+            'address'   => get($post['address'], ''),
+            'zip'       => get($post['zip'], ''),
+            'city'      => get($post['city'], ''),
             'country'   => isset($post['country'])  ? getEnglishNameByCountryCode($post['country']) : '',
             'comment'   => $comment,
         );
@@ -143,7 +143,7 @@ function handleStripePayment($post)
         if (isset($post['mailinglist']) && $post['mailinglist'] == 1) {
             $subscription = array(
                 'email' => $email,
-                'name'  => isset($post['name']) ? $post['name'] : '',
+                'name'  => get($post['name'],''),
             );
 
             triggerMailingListWebHooks($form, $subscription);
@@ -160,7 +160,7 @@ function handleStripePayment($post)
         );
 
         // Send email
-        sendThankYouEmail($email, $form, $language);
+        sendConfirmationEmail($email, $form);
     } catch(\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
         throw new Exception($e->getMessage() . ' ' . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency : $token");
@@ -228,8 +228,8 @@ function getStripeCustomerSettings($post)
 function handleBankTransferPayment($post)
 {
     $amount    = money_format('%i', $post['amount'] / 100);
-    $comment   = isset($post['comment'])   ? $post['comment']    : '';
-    $anonymous = isset($post['anonymous']) ? $post['anonymous']  : false;
+    $comment   = get($post['comment'], '');
+    $anonymous = get($post['anonymous'], false);
 
     // Prepare hook
     $donation = array(
@@ -242,11 +242,11 @@ function handleBankTransferPayment($post)
         'type'      => 'Bank Transfer',
         'email'     => $post['email'],
         'frequency' => $post['frequency'],
-        'purpose'   => isset($post['purpose']) ? $post['purpose']  : '',
-        'name'      => isset($post['name'])    ? $post['name']     : '',
-        'address'   => isset($post['address']) ? $post['address']  : '',
-        'zip'       => isset($post['zip'])     ? $post['zip']      : '',
-        'city'      => isset($post['city'])    ? $post['city']     : '',
+        'purpose'   => get($post['purpose'], ''),
+        'name'      => get($post['name'], ''),
+        'address'   => get($post['address'], ''),
+        'zip'       => get($post['zip'], ''),
+        'city'      => get($post['city'], ''),
         'country'   => isset($post['country']) ? getEnglishNameByCountryCode($post['country']) : '',
         'comment'   => $comment,
     );
@@ -258,7 +258,7 @@ function handleBankTransferPayment($post)
     if (isset($post['mailinglist']) && $post['mailinglist'] == 1) {
         $subscription = array(
             'email' => $post['email'],
-            'name'  => isset($post['name']) ? $post['name'] : '',
+            'name'  => get($post['name'], ''),
         );
 
         triggerMailingListWebHooks($post['form'], $subscription);
@@ -275,7 +275,7 @@ function handleBankTransferPayment($post)
     );
 
     // Send email
-    sendThankYouEmail($post['email'], $post['form'], $post['language']);
+    sendConfirmationEmail($post['email'], $post['form']);
 }
 
 /**
@@ -425,13 +425,13 @@ function getPaypalPayKey($post)
         $_SESSION['eas-frequency']   = $frequency;
         // Optional fields
         $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) ? $post['mailinglist'] == 1 : false;
-        $_SESSION['eas-purpose']     = isset($post['purpose'])     ? $post['purpose']          : '';
-        $_SESSION['eas-name']        = isset($post['name'])        ? $post['name']             : '';
-        $_SESSION['eas-address']     = isset($post['address'])     ? $post['address']          : '';
-        $_SESSION['eas-zip']         = isset($post['zip'])         ? $post['zip']              : '';
-        $_SESSION['eas-city']        = isset($post['city'])        ? $post['city']             : '';
-        $_SESSION['eas-comment']     = isset($post['comment'])     ? $post['comment']          : '';
-        $_SESSION['eas-anonymous']   = isset($post['anonymous'])   ? $post['anonymous']        : '';
+        $_SESSION['eas-purpose']     = get($post['purpose'], '');
+        $_SESSION['eas-name']        = get($post['name'], '');
+        $_SESSION['eas-address']     = get($post['address'], '');
+        $_SESSION['eas-zip']         = get($post['zip'], '');
+        $_SESSION['eas-city']        = get($post['city'], '');
+        $_SESSION['eas-comment']     = get($post['comment'], '');
+        $_SESSION['eas-anonymous']   = get($post['anonymous'], '');
 
         // Return pay key
         die(json_encode(array(
@@ -588,7 +588,7 @@ function processPaypalLog()
         );
 
         // Send email
-        sendThankYouEmail($_SESSION['eas-email'], $_SESSION['eas-form'], $_SESSION['eas-language']);
+        sendConfirmationEmail($_SESSION['eas-email'], $_SESSION['eas-form']);
 
         // Add method for showing confirmation
         $qsConnector = strpos('?', $_SERVER['eas-plugin-url']) ? '&' : '?';
@@ -623,7 +623,7 @@ function saveMatchingChallengeDonationPost($form, $name, $currency, $amount, $fr
     $settings = $formSettings = $GLOBALS['easForms'][$form];
 
     if (empty($settings["campaign"])) {
-        // No matching campaign set
+        // No fundraiser campaign set
         return;
     }
 
@@ -631,7 +631,7 @@ function saveMatchingChallengeDonationPost($form, $name, $currency, $amount, $fr
 
     // Save donation as a custom post
     $newPost = array(
-        'post_title'  => "$name contributed $currency $amount ($frequency) to matching campaign (ID = $matchingCampaign)",
+        'post_title'  => "$name contributed $currency $amount ($frequency) to fundraiser campaign (ID = $matchingCampaign)",
         'post_type'   => "eas_donation",
         'post_status' => $publish ? 'publish' : 'pending',
     );
@@ -654,20 +654,18 @@ function saveMatchingChallengeDonationPost($form, $name, $currency, $amount, $fr
  */
 function easEmailAddress($original_email_address)
 {
-    $settings = $GLOBALS['currentEasFormSettings'];
-    return isset($settings["finish.email.address"]) ? $settings["finish.email.address"] : $original_email_address;
+    return !empty($GLOBALS['easEmailAddress']) ? $GLOBALS['easEmailAddress'] : $original_email_address;
 }
 
 /**
  * Filter for changing email sender
  *
- * @param string $original_email_from
+ * @param string $original_email_sender
  * @return string
  */
-function easEmailFrom($original_email_from)
+function easEmailSender($original_email_sender)
 {
-    $settings = $GLOBALS['currentEasFormSettings'];
-    return isset($settings["finish.email.sender"]) ? $settings["finish.email.sender"] : $original_email_from;
+    return !empty($GLOBALS['easEmailSender']) ? $GLOBALS['easEmailSender'] : $original_email_sender;
 }
 
 /**
@@ -686,34 +684,39 @@ function easEmailContentType($original_content_type)
  *
  * @param string $email User email address
  * @param string $form Form name
- * @param string $language Email language
  */
-function sendThankYouEmail($email, $form, $language)
+function sendConfirmationEmail($email, $form)
 {
     // Only send email if we have settings (might not be the case if we're dealing with script kiddies)
-    if (isset($GLOBALS['easForms'][$form])) {
-        $formSettings = $GLOBALS['easForms'][$form];
+    if (isset($GLOBALS['easForms'][$form]['finish.email'])) {
+        $emailSettings = $GLOBALS['easForms'][$form]['finish.email'];
 
-        // Get email subject and text
-        $subject = isset($formSettings["finish.email.contents.$language.subject"]) ? $formSettings["finish.email.contents.$language.subject"] : defaultOption($form, "finish.email.contents", "subject");
-        $message = isset($formSettings["finish.email.contents.$language.text"]) ? $formSettings["finish.email.contents.$language.text"] : defaultOption($form, "finish.email.contents", "text");
+        // Get email settings for user language
+        if ($emailSettings = getBestValue($emailSettings)) {
+            $subject = get($emailSettings['subject'], '');
+            $text    = get($emailSettings['text'], '');
+        } else {
+            // Invalid settings
+            return;
+        }
 
-        //throw new \Exception("$email : $form : $language : $subject : $message");
+        //throw new \Exception("$email : $form : $language : $subject : $text");
 
-        // The filters below need to access the settings
-        $GLOBALS['currentEasFormSettings'] = $formSettings;
+        // The filters below need to access the email settings
+        $GLOBALS['easEmailSender']  = get($emailSettings['sender']);
+        $GLOBALS['easEmailAddress'] = get($emailSettings['address']);
 
         // Add email hooks
         add_filter('wp_mail_from', 'easEmailAddress', 20, 1);
-        add_filter('wp_mail_from_name', 'easEmailFrom', 20, 1);
+        add_filter('wp_mail_from_name', 'easEmailSender', 20, 1);
         //add_filter('wp_mail_content_type', 'easEmailContentType', 20, 1);
 
         // Send email
-        wp_mail($email, $subject, $message);
+        wp_mail($email, $subject, $text);
 
         // Remove email hooks
         remove_filter('wp_mail_from', 'easEmailAddress', 20);
-        remove_filter('wp_mail_from_name', 'easEmailFrom', 20);
+        remove_filter('wp_mail_from_name', 'easEmailSender', 20);
         //remove_filter('wp_mail_content_type', 'easEmailContentType', 20);
     }
 }
@@ -736,6 +739,7 @@ function flattenSettings($settings, &$result, $parentKey = '')
         // IMPORTANT: Add parameters here that should be overwritten completely in non-default forms
         || preg_match('/payment\.purpose$/', $parentKey)
         || preg_match('/amount\.currency$/', $parentKey)
+        || preg_match('/finish\.email$/', $parentKey)
     ) {
         $result[$parentKey] = $settings;
         return;
@@ -833,7 +837,7 @@ function getUserCurrency($countryCode = null)
 
     $mapping = $GLOBALS['country2currency'];
 
-    return isset($mapping[$countryCode]) ? $mapping[$countryCode] : null;
+    return get($mapping[$countryCode]);
 }
 
 /**
@@ -1133,7 +1137,7 @@ function getSortedCountryList($countryCodeFilters = array())
 function getEnglishNameByCountryCode($countryCode)
 {
     $countryCode = strtoupper($countryCode);
-    return isset($GLOBALS['code2country'][$countryCode]) ? $GLOBALS['code2country'][$countryCode] : $countryCode;
+    return get($GLOBALS['code2country'][$countryCode], $countryCode);
 }
 
 /**
@@ -1146,11 +1150,7 @@ function getCountriesByCurrency($currency)
 {
     $mapping = $GLOBALS['currency2country'];
 
-    if (isset($mapping[$currency])) {
-        return $mapping[$currency];
-    } else {
-        return array();
-    }
+    return get($mapping[$currency], array());
 }
 
 /**
@@ -1207,29 +1207,6 @@ function getStripePublicKeys(array $form)
 }
 
 /**
- * Get the first form setting that matches the key prefix.
- * This method is meant to be used for multilingual properties.
- * The first language serves as the fallback language.
- *
- * @param string $form Form name
- * @param string $keyPrefix E.g. 'finish.success_message'
- * @param string $keyPostfix E.g. 'subject'
- * @return string E.g. 'finish.success_message.en'
- */
-function defaultOption($form, $keyPrefix, $keyPostfix = '')
-{
-    $formKeys = array_keys($GLOBALS['easForms'][$form]);
-    $pattern  = '^' . $keyPrefix;
-    if (!empty($keyPostfix)) {
-        $pattern .= '.*' . $keyPostfix . '$';
-    }
-    $prefixKeys = array_filter($formKeys, function($key) use ($pattern) {
-        return preg_match('#' . $pattern . '#', $key);
-    });
-    return $GLOBALS['easForms'][$form][reset($prefixKeys)];
-}
-
-/**
  * Get best localized value for settings that can be either a string
  * or an array with a value per locale
  *
@@ -1246,16 +1223,21 @@ function getBestValue($setting)
         // Chosse the best translation
         $segments = explode('_', get_locale(), 2);
         $language = reset($segments);
-        if (isset($setting[$language])) {
-            // The locale of the page
-            return $setting[$language];
-        } else {
-            // Pick the value of the first language (default)
-            return reset($setting);
-        }
+        return get($setting[$language], reset($setting));
     } else {
         return null;
     }
+}
+
+/**
+ * Retruns value if exists, otherwise default
+ *
+ * @param mixed $var
+ * @param mixed $default
+ * @return mixed
+ */
+function get(&$var, $default = null) {
+    return isset($var) ? $var : $default;
 }
 
 /*

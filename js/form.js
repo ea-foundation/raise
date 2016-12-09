@@ -13,7 +13,7 @@ var slideTransitionInAction = false;
 var otherAmountPlaceholder  = null;
 var currentStripeKey = '';
 var frequency        = 'once';
-var monthlySupport   = ['payment-creditcard'];
+var monthlySupport   = ['payment-creditcard', 'payment-banktransfer'];
 
 
 
