@@ -84,9 +84,9 @@ function donationForm($atts, $content = null)
     }
 </script>
 <input type="hidden" name="action" value="donate"> <!-- ajax key -->
-<input type="hidden" name="form" value="<?php echo $name ?>" id="eas-form-name"> <!-- form name -->
-<input type="hidden" name="mode" value="<?php echo $live ? 'live' : 'sandbox' ?>" id="eas-form-mode"> <!-- live or sandbox -->
-<input type="hidden" name="language" value="<?php echo $language ?>" id="eas-form-language"> <!-- language -->
+<input type="hidden" name="form" value="<?php echo $name ?>" id="eas-form-name">
+<input type="hidden" name="mode" value="<?php echo $live ? 'live' : 'sandbox' ?>" id="eas-form-mode">
+<input type="hidden" name="language" value="<?php echo $language ?>" id="eas-form-language">
 
 <!-- Scrollable root element -->
 <div id="wizard">
@@ -150,16 +150,18 @@ function donationForm($atts, $content = null)
                         <?php
                             // Once buttons
                             $tabIndex = 0;
-                            foreach ($easSettings["amount.button"] as $amount) {
-                                echo '<li class="col-xs-4 amount-once">';
-                                echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndex . '" id="amount-once-' . $amount . '">';
-                                echo '    <label for="amount-once-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
-                                echo '</li>';
+                            if (!empty($easSettings["amount.button"]) && is_array($easSettings["amount.button"])) {
+                                foreach ($easSettings["amount.button"] as $amount) {
+                                    echo '<li class="col-xs-4 amount-once">';
+                                    echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndex . '" id="amount-once-' . $amount . '">';
+                                    echo '    <label for="amount-once-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
+                                    echo '</li>';
+                                }
                             }
 
                             // Monthly buttons (if present)
                             $tabIndexMonthly = $tabIndex;
-                            if (isset($easSettings["amount.button_monthly"])) {
+                            if (!empty($easSettings["amount.button_monthly"]) && is_array($easSettings["amount.button_monthly"])) {
                                 foreach ($easSettings["amount.button_monthly"] as $amount) {
                                     echo '<li class="col-xs-4 amount-monthly hidden">';
                                     echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndexMonthly . '" id="amount-monthly-' . $amount . '" disabled>';
@@ -169,7 +171,7 @@ function donationForm($atts, $content = null)
                             }
                         ?>
 
-                        <?php if ($easSettings["amount.custom"]): ?>
+                        <?php if (get($easSettings["amount.custom"], true)): ?>
 
                             <li class="col-xs-<?php echo  12 - (4 * $tabIndex % 12) ?>">
                                 <div class="input-group">
@@ -270,11 +272,17 @@ function donationForm($atts, $content = null)
 
                 <!-- Purpose -->
                 <?php
-                    if (!empty($easSettings['payment.purpose'])):
+                    if (!empty($easSettings['payment.purpose']) && is_array($easSettings['payment.purpose'])):
                         $firstItem = reset(array_values($easSettings['payment.purpose']));
                         if (is_array($firstItem)) {
-                            $firstItem = isset($firstItem[$language]) ? $firstItem[$language] : reset(array_values($firstItem));
+                            $firstItem = getBestValue($firstItem);
                         }
+
+                        // Don't print dropdown when only one purpose
+                        if (count($easSettings['payment.purpose']) == 1):
+                            $firstKey = reset(array_keys($easSettings['payment.purpose']));
+                            echo '<input type="hidden" name="purpose" value="' . $firstKey . '">';
+                        else:
                 ?>
                     <div class="form-group donor-info" id="donation-purpose">
                         <label for="donor-email" class="col-sm-3 control-label"><?php _e('Purpose', 'eas-donation-processor') ?></label>
@@ -289,7 +297,7 @@ function donationForm($atts, $content = null)
                                     foreach ($easSettings['payment.purpose'] as $value => $labels) {
                                         // Check if there are language settings
                                         if (is_array($labels)) {
-                                            $label = isset($labels[$language]) ? $labels[$language] : reset(array_values($labels));
+                                            $label = getBestValue($labels);
                                         } else {
                                             $label = $labels;
                                         }
@@ -300,7 +308,7 @@ function donationForm($atts, $content = null)
                             </ul>
                         </div>
                     </div>
-                <?php endif; ?>
+                <?php endif; endif; ?>
 
                 <!-- Comment -->
                 <?php if (!empty($easSettings['payment.extra_fields.comment']) && $easSettings['payment.extra_fields.comment']): ?>

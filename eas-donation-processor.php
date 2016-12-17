@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.1.11
+ * Version: 0.1.12
  * Author: Naoki Peter
  * Author URI: http://www.0x1.ch
  * License: proprietary
@@ -30,12 +30,6 @@ $myUpdateChecker->setAccessToken('93a8387a061d14040a5932e12ef31d90a1be419a'); //
 // Load parameters
 $easSettingString = get_option('settings');
 $easSettings      = json_decode($easSettingString, true);
-
-// Load organization in current language
-$easOrganization = isset($easSettings['organization']) ? getBestValue($easSettings['organization']) : null;
-if (is_null($easOrganization)) {
-    $easOrganization = '';
-}
 
 // Load settings of default form, if any
 $flattenedDefaultSettings = array();
@@ -157,7 +151,13 @@ add_action('wp_enqueue_scripts', 'register_donation_styles');
  */
 function register_donation_scripts()
 {
-    global $easForms, $easOrganization;
+    global $easSettings, $easForms;
+
+    // Load organization in current language
+    $easOrganization = isset($easSettings['organization']) ? getBestValue($easSettings['organization']) : null;
+    if (is_null($easOrganization)) {
+        $easOrganization = '';
+    }
     
     // Amount patterns
     $amountPatterns = array();

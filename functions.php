@@ -121,6 +121,7 @@ function handleStripePayment($post)
             'form'      => $form,
             'mode'      => $mode,
             'language'  => strtoupper($language),
+            'url'       => $_SERVER['HTTP_REFERER'],
             'time'      => date('r'),
             'currency'  => $currency,
             'amount'    => $amount,
@@ -143,7 +144,7 @@ function handleStripePayment($post)
         if (isset($post['mailinglist']) && $post['mailinglist'] == 1) {
             $subscription = array(
                 'email' => $email,
-                'name'  => get($post['name'],''),
+                'name'  => get($post['name'], ''),
             );
 
             triggerMailingListWebHooks($form, $subscription);
@@ -236,6 +237,7 @@ function handleBankTransferPayment($post)
         'form'      => $post['form'],
         'mode'      => $post['mode'],
         'language'  => strtoupper($post['language']),
+        'url'       => $_SERVER['HTTP_REFERER'],
         'time'      => date('r'),
         'currency'  => $post['currency'],
         'amount'    => $amount,
@@ -415,7 +417,8 @@ function getPaypalPayKey($post)
         // Put user data in session. This way we can avoid other people using it to spam our logs
         $_SESSION['eas-form']        = $form;
         $_SESSION['eas-mode']        = $mode;
-        $_SESSION['eas-language']    = $language;
+        $_SESSION['eas-language']    = strtoupper($language);
+        $_SESSION['eas-url']         = $_SERVER['HTTP_REFERER'];
         $_SESSION['eas-req-id']      = $reqId;
         $_SESSION['eas-email']       = $email;
         $_SESSION['eas-currency']    = $currency;
@@ -545,7 +548,8 @@ function processPaypalLog()
         $donation = array(
             "form"      => $_SESSION['eas-form'],
             "mode"      => $_SESSION['eas-mode'],
-            "language"  => strtoupper($_SESSION['eas-language']),
+            "language"  => $_SESSION['eas-language'],
+            'url'       => $_SESSION['eas-url'],
             "time"      => date('r'),
             "currency"  => $_SESSION['eas-currency'],
             "amount"    => $amount,
