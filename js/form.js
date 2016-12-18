@@ -361,20 +361,6 @@ jQuery(document).ready(function($) {
         }
     });
 
-    // Show div with payment details
-    var paymentPanels = $('div#payment-method-item div.radio > div');
-    $('div#payment-method-item input[name=payment]').change(function() {
-        // slide all panels up
-        paymentPanels.slideUp();
-        // ... except the one that was clicked
-        $(this).parent().next().slideDown();
-
-        // remove required class from all panels
-        paymentPanels.children('div').removeClass('required');
-        // ... except the one taht was clicked
-        $(this).parent().next().children('div').addClass('required');
-    });
-
     // Tax receipt toggle
     $('input#tax-receipt').change(function() {
         taxReceiptNeeded = $(this).is(':checked');
