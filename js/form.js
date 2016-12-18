@@ -537,6 +537,7 @@ function lockLastStep(locked)
     jQuery('#donation-submit').prop('disabled', locked);
     jQuery('#donation-go-back').prop('disabled', locked);
     jQuery('div.donor-info input', '#payment-method-item').prop('disabled', locked);
+    jQuery('div.donor-info textarea', '#payment-method-item').prop('disabled', locked);
     jQuery('div.donor-info button', '#payment-method-item').prop('disabled', locked);
     jQuery('div.radio input', '#payment-method-item').prop('disabled', locked);
     jQuery('div.checkbox input', '#payment-method-item').prop('disabled', locked);
