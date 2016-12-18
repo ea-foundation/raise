@@ -5,7 +5,7 @@ Main featuers:
 *   Handle Stripe, PayPal, and bank transactions
 *   Configure several form instances (property inheritance support)
 *   Sandbox API support for Stripe and PayPal
-*   Send confirmation emails
+*   Send confirmation emails and notification emails
 *   Send webhooks using HookPress, e.g. for mailing list signup or logging
 *   Fully translatable (currently available in en and de)
 *   Compatible to the matching campaign plugin for fundraisers

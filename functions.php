@@ -163,8 +163,8 @@ function handleStripePayment($post)
         // Send confirmation email
         sendConfirmationEmail($email, $name, $form);
 
-        // Send summary email
-        sendSummaryEmail($donation, $form);
+        // Send notification email
+        sendNotificationEmail($donation, $form);
     } catch(\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
         throw new Exception($e->getMessage() . ' ' . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency : $token");
@@ -285,8 +285,8 @@ function handleBankTransferPayment($post)
     // Send confirmation email
     sendConfirmationEmail($email, $name, $form);
 
-    // Send summary email
-    sendSummaryEmail($donation, $form);
+    // Send notification email
+    sendNotificationEmail($donation, $form);
 }
 
 /**
@@ -606,8 +606,8 @@ function processPaypalLog()
         // Send confirmation email
         sendConfirmationEmail($email, $name, $form);
 
-        // Send summary email
-        sendSummaryEmail($donation, $form);
+        // Send notification email
+        sendNotificationEmail($donation, $form);
 
         // Add method for showing confirmation
         $qsConnector = strpos('?', $_SERVER['eas-plugin-url']) ? '&' : '?';
@@ -699,15 +699,15 @@ function easEmailContentType($original_content_type)
 }
 
 /**
- * Send summary email to admin (if email set)
+ * Send notification email to admin (if email set)
  *
  * @param array  $donation
  * @param string $form name
  */
-function sendSummaryEmail(array $donation, $form)
+function sendNotificationEmail(array $donation, $form)
 {
     // Return if admin email not set
-    if (empty($GLOBALS['easForms'][$form]['finish.summary_email'])) {
+    if (empty($GLOBALS['easForms'][$form]['finish.notification_email'])) {
         return;
     }
 
@@ -717,7 +717,7 @@ function sendSummaryEmail(array $donation, $form)
     }
 
     // Prepare email
-    $email   = $GLOBALS['easForms'][$form]['finish.summary_email'];
+    $email   = $GLOBALS['easForms'][$form]['finish.notification_email'];
     $subject = $form
                . ' : ' . get($donation['currency'], '') . ' ' . get($donation['amount'], '')
                . ' : ' . get($donation['name'], '');
