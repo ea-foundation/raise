@@ -553,9 +553,19 @@ function showConfirmation(paymentProvider)
     jQuery('#payment-method-providers input[name=payment]').each(function(index) {
         var provider = jQuery(this).attr('value').toLowerCase();
         if (paymentProvider != provider) {
-            jQuery('#shortcode-content > div.eas-' + provider).hide();
+            jQuery('#shortcode-content div.eas-' + provider).hide();
         }
     });
+
+    // Hide all irrelevant country-specific info
+    if (userCountry != '') {
+        var countryCss = 'eas-country-' + userCountry.toLowerCase();
+        jQuery('#shortcode-content div.eas-country').each(function(index) {
+            if (!jQuery(this).hasClass(countryCss)) {
+                jQuery(this).hide();
+            }
+        });
+    }
 
     // Hide spinner
     jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>');
@@ -602,19 +612,15 @@ function loadStripeHandler()
     
     if (taxReceiptNeeded && hasCountrySetting) {
         // Use country specific key
-        //console.log('Special settings for country ' + userCountry);
         newStripeKey = stripeSettings[userCountry.toLowerCase()][easMode];
     } else if (hasCurrencySetting) {
         // Use currency specific key
-        //console.log('Special settings for currency ' + selectedCurrency);
         newStripeKey = stripeSettings[selectedCurrency.toLowerCase()][easMode];
     } else if (hasCountryOfCurrencySetting) {
         // Use key of a country where the chosen currency is used
-        //console.log('Special settings for currency country ' + countryOfCurrency);
         newStripeKey = stripeSettings[countryOfCurrency.toLowerCase()][easMode];
     } else if (hasDefaultSetting) {
         // Use default key
-        //console.log('Default settings');
         newStripeKey = stripeSettings['default'][easMode];
     } else {
         throw new Error('No Stripe settings found');

@@ -120,15 +120,15 @@ function handleStripePayment($post)
         $donation = array(
             'form'      => $form,
             'mode'      => $mode,
-            'language'  => strtoupper($language),
             'url'       => $_SERVER['HTTP_REFERER'],
+            'language'  => strtoupper($language),
             'time'      => date('r'),
             'currency'  => $currency,
             'amount'    => $amount,
-            'type'      => 'Stripe',
-            'email'     => $email,
             'frequency' => $frequency,
+            'type'      => 'Stripe',
             'purpose'   => get($post['purpose'], ''),
+            'email'     => $email,
             'name'      => $name,
             'address'   => get($post['address'], ''),
             'zip'       => get($post['zip'], ''),
@@ -144,7 +144,7 @@ function handleStripePayment($post)
         if (isset($post['mailinglist']) && $post['mailinglist'] == 1) {
             $subscription = array(
                 'email' => $email,
-                'name'  => get($post['name'], ''),
+                'name'  => $name,
             );
 
             triggerMailingListWebHooks($form, $subscription);
@@ -160,8 +160,11 @@ function handleStripePayment($post)
             $comment
         );
 
-        // Send email
-        sendConfirmationEmail($email, $form);
+        // Send confirmation email
+        sendConfirmationEmail($email, $name, $form);
+
+        // Send summary email
+        sendSummaryEmail($donation, $form);
     } catch(\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
         throw new Exception($e->getMessage() . ' ' . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency : $token");
@@ -231,21 +234,24 @@ function handleBankTransferPayment($post)
     $amount    = money_format('%i', $post['amount'] / 100);
     $comment   = get($post['comment'], '');
     $anonymous = get($post['anonymous'], false);
+    $name      = $post['name'];
+    $email     = $post['email'];
+    $form      = $post['form'];
 
     // Prepare hook
     $donation = array(
-        'form'      => $post['form'],
+        'form'      => $form,
         'mode'      => $post['mode'],
-        'language'  => strtoupper($post['language']),
         'url'       => $_SERVER['HTTP_REFERER'],
+        'language'  => strtoupper($post['language']),
         'time'      => date('r'),
         'currency'  => $post['currency'],
         'amount'    => $amount,
-        'type'      => 'Bank Transfer',
-        'email'     => $post['email'],
         'frequency' => $post['frequency'],
+        'type'      => 'Bank Transfer',
         'purpose'   => get($post['purpose'], ''),
-        'name'      => get($post['name'], ''),
+        'email'     => $email,
+        'name'      => $name,
         'address'   => get($post['address'], ''),
         'zip'       => get($post['zip'], ''),
         'city'      => get($post['city'], ''),
@@ -276,8 +282,11 @@ function handleBankTransferPayment($post)
         $comment
     );
 
-    // Send email
-    sendConfirmationEmail($post['email'], $post['form']);
+    // Send confirmation email
+    sendConfirmationEmail($email, $name, $form);
+
+    // Send summary email
+    sendSummaryEmail($donation, $form);
 }
 
 /**
@@ -543,21 +552,24 @@ function processPaypalLog()
 {
     if (isset($_GET['req']) && $_GET['req'] == $_SESSION['eas-req-id']) {
         $amount = money_format('%i', $_SESSION['eas-amount']);
+        $email  = $_SESSION['eas-email'];
+        $name   = $_SESSION['eas-name'];
+        $form   = $_SESSION['eas-form'];
 
         // Prepare hook
         $donation = array(
-            "form"      => $_SESSION['eas-form'],
+            "form"      => $form,
             "mode"      => $_SESSION['eas-mode'],
-            "language"  => $_SESSION['eas-language'],
             'url'       => $_SESSION['eas-url'],
+            "language"  => $_SESSION['eas-language'],
             "time"      => date('r'),
             "currency"  => $_SESSION['eas-currency'],
             "amount"    => $amount,
             "frequency" => $_SESSION['eas-frequency'],
             "type"      => "PayPal",
             "purpose"   => $_SESSION['eas-purpose'],
-            "email"     => $_SESSION['eas-email'],
-            "name"      => $_SESSION['eas-name'],
+            "email"     => $email,
+            "name"      => $name,
             "address"   => $_SESSION['eas-address'],
             "zip"       => $_SESSION['eas-zip'],
             "city"      => $_SESSION['eas-city'],
@@ -569,30 +581,33 @@ function processPaypalLog()
         $_SESSION['eas-req-id'] = uniqid();
 
         // Trigger logging web hook for Zapier
-        triggerLoggingWebHooks($_SESSION['eas-form'], $donation);
+        triggerLoggingWebHooks($form, $donation);
 
         // Trigger mailing list web hook for Zapier
         if ($_SESSION['eas-mailinglist']) {
             $subscription = array(
-                'email' => $_SESSION['eas-email'],
-                'name'  => $_SESSION['eas-name'],
+                'email' => $email,
+                'name'  => $name,
             );
 
-            triggerMailingListWebHooks($_SESSION['eas-form'], $subscription);
+            triggerMailingListWebHooks($form, $subscription);
         }
 
         // Save matching challenge donation post
         saveMatchingChallengeDonationPost(
-            $_SESSION['eas-form'],
-            $_SESSION['eas-anonymous'] ? 'Anonymous' : $_SESSION['eas-name'],
+            $form,
+            $_SESSION['eas-anonymous'] ? 'Anonymous' : $name,
             $_SESSION['eas-currency'],
             $amount,
             $_SESSION['eas-frequency'],
             $_SESSION['eas-comment']
         );
 
-        // Send email
-        sendConfirmationEmail($_SESSION['eas-email'], $_SESSION['eas-form']);
+        // Send confirmation email
+        sendConfirmationEmail($email, $name, $form);
+
+        // Send summary email
+        sendSummaryEmail($donation, $form);
 
         // Add method for showing confirmation
         $qsConnector = strpos('?', $_SERVER['eas-plugin-url']) ? '&' : '?';
@@ -624,14 +639,14 @@ function processPaypalLog()
  */
 function saveMatchingChallengeDonationPost($form, $name, $currency, $amount, $frequency, $comment, $publish = true)
 {
-    $settings = $formSettings = $GLOBALS['easForms'][$form];
+    $formSettings = $GLOBALS['easForms'][$form];
 
-    if (empty($settings["campaign"])) {
+    if (empty($formSettings["campaign"])) {
         // No fundraiser campaign set
         return;
     }
 
-    $matchingCampaign = $settings["campaign"];
+    $matchingCampaign = $formSettings["campaign"];
 
     // Save donation as a custom post
     $newPost = array(
@@ -684,12 +699,45 @@ function easEmailContentType($original_content_type)
 }
 
 /**
+ * Send summary email to admin (if email set)
+ *
+ * @param array  $donation
+ * @param string $form name
+ */
+function sendSummaryEmail(array $donation, $form)
+{
+    // Return if admin email not set
+    if (empty($GLOBALS['easForms'][$form]['finish.summary_email'])) {
+        return;
+    }
+
+    // Trim amount
+    if (!empty($donation['amount'])) {
+        $donation['amount'] = preg_replace('#\.00$#', '', $donation['amount']);
+    }
+
+    // Prepare email
+    $email   = $GLOBALS['easForms'][$form]['finish.summary_email'];
+    $subject = $form
+               . ' : ' . get($donation['currency'], '') . ' ' . get($donation['amount'], '')
+               . ' : ' . get($donation['name'], '');
+    $text    = '';
+    foreach ($donation as $key => $value) {
+        $text .= $key . ' : ' . $value . "\n";
+    }
+
+    // Send email
+    wp_mail($email, $subject, $text);
+}
+
+/**
  * Send email mit thank you message
  *
- * @param string $email User email address
+ * @param string $email Donor email address
+ * @param string $name Donor name
  * @param string $form Form name
  */
-function sendConfirmationEmail($email, $form)
+function sendConfirmationEmail($email, $name, $form)
 {
     // Only send email if we have settings (might not be the case if we're dealing with script kiddies)
     if (isset($GLOBALS['easForms'][$form]['finish.email'])) {
@@ -698,7 +746,7 @@ function sendConfirmationEmail($email, $form)
         // Get email settings for user language
         if ($emailSettings = getBestValue($emailSettings)) {
             $subject = get($emailSettings['subject'], '');
-            $text    = get($emailSettings['text'], '');
+            $text    = str_replace('%name%', $name, get($emailSettings['text'], ''));
         } else {
             // Invalid settings
             return;
