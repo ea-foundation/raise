@@ -718,8 +718,9 @@ function sendNotificationEmail(array $donation, $form)
 
     // Prepare email
     $email   = $GLOBALS['easForms'][$form]['finish.notification_email'];
+    $freq    = !empty($donation['frequency']) && $donation['frequency'] == 'monthly' ? ' (monthly)' : '';
     $subject = $form
-               . ' : ' . get($donation['currency'], '') . ' ' . get($donation['amount'], '')
+               . ' : ' . get($donation['currency'], '') . ' ' . get($donation['amount'], '') . $freq
                . ' : ' . get($donation['name'], '');
     $text    = '';
     foreach ($donation as $key => $value) {
