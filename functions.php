@@ -348,7 +348,7 @@ function getPaypalPayKey($post)
         $taxReceipt = $post['tax_receipt'];
         $country    = $post['country'];
         $frequency  = $post['frequency'];
-        $returnUrl  = admin_url('admin-ajax.php');
+        $returnUrl  = getAjaxEndpoint();
         $reqId      = uniqid(); // Secret reference ID. Needed to prevent replay attack
 
         // Get best Paypal account for donation
@@ -1291,6 +1291,24 @@ function getBestValue($setting)
  */
 function get(&$var, $default = null) {
     return isset($var) ? $var : $default;
+}
+
+/**
+ * Get Ajax endpoint
+ *
+ * @return string
+ */
+function getAjaxEndpoint()
+{
+    $url     = admin_url('admin-ajax.php');
+    $homeUrl = home_url();
+
+    // Wrong base URL in multisite setting
+    if (strpos($url, $homeUrl) === false) {
+        $url = str_replace(site_url(), $homeUrl, $url);
+    }
+
+    return $url;
 }
 
 /*
