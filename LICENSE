@@ -1,7 +1,3 @@
-##############
-# stripe-php #
-##############
-
 EAS Donation Processor includes code from stripe-php (https://github.com/stripe/stripe-php), which is licensed under the MIT license:
 
 The MIT License
@@ -28,12 +24,15 @@ THE SOFTWARE.
 
 
 
+END OF TERMS AND CONDITIONS
 
-############
-# jseditor #
-############
 
-EAS Donation Processor includes code from jsoneditor (https://github.com/josdejong/jsoneditor), which is licensed under the Apache License, Version 2.0:
+
+EAS Donation Processor includes code from the following projects that are licensed under the Apache License, Version 2.0:
+
+*   jsoneditor (https://github.com/josdejong/jsoneditor)
+*   bootstrap-combobox (https://github.com/danielfarrell/bootstrap-combobox)
+
 
 
                                Apache License
