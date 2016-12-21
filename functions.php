@@ -695,7 +695,7 @@ function easEmailSender($original_email_sender)
  */
 function easEmailContentType($original_content_type)
 {
-    return 'text/html';
+    return $GLOBALS['easEmailContentType'];
 }
 
 /**
@@ -756,13 +756,14 @@ function sendConfirmationEmail($email, $name, $form)
         //throw new \Exception("$email : $form : $language : $subject : $text");
 
         // The filters below need to access the email settings
-        $GLOBALS['easEmailSender']  = get($emailSettings['sender']);
-        $GLOBALS['easEmailAddress'] = get($emailSettings['address']);
+        $GLOBALS['easEmailSender']      = get($emailSettings['sender']);
+        $GLOBALS['easEmailAddress']     = get($emailSettings['address']);
+        $GLOBALS['easEmailContentType'] = get($emailSettings['html'], false) ? 'text/html' : 'text/plain';
 
         // Add email hooks
         add_filter('wp_mail_from', 'easEmailAddress', 20, 1);
         add_filter('wp_mail_from_name', 'easEmailSender', 20, 1);
-        //add_filter('wp_mail_content_type', 'easEmailContentType', 20, 1);
+        add_filter('wp_mail_content_type', 'easEmailContentType', 20, 1);
 
         // Send email
         wp_mail($email, $subject, $text);
@@ -770,7 +771,7 @@ function sendConfirmationEmail($email, $name, $form)
         // Remove email hooks
         remove_filter('wp_mail_from', 'easEmailAddress', 20);
         remove_filter('wp_mail_from_name', 'easEmailSender', 20);
-        //remove_filter('wp_mail_content_type', 'easEmailContentType', 20);
+        remove_filter('wp_mail_content_type', 'easEmailContentType', 20);
     }
 }
 
