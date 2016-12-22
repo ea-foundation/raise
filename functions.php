@@ -64,6 +64,9 @@ function handleStripePayment($post)
 {
     // Create the charge on Stripe's servers - this will charge the user's card
     try {
+        // Trim the data
+        $post = array_map('trim', $post);
+
         // Get the credit card details submitted by the form
         $form      = $post['form'];
         $mode      = $post['mode'];
@@ -231,6 +234,9 @@ function getStripeCustomerSettings($post)
  */
 function handleBankTransferPayment($post)
 {
+    // Trim the data
+    $post = array_map('trim', $post);
+
     $amount    = money_format('%i', $post['amount'] / 100);
     $comment   = get($post['comment'], '');
     $anonymous = get($post['anonymous'], false);
@@ -333,6 +339,9 @@ function triggerMailingListWebHooks($form, $subscription)
 function getPaypalPayKey($post)
 {
     try {
+        // Trim the data
+        $post = array_map('trim', $post);
+
         // Replace amount_other
         if (!empty($post['amount_other'])) {
             $post['amount'] = $post['amount_other'];
@@ -343,6 +352,7 @@ function getPaypalPayKey($post)
         $mode       = $post['mode'];
         $language   = $post['language'];
         $email      = $post['email'];
+        $name       = $post['name'];
         $amount     = $post['amount'];
         $currency   = $post['currency'];
         $taxReceipt = $post['tax_receipt'];
@@ -430,15 +440,16 @@ function getPaypalPayKey($post)
         $_SESSION['eas-url']         = $_SERVER['HTTP_REFERER'];
         $_SESSION['eas-req-id']      = $reqId;
         $_SESSION['eas-email']       = $email;
+        $_SESSION['eas-name']        = $name;
         $_SESSION['eas-currency']    = $currency;
         $_SESSION['eas-country']     = $country;
         $_SESSION['eas-amount']      = money_format('%i', $amount);
         $_SESSION['eas-tax-receipt'] = $taxReceipt;
         $_SESSION['eas-frequency']   = $frequency;
+
         // Optional fields
         $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) ? $post['mailinglist'] == 1 : false;
         $_SESSION['eas-purpose']     = get($post['purpose'], '');
-        $_SESSION['eas-name']        = get($post['name'], '');
         $_SESSION['eas-address']     = get($post['address'], '');
         $_SESSION['eas-zip']         = get($post['zip'], '');
         $_SESSION['eas-city']        = get($post['city'], '');
