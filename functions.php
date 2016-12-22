@@ -711,13 +711,41 @@ function sendNotificationEmail(array $donation, $form)
         return;
     }
 
+    $emails = $GLOBALS['easForms'][$form]['finish.notification_email'];
+
+    // Run email filters if array
+    if (is_array($emails)) {
+        $matchingEmails = array();
+
+        // Loop over emails and keep only those who have no condition mismatches
+        foreach ($emails as $email => $conditions) {
+            if (!is_array($conditions)) {
+                continue;
+            }
+
+            foreach ($conditions as $field => $requiredValue) {
+                if (!isset($donation[$field]) || strtolower($donation[$field]) != strtolower($requiredValue)) {
+                    continue 2;
+                }
+            }
+
+            $matchingEmails[] = $email;
+        }
+
+        if (count($matchingEmails) > 0) {
+            $emails = implode(', ', $matchingEmails);
+        } else {
+            // No matching emails. Nothing to do.
+            return;
+        }
+    }
+
     // Trim amount
     if (!empty($donation['amount'])) {
         $donation['amount'] = preg_replace('#\.00$#', '', $donation['amount']);
     }
 
     // Prepare email
-    $email   = $GLOBALS['easForms'][$form]['finish.notification_email'];
     $freq    = !empty($donation['frequency']) && $donation['frequency'] == 'monthly' ? ' (monthly)' : '';
     $subject = $form
                . ' : ' . get($donation['currency'], '') . ' ' . get($donation['amount'], '') . $freq
@@ -728,7 +756,7 @@ function sendNotificationEmail(array $donation, $form)
     }
 
     // Send email
-    wp_mail($email, $subject, $text);
+    wp_mail($emails, $subject, $text);
 }
 
 /**
@@ -794,6 +822,7 @@ function flattenSettings($settings, &$result, $parentKey = '')
         || preg_match('/payment\.purpose$/', $parentKey)
         || preg_match('/amount\.currency$/', $parentKey)
         || preg_match('/finish\.email$/', $parentKey)
+        || preg_match('/finish\.notification_email$/', $parentKey)
     ) {
         $result[$parentKey] = $settings;
         return;
