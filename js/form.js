@@ -365,7 +365,7 @@ jQuery(document).ready(function($) {
     $('input#tax-receipt').change(function() {
         taxReceiptNeeded = $(this).is(':checked');
         // Toggle donor form display and required class
-        if ($('div#donor-extra-info').css('display') == 'none') {
+        if (taxReceiptNeeded) {
             $('div#donor-extra-info').slideDown();
             $('div#donor-extra-info div.optionally-required').addClass('required');
         } else {
