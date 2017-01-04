@@ -519,3 +519,9 @@ ul#frequency label.active {
 a.button-link {
     text-decoration: none !important;
 }
+
+.scrollable-menu {
+    height: auto;
+    max-height: 200px;
+    overflow-x: hidden;
+}
