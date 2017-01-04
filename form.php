@@ -218,17 +218,22 @@ function donationForm($atts, $content = null)
                 </div> -->
                 <div class="form-group required payment-info" id="payment-method-providers">
                     <div class="radio">
-                        <label for="payment-creditcard">
-                            <input type="radio" class="radio" name="payment" value="Stripe" tabindex="18" id="payment-creditcard" checked="checked">
-                            <img src="<?php echo plugins_url('images/visa.png', __FILE__) ?>" alt="Visa" width="38" height="23">
-                            <img src="<?php echo plugins_url('images/mastercard.png', __FILE__) ?>" alt="Mastercard" width="38" height="23">
-                            <img src="<?php echo plugins_url('images/americanexpress.png', __FILE__) ?>" alt="American Express" width="38" height="23">
-                        </label>
+                        <?php $checked = ' checked'; ?>
+                        <?php if (!empty($easSettings["payment.provider.stripe.$mode.public_key"])): ?>
+                            <label for="payment-creditcard">
+                                <input type="radio" class="radio" name="payment" value="Stripe" tabindex="18" id="payment-creditcard"<?php echo $checked ?: ''; $checked = false; ?>>
+                                <img src="<?php echo plugins_url('images/visa.png', __FILE__) ?>" alt="Visa" width="38" height="23">
+                                <img src="<?php echo plugins_url('images/mastercard.png', __FILE__) ?>" alt="Mastercard" width="38" height="23">
+                                <img src="<?php echo plugins_url('images/americanexpress.png', __FILE__) ?>" alt="American Express" width="38" height="23">
+                            </label>
+                        <?php endif; ?>
 
-                        <label for="payment-paypal">
-                            <input type="radio" class="radio" name="payment" value="PayPal" tabindex="19" id="payment-paypal">
-                            <img src="<?php echo plugins_url('images/paypal.png', __FILE__) ?>" alt="Paypal" width="38" height="23">
-                        </label>
+                        <?php if (!empty($easSettings["payment.provider.paypal.$mode.email_id"])): ?>
+                            <label for="payment-paypal">
+                                <input type="radio" class="radio" name="payment" value="PayPal" tabindex="19" id="payment-paypal"<?php echo $checked ?: ''; $checked = false; ?>>
+                                <img src="<?php echo plugins_url('images/paypal.png', __FILE__) ?>" alt="Paypal" width="38" height="23">
+                            </label>
+                        <?php endif; ?>
 
                         <!-- <label for="payment-skrill">
                             <input type="radio" class="radio" name="payment" value="Skrill" tabindex="21" id="payment-skrill">
@@ -236,7 +241,8 @@ function donationForm($atts, $content = null)
                         </label> -->
 
                         <label for="payment-banktransfer">
-                            <input type="radio" class="radio" name="payment" value="Banktransfer" tabindex="20" id="payment-banktransfer"> <?php _e('Bank transfer', 'eas-donation-processor') ?>
+                            <input type="radio" class="radio" name="payment" value="Banktransfer" tabindex="20" id="payment-banktransfer"<?php echo $checked ?: ''; $checked = false; ?>>
+                            <?php _e('Bank transfer', 'eas-donation-processor') ?>
                         </label>
                     </div>
                 </div>

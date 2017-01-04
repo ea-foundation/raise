@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.1.19
+ * Version: 0.1.20
  * Author: Naoki Peter
  * Author URI: http://www.0x1.ch
  * License: proprietary
@@ -174,7 +174,7 @@ function register_donation_scripts()
     // Get Stripe public keys + Paypal accounts
     $stripeKeys     = array();
     foreach ($easForms as $formName => $form) {
-        $stripeKeys[$formName]     = getStripePublicKeys($form);
+        $stripeKeys[$formName] = getStripePublicKeys($form);
     }
 
     wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array('jquery'));

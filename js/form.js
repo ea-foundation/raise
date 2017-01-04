@@ -22,7 +22,19 @@ var monthlySupport   = ['payment-creditcard', 'payment-banktransfer'];
 var stripeImage = new Image();
 stripeImage.src = wordpress_vars.plugin_path + 'images/logo.png';
 
-
+// Define Object keys for old browsers
+if (!Object.keys) {
+    Object.keys = function (obj) {
+        var keys = [],
+            k;
+        for (k in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, k)) {
+                keys.push(k);
+            }
+        }
+        return keys;
+    };
+}
 
 /**
  * Form setup
@@ -582,13 +594,15 @@ function showConfirmation(paymentProvider)
 
 function loadStripeHandler()
 {
-    //console.log('Loading Stripe handler...');
-    // Lock form
-    lockLastStep(true);
-
     // Get best matching key
     var stripeSettings = wordpress_vars.stripe_public_keys[easFormName];
-    var newStripeKey   = '';
+    if (Object.keys(stripeSettings).length == 0) {
+        // No Stripe settings for this form
+        return;
+    }
+
+    // Lock form
+    lockLastStep(true);
 
     // Check all possible settings
     var hasCountrySetting  = checkNestedArray(stripeSettings, userCountry.toLowerCase(), easMode);
@@ -613,16 +627,16 @@ function loadStripeHandler()
     
     if (taxReceiptNeeded && hasCountrySetting) {
         // Use country specific key
-        newStripeKey = stripeSettings[userCountry.toLowerCase()][easMode];
+        var newStripeKey = stripeSettings[userCountry.toLowerCase()][easMode];
     } else if (hasCurrencySetting) {
         // Use currency specific key
-        newStripeKey = stripeSettings[selectedCurrency.toLowerCase()][easMode];
+        var newStripeKey = stripeSettings[selectedCurrency.toLowerCase()][easMode];
     } else if (hasCountryOfCurrencySetting) {
         // Use key of a country where the chosen currency is used
-        newStripeKey = stripeSettings[countryOfCurrency.toLowerCase()][easMode];
+        var newStripeKey = stripeSettings[countryOfCurrency.toLowerCase()][easMode];
     } else if (hasDefaultSetting) {
         // Use default key
-        newStripeKey = stripeSettings['default'][easMode];
+        var newStripeKey = stripeSettings['default'][easMode];
     } else {
         throw new Error('No Stripe settings found');
     }

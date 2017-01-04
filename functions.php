@@ -1276,7 +1276,9 @@ function getStripePublicKeys(array $form)
     if (isset($form['payment.provider.stripe.live.public_key'])) {
         $defaultStripeKeys['live'] = $form['payment.provider.stripe.live.public_key'];
     }
-    $formStripeKeys['default'] = $defaultStripeKeys;
+    if (count($defaultStripeKeys) > 0) {
+        $formStripeKeys['default'] = $defaultStripeKeys;
+    }
 
     // Load Stripe non-default settings (per country or per currency)
     $nonDefaultStripeKeys = array_map(function($key, $value) {
