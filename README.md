@@ -8,6 +8,7 @@ Main featuers:
 *   Send confirmation emails and notification emails
 *   Send webhooks using HookPress, e.g. for mailing list signup or logging
 *   Fully translatable (currently available in en and de)
+*   Country and currency detection based on donor's IP address (powered by freegeoip.net)
 *   Compatible to the matching campaign plugin for fundraisers
 
 

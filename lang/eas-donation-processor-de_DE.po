@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eas-donation-processor\n"
-"POT-Creation-Date: 2017-01-04 12:26+0100\n"
-"PO-Revision-Date: 2017-01-04 12:27+0100\n"
+"POT-Creation-Date: 2017-01-05 13:33+0100\n"
+"PO-Revision-Date: 2017-01-05 13:33+0100\n"
 "Last-Translator: \n"
 "Language-Team: EA Stiftung <info@ea-stiftung.org>\n"
 "Language: de\n"
@@ -142,11 +142,11 @@ msgstr "Monatliche EA-Updates abonnieren"
 
 #: form.php:347
 msgid ""
-"I need a tax receipt for Germany, Switzerland, The Netherlands, or the "
+"I need a tax receipt for Germany, Switzerland, the Netherlands, or the "
 "United States"
 msgstr ""
 "Ich benötige eine Steuerbescheinigungen für Deutschland, die Schweiz, die "
-"Niederlanden, oder die USA"
+"Niederlanden oder die USA"
 
 #: form.php:356
 msgid "Address"
@@ -1176,6 +1176,13 @@ msgstr "Eine neue Version des Plugins ist verfügbar."
 #, php-format
 msgid "Unknown update checker status \"%s\""
 msgstr "Unbekannter Update-Checker-Status \"%s\""
+
+#~ msgid ""
+#~ "I need a tax receipt for Germany, Switzerland, The Netherlands, or the "
+#~ "United States"
+#~ msgstr ""
+#~ "Ich benötige eine Steuerbescheinigungen für Deutschland, die Schweiz, die "
+#~ "Niederlanden, oder die USA"
 
 #~ msgid "I need a tax receipt for Germany or Switzerland"
 #~ msgstr ""

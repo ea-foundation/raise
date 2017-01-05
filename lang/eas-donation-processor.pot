@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eas-donation-processor\n"
-"POT-Creation-Date: 2017-01-04 12:26+0100\n"
+"POT-Creation-Date: 2017-01-05 13:32+0100\n"
 "PO-Revision-Date: 2016-08-26 15:39+0200\n"
 "Last-Translator: \n"
 "Language-Team: EA Stiftung <info@ea-stiftung.org>\n"
@@ -142,7 +142,7 @@ msgid "Subscribe me to monthly EA updates"
 msgstr ""
 
 #: form.php:347
-msgid "I need a tax receipt for Germany, Switzerland, The Netherlands, or the United States"
+msgid "I need a tax receipt for Germany, Switzerland, the Netherlands, or the United States"
 msgstr ""
 
 #: form.php:356
