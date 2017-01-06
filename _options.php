@@ -67,7 +67,7 @@ class EasDonationProcessorOptionsPage
             <script>
                 // Create the editor
                 var container = document.getElementById("jsoneditor");
-                var options = {};
+                var options = {'modes': ['tree', 'code']};
                 var editor = new JSONEditor(container, options);
                 editor.set(<?php echo json_encode($settings) ?>);
 

@@ -566,18 +566,21 @@ function showConfirmation(paymentProvider)
     jQuery('#payment-method-providers input[name=payment]').each(function(index) {
         var provider = jQuery(this).attr('value').toLowerCase();
         if (paymentProvider != provider) {
-            jQuery('#shortcode-content div.eas-' + provider).hide();
+            jQuery('#shortcode-content .eas-' + provider).hide();
         }
     });
 
     // Hide all irrelevant country-specific info
     if (userCountry != '') {
-        var countryCss = 'eas-country-' + userCountry.toLowerCase();
-        jQuery('#shortcode-content div.eas-country').each(function(index) {
-            if (!jQuery(this).hasClass(countryCss)) {
-                jQuery(this).hide();
-            }
-        });
+        // Hide other countries
+        var userCountryCss = '.eas-country-' + userCountry.toLowerCase();
+        var countryDivs    = jQuery('#shortcode-content .eas-country');
+        countryDivs.not(userCountryCss).hide();
+
+        // Show eas-country-other if no divs specific for user country were found
+        if (countryDivs.filter(userCountryCss).length == 0) {
+            countryDivs.filter('.eas-country-other').show();
+        }
     }
 
     // Hide spinner
