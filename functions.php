@@ -304,8 +304,8 @@ function handleBankTransferPayment($post)
 function triggerLoggingWebHooks($form, $donation)
 {
     // Trigger hooks for Zapier
-    if (isset($GLOBALS['easForms'][$form]['web_hook.logging']) && is_array($GLOBALS['easForms'][$form]['web_hook.logging'])) {
-        foreach ($GLOBALS['easForms'][$form]['web_hook.logging'] as $hook) {
+    if (isset($GLOBALS['easForms'][$form]['webhook.logging']) && is_array($GLOBALS['easForms'][$form]['webhook.logging'])) {
+        foreach ($GLOBALS['easForms'][$form]['webhook.logging'] as $hook) {
             $suffix = preg_replace('/[^\w]+/', '_', trim($hook));
             do_action('eas_donation_logging_' . $suffix, $donation);
         }
@@ -321,8 +321,8 @@ function triggerLoggingWebHooks($form, $donation)
 function triggerMailingListWebHooks($form, $subscription)
 {
     // Trigger hooks for Zapier
-    if (isset($GLOBALS['easForms'][$form]['web_hook.mailing_list']) && is_array($GLOBALS['easForms'][$form]['web_hook.mailing_list'])) {
-        foreach ($GLOBALS['easForms'][$form]['web_hook.mailing_list'] as $hook) {
+    if (isset($GLOBALS['easForms'][$form]['webhook.mailing_list']) && is_array($GLOBALS['easForms'][$form]['webhook.mailing_list'])) {
+        foreach ($GLOBALS['easForms'][$form]['webhook.mailing_list'] as $hook) {
             $suffix = preg_replace('/[^\w]+/', '_', trim($hook));
             do_action('eas_donation_mailinglist_' . $suffix, $subscription);
         }

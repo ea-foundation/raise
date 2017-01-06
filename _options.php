@@ -36,21 +36,29 @@ class EasDonationProcessorOptionsPage
      */
     public function create_admin_page()
     {
+        // Update settings
+        updateSettings();
+
         // Load settings
         $settings = json_decode(get_option('settings'), true);
+        $version  = get_option('version');
 
         // Load default settings
-        $customSettings  = plugin_dir_path(__FILE__) . "_parameters.js.php";
-        $settingsFile    = file_exists($customSettings) ? $customSettings : $customSettings . '.dist';
-        $defaultSettings = file_get_contents($settingsFile);
-        $defaultSettings = json_decode(trim(end(explode('?>', $defaultSettings, 2))), true);
+        $customSettings   = plugin_dir_path(__FILE__) . "_parameters.js.php";
+        $settingsFile     = file_exists($customSettings) ? $customSettings : $customSettings . '.dist';
+        $templateSettings = file_get_contents($settingsFile);
+        $templateSettings = json_decode(trim(end(explode('?>', $templateSettings, 2))), true);
         
+        $unsavedSettingsMessage = '';
         if (empty($settings) || count($settings) <= 1) {
-            $settings = $defaultSettings;
+            $settings               = $templateSettings;
+            $unsavedSettingsMessage = '<p><strong>Configure settings and save.</strong></p>';
         }
         ?>
         <div class="wrap">
-            <h1>Donation Settings</h1>
+            <h1>Donation Plugin Settings</h1>
+            <p>Version: <?php echo esc_html($version) ?></p>
+            <?php echo $unsavedSettingsMessage ?>
             <div id="jsoneditor" style="width: 100%; height: 400px;"></div>
             <form id="donation-setting-form" method="post" action="options.php">
                 <?php
@@ -80,7 +88,7 @@ class EasDonationProcessorOptionsPage
 
                 // Show default settings on reset
                 jQuery("input[type=reset]").click(function() {
-                    editor.set(<?php echo json_encode($defaultSettings) ?>);
+                    editor.set(<?php echo json_encode($templateSettings) ?>);
                 });
             </script>
         </div>

@@ -9,6 +9,9 @@
  */
 function donationForm($atts, $content = null)
 {
+    // Update settings if necessary
+    updateSettings();
+
     // Enqueue previously registered scripts (to prevent them loading on every page load)
     wp_enqueue_script('donation-plugin-bootstrapjs');
     wp_enqueue_script('donation-plugin-jqueryformjs');
@@ -32,8 +35,9 @@ function donationForm($atts, $content = null)
         echo 'No settings found for form ' . $name . '. See Settings > Donation Settings';
         return;
     }
-
     $easSettings = $easForms[$name];
+
+    // Get language
     $segments = explode('_', get_locale(), 2);
     $language = reset($segments);
 
@@ -149,10 +153,12 @@ function donationForm($atts, $content = null)
                     <ul id="amounts" class="radio">
                         <?php
                             // Once buttons
-                            $tabIndex = 0;
+                            $cols          = min(12, get($easSettings["amount.columns"], 3));
+                            $buttonColSpan = floor(12 / $cols);
+                            $tabIndex      = 0;
                             if (!empty($easSettings["amount.button"]) && is_array($easSettings["amount.button"])) {
                                 foreach ($easSettings["amount.button"] as $amount) {
-                                    echo '<li class="col-xs-4 amount-once">';
+                                    echo '<li class="col-xs-' . $buttonColSpan . ' amount-once">';
                                     echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndex . '" id="amount-once-' . $amount . '">';
                                     echo '    <label for="amount-once-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
                                     echo '</li>';
@@ -163,7 +169,7 @@ function donationForm($atts, $content = null)
                             $tabIndexMonthly = $tabIndex;
                             if (!empty($easSettings["amount.button_monthly"]) && is_array($easSettings["amount.button_monthly"])) {
                                 foreach ($easSettings["amount.button_monthly"] as $amount) {
-                                    echo '<li class="col-xs-4 amount-monthly hidden">';
+                                    echo '<li class="col-xs-' . $buttonColSpan . ' amount-monthly hidden">';
                                     echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndexMonthly . '" id="amount-monthly-' . $amount . '" disabled>';
                                     echo '    <label for="amount-monthly-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
                                     echo '</li>';
@@ -173,7 +179,7 @@ function donationForm($atts, $content = null)
 
                         <?php if (get($easSettings["amount.custom"], true)): ?>
 
-                            <li class="col-xs-<?php echo  12 - (4 * $tabIndex % 12) ?>">
+                            <li class="col-xs-<?php echo  12 - ($buttonColSpan * $tabIndex % 12) ?>">
                                 <div class="input-group">
                                    <span class="input-group-addon"><?php echo trim(str_replace('%amount%', '', $preselectedCurrencyPattern)); ?></span>
                                     <input type="text" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'eas-donation-processor') ?>" tabindex="<?php echo ++$tabIndexMonthly ?>">
@@ -327,7 +333,7 @@ function donationForm($atts, $content = null)
                 <?php endif; ?>
 
                 <!-- Mailing list -->
-                <?php if (!empty($easSettings['web_hook.mailing_list'])): ?>
+                <?php if (!empty($easSettings['webhook.mailing_list'])): ?>
                 <div class="form-group donor-info">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">

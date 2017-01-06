@@ -168,6 +168,7 @@ input[type=checkbox] {
 }
 
 ul#amounts input[type=text] {
+    text-overflow: ellipsis;
     display: block;
     height: 45px;
     font-size: inherit;
