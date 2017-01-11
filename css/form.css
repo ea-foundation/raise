@@ -160,6 +160,10 @@ ul#amounts li {
     }
 }
 
+ul#amounts input {
+    display: none;
+}
+
 input[type=checkbox] {
     width: auto;
 }
