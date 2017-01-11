@@ -35,8 +35,8 @@
 
 /* input fields */
 #wizard ul#amounts {
-    padding:0px;
-    margin:0px !important;
+    padding: 0px;
+    margin: 0px !important;
 }
 
 #wizard ul#amounts li {
@@ -49,6 +49,7 @@
     color:#456;
     letter-spacing:1px;
     outline: 0;
+    margin: 0;
 }
 
 /* validation error message bar */
@@ -159,18 +160,14 @@ ul#amounts li {
     }
 }
 
-ul#amounts input {
-    display: none;
-}
-
 input[type=checkbox] {
     width: auto;
 }
 
 ul#amounts input[type=text] {
     text-overflow: ellipsis;
-    display: block;
-    height: 45px;
+    display: inline-block;
+    height: 46px;
     font-size: inherit;
     border-top-right-radius: 6px;
     border-bottom-right-radius: 6px;
@@ -180,7 +177,6 @@ ul#amounts input[type=text] {
     backface-visibility: hidden;
     font-weight: 700;
     padding: 5px 15px;
-    font-size: 100%;
     color: #fff;
     outline: 0;
 }
@@ -189,12 +185,6 @@ ul#amounts input[type=text].active {
     background: #5cb85c;
     color: #fff;
     border: 1px solid #4cae4c;
-}
-
-@media (max-width: 767px) {
-    ul#amounts input[type=text] {
-        height: 36px;
-    }
 }
 
 ul#amounts label:hover {
@@ -210,15 +200,16 @@ ul#amounts label {
     background: #0078C1;
     border: 1px solid #08b;
     border-radius: 6px;
-    backface-visibility: hidden;
-    display: block;
-    padding: 5px 5px;
+    height: 46px;
+    padding: 5px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-weight: 700;
-    text-align: center;
     color: #fff;
-    margin: 1px 0 0 3px;
     cursor: pointer;
     outline: 0;
+    backface-visibility: hidden;
 }
 
 ul#amounts span.input-group-addon {
@@ -248,7 +239,7 @@ ul#amounts label.active {
 }
 
 button.confirm {
-    width: 100%;
+    width: 100% !important;
     text-transform: none;
     letter-spacing: 1px;
 }
@@ -287,13 +278,7 @@ div#payment-method-item div.radio div label {
 }
 
 div#amount-item span.form-control-feedback {
-    line-height: 45px;
-}
-
-@media (max-width: 767px) {
-    div#amount-item span.form-control-feedback {
-        line-height: 38px;
-    }
+    line-height: 46px;
 }
 
 div.required label {

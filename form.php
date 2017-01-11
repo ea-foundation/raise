@@ -114,7 +114,8 @@ function donationForm($atts, $content = null)
                 <div class="sr-only">
                   <h3><?php _e('My Donation', 'eas-donation-processor') ?></h3>
                 </div>
-                <div class="row">
+                <!-- Currency -->
+                <div class="<?php echo count($supportedCurrencies) > 1 ? 'row' : 'hidden' ?>">
                     <div class="col-xs-12" id="donation-currency">
                         <div class="btn-group">
                             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -145,8 +146,6 @@ function donationForm($atts, $content = null)
                             <label for="frequency-monthly"><?php _e('Give monthly', 'eas-donation-processor') ?></label>
                         </li>
                     </ul>
-                    <!-- <button type="button" class="btn btn-link active"><?php _e('Give once', 'eas-donation-processor') ?></button>
-                    <button type="button" class="btn btn-link"><?php _e('Give monthly', 'eas-donation-processor') ?></button>-->
                 </div>
 
                 <div class="row">
@@ -215,13 +214,6 @@ function donationForm($atts, $content = null)
                 <div class="sr-only">
                     <h3><?php _e('Choose a payment method', 'eas-donation-processor') ?></h3>
                 </div>
-                <!--
-                <div class="checkbox alert alert-info">
-                    <label>
-                        <input type="checkbox" name="recurring" value="1"> <span id="recurringDonationText">Monatlich spenden</span>.
-                        <a href="#"><span>Mehr</span></a>
-                    </label>
-                </div> -->
                 <div class="form-group required payment-info" id="payment-method-providers">
                     <div class="radio">
                         <?php $checked = ' checked'; ?>
