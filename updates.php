@@ -7,9 +7,6 @@
  */
 function updateSettings()
 {
-    //return;
-    //update_option('version', '0.1.26');
-
     $pluginVersion = getPluginVersion();
 
     // Get settings

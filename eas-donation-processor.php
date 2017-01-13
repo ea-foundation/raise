@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.1.32
+ * Version: 0.1.33
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -34,12 +34,6 @@ $myUpdateChecker = new $className(
     'master'
 );
 $myUpdateChecker->setAccessToken('93a8387a061d14040a5932e12ef31d90a1be419a'); // read only
-
-// Update settings if necessary
-updateSettings();
-
-// Load settings
-loadSettings();
 
 // Add short code for donation form
 add_shortcode('donationForm','donationForm');
@@ -112,6 +106,12 @@ function register_donation_styles() {
 add_action('wp_enqueue_scripts', 'register_donation_scripts');
 function register_donation_scripts()
 {
+    // Update settings if necessary
+    updateSettings();
+
+    // Load settings
+    loadSettings();
+
     $easForms = $GLOBALS['easForms'];
     
     // Amount patterns
