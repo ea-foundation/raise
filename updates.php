@@ -12,24 +12,22 @@ function updateSettings()
 
     $pluginVersion = getPluginVersion();
 
-    // Get settings version
+    // Get settings
+    $settings        = json_decode(get_option('settings'), true);
     $settingsVersion = get_option('version');
     if (empty($settingsVersion)) {
-        // Fresh install, version not set yet, do it now
-        $settingsVersion = $pluginVersion;
-        update_option('version', $pluginVersion);
+        if (empty($settings)) {
+            // Fresh install, version not set yet, do it now
+            $settingsVersion = $pluginVersion;
+        } else {
+            // Previous version didn't have version settings (< 0.1.24)
+            $settingsVersion = '0.1.23';
+        }
+        update_option('version', $settingsVersion);
     }
 
-    if ($pluginVersion == $settingsVersion) {
-        // Everything up-to-date
-        return;
-    }
-
-    // Get current settings
-    $settings = json_decode(get_option('settings'), true);
-
-    if (empty($settings)) {
-        // No settings to be updated
+    if ($pluginVersion == $settingsVersion || empty($settings)) {
+        // Everything up-to-date or no settings to be updated
         return;
     }
 
@@ -65,16 +63,16 @@ function updateSettings()
         if (is_plugin_active('hookpress/hookpress.php') && function_exists('hookpress_get_hooks')) {
             $hooks = hookpress_get_hooks();
 
-            // Replace webhook names with actual webhook endpoints from (e.g. Zapier URLs)
+            // Replace webhook names with actual webhook endpoints (e.g. Zapier URLs)
             foreach (array_keys($settings['forms']) as $formName) {
                 // Logging
                 if (isset($settings['forms'][$formName]['webhook']['logging'])) {
                     $hookNames    = $settings['forms'][$formName]['webhook']['logging'];
-                    $loggingHooks = array_filter($hooks, function ($hook) use ($hookNames) {
+                    $loggingHooks = array_values(array_filter($hooks, function ($hook) use ($hookNames) {
                         return strpos($hook['hook'], 'eas_donation_logging_') === 0
                                && in_array(end(explode('_', $hook['hook'])), $hookNames)
                                && $hook['enabled'];
-                    });
+                    }));
                     $settings['forms'][$formName]['webhook']['logging'] = array_map(function ($hook) {
                         return $hook['url'];
                     }, $loggingHooks);
@@ -83,14 +81,14 @@ function updateSettings()
                 // Mailing lists
                 if (isset($settings['forms'][$formName]['webhook']['mailing_list'])) {
                     $hookNames        = $settings['forms'][$formName]['webhook']['mailing_list'];
-                    $mailingListHooks = array_filter($hooks, function ($hook) use ($hookNames) {
+                    $mailingListHooks = array_values(array_filter($hooks, function ($hook) use ($hookNames) {
                         return strpos($hook['hook'], 'eas_donation_mailinglist_') === 0
                                && in_array(end(explode('_', $hook['hook'])), $hookNames)
                                && $hook['enabled'];
-                    });
-                    $settings['forms'][$formName]['webhook']['mailing_list'] = array_values(array_map(function ($hook) {
+                    }));
+                    $settings['forms'][$formName]['webhook']['mailing_list'] = array_map(function ($hook) {
                         return $hook['url'];
-                    }, $mailingListHooks));
+                    }, $mailingListHooks);
                 }
             }
 
