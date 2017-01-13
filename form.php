@@ -9,10 +9,7 @@
  */
 function donationForm($atts, $content = null)
 {
-    // Update settings if necessary
-    updateSettings();
-
-    // Enqueue previously registered scripts (to prevent them loading on every page load)
+    // Enqueue previously registered scripts and styles (to prevent them loading on every page load)
     wp_enqueue_script('donation-plugin-bootstrapjs');
     wp_enqueue_script('donation-plugin-jqueryformjs');
     wp_enqueue_script('donation-plugin-stripe');
@@ -214,7 +211,7 @@ function donationForm($atts, $content = null)
                 <div class="sr-only">
                     <h3><?php _e('Choose a payment method', 'eas-donation-processor') ?></h3>
                 </div>
-                <div class="form-group required payment-info" id="payment-method-providers">
+                <div class="form-group payment-info" id="payment-method-providers">
                     <div class="radio">
                         <?php $checked = ' checked'; ?>
                         <?php if (!empty($easSettings["payment.provider.stripe.$mode.public_key"])): ?>
@@ -338,7 +335,7 @@ function donationForm($atts, $content = null)
                 <?php endif; ?>
 
                 <!-- Tax receipt -->
-                <div class="form-group donor-info" style="margin-top: -15px">
+                <div class="form-group donor-info" <?php echo !empty($easSettings['webhook.mailing_list']) ? 'style="margin-top: -15px"' : ''; ?>>
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>
@@ -398,8 +395,7 @@ function donationForm($atts, $content = null)
                     </div>
                     <div class="col-xs-8 col-sm-12" id="secure-transaction">
                         <p class="text-success">
-                            <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
-                            <?php _e('Secure', 'eas-donation-processor') ?>
+                            <span class="glyphicon glyphicon-lock" aria-hidden="true"></span><span class="glyphicon glyphicon-ok glyphicon-overlay" aria-hidden="true"></span> <?php _e('Secure', 'eas-donation-processor') ?>
                         </p>
                     </div>
                 </div>

@@ -289,6 +289,19 @@ div.required label {
     color: black;
 }
 
+/*div.required label:after {
+    content: ' *';
+}*/
+
+span.glyphicon-overlay {
+    font-size: 6px;
+    color: white;
+    position: relative;
+    left: -11.5px;
+    top: -1px; 
+    margin-right: -6px;
+}
+
 div.tax-confirmation {
     font-size: 12px;
     padding-bottom: 25px;

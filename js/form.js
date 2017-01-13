@@ -1,19 +1,19 @@
 /**
  * Settings
  */
-var easFormName      = easDonationConfig.formName;
-var easMode          = easDonationConfig.mode;
-var userCountry      = easDonationConfig.userCountry;
-var selectedCurrency = easDonationConfig.selectedCurrency;
-var currencies       = wordpress_vars.amount_patterns;
-var stripeHandlers   = null;
-var totalItems       = 0;
-var taxReceiptNeeded = false;
+var easFormName             = easDonationConfig.formName;
+var easMode                 = easDonationConfig.mode;
+var userCountry             = easDonationConfig.userCountry;
+var selectedCurrency        = easDonationConfig.selectedCurrency;
+var currencies              = wordpress_vars.amount_patterns;
+var stripeHandlers          = null;
+var totalItems              = 0;
+var taxReceiptNeeded        = false;
 var slideTransitionInAction = false;
 var otherAmountPlaceholder  = null;
-var currentStripeKey = '';
-var frequency        = 'once';
-var monthlySupport   = ['payment-creditcard', 'payment-banktransfer'];
+var currentStripeKey        = '';
+var frequency               = 'once';
+var monthlySupport          = ['payment-creditcard', 'payment-banktransfer'];
 
 
 

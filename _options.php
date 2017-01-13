@@ -36,9 +36,6 @@ class EasDonationProcessorOptionsPage
      */
     public function create_admin_page()
     {
-        // Update settings
-        updateSettings();
-
         // Load settings
         $settings = json_decode(get_option('settings'), true);
         $version  = get_option('version');

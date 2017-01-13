@@ -3,14 +3,18 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.1.26
+ * Version: 0.1.27
  * Author: Naoki Peter
- * Author URI: http://www.0x1.ch
+ * Author URI: http://0x1.ch
  * License: proprietary
  */
 
 defined('ABSPATH') or die('No script kiddies please!');
 
+// Set priority constant for email filters
+define('EAS_PRIORITY', 12838790321);
+
+// Load other files
 require_once('vendor/autoload.php');
 require_once("_globals.php");
 require_once("_options.php");
@@ -28,38 +32,22 @@ $myUpdateChecker = new $className(
 );
 $myUpdateChecker->setAccessToken('93a8387a061d14040a5932e12ef31d90a1be419a'); // read only
 
-// Load parameters
-$easSettings = json_decode(get_option('settings'), true);
+// Update settings if necessary
+updateSettings();
 
-// Load settings of default form, if any
-$flattenedDefaultSettings = array();
-if (isset($easSettings['forms']['default'])) {
-    flattenSettings($easSettings['forms']['default'], $flattenedDefaultSettings);
-}
-$easForms = array('default' => $flattenedDefaultSettings);
+// Load settings
+loadSettings();
 
-// Get custom form settings
-if (isset($easSettings['forms'])) {
-    foreach ($easSettings['forms'] as $name => $extraSettings) {
-        if ($name != 'default') {
-            $flattenedExtraSettings = array();
-            flattenSettings($extraSettings, $flattenedExtraSettings);
-            $easForms[$name] = array_merge($easForms['default'], $flattenedExtraSettings);
-        }
-    }
-}
+// Add short code for donation form
+add_shortcode('donationForm','donationForm');
 
-// Add easForms to GLOBALS
-$GLOBALS['easForms'] = $easForms;
-
-
-// Start session
+// Start session (needed for PayPal)
 add_action('init', 'eas_start_session', 1);
 function eas_start_session() {
     if (!session_id()) {
         session_start();
     }
-    if (!preg_match('/admin-ajax\.php/', $_SERVER['REQUEST_URI'])) { // && !isset($_SESSION['eas-plugin-url'])
+    if (!preg_match('/admin-ajax\.php/', $_SERVER['REQUEST_URI'])) {
         $_SESSION['eas-plugin-url'] = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
     }
 }
@@ -85,35 +73,6 @@ function eas_process_paypal_log() {
     processPaypalLog();
 }
 
-// Add hook that tells the HookPress plugin about our Zapier hooks
-function eas_webhooks($hookpress_actions) {
-    $easForms = $GLOBALS['easForms'];
-
-    foreach ($easForms as $formName => $formSettings) {
-        // Logging
-        if (isset($formSettings['web_hook.logging']) && is_array($formSettings['web_hook.logging'])) {
-            foreach ($formSettings['web_hook.logging'] as $hook) {
-                $suffix = preg_replace('/[^\w]+/', '_', trim($hook));
-                $hookpress_actions['eas_donation_logging_' . $suffix] = array('donation');
-            }
-        }
-
-        // Mailing lists
-        if (isset($formSettings['web_hook.mailing_list']) && is_array($formSettings['web_hook.mailing_list'])) {
-            foreach ($formSettings['web_hook.mailing_list'] as $hook) {
-                $suffix = preg_replace('/[^\w]+/', '_', trim($hook));
-                $hookpress_actions['eas_donation_mailinglist_' . $suffix] = array('subscription');
-            }
-        }
-    }
-    
-    return $hookpress_actions;
-}
-add_filter("hookpress_actions", "eas_webhooks");
-
-// Add short code for donation form
-add_shortcode('donationForm','donationForm');
-
 // Add translations
 add_action('plugins_loaded', 'eas_load_textdomain');
 function eas_load_textdomain() {
@@ -132,6 +91,7 @@ function eas_json_settings_editor() {
 /*
  * Additional Styles 
  */
+add_action('wp_enqueue_scripts', 'register_donation_styles');
 function register_donation_styles() {
     wp_register_style('bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
     wp_enqueue_style('bootstrap');
@@ -143,21 +103,13 @@ function register_donation_styles() {
     wp_enqueue_style('donation-plugin-flags');
 }
 
-add_action('wp_enqueue_scripts', 'register_donation_styles');
-
-
 /*
  * Additional Scripts  
  */
+add_action('wp_enqueue_scripts', 'register_donation_scripts');
 function register_donation_scripts()
 {
-    global $easSettings, $easForms;
-
-    // Load organization in current language
-    $easOrganization = isset($easSettings['organization']) ? getBestValue($easSettings['organization']) : null;
-    if (is_null($easOrganization)) {
-        $easOrganization = '';
-    }
+    $easForms = $GLOBALS['easForms'];
     
     // Amount patterns
     $amountPatterns = array();
@@ -172,7 +124,7 @@ function register_donation_scripts()
     }
 
     // Get Stripe public keys + Paypal accounts
-    $stripeKeys     = array();
+    $stripeKeys = array();
     foreach ($easForms as $formName => $form) {
         $stripeKeys[$formName] = getStripePublicKeys($form);
     }
@@ -187,7 +139,7 @@ function register_donation_scripts()
         'ajax_endpoint'         => admin_url('admin-ajax.php'),
         'amount_patterns'       => $amountPatterns,
         'stripe_public_keys'    => $stripeKeys,
-        'organization'          => $easOrganization,
+        'organization'          => $GLOBALS['easOrganization'],
         'donate_button_once'    => __("Donate %currency-amount%", "eas-donation-processor"),
         'donate_button_monthly' => __("Donate %currency-amount% per month", "eas-donation-processor"),
         'donation'              => __("Donation", "eas-donation-processor"),
@@ -195,9 +147,6 @@ function register_donation_scripts()
     ));
     wp_register_script('donation-combobox', plugins_url('eas-donation-processor/js/bootstrap-combobox.js'));
 }
-
-add_action('wp_enqueue_scripts', 'register_donation_scripts');
-
 
 // Register matching campaign post type
 add_action( 'init', 'create_campaign_post_type' );
@@ -242,19 +191,6 @@ function create_doantion_post_type() {
 }
 
 
-/**
- * Returns current plugin version
- *
- * @return string Plugin version
- */
-function getPluginVersion() {
-    if (!function_exists('get_plugin_data')) {
-        require_once(ABSPATH . 'wp-admin/includes/plugin.php');
-    }
-
-    $pluginData = get_plugin_data(__FILE__, false, false);
-    return $pluginData['Version'];
-}
 
 
 

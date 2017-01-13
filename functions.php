@@ -1,6 +1,40 @@
 <?php if (!defined('ABSPATH')) exit;
 
 /**
+ * Load plugin settings and save it to GLOBALS
+ */
+function loadSettings()
+{
+    // Load parameters
+    $easSettings = json_decode(get_option('settings'), true);
+
+    // Load organization in current language
+    $easOrganization = !empty($easSettings['organization']) ? (getBestValue($easSettings['organization']) ?: '') : '';
+
+    // Load settings of default form, if any
+    $flattenedDefaultSettings = array();
+    if (isset($easSettings['forms']['default'])) {
+        flattenSettings($easSettings['forms']['default'], $flattenedDefaultSettings);
+    }
+    $easForms = array('default' => $flattenedDefaultSettings);
+
+    // Get custom form settings
+    if (isset($easSettings['forms'])) {
+        foreach ($easSettings['forms'] as $name => $extraSettings) {
+            if ($name != 'default') {
+                $flattenedExtraSettings = array();
+                flattenSettings($extraSettings, $flattenedExtraSettings);
+                $easForms[$name] = array_merge($easForms['default'], $flattenedExtraSettings);
+            }
+        }
+    }
+
+    // Add easForms to GLOBALS
+    $GLOBALS['easOrganization'] = $easOrganization;
+    $GLOBALS['easForms']        = $easForms;
+}
+
+/**
  * AJAX endpoint that deals with submitted donation data
  *
  * @return string JSON response
@@ -20,16 +54,6 @@ function processDonation()
         } else {
             throw new Exception('Invalid amount.');
         }
-
-        // add payment-details
-        /*if (in_array('payment', $keys) && $_POST['payment'] == "Lastschriftverfahren") {
-          $_POST['payment-details'] = $_POST['payment-directdebit-frequency'] . ' | '  . $_POST['payment-directdebit-bankaccount'] . ' | ' . $_POST['payment-directdebit-method'];
-        } else {
-          $_POST['payment-details'] = '';
-        }
-        unset($_POST['payment-directdebit-frequency']);
-        unset($_POST['payment-directdebit-bankaccount']);
-        unset($_POST['payment-directdebit-method']);*/
 
         // Output
         if ($_POST['payment'] == "Stripe") {
@@ -304,10 +328,11 @@ function handleBankTransferPayment($post)
 function triggerLoggingWebHooks($form, $donation)
 {
     // Trigger hooks for Zapier
-    if (isset($GLOBALS['easForms'][$form]['webhook.logging']) && is_array($GLOBALS['easForms'][$form]['webhook.logging'])) {
-        foreach ($GLOBALS['easForms'][$form]['webhook.logging'] as $hook) {
-            $suffix = preg_replace('/[^\w]+/', '_', trim($hook));
-            do_action('eas_donation_logging_' . $suffix, $donation);
+    if (isset($GLOBALS['easForms'][$form]['webhook.logging'])) {
+        $hooks = csvToArray($GLOBALS['easForms'][$form]['webhook.logging']);
+        foreach ($hooks as $hook) {
+            //TODO The array construct here is HookPress legacy. Remove in next major release.
+            sendWebHook($hook, array('donation' => array_filter($donation)));
         }
     }
 }
@@ -321,12 +346,38 @@ function triggerLoggingWebHooks($form, $donation)
 function triggerMailingListWebHooks($form, $subscription)
 {
     // Trigger hooks for Zapier
-    if (isset($GLOBALS['easForms'][$form]['webhook.mailing_list']) && is_array($GLOBALS['easForms'][$form]['webhook.mailing_list'])) {
-        foreach ($GLOBALS['easForms'][$form]['webhook.mailing_list'] as $hook) {
-            $suffix = preg_replace('/[^\w]+/', '_', trim($hook));
-            do_action('eas_donation_mailinglist_' . $suffix, $subscription);
+    if (isset($GLOBALS['easForms'][$form]['webhook.mailing_list'])) {
+        $hooks = csvToArray($GLOBALS['easForms'][$form]['webhook.mailing_list']);
+        foreach ($hooks as $hook) {
+            //TODO The array construct here is HookPress legacy. Remove in next major release.
+            sendWebHook($hook, array('subscription' => array_filter($subscription)));
         }
     }
+}
+
+/**
+ * Send webhook
+ *
+ * @param string $url Target URL
+ * @param array  $params Arguments
+ */
+function sendWebHook($url, array $params)
+{
+    global $wp_version;
+
+    if (filter_var($url, FILTER_VALIDATE_URL) === FALSE) {
+        return;
+    }
+
+    $version   = getPluginVersion();
+    $userAgent = "EAS-Donation-Processor/{$version} (compatible; WordPress {$wp_version}; +https://ea-foundation.org/)";
+    $args      = array(
+        'user-agent' => $userAgent,
+        'body'       => $params,
+        'referer'    => get_bloginfo('url'),
+    );
+    
+    wp_remote_post($url, $args);
 }
 
 
@@ -800,17 +851,17 @@ function sendConfirmationEmail($email, $name, $form)
         $GLOBALS['easEmailContentType'] = get($emailSettings['html'], false) ? 'text/html' : 'text/plain';
 
         // Add email hooks
-        add_filter('wp_mail_from', 'easEmailAddress', 20, 1);
-        add_filter('wp_mail_from_name', 'easEmailSender', 20, 1);
-        add_filter('wp_mail_content_type', 'easEmailContentType', 20, 1);
+        add_filter('wp_mail_from', 'easEmailAddress', EAS_PRIORITY, 1);
+        add_filter('wp_mail_from_name', 'easEmailSender', EAS_PRIORITY, 1);
+        add_filter('wp_mail_content_type', 'easEmailContentType', EAS_PRIORITY, 1);
 
         // Send email
         wp_mail($email, $subject, $text);
 
         // Remove email hooks
-        remove_filter('wp_mail_from', 'easEmailAddress', 20);
-        remove_filter('wp_mail_from_name', 'easEmailSender', 20);
-        remove_filter('wp_mail_content_type', 'easEmailContentType', 20);
+        remove_filter('wp_mail_from', 'easEmailAddress', EAS_PRIORITY);
+        remove_filter('wp_mail_from_name', 'easEmailSender', EAS_PRIORITY);
+        remove_filter('wp_mail_content_type', 'easEmailContentType', EAS_PRIORITY);
     }
 }
 
@@ -1353,6 +1404,43 @@ function getAjaxEndpoint()
 
     return $url;
 }
+
+/**
+ * Takes a CSV string (or array) and returns an array
+ *
+ * @param string|array $var
+ * @return array
+ */
+function csvToArray($var)
+{
+    if (is_array($var)) {
+        return $var;
+    }
+
+    return array_map('trim', explode(',', $var));
+}
+
+/**
+ * Returns current plugin version
+ *
+ * @return string Plugin version
+ */
+function getPluginVersion() {
+    if (!empty($GLOBALS['easPluginVersion'])) {
+        return $GLOBALS['easPluginVersion'];
+    }
+
+    if (!function_exists('get_plugin_data')) {
+        require_once(ABSPATH . 'wp-admin/includes/plugin.php');
+    }
+
+    // Set plugin version
+    $pluginData                  = get_plugin_data(__FILE__, false, false);
+    $GLOBALS['easPluginVersion'] = $pluginData['Version'];
+
+    return $GLOBALS['easPluginVersion'];
+}
+
 
 /*
 
