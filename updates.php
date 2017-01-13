@@ -8,6 +8,7 @@
 function updateSettings()
 {
     //return;
+    //update_option('version', '0.1.26');
 
     $pluginVersion = getPluginVersion();
 
@@ -51,12 +52,17 @@ function updateSettings()
     }
 
     /**
-     * Date:   2017-01-11
+     * Date:   2017-01-13
      * Author: Naoki Peter
      */
-    if (version_compare('0.1.27', $settingsVersion, '>')) {
+    if (version_compare('0.1.29', $settingsVersion, '>')) {
         // HookPress plugin is obsolete now. Move HookPress endpoints to plugin settings.
-        if (function_exists('hookpress_get_hooks')) {
+        $hookPress = ABSPATH . 'wp-content/plugins/hookpress/hookpress.php';
+        if (file_exists($hookPress)) {
+            require_once $hookPress;
+        }
+
+        if (is_plugin_active('hookpress/hookpress.php') && function_exists('hookpress_get_hooks')) {
             $hooks = hookpress_get_hooks();
 
             // Replace webhook names with actual webhook endpoints from (e.g. Zapier URLs)
@@ -66,7 +72,8 @@ function updateSettings()
                     $hookNames    = $settings['forms'][$formName]['webhook']['logging'];
                     $loggingHooks = array_filter($hooks, function ($hook) use ($hookNames) {
                         return strpos($hook['hook'], 'eas_donation_logging_') === 0
-                               && in_array(end(explode('_', $hook['hook'])), $hookNames);
+                               && in_array(end(explode('_', $hook['hook'])), $hookNames)
+                               && $hook['enabled'];
                     });
                     $settings['forms'][$formName]['webhook']['logging'] = array_map(function ($hook) {
                         return $hook['url'];
@@ -78,7 +85,8 @@ function updateSettings()
                     $hookNames        = $settings['forms'][$formName]['webhook']['mailing_list'];
                     $mailingListHooks = array_filter($hooks, function ($hook) use ($hookNames) {
                         return strpos($hook['hook'], 'eas_donation_mailinglist_') === 0
-                               && in_array(end(explode('_', $hook['hook'])), $hookNames);
+                               && in_array(end(explode('_', $hook['hook'])), $hookNames)
+                               && $hook['enabled'];
                     });
                     $settings['forms'][$formName]['webhook']['mailing_list'] = array_values(array_map(function ($hook) {
                         return $hook['url'];
@@ -89,7 +97,7 @@ function updateSettings()
             // Save changes
             update_option('settings', json_encode($settings));
         }
-        update_option('version', '0.1.27');
+        update_option('version', '0.1.29');
     }
 
     // Add new updates above this line

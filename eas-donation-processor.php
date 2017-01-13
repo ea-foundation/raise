@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.1.28
+ * Version: 0.1.29
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -15,12 +15,12 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Load other files
-require_once('vendor/autoload.php');
-require_once("_globals.php");
-require_once("_options.php");
-require_once("functions.php");
-require_once("updates.php");
-require_once("form.php");
+require_once 'vendor/autoload.php';
+require_once "_globals.php";
+require_once "_options.php";
+require_once "functions.php";
+require_once "updates.php";
+require_once "form.php";
 
 // Check for new version of plugin
 require 'plugin-update-checker/plugin-update-checker.php';
