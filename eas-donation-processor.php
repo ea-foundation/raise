@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.1.31
+ * Version: 0.1.32
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -85,9 +85,9 @@ function eas_load_textdomain() {
 // Add JSON settings editor
 add_action('admin_enqueue_scripts', 'eas_json_settings_editor');
 function eas_json_settings_editor() {
-    wp_register_script('donation-json-settings-editor', plugins_url('eas-donation-processor/js/jsoneditor.min.js'));
+    wp_register_script('donation-json-settings-editor', plugins_url('eas-donation-processor/js/jsoneditor.min.js'), array(), EAS_ASSET_VERSION);
     wp_enqueue_script('donation-json-settings-editor');
-    wp_register_style('donation-json-settings-editor-css', plugins_url('eas-donation-processor/js/jsoneditor.min.css'));
+    wp_register_style('donation-json-settings-editor-css', plugins_url('eas-donation-processor/js/jsoneditor.min.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-json-settings-editor-css');
 }
 
@@ -100,9 +100,9 @@ function register_donation_styles() {
     wp_enqueue_style('bootstrap');
     wp_register_style('donation-plugin-css', plugins_url('eas-donation-processor/css/form.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-plugin-css');
-    wp_register_style('donation-combobox-css', plugins_url('eas-donation-processor/css/bootstrap-combobox.css'));
+    wp_register_style('donation-combobox-css', plugins_url('eas-donation-processor/css/bootstrap-combobox.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-combobox-css');
-    wp_register_style('donation-plugin-flags', plugins_url('eas-donation-processor/css/flags.css'));
+    wp_register_style('donation-plugin-flags', plugins_url('eas-donation-processor/css/flags.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-plugin-flags');
 }
 
@@ -136,6 +136,7 @@ function register_donation_scripts()
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/js/external/dg.js');
+    wp_register_script('donation-combobox', plugins_url('eas-donation-processor/js/bootstrap-combobox.js'), array(), EAS_ASSET_VERSION);
     wp_register_script('donation-plugin-form', plugins_url( 'eas-donation-processor/js/form.js' ), array('jquery', 'donation-plugin-stripe'), EAS_ASSET_VERSION);
     wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
         'plugin_path'           => plugin_dir_url(__FILE__),
@@ -148,7 +149,6 @@ function register_donation_scripts()
         'donation'              => __("Donation", "eas-donation-processor"),
         'currency2country'      => $GLOBALS['currency2country'],
     ));
-    wp_register_script('donation-combobox', plugins_url('eas-donation-processor/js/bootstrap-combobox.js'));
 }
 
 // Register matching campaign post type
