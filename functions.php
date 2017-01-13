@@ -1420,28 +1420,6 @@ function csvToArray($var)
     return array_map('trim', explode(',', $var));
 }
 
-/**
- * Returns current plugin version
- *
- * @return string Plugin version
- */
-function getPluginVersion() {
-    if (!empty($GLOBALS['easPluginVersion'])) {
-        return $GLOBALS['easPluginVersion'];
-    }
-
-    if (!function_exists('get_plugin_data')) {
-        require_once(ABSPATH . 'wp-admin/includes/plugin.php');
-    }
-
-    // Set plugin version
-    $pluginData                  = get_plugin_data(__FILE__, false, false);
-    $GLOBALS['easPluginVersion'] = $pluginData['Version'];
-
-    return $GLOBALS['easPluginVersion'];
-}
-
-
 /*
 
 function gbs_skrillRedirect($post)

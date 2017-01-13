@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.1.27
+ * Version: 0.1.28
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -190,7 +190,26 @@ function create_doantion_post_type() {
     );
 }
 
+/**
+ * Returns current plugin version
+ *
+ * @return string Plugin version
+ */
+function getPluginVersion() {
+    if (!empty($GLOBALS['easPluginVersion'])) {
+        return $GLOBALS['easPluginVersion'];
+    }
 
+    if (!function_exists('get_plugin_data')) {
+        require_once(ABSPATH . 'wp-admin/includes/plugin.php');
+    }
+
+    // Set plugin version
+    $pluginData                  = get_plugin_data(__FILE__, false, false);
+    $GLOBALS['easPluginVersion'] = $pluginData['Version'];
+
+    return $GLOBALS['easPluginVersion'];
+}
 
 
 
