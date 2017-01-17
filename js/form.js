@@ -293,9 +293,6 @@ jQuery(document).ready(function($) {
             return false;
         }
 
-        // Check if element has already been selected
-        var firstSelection = $('ul#amounts label.active').length == 0;
-
         // Remove active css class from all items
         $('ul#amounts label').removeClass("active");
 
@@ -313,10 +310,8 @@ jQuery(document).ready(function($) {
         $(this).addClass("active");
 
         // Automatically go to next slide
-        if (firstSelection) {
-            enableConfirmButton(0);
-            $('button.confirm:first').click();
-        }
+        enableConfirmButton(0);
+        $('button.confirm:first').click();
     });
 
     // Currency stuff
@@ -715,8 +710,8 @@ function carouselNext()
     // Move carousel
     jQuery('#donation-carousel').carousel('next');
     
-    // Update status bar
-    var listItems = jQuery("#status li");
+    // Update progress bar
+    var listItems = jQuery("#progress li");
     listItems.removeClass("active completed");
     listItems.filter(function(index) { return index < currentItem }).addClass("completed");
     listItems.eq(currentItem).addClass("active");
@@ -734,8 +729,8 @@ function carouselPrev()
     // Move carousel
     jQuery('#donation-carousel').carousel('prev');
     
-    // Update status bar
-    var listItems = jQuery("#status li");
+    // Update progress bar
+    var listItems = jQuery("#progress li");
     listItems.removeClass("active completed");
     listItems.filter(function(index) { return index < currentItem }).addClass("completed");
     listItems.eq(currentItem).addClass("active");

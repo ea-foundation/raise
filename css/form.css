@@ -7,6 +7,81 @@
     -webkit-border-radius:6px;
 }
 
+#progress {
+    margin:0px !important;
+    padding: 0 20px !important;
+    border-bottom: 1px solid #ECEDF0;
+}
+
+#progress ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#progress li {
+    font-size: 90%;
+    list-style-type: none;
+    list-style-image: none;
+    float: left;
+    color: #ACAEB0;
+    padding: 10px 0;
+    text-align: center;
+    white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+    #progress li {
+        font-size: 90%;
+    }
+
+    #progress li span {
+        margin: 0 auto;
+        display: block;
+    }
+}
+
+#progress li span {
+    background: #ECEDF0;
+    color: #ACAEB0;
+    border-radius: 1em;
+    display: inline-block;
+    width: 1.6em;
+    height: 1.6em;
+    line-height: 1.6em;
+    text-align: center;
+    margin-right: 0.5em;
+}
+
+@media (max-width: 767px) {
+    #progress li span {
+        margin: 0 auto;
+        display: block;
+    }
+}
+
+#progress li.active span {
+    background: #0078C1;
+    color: #fff;
+    font-weight: bold;
+}
+
+#progress li.active {
+    text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8);
+    color: #0078C1;
+}
+
+#progress li.completed {
+    text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8);
+    color: #666666; /* #4cae4c; */
+}
+
+#progress li.completed span {
+    background: #666666; /* #4cae4c; */
+    color: #fff;
+    font-weight: bold;
+}
+
 /* single donation carousel item */
 #wizard .item {
     padding: 20px 20px; /* 200px 20px; */
@@ -15,11 +90,6 @@
 @media (max-width: 767px) {
     #wizard .item {
         padding: 20px 0 0 0;
-    }
-
-    div.entry-content {
-        padding: 0 3%;
-        margin: 0;
     }
 }
 
@@ -52,100 +122,32 @@
     margin: 0;
 }
 
-/* validation error message bar */
-#drawer {
-    color: #a94442;
-    background-color: #fff;
-    overflow:visible;
-    position:fixed;
-    left:0;
-    top:0;
-    text-align:center;
-    padding:15px;
-    font-size:18px;
-    border-bottom:2px solid #a94442;
-    width:100%;
-    display:none;
-    z-index:1031;
+#wizard label {
+    line-height: 1.42857143;
+}
+
+#wizard .btn-link {
+    color: #337ab7;
+}
+
+#wizard a.button-link {
+    text-decoration: none !important;
+}
+
+#wizard input[type=radio], #wizard input[type=checkbox]
+{
+    width: auto;
+    font-size: smaller;
+}
+
+#wizard .scrollable-menu {
+    height: auto;
+    max-height: 200px;
+    overflow-x: hidden;
 }
 
 #wizard .error {
     border:1px solid red;
-}
-
-#wizard #status {
-    margin:0px !important;
-    padding: 0 20px !important;
-    border-bottom: 1px solid #ECEDF0;
-}
-
-#status ol {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-#status li {
-    font-size: 90%;
-    list-style-type: none;
-    list-style-image: none;
-    float: left;
-    color: #ACAEB0;
-    padding: 10px 0;
-    text-align: center;
-    white-space: nowrap;
-}
-
-@media (max-width: 767px) {
-    #status li {
-        font-size: 90%;
-    }
-
-    #status li span {
-        margin: 0 auto;
-        display: block;
-    }
-}
-
-#status li span {
-    background: #ECEDF0;
-    color: #ACAEB0;
-    border-radius: 1em;
-    display: inline-block;
-    width: 1.6em;
-    height: 1.6em;
-    line-height: 1.6em;
-    text-align: center;
-    margin-right: 0.5em;
-}
-
-@media (max-width: 767px) {
-    #status li span {
-        margin: 0 auto;
-        display: block;
-    }
-}
-
-#status li.active span {
-    background: #0078C1;
-    color: #fff;
-    font-weight: bold;
-}
-
-#status li.active {
-    text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8);
-    color: #0078C1;
-}
-
-#status li.completed {
-    text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8);
-    color: #666666; /* #4cae4c; */
-}
-
-#status li.completed span {
-    background: #666666; /* #4cae4c; */
-    color: #fff;
-    font-weight: bold;
 }
 
 ul#amounts li {
@@ -162,10 +164,6 @@ ul#amounts li {
 
 ul#amounts input {
     display: none;
-}
-
-input[type=checkbox] {
-    width: auto;
 }
 
 ul#amounts input[type=text] {
@@ -242,50 +240,40 @@ ul#amounts label.active {
     border: 1px solid #4cae4c;
 }
 
-button.confirm {
+#wizard button.confirm {
     width: 100% !important;
     text-transform: none;
     letter-spacing: 1px;
 }
 
-button.unconfirm {
+#wizard button.unconfirm {
     text-transform: none;
     padding: 12px 0;
 }
 
-div.buttons {
+#wizard div.buttons {
     padding-top: 1em;
 }
 
-div.no-padding-left {
+#wizard div.no-padding-left {
     padding-left: 0;
 }
 
-div#payment-method-item input[type=radio] {
-    /* margin-top: 0.3em; */
-    width: auto;
+div#payment-method-providers label {
+    margin-left: 0;
+    margin-right: 10px;
+    margin-bottom: 5px;
 }
 
-div#payment-method-item div#directdebit-details {
-    display: none;
-    margin: 10px 0 0 22px;
-    padding: 18px 20px 15px 20px;
-    font-size: 12px;
-    background-color: lightgray;
-    border-radius: 6px;
-    -moz-border-radius: 6px;
-    -webkit-border-radius: 6px;
-}
-
-div#payment-method-item div.radio div label {
-    padding-left: 0;
+div#payment-method-providers label:last-child {
+    margin-right: 0px;
 }
 
 div#amount-item span.form-control-feedback {
     line-height: 46px;
 }
 
-div.required label {
+#wizard div.required label {
     color: black;
 }
 
@@ -293,7 +281,7 @@ div.required label {
     content: ' *';
 }*/
 
-span.glyphicon-overlay {
+#wizard span.glyphicon-overlay {
     font-size: 6px;
     color: white;
     position: relative;
@@ -302,16 +290,16 @@ span.glyphicon-overlay {
     margin-right: -6px;
 }
 
-div.tax-confirmation {
+#wizard div.tax-confirmation {
     font-size: 12px;
     padding-bottom: 25px;
 }
 
-div.float-left {
+#wizard div.float-left {
     float: left;
 }
 
-.glyphicon-refresh-animate {
+#wizard .glyphicon-refresh-animate {
     -animation: spin .7s infinite linear;
     -webkit-animation: spin2 .7s infinite linear;
 }
@@ -329,11 +317,16 @@ div.float-left {
 #wizard .dropdown-menu {
     position: absolute;
     left: auto;
+    margin: 2px 0 0;
 }
 
-#wizard div.donor-extra-info .dropdown-menu {
-    max-height: 150px;
+#wizard div#donor-extra-info .dropdown-menu {
+    max-height: 120px;
     overflow-y: auto;
+}
+
+input#donor-country-auto {
+    width: 100%;
 }
 
 #wizard .dropdown-menu>li {
@@ -371,15 +364,15 @@ div.float-left {
     background-color: #f5f5f5;
 }
 
-div.payment-info {
+#wizard div.payment-info {
     padding: 8px 0 10px 33px;
 }
 
-div.payment-info img {
+#wizard div.payment-info img {
     margin-top: -2px;
 }
 
-div.donor-info {
+#wizard div.donor-info {
     padding-left: 15px;
     padding-right: 15px;
 }
@@ -388,41 +381,16 @@ div#donation-confirmation div.response-icon {
     width: 25px;
 }
 
-div#donation-confirmation div.response-text {
-    padding-left: 10px;
-}
-
-div#payment-method-item input[type=radio] {
-    margin-top: 2px;
-}
-
 div#payment-method-item span.form-control-feedback {
     margin-right: 15px;
 }
 
-div#payment-method-item .radio {
-    min-height: 15px;
-}
-
-div#payment-method-item .radio label {
-    margin-right: 10px;
-    margin-bottom: 5px;
-}
-
-div#payment-method-item .radio label:last-child {
-    margin-right: 0px;
-}
-
-.hidden {
+#wizard .hidden {
     display: none
 }
 
-div.flexible {
+#wizard div.flexible {
     display: flex;
-}
-
-div.noflex {
-    flex: none;
 }
 
 div#donor-extra-info {
@@ -444,14 +412,14 @@ div#secure-transaction p {
     }
 }
 
-div.combobox-container input {
+#wizard div.combobox-container input {
     margin-bottom: 0 !important;
     border-radius: 0;
     border-top-left-radius: 4px !important;
     border-bottom-left-radius: 4px !important;
 }
 
-.dropdown-menu>li>a, .dropdown-menu>li>a:hover{
+#wizard .dropdown-menu>li>a, #wizard .dropdown-menu>li>a:hover{
     text-decoration: none !important;
 } 
 
@@ -519,12 +487,19 @@ ul#frequency label.active {
     border-bottom: 2px solid #1297c9;
 }
 
-a.button-link {
-    text-decoration: none !important;
-}
-
-.scrollable-menu {
-    height: auto;
-    max-height: 200px;
-    overflow-x: hidden;
+/* validation error message bar */
+#drawer {
+    color: #a94442;
+    background-color: #fff;
+    overflow:visible;
+    position:fixed;
+    left:0;
+    top:0;
+    text-align:center;
+    padding:15px;
+    font-size:18px;
+    border-bottom:2px solid #a94442;
+    width:100%;
+    display:none;
+    z-index:1031;
 }

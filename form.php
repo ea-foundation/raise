@@ -91,8 +91,8 @@ function donationForm($atts, $content = null)
 
 <!-- Scrollable root element -->
 <div id="wizard">
-    <!-- Status bar -->
-    <div id="status" class="row">
+    <!-- Progress bar -->
+    <div id="progress" class="row">
         <ol>
             <li class="col-xs-4<?php echo $checkoutCssClass ?>"><span>1</span> <?php _e('Amount', 'eas-donation-processor') ?></li>
             <li class="col-xs-4"><span>2</span> <?php _e('Payment', 'eas-donation-processor') ?></li>
@@ -212,11 +212,11 @@ function donationForm($atts, $content = null)
                     <h3><?php _e('Choose a payment method', 'eas-donation-processor') ?></h3>
                 </div>
                 <div class="form-group payment-info" id="payment-method-providers">
-                    <div class="radio">
+                    <!-- <div class="col-sm-12"> -->
                         <?php $checked = ' checked'; ?>
                         <?php if (!empty($easSettings["payment.provider.stripe.$mode.public_key"])): ?>
-                            <label for="payment-creditcard">
-                                <input type="radio" class="radio" name="payment" value="Stripe" tabindex="18" id="payment-creditcard"<?php echo $checked ?: ''; $checked = false; ?>>
+                            <label for="payment-creditcard" class="radio-inline">
+                                <input type="radio" name="payment" value="Stripe" tabindex="18" id="payment-creditcard"<?php echo $checked ?: ''; $checked = false; ?>>
                                 <img src="<?php echo plugins_url('images/visa.png', __FILE__) ?>" alt="Visa" width="38" height="23">
                                 <img src="<?php echo plugins_url('images/mastercard.png', __FILE__) ?>" alt="Mastercard" width="38" height="23">
                                 <img src="<?php echo plugins_url('images/americanexpress.png', __FILE__) ?>" alt="American Express" width="38" height="23">
@@ -224,8 +224,8 @@ function donationForm($atts, $content = null)
                         <?php endif; ?>
 
                         <?php if (!empty($easSettings["payment.provider.paypal.$mode.email_id"])): ?>
-                            <label for="payment-paypal">
-                                <input type="radio" class="radio" name="payment" value="PayPal" tabindex="19" id="payment-paypal"<?php echo $checked ?: ''; $checked = false; ?>>
+                            <label for="payment-paypal" class="radio-inline">
+                                <input type="radio" name="payment" value="PayPal" tabindex="19" id="payment-paypal"<?php echo $checked ?: ''; $checked = false; ?>>
                                 <img src="<?php echo plugins_url('images/paypal.png', __FILE__) ?>" alt="Paypal" width="38" height="23">
                             </label>
                         <?php endif; ?>
@@ -235,11 +235,11 @@ function donationForm($atts, $content = null)
                             <img src="<?php echo plugins_url('images/skrill.png', __FILE__) ?>" alt="Skrill" width="38" height="23">
                         </label> -->
 
-                        <label for="payment-banktransfer">
-                            <input type="radio" class="radio" name="payment" value="Banktransfer" tabindex="20" id="payment-banktransfer"<?php echo $checked ?: ''; $checked = false; ?>>
+                        <label for="payment-banktransfer" class="radio-inline">
+                            <input type="radio" name="payment" value="Banktransfer" tabindex="20" id="payment-banktransfer"<?php echo $checked ?: ''; $checked = false; ?>>
                             <?php _e('Bank transfer', 'eas-donation-processor') ?>
                         </label>
-                    </div>
+                    <!-- </div> -->
                 </div>
 
                 <!-- Name -->
@@ -286,9 +286,9 @@ function donationForm($atts, $content = null)
                         else:
                 ?>
                     <div class="form-group donor-info" id="donation-purpose">
-                        <label for="donor-email" class="col-sm-3 control-label"><?php _e('Purpose', 'eas-donation-processor') ?></label>
+                        <label for="donor-purpose" class="col-sm-3 control-label"><?php _e('Purpose', 'eas-donation-processor') ?></label>
                         <div class="col-sm-9">
-                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button type="button" id="donor-purpose" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span id="selected-purpose"><?php echo $firstItem ?></span>
                                 <span class="caret"></span>
                             </button>

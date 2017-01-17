@@ -143,8 +143,8 @@
                 }
             },
             "web_hook" : {
-                "logging": ["default"],
-                "mailing_list": ["mailchimp"]
+                "logging": [],
+                "mailing_list": []
             }
         },
         "my_special_form": {
