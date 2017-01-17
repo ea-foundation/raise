@@ -42,6 +42,9 @@ function loadSettings()
 function processDonation()
 {
     try {
+        // Load settings
+        loadSettings();
+
         // Replace amount-other
         if (!empty($_POST['amount_other'])) {
             $_POST['amount'] = $_POST['amount_other'];
@@ -390,6 +393,9 @@ function sendWebHook($url, array $params)
 function getPaypalPayKey($post)
 {
     try {
+        // Load settings
+        loadSettings();
+
         // Trim the data
         $post = array_map('trim', $post);
 
@@ -612,6 +618,9 @@ function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $count
  */
 function processPaypalLog()
 {
+    // Load settings
+    loadSettings();
+
     if (isset($_GET['req']) && $_GET['req'] == $_SESSION['eas-req-id']) {
         $amount = money_format('%i', $_SESSION['eas-amount']);
         $email  = $_SESSION['eas-email'];
