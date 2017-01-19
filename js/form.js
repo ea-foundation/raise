@@ -54,8 +54,6 @@ jQuery(document).ready(function($) {
         appendId: '-auto'
     });
 
-
-
     totalItems = $('#wizard .item').length;
    
     // Some variables that we need
@@ -157,7 +155,7 @@ jQuery(document).ready(function($) {
             }
         }
 
-        // post data and quit on last page
+        // Post data and quit on last page
         if (currentItem >= (totalItems - 1)) {
             switch ($('input[name=payment]:checked', '#wizard').attr('id')) {
                 case 'payment-creditcard':
@@ -178,7 +176,7 @@ jQuery(document).ready(function($) {
         }
 
         if (currentItem == (totalItems - 2)) {
-            // on penultimate page replace "confirm" with "donate X CHF"
+            // On penultimate page replace "confirm" with "donate X CHF"
             var foo = setTimeout(function() { showLastItem(currentItem) }, 200);
         } else {
             // Go to next slide
@@ -701,9 +699,9 @@ function loadStripeHandler()
 
 function carouselNext()
 {
-    var currentItem = jQuery('#wizard div.active').index() + 1;
+    var nextItem = jQuery('#wizard div.active').index() + 1;
 
-    if (currentItem  > totalItems) {
+    if (nextItem  > totalItems) {
         return false;
     }
 
@@ -711,18 +709,15 @@ function carouselNext()
     jQuery('#donation-carousel').carousel('next');
     
     // Update progress bar
-    var listItems = jQuery("#progress li");
-    listItems.removeClass("active completed");
-    listItems.filter(function(index) { return index < currentItem }).addClass("completed");
-    listItems.eq(currentItem).addClass("active");
+    updateProgressBar(nextItem);
 }
 
 
 function carouselPrev()
 {
-    var currentItem = jQuery('#wizard div.active').index() - 1;
+    var prevItem = jQuery('#wizard div.active').index() - 1;
 
-    if (currentItem  < 0) {
+    if (prevItem  < 0) {
         return false;
     }
 
@@ -730,10 +725,31 @@ function carouselPrev()
     jQuery('#donation-carousel').carousel('prev');
     
     // Update progress bar
+    updateProgressBar(prevItem);
+}
+
+function updateProgressBar(currentItem)
+{
     var listItems = jQuery("#progress li");
     listItems.removeClass("active completed");
     listItems.filter(function(index) { return index < currentItem }).addClass("completed");
     listItems.eq(currentItem).addClass("active");
+
+    // Make previous steps clickable, unless we're done
+    listItems.unbind('click').removeClass('clickable');
+    if (currentItem < totalItems - 1) {
+        listItems.slice(0, currentItem).each(function(index) {
+            jQuery(this)
+                .addClass('clickable')
+                .click(function() {
+                    // Move carousel
+                    jQuery('#donation-carousel').carousel(index);
+
+                    // Update progress bar
+                    updateProgressBar(index);
+                });
+        });
+    }
 }
 
 function getDonorInfo(name)

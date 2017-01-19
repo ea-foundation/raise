@@ -197,7 +197,7 @@ function handleStripePayment($post)
         sendNotificationEmail($donation, $form);
     } catch(\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
-        throw new Exception($e->getMessage() . ' ' . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency : $token");
+        throw new Exception($e->getMessage() . ' ' . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency");
     }
 }
 
@@ -209,6 +209,11 @@ function handleStripePayment($post)
  */
 function getStripeCustomerSettings($post)
 {
+    // Make sure we have the Stripe token
+    if (empty($post['stripeToken'])) {
+        throw new \Exception("No token sent ($form : $mode)");
+    }
+
     $token     = $post['stripeToken'];
     $email     = $post['email'];
     $amount    = $post['amount'];

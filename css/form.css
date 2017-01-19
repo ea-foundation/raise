@@ -266,7 +266,11 @@ div#payment-method-providers label {
 }
 
 div#payment-method-providers label:last-child {
-    margin-right: 0px;
+    margin-right: 0;
+}
+
+div#payment-method-providers input[type=radio] {
+    margin-bottom: 0;
 }
 
 div#amount-item span.form-control-feedback {
@@ -347,6 +351,10 @@ input#donor-country-auto {
 
 #wizard .dropdown-menu>li>label img {
     margin-right: 5px;
+}
+
+#wizard .clickable {
+    cursor: pointer;
 }
 
 #donation-currency div {

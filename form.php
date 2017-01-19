@@ -38,10 +38,6 @@ function donationForm($atts, $content = null)
     $segments = explode('_', get_locale(), 2);
     $language = reset($segments);
 
-    /*echo '<pre>';
-    var_dump($easSettings);
-    echo '</pre>';*/
-
     // Get user country using freegeoip.net
     if (isset($easSettings["amount.currency"])) {
         $supportedCurrencies = array();
@@ -78,10 +74,10 @@ function donationForm($atts, $content = null)
 
 <script>
     var easDonationConfig = {
-        formName:           "<?php echo $name ?>",
-        mode:               "<?php echo $mode ?>",
-        userCountry:        "<?php echo $userCountryCode ?>",
-        selectedCurrency:   "<?php echo $preselectedCurrency ?>"
+        formName:         "<?php echo $name ?>",
+        mode:             "<?php echo $mode ?>",
+        userCountry:      "<?php echo $userCountryCode ?>",
+        selectedCurrency: "<?php echo $preselectedCurrency ?>"
     }
 </script>
 <input type="hidden" name="action" value="donate"> <!-- ajax key -->

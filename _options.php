@@ -27,7 +27,7 @@ class EasDonationProcessorOptionsPage
             'Donation Plugin', 
             'manage_options', 
             'eas-donation-settings',
-            array( $this, 'create_admin_page' )
+            array($this, 'create_admin_page')
         );
     }
 
@@ -53,7 +53,7 @@ class EasDonationProcessorOptionsPage
         }
         ?>
         <div class="wrap">
-            <h1>Donation Plugin Settings</h1>
+            <h1>Donation Plugin</h1>
             <p>Version: <?php echo esc_html($version) ?></p>
             <?php echo $unsavedSettingsMessage ?>
             <div id="jsoneditor" style="width: 100%; height: 400px;"></div>
@@ -63,11 +63,7 @@ class EasDonationProcessorOptionsPage
                     do_settings_sections('eas-donation-settings-group');
                 ?>
                 <input type="hidden" name="settings" value="">
-                <p class="submit">
-                    <input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes" />
-                    <input type="reset" class="button" value="Reset" />
-                </p>
-                <!-- <?php submit_button(); ?> -->
+                <?php submit_button() ?>
             </form>
             <script>
                 // Create the editor
@@ -81,11 +77,6 @@ class EasDonationProcessorOptionsPage
                     // Sringify JSON and save it
                     var json = JSON.stringify(editor.get());
                     jQuery("input[name=settings]").val(json);
-                });
-
-                // Show default settings on reset
-                jQuery("input[type=reset]").click(function() {
-                    editor.set(<?php echo json_encode($templateSettings) ?>);
                 });
             </script>
         </div>
@@ -101,5 +92,6 @@ class EasDonationProcessorOptionsPage
     }
 }
 
-if( is_admin() )
+if (is_admin()) {
     $my_settings_page = new EasDonationProcessorOptionsPage();
+}
