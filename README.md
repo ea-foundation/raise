@@ -4,6 +4,7 @@ Donation-Plugin for WordPress, inspired by the donation widget on Barack Obama's
 Main featuers:
 *   Handle Stripe, PayPal, GoCardless (direct debit), and bank transactions
 *   Configure several form instances (property inheritance support)
+*   Assign donations to different accounts depending on currency or donor country
 *   Sandbox API support for Stripe, PayPal, and GoCardless
 *   Send confirmation emails and notification emails
 *   Send webhooks using HookPress, e.g. for mailing list signup or logging
