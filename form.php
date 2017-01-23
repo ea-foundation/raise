@@ -184,12 +184,6 @@ function donationForm($atts, $content = null)
                     <div class="col-sm-4 col-sm-offset-4">
                         <button type="button" class="btn btn-success btn-lg confirm" disabled="disabled"><?php _e('Next', 'eas-donation-processor') ?> »</button>
                     </div>
-                    <!-- <div class="col-sm-4" id="secure-transaction">
-                      <p>
-                          <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
-                          <?php _e('Secure', 'eas-donation-processor') ?>
-                      </p>
-                    </div> -->
                 </div>
             </div>
 
@@ -455,7 +449,7 @@ function donationForm($atts, $content = null)
                     <button class="btn btn-primary" onclick="gcPopup.focus()">OK</button>
                 </div>
                 <div class="gc_popup_closed">
-                    <button id="goCardlessPopupButton" class="btn btn-primary disabled"><span class="glyphicon glyphicon-lock" style="margin-right: 5px"></span><?php _e("Set up Direct Debit", "eas-donation-processor") ?></button>
+                    <button id="goCardlessPopupButton" class="btn btn-primary disabled"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Set up Direct Debit", "eas-donation-processor") ?></button>
                 </div>
             </div>
             <!-- <div class="modal-footer">
