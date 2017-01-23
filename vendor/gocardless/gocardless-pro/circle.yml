@@ -1,0 +1,6 @@
+machine:
+  php:
+    version: 5.5.0
+dependencies:
+  override:
+    - composer install --prefer-source --no-interaction

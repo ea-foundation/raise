@@ -13,9 +13,9 @@ var slideTransitionInAction = false;
 var otherAmountPlaceholder  = null;
 var currentStripeKey        = '';
 var frequency               = 'once';
-var monthlySupport          = ['payment-creditcard', 'payment-banktransfer'];
-
-
+var monthlySupport          = ['payment-creditcard', 'payment-banktransfer', 'payment-directdebit'];
+var gcPopup                 = null;
+var gcPollTimer             = null;
 
 
 // Preload Stripe image
@@ -45,6 +45,8 @@ jQuery(document).ready(function($) {
      */
     loadStripeHandler();
 
+    // Initialize tooltips
+    $('[data-toggle="tooltip"]').tooltip({ container: 'body' }); 
 
     // Country combobox setup
     $('.combobox', '#wizard').combobox({
@@ -88,6 +90,28 @@ jQuery(document).ready(function($) {
         event.preventDefault();
     });
 
+    // Unlock form when GoCardless modal is hidden
+    $("#goCardlessModal").on('hide.bs.modal', function () {
+        // No need to unlock form if donation complete
+        if (jQuery('button.confirm:last span.glyphicon-ok', '#wizard').length == 0) {
+            lockLastStep(false);
+        }
+
+        // Close popup (if still open)
+        if (gcPopup && !gcPopup.closed) {
+            gcPopup.close();
+        }
+    });
+
+    // Lock form when GoCardless modal is shown and reset modal contents
+    $("#goCardlessModal").on('show.bs.modal', function () {
+        lockLastStep(true);
+
+        // Reset modal
+        jQuery('#goCardlessModal .modal-body .gc_popup_closed').removeClass('hidden');
+        jQuery('#goCardlessModal .modal-body .gc_popup_open').addClass('hidden');
+    });
+
     // Validation logic is done inside the onBeforeSeek callback
     $('button.confirm').click(function(event) {
         event.preventDefault();
@@ -99,15 +123,15 @@ jQuery(document).ready(function($) {
 
         // Check contents
         if (currentItem <= totalItems) {
-            // Get all fields inside the page
-            var inputs = $('div.item.active :input', '#wizard');
+            // Get all fields inside the page, except honey pot (#donor-email-confirm)
+            var inputs = $('div.item.active :input', '#wizard').not('#donor-email-confirm');
 
             // Remove errors
             inputs.siblings('span.eas-error').remove();
             inputs.parent().parent().removeClass('has-error');
 
-            // Get all required fields inside the page
-            var reqInputs = $('div.item.active .required :input', '#wizard');
+            // Get all required fields inside the page, except honey pot (#donor-email-confirm)
+            var reqInputs = $('div.item.active .required :input', '#wizard').not('#donor-email-confirm');
             // ... which are empty or invalid
             var empty = reqInputs.filter(function() {
                 return $(this).val().replace(/\s*/g, '') == '';
@@ -157,6 +181,7 @@ jQuery(document).ready(function($) {
 
         // Post data and quit on last page
         if (currentItem >= (totalItems - 1)) {
+            // Process form
             switch ($('input[name=payment]:checked', '#wizard').attr('id')) {
                 case 'payment-creditcard':
                     handleStripeDonation();
@@ -164,11 +189,14 @@ jQuery(document).ready(function($) {
                 case 'payment-paypal':
                     handlePaypalDonation();
                     break;
+                case 'payment-directdebit':
+                    handleDirectDebitDonation();
+                    break;
                 case 'payment-banktransfer':
                     handleBankTransferDonation();
                     break;
                 default:
-                    //$('#donationForm').ajaxSubmit();
+                    // Exit
             }
 
             // Done, wait for callback functions
@@ -440,7 +468,6 @@ function getDonationAmount()
 
 function getDonationCurrencyIsoCode()
 {
-    //return jQuery('input[name=currency]:checked').val();
     return selectedCurrency;
 }
 
@@ -458,6 +485,106 @@ function handleStripeDonation()
     });
 }
 
+function handleDirectDebitDonation()
+{
+    // Show spinner right away
+    showSpinnerOnLastButton();
+
+    // Change form action (endpoint) and action input
+    jQuery('form#donationForm').attr('action', wordpress_vars.ajax_endpoint);
+    jQuery('form#donationForm input[name=action]').val('gocardless_url');
+
+    // Check if we have the signup URL already
+    if (jQuery('#goCardlessModal .modal-body .gc_popup_closed button.disabled').length > 0) {
+        // Get pay key
+        jQuery('form#donationForm').ajaxSubmit({
+            success: function(responseText, statusText, xhr, form) {
+                try {
+                    // Take the pay key and start the PayPal flow
+                    var response = JSON.parse(responseText);
+                    if (!('success' in response) || !response['success']) {
+                        var message = 'error' in response ? response['error'] : responseText;
+                        throw new Error(message);
+                    }
+
+                    // Open URL in modal
+                    jQuery('#goCardlessPopupButton')
+                        .removeClass('disabled')
+                        .click(function() {
+                            // Open popup
+                            openGoCardlessPopup(response['url']);
+
+                            // Show "continue donation in secure" message on modal
+                            jQuery('#goCardlessModal .modal-body .gc_popup_closed').addClass('hidden');
+                            jQuery('#goCardlessModal .modal-body .gc_popup_open').removeClass('hidden');
+
+                            // Disable button (in case donation fails, the process gets reinitiated)
+                            jQuery('#goCardlessModal .modal-body .gc_popup_closed button').addClass('disabled');
+
+                            // Start poll timer
+                            gcPollTimer = window.setInterval(function() {
+                                if (gcPopup.closed) {
+                                    window.clearInterval(gcPollTimer);
+                                    jQuery('#goCardlessModal').modal('hide');
+                                }
+                            }, 200);
+                        });
+
+                    // Show modal
+                    jQuery('#goCardlessModal').modal('show');
+                } catch (err) {
+                    // Something went wrong, show on confirmation page
+                    alert(err.message);
+
+                    // Enable buttons
+                    lockLastStep(false);
+                }
+            },
+            error: function(responseText) {
+                // Should only happen on internal server error
+                var message = 'error' in response ? response['error'] : responseText;
+                alert(message);
+            }
+        });
+    } else {
+        // Open modal again
+        jQuery('#goCardlessModal').modal('show');
+    }
+
+    lockLastStep(true);
+}
+
+function hideGoCardlessModal()
+{
+    jQuery('#goCardlessModal').modal('hide');
+}
+
+function openGoCardlessPopup(url)
+{
+    gcPopup = popupCenter(url, 'GoCardless', 420, 560);
+    return false;
+}
+
+function popupCenter(url, title, w, h) {
+    // Fixes dual-screen position                         Most browsers      Firefox
+    var dualScreenLeft = window.screenLeft != undefined ? window.screenLeft : screen.left;
+    var dualScreenTop  = window.screenTop  != undefined ? window.screenTop  : screen.top;
+
+    var width  = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+    var height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+
+    var left      = ((width / 2) - (w / 2)) + dualScreenLeft;
+    var top       = ((height / 2) - (h / 2)) + dualScreenTop;
+    var newWindow = window.open(url, title, 'scrollbars=yes, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
+
+    // Puts focus on the newWindow
+    if (window.focus) {
+        newWindow.focus();
+    }
+
+    return newWindow;
+}
+
 /**
  * Handle Paypal donation
  */
@@ -466,14 +593,14 @@ function handlePaypalDonation()
     // Show spinner right away
     showSpinnerOnLastButton();
 
-    try {
-        // Change form action (endpoint) and action input
-        jQuery('form#donationForm').attr('action', wordpress_vars.ajax_endpoint);
-        jQuery('form#donationForm input[name=action]').val('paypal_paykey');
+    // Change form action (endpoint) and action input
+    jQuery('form#donationForm').attr('action', wordpress_vars.ajax_endpoint);
+    jQuery('form#donationForm input[name=action]').val('paypal_paykey');
 
-        // Get pay key
-        jQuery('form#donationForm').ajaxSubmit({
-            success: function(responseText, statusText, xhr, form) {
+    // Get pay key
+    jQuery('form#donationForm').ajaxSubmit({
+        success: function(responseText, statusText, xhr, form) {
+            try {
                 // Take the pay key and start the PayPal flow
                 var response = JSON.parse(responseText);
                 if (!('success' in response) || !response['success']) {
@@ -486,24 +613,32 @@ function handlePaypalDonation()
                 
                 // Open PayPal lightbox
                 jQuery('input[id=submitBtn]').click();
-            },
-            error: function(responseText) {
-                // Should only happen on internal server error
-                throw new Error(responseText);
-            }
-        });
+            } catch (err) {
+                // Something went wrong, show on confirmation page
+                alert(err.message);
 
-        // Disable confirm button, email and checkboxes
-        lockLastStep(true);
-    } catch (ex) {
-        alert(ex.message);
-    }
+                // Enable buttons
+                lockLastStep(false);
+            }
+        },
+        error: function(responseText) {
+            // Should only happen on internal server error
+            var message = 'error' in response ? response['error'] : responseText;
+            alert(message);
+        }
+    });
+
+    // Disable confirm button, email and checkboxes
+    lockLastStep(true);
 }
 
 function handleBankTransferDonation()
 {
     // Show spinner
     showSpinnerOnLastButton();
+
+    // Clear confirmation email (honey pot)
+    jQuery('#donor-email-confirm').val('');
 
     // Send form
     jQuery('form#donationForm').ajaxSubmit({
@@ -544,7 +679,7 @@ function lockLastStep(locked)
     jQuery('div.donor-info input', '#payment-method-item').prop('disabled', locked);
     jQuery('div.donor-info textarea', '#payment-method-item').prop('disabled', locked);
     jQuery('div.donor-info button', '#payment-method-item').prop('disabled', locked);
-    jQuery('div.radio input', '#payment-method-item').prop('disabled', locked);
+    jQuery('input', '#payment-method-providers').prop('disabled', locked);
     jQuery('div.checkbox input', '#payment-method-item').prop('disabled', locked);
 
     if (!locked) {
@@ -564,16 +699,19 @@ function showConfirmation(paymentProvider)
     });
 
     // Hide all irrelevant country-specific info
+    var countryDivs = jQuery('#shortcode-content .eas-country');
     if (userCountry != '') {
         // Hide other countries
         var userCountryCss = '.eas-country-' + userCountry.toLowerCase();
-        var countryDivs    = jQuery('#shortcode-content .eas-country');
         countryDivs.not(userCountryCss).hide();
 
         // Show eas-country-other if no divs specific for user country were found
         if (countryDivs.filter(userCountryCss).length == 0) {
             countryDivs.filter('.eas-country-other').show();
         }
+    } else {
+        // Show eas-country-other
+        countryDivs.not('.eas-country-other').hide();
     }
 
     // Hide spinner
@@ -639,7 +777,6 @@ function loadStripeHandler()
 
     // Check if the key changed
     if (currentStripeKey == newStripeKey) {
-        //console.log('Same key. Done.');
         // Unlock form
         lockLastStep(false);
         return;
@@ -671,9 +808,9 @@ function loadStripeHandler()
 
                         // Everything worked! Change glyphicon from "spinner" to "OK" and go to confirmation page
                         showConfirmation('stripe');
-                    } catch (ex) {
+                    } catch (err) {
                         // Something went wrong, show on confirmation page
-                        alert(ex.message);
+                        alert(err.message);
 
                         // Enable buttons
                         lockLastStep(false);
@@ -693,8 +830,6 @@ function loadStripeHandler()
 
     // Unlock last step
     lockLastStep(false);
-
-    //console.log('Done');
 }
 
 function carouselNext()
@@ -788,8 +923,6 @@ function getCountriesByCurrency(currency)
         return [];
     }
 }
-
-
 
 
 

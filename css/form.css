@@ -357,6 +357,10 @@ input#donor-country-auto {
     cursor: pointer;
 }
 
+#email-confirm-group {
+    display: none;
+}
+
 #donation-currency div {
     margin: 5px 0 10px 0;
 }
@@ -493,6 +497,17 @@ ul#frequency li:not(:last-child) {
 ul#frequency label.active {
     color: #1297c9;
     border-bottom: 2px solid #1297c9;
+}
+
+div#goCardlessModal .modal-body {
+    /*background: url(../images/loader.gif) center center no-repeat;*/
+    text-align: center;
+    padding: 40px 20px;
+}
+
+div#goCardlessModal .modal-body p {
+    text-align: left;
+    font-size: initial;
 }
 
 /* validation error message bar */

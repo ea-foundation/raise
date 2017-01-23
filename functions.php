@@ -35,7 +35,7 @@ function loadSettings()
 }
 
 /**
- * AJAX endpoint that deals with submitted donation data
+ * AJAX endpoint that deals with submitted donation data (Bank Tarnsfer and Stripe)
  *
  * @return string JSON response
  */
@@ -63,8 +63,7 @@ function processDonation()
             handleStripePayment($_POST);
         } else if ($_POST['payment'] == "Banktransfer") {
             handleBankTransferPayment($_POST);
-        } else if ($_POST['payment'] == "Skrill") {
-            //FIXME
+        //} else if ($_POST['payment'] == "Skrill") {
             //echo gbs_skrillRedirect($_POST);
         } else {
             throw new Exception('Payment method is invalid.');
@@ -269,6 +268,9 @@ function handleBankTransferPayment($post)
     // Trim the data
     $post = array_map('trim', $post);
 
+    // Check honey pot (confirm email)
+    checkHoneyPot($_POST);
+
     $amount    = money_format('%i', $post['amount'] / 100);
     $comment   = get($post['comment'], '');
     $anonymous = get($post['anonymous'], false);
@@ -388,21 +390,319 @@ function sendWebHook($url, array $params)
     wp_remote_post($url, $args);
 }
 
+/**
+ * Get GoCardless client
+ *
+ * @param string $form Form name
+ * @param string $mode Form mode (live/sandbox)
+ * @param bool   $taxReceiptNeeded
+ * @param string $currency
+ * @param string $country
+ * @return \GoCardlessPro\Client
+ */
+function getGoCardlessClient($form, $mode, $taxReceiptNeeded, $currency, $country)
+{
+    // Get access token
+    if (empty($GLOBALS['easForms'][$form]["payment.provider.gocardless.$mode.access_token"])) {
+        die("Error: No access token defined for $form (payment.provider.gocardless.$mode.access_token)");
+    }
+    $accessToken = getBestGoCardlessAccessToken($form, $mode, $taxReceiptNeeded, $currency, $country);
+    
+    return new \GoCardlessPro\Client([
+        'access_token' => $accessToken,
+        'environment'  => $mode == 'live' ? \GoCardlessPro\Environment::LIVE : \GoCardlessPro\Environment::SANDBOX,
+    ]);
+}
+
+/**
+ * Get best GoCardless access token
+ *
+ * @param string $form
+ * @param string $mode
+ * @param bool   $taxReceiptNeeded
+ * @param string $currency
+ * @param string $country
+ * @return string GoCardless access token
+ */
+function getBestGoCardlessAccessToken($form, $mode, $taxReceiptNeeded, $currency, $country)
+{
+    // Make things lowercase
+    $currency = strtolower($currency);
+    $country  = strtolower($country);
+
+    // Extract settings of the form we're talking about
+    $formSettings = $GLOBALS['easForms'][$form];
+
+    // Check all possible settings
+    $hasCountrySetting  = isset($formSettings["payment.provider.gocardless_$country.$mode.access_token"]);
+    $hasCurrencySetting = isset($formSettings["payment.provider.gocardless_$currency.$mode.access_token"]);
+    $hasDefaultSetting  = isset($formSettings["payment.provider.gocardless.$mode.access_token"]);
+
+    // Check if there are settings for a country where the chosen currency is used.
+    // This is only relevant if the donor does not need a donation receipt (always related
+    // to specific country) and if there are no currency specific settings
+    $hasCountryOfCurrencySetting = false;
+    $countryOfCurrency           = '';
+    //throw new \Exception(($taxReceiptNeeded ? 'yes' : 'no') . ' ' . ($hasCurrencySetting ? 'yes' : 'no'));
+    if (!$taxReceiptNeeded && !$hasCurrencySetting) {
+        $countries = array_map('strtolower', getCountriesByCurrency($currency));
+        foreach ($countries as $country) {
+            if (isset($formSettings["payment.provider.gocardless_$country.$mode.access_token"])) {
+                $hasCountryOfCurrencySetting = true;
+                $countryOfCurrency = $country;
+                break;
+            }
+        }
+    }
+
+    if ($taxReceiptNeeded && $hasCountrySetting) {
+        // Use country specific key
+        return $formSettings["payment.provider.gocardless_$country.$mode.access_token"];
+    } else if ($hasCurrencySetting) {
+        // Use currency specific key
+        return $formSettings["payment.provider.gocardless_$currency.$mode.access_token"];
+    } else if ($hasCountryOfCurrencySetting) {
+        // Use key of a country where the chosen currency is used
+        return $formSettings["payment.provider.gocardless_$countryOfCurrency.$mode.access_token"];
+    } else if ($hasDefaultSetting) {
+        // Use default key
+        return $formSettings["payment.provider.gocardless.$mode.access_token"];
+    } else {
+        throw new \Exception('No GoCardless access token found');
+    }
+}
+
+/**
+ * AJAX endpoint that returns the GoCardless setup URL. It stores
+ * user input in session until user is forwarded back from GoCardless
+ */
+function prepareGoCardlessDonation()
+{
+    try {
+        // Check honey pot (email-confirm)
+        checkHoneyPot($_POST);
+
+        // Load settings
+        loadSettings();
+
+        // Trim the data
+        $post = array_map('trim', $_POST);
+
+        // Replace amount_other
+        if (!empty($post['amount_other'])) {
+            $post['amount'] = $post['amount_other'];
+        }
+        unset($post['amount_other']);
+
+        $form        = $post['form'];
+        $mode        = $post['mode'];
+        $language    = $post['language'];
+        $email       = $post['email'];
+        $name        = $post['name'];
+        $amount      = $post['amount'];
+        $currency    = $post['currency'];
+        $taxReceipt  = get($post['tax_receipt'], false);
+        $country     = $post['country'];
+        $frequency   = $post['frequency'];
+        $returnUrl   = getAjaxEndpoint() . '?action=gocardless_debit';
+        $reqId       = uniqid(); // Secret request ID. Needed to prevent replay attack
+
+        // Make GoCardless redirect flow
+        $client       = getGoCardlessClient($form, $mode, $taxReceipt, $currency, $country);
+        $redirectFlow = $client->redirectFlows()->create([
+            "params" => [
+                "description"          => __("Donation", "eas-donation-processor"),
+                "session_token"        => $reqId,
+                "success_redirect_url" => $returnUrl,
+            ]
+        ]);
+
+        // Save flow ID to session
+        $_SESSION['eas-gocardless-flow-id'] = $redirectFlow->id;
+        $_SESSION['eas-req-id']             = $reqId; // Session token
+
+        // Put user data in session. This way we can avoid other people using it to spam our logs
+        $_SESSION['eas-form']        = $form;
+        $_SESSION['eas-mode']        = $mode;
+        $_SESSION['eas-language']    = strtoupper($language);
+        $_SESSION['eas-url']         = $_SERVER['HTTP_REFERER'];
+        $_SESSION['eas-email']       = $email;
+        $_SESSION['eas-name']        = $name;
+        $_SESSION['eas-currency']    = $currency;
+        $_SESSION['eas-country']     = $country;
+        $_SESSION['eas-amount']      = money_format('%i', $amount);
+        $_SESSION['eas-tax-receipt'] = $taxReceipt;
+        $_SESSION['eas-frequency']   = $frequency;
+
+        // Optional fields
+        $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) ? $post['mailinglist'] == 1 : false;
+        $_SESSION['eas-purpose']     = get($post['purpose'], '');
+        $_SESSION['eas-address']     = get($post['address'], '');
+        $_SESSION['eas-zip']         = get($post['zip'], '');
+        $_SESSION['eas-city']        = get($post['city'], '');
+        $_SESSION['eas-comment']     = get($post['comment'], '');
+        $_SESSION['eas-anonymous']   = get($post['anonymous'], false);
+
+        // Return pay key
+        die(json_encode(array(
+            'success' => true,
+            'url'     => $redirectFlow->redirect_url,
+        )));
+    } catch (\Exception $e) {
+        die(json_encode(array(
+            'success' => false,
+            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
+        )));
+    }
+}
+
+/**
+ * AJAX endpoint that debits donor with GoCardless.
+ * The user is redirected here after successful signup.
+ */
+function processGoCardlessDonation()
+{
+    try {
+        // Load settings
+        loadSettings();
+
+        // Get client
+        $form       = $_SESSION['eas-form'];
+        $mode       = $_SESSION['eas-mode'];
+        $taxReceipt = $_SESSION['eas-tax-receipt'];
+        $currency   = $_SESSION['eas-currency'];
+        $country    = $_SESSION['eas-country'];
+        $client     = getGoCardlessClient($form, $mode, $taxReceipt, $currency, $country);
+
+        if (isset($_GET['redirect_flow_id']) && $_GET['redirect_flow_id'] == $_SESSION['eas-gocardless-flow-id']) {
+            $redirectFlow = $client->redirectFlows()->complete(
+                $_GET['redirect_flow_id'],
+                ["params" => ["session_token" => $_SESSION['eas-req-id']]]
+            );
+        } else {
+            throw new \Exception('Invalid flow ID');
+        }
+
+        // Get mandate ID
+        $mandateID = $redirectFlow->links->mandate;
+
+        // Get other parameters from session
+        $language  = $_SESSION['eas-language'];
+        $url       = $_SESSION['eas-url'];
+        $amount    = $_SESSION['eas-amount'];
+        $amountInt = floor($amount * 100);
+        $name      = $_SESSION['eas-name'];
+        $email     = $_SESSION['eas-email'];
+        $frequency = $_SESSION['eas-frequency'];
+        $purpose   = $_SESSION['eas-purpose'];
+
+        $payment = [
+            "params" => [
+                "amount" => $amountInt, // in cents!
+                "currency" => $currency,
+                "links" => [
+                  "mandate" => $mandateID,
+                ],
+                "metadata" => [
+                    "Form"     => $form,
+                    "URL"      => $url,
+                    "Purpose"  => $purpose,
+                ]
+            ],
+            "headers" => [
+                "Idempotency-Key" => $_SESSION['eas-req-id']
+            ],
+        ];
+
+        // Add subscription fields if necessary and execute payment
+        if ($frequency == 'monthly') {
+            // Start paying tomorrow, unless it's the 29th, 30th, or 31st day of the month.
+            // If that's the case, start on the first day of the following month.
+            $tomorrow                           = new \DateTime('+7 days');
+            $payment['params']['day_of_month']  = $tomorrow->format('d') <= 28 ? $tomorrow->format('d') : 1;
+            $payment['params']['interval_unit'] = 'monthly';
+
+            $client->subscriptions()->create($payment);
+        } else {
+            $client->payments()->create($payment);
+        }
+
+        // Prepare hook
+        $donation = array(
+            "form"      => $form,
+            "mode"      => $mode,
+            'url'       => $url,
+            "language"  => $language,
+            "time"      => date('r'),
+            "currency"  => $currency,
+            "amount"    => $amount,
+            "frequency" => $frequency,
+            "type"      => "GoCardless",
+            "purpose"   => $purpose,
+            "email"     => $email,
+            "name"      => $name,
+            "address"   => $_SESSION['eas-address'],
+            "zip"       => $_SESSION['eas-zip'],
+            "city"      => $_SESSION['eas-city'],
+            "country"   => getEnglishNameByCountryCode($country),
+            "comment"   => $_SESSION['eas-comment'],
+        );
+
+        // Reset request ID to prevent replay attacks
+        $_SESSION['eas-req-id'] = uniqid();
+
+        // Trigger logging web hook for Zapier
+        triggerLoggingWebHooks($form, $donation);
+
+        // Trigger mailing list web hook for Zapier
+        if ($_SESSION['eas-mailinglist']) {
+            $subscription = array(
+                'email' => $email,
+                'name'  => $name,
+            );
+
+            triggerMailingListWebHooks($form, $subscription);
+        }
+
+        // Save matching challenge donation post
+        saveMatchingChallengeDonationPost(
+            $form,
+            $_SESSION['eas-anonymous'] ? 'Anonymous' : $name,
+            $currency,
+            $amount,
+            $frequency,
+            $_SESSION['eas-comment']
+        );
+
+        // Send confirmation email
+        sendConfirmationEmail($email, $name, $form);
+
+        // Send notification email
+        sendNotificationEmail($donation, $form);
+
+        $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation('gocardless'); mainWindow.hideGoCardlessModal();";
+    } catch (\Exception $e) {
+        $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; alert('" . $e->getMessage() . "'); mainWindow.hideGoCardlessModal();";
+    }
+
+    // Die and send script to close flow
+    die('<!doctype html>
+         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <body><script>' . $script . '</script><body></html>');
+}
 
 /**
  * AJAX endpoint that returns Paypal pay key for donation. It stores
  * user input in session until user is forwarded back from Paypal
- *
- * @param array $post Donation form POST data
  */
-function getPaypalPayKey($post)
+function processPaypalDonation()
 {
     try {
         // Load settings
         loadSettings();
 
         // Trim the data
-        $post = array_map('trim', $post);
+        $post = array_map('trim', $_POST);
 
         // Replace amount_other
         if (!empty($post['amount_other'])) {
@@ -417,11 +717,11 @@ function getPaypalPayKey($post)
         $name       = $post['name'];
         $amount     = $post['amount'];
         $currency   = $post['currency'];
-        $taxReceipt = $post['tax_receipt'];
+        $taxReceipt = get($post['tax_receipt'], false);
         $country    = $post['country'];
         $frequency  = $post['frequency'];
         $returnUrl  = getAjaxEndpoint();
-        $reqId      = uniqid(); // Secret reference ID. Needed to prevent replay attack
+        $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
 
         // Get best Paypal account for donation
         $paypalAccount = getBestPaypalAccount($form, $mode, $taxReceipt, $currency, $country);
@@ -516,7 +816,7 @@ function getPaypalPayKey($post)
         $_SESSION['eas-zip']         = get($post['zip'], '');
         $_SESSION['eas-city']        = get($post['city'], '');
         $_SESSION['eas-comment']     = get($post['comment'], '');
-        $_SESSION['eas-anonymous']   = get($post['anonymous'], '');
+        $_SESSION['eas-anonymous']   = get($post['anonymous'], false);
 
         // Return pay key
         die(json_encode(array(
@@ -526,7 +826,7 @@ function getPaypalPayKey($post)
     } catch (\Exception $e) {
         die(json_encode(array(
             'success' => false,
-            'error'   => $e->getMessage(),
+            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
         )));
     }
 }
@@ -561,11 +861,11 @@ function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $count
     $hasCountryOfCurrencySetting = false;
     $countryOfCurrency           = '';
     if (!$taxReceiptNeeded && !$hasCurrencySetting) {
-        $countries = getCountriesByCurrency($currency);
+        $countries = array_map('strtolower', getCountriesByCurrency($currency));
         foreach ($countries as $country) {
             if (isset($formSettings["payment.provider.paypal_$country.$mode.email_id"])) {
                 $hasCountryOfCurrencySetting = true;
-                $countryOfCurrency = $country;
+                $countryOfCurrency           = $country;
                 break;
             }
         }
@@ -686,7 +986,6 @@ function processPaypalLog()
         sendNotificationEmail($donation, $form);
 
         // Add method for showing confirmation
-        $qsConnector = strpos('?', $_SERVER['eas-plugin-url']) ? '&' : '?';
         $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.showConfirmation('paypal'); close();";
     } else {
         // Add method for unlocking buttons for trying again
@@ -1309,7 +1608,7 @@ function getCountriesByCurrency($currency)
 {
     $mapping = $GLOBALS['currency2country'];
 
-    return get($mapping[$currency], array());
+    return get($mapping[strtoupper($currency)], array());
 }
 
 /**
@@ -1432,6 +1731,18 @@ function csvToArray($var)
     }
 
     return array_map('trim', explode(',', $var));
+}
+
+/**
+ * Check honey pot (email-confirm). This value must be empty.
+ *
+ * @param array $post
+ */
+function checkHoneyPot($post)
+{
+    if (!empty($post['email-confirm'])) {
+        throw new \Exception('bot');
+    }
 }
 
 /*

@@ -3,7 +3,7 @@
 .flag {
     width: 16px;
     height: 11px;
-    background:url(flags.png) no-repeat
+    background:url(../images/flags-some.png) no-repeat
 }
 
 .flag.flag-au {background-position: -16px 0}

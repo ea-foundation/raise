@@ -1,5 +1,6 @@
 {
     "require": {
-        "stripe/stripe-php": "~4.3"
+        "stripe/stripe-php": "~4.3",
+        "gocardless/gocardless-pro": "^0.9.4"
     }
 }

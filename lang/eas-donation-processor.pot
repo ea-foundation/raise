@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eas-donation-processor\n"
-"POT-Creation-Date: 2017-01-05 13:32+0100\n"
+"POT-Creation-Date: 2017-01-23 21:51+0100\n"
 "PO-Revision-Date: 2016-08-26 15:39+0200\n"
 "Last-Translator: \n"
 "Language-Team: EA Stiftung <info@ea-stiftung.org>\n"
@@ -17,1139 +17,1155 @@ msgstr ""
 "X-Poedit-KeywordsList: __;_e\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: eas-donation-processor.php:191
+#: eas-donation-processor.php:161
 msgid "Donate %currency-amount%"
 msgstr ""
 
-#: eas-donation-processor.php:192
+#: eas-donation-processor.php:162
 msgid "Donate %currency-amount% per month"
 msgstr ""
 
-#: eas-donation-processor.php:193
+#: eas-donation-processor.php:163 functions.php:514
 msgid "Donation"
 msgstr ""
 
-#: eas-donation-processor.php:208
+#: eas-donation-processor.php:174
 msgid "Fundraisers"
 msgstr ""
 
-#: eas-donation-processor.php:209
+#: eas-donation-processor.php:175
 msgid "Fundraiser"
 msgstr ""
 
-#: eas-donation-processor.php:210
+#: eas-donation-processor.php:176
 msgid "Add New Fundraiser"
 msgstr ""
 
-#: eas-donation-processor.php:211
+#: eas-donation-processor.php:177
 msgid "Edit Fundraiser"
 msgstr ""
 
-#: eas-donation-processor.php:212
+#: eas-donation-processor.php:178
 msgid "New Fundraiser"
 msgstr ""
 
-#: eas-donation-processor.php:229
+#: eas-donation-processor.php:195
 msgid "Fundraiser Donations"
 msgstr ""
 
-#: eas-donation-processor.php:230
+#: eas-donation-processor.php:196
 msgid "Fundraiser Donation"
 msgstr ""
 
-#: eas-donation-processor.php:231
+#: eas-donation-processor.php:197
 msgid "Add New Donation"
 msgstr ""
 
-#: eas-donation-processor.php:232
+#: eas-donation-processor.php:198
 msgid "Edit Donation"
 msgstr ""
 
-#: eas-donation-processor.php:233
+#: eas-donation-processor.php:199
 msgid "New Donation"
 msgstr ""
 
-#: form.php:96
+#: form.php:91
 msgid "Amount"
 msgstr ""
 
-#: form.php:97
+#: form.php:92
 msgid "Payment"
 msgstr ""
 
-#: form.php:98
+#: form.php:93
 msgid "Finish"
 msgstr ""
 
-#: form.php:111
+#: form.php:106
 msgid "My Donation"
 msgstr ""
 
-#: form.php:138 form.php:144
+#: form.php:134
 msgid "Give once"
 msgstr ""
 
-#: form.php:141 form.php:145
+#: form.php:137
 msgid "Give monthly"
 msgstr ""
 
-#: form.php:179 form.php:180
+#: form.php:175 form.php:176
 msgid "Other"
 msgstr ""
 
-#: form.php:189 form.php:396
+#: form.php:185 form.php:398
 msgid "Next"
 msgstr ""
 
-#: form.php:194 form.php:404
+#: form.php:190 form.php:405
 msgid "Secure"
 msgstr ""
 
-#: form.php:210
+#: form.php:206
 msgid "Choose a payment method"
 msgstr ""
 
-#: form.php:245
+#: form.php:234
+msgid "Available for Eurozone, UK, and Sweden"
+msgstr ""
+
+#: form.php:234
+msgid "Direct Debit"
+msgstr ""
+
+#: form.php:240
 msgid "Bank transfer"
 msgstr ""
 
-#: form.php:252
+#: form.php:246
 msgid "Name"
 msgstr ""
 
-#: form.php:264
+#: form.php:258
 msgid "Don't publish my name"
 msgstr ""
 
-#: form.php:273
+#: form.php:267 form.php:275
 msgid "Email"
 msgstr ""
 
-#: form.php:294
+#: form.php:296
 msgid "Purpose"
 msgstr ""
 
-#: form.php:322
+#: form.php:324
 msgid "Public comment"
 msgstr ""
 
-#: form.php:322
+#: form.php:324
 msgid "optional"
 msgstr ""
 
-#: form.php:335
+#: form.php:337
 msgid "Subscribe me to monthly EA updates"
 msgstr ""
 
-#: form.php:347
+#: form.php:349
 msgid "I need a tax receipt for Germany, Switzerland, the Netherlands, or the United States"
 msgstr ""
 
-#: form.php:356
+#: form.php:358
 msgid "Address"
 msgstr ""
 
-#: form.php:363
+#: form.php:365
 msgid "Zip code"
 msgstr ""
 
-#: form.php:370
+#: form.php:372
 msgid "City"
 msgstr ""
 
-#: form.php:377
+#: form.php:379
 msgid "Country"
 msgstr ""
 
-#: form.php:399
+#: form.php:401
 msgid "Back"
 msgstr ""
 
-#: form.php:443
+#: form.php:454
+msgid "Please continue the donation in the secure window that you've already opened."
+msgstr ""
+
+#: form.php:458
+msgid "Set up Direct Debit"
+msgstr ""
+
+#: form.php:468
 msgid "Please fill out all required fields correctly."
 msgstr ""
 
-#: functions.php:955
+#: functions.php:1319
 msgid "Afghanistan"
 msgstr ""
 
-#: functions.php:956
+#: functions.php:1320
 msgid "Åland Islands"
 msgstr ""
 
-#: functions.php:957
+#: functions.php:1321
 msgid "Albania"
 msgstr ""
 
-#: functions.php:958
+#: functions.php:1322
 msgid "Algeria"
 msgstr ""
 
-#: functions.php:959
+#: functions.php:1323
 msgid "American Samoa"
 msgstr ""
 
-#: functions.php:960
+#: functions.php:1324
 msgid "Andorra"
 msgstr ""
 
-#: functions.php:961
+#: functions.php:1325
 msgid "Angola"
 msgstr ""
 
-#: functions.php:962
+#: functions.php:1326
 msgid "Anguilla"
 msgstr ""
 
-#: functions.php:963
+#: functions.php:1327
 msgid "Antarctica"
 msgstr ""
 
-#: functions.php:964
+#: functions.php:1328
 msgid "Antigua and Barbuda"
 msgstr ""
 
-#: functions.php:965
+#: functions.php:1329
 msgid "Argentina"
 msgstr ""
 
-#: functions.php:966
+#: functions.php:1330
 msgid "Armenia"
 msgstr ""
 
-#: functions.php:967
+#: functions.php:1331
 msgid "Aruba"
 msgstr ""
 
-#: functions.php:968
+#: functions.php:1332
 msgid "Australia"
 msgstr ""
 
-#: functions.php:969
+#: functions.php:1333
 msgid "Austria"
 msgstr ""
 
-#: functions.php:970
+#: functions.php:1334
 msgid "Azerbaijan"
 msgstr ""
 
-#: functions.php:971
+#: functions.php:1335
 msgid "Bahamas"
 msgstr ""
 
-#: functions.php:972
+#: functions.php:1336
 msgid "Bahrain"
 msgstr ""
 
-#: functions.php:973
+#: functions.php:1337
 msgid "Bangladesh"
 msgstr ""
 
-#: functions.php:974
+#: functions.php:1338
 msgid "Barbados"
 msgstr ""
 
-#: functions.php:975
+#: functions.php:1339
 msgid "Belarus"
 msgstr ""
 
-#: functions.php:976
+#: functions.php:1340
 msgid "Belgium"
 msgstr ""
 
-#: functions.php:977
+#: functions.php:1341
 msgid "Belize"
 msgstr ""
 
-#: functions.php:978
+#: functions.php:1342
 msgid "Benin"
 msgstr ""
 
-#: functions.php:979
+#: functions.php:1343
 msgid "Bermuda"
 msgstr ""
 
-#: functions.php:980
+#: functions.php:1344
 msgid "Bhutan"
 msgstr ""
 
-#: functions.php:981
+#: functions.php:1345
 msgid "Bolivia, Plurinational State of"
 msgstr ""
 
-#: functions.php:982
+#: functions.php:1346
 msgid "Bonaire, Sint Eustatius and Saba"
 msgstr ""
 
-#: functions.php:983
+#: functions.php:1347
 msgid "Bosnia and Herzegovina"
 msgstr ""
 
-#: functions.php:984
+#: functions.php:1348
 msgid "Botswana"
 msgstr ""
 
-#: functions.php:985
+#: functions.php:1349
 msgid "Bouvet Island"
 msgstr ""
 
-#: functions.php:986
+#: functions.php:1350
 msgid "Brazil"
 msgstr ""
 
-#: functions.php:987
+#: functions.php:1351
 msgid "British Indian Ocean Territory"
 msgstr ""
 
-#: functions.php:988
+#: functions.php:1352
 msgid "Brunei Darussalam"
 msgstr ""
 
-#: functions.php:989
+#: functions.php:1353
 msgid "Bulgaria"
 msgstr ""
 
-#: functions.php:990
+#: functions.php:1354
 msgid "Burkina Faso"
 msgstr ""
 
-#: functions.php:991
+#: functions.php:1355
 msgid "Burundi"
 msgstr ""
 
-#: functions.php:992
+#: functions.php:1356
 msgid "Cambodia"
 msgstr ""
 
-#: functions.php:993
+#: functions.php:1357
 msgid "Cameroon"
 msgstr ""
 
-#: functions.php:994
+#: functions.php:1358
 msgid "Canada"
 msgstr ""
 
-#: functions.php:995
+#: functions.php:1359
 msgid "Cape Verde"
 msgstr ""
 
-#: functions.php:996
+#: functions.php:1360
 msgid "Cayman Islands"
 msgstr ""
 
-#: functions.php:997
+#: functions.php:1361
 msgid "Central African Republic"
 msgstr ""
 
-#: functions.php:998
+#: functions.php:1362
 msgid "Chad"
 msgstr ""
 
-#: functions.php:999
+#: functions.php:1363
 msgid "Chile"
 msgstr ""
 
-#: functions.php:1000
+#: functions.php:1364
 msgid "China"
 msgstr ""
 
-#: functions.php:1001
+#: functions.php:1365
 msgid "Christmas Island"
 msgstr ""
 
-#: functions.php:1002
+#: functions.php:1366
 msgid "Cocos (Keeling) Islands"
 msgstr ""
 
-#: functions.php:1003
+#: functions.php:1367
 msgid "Colombia"
 msgstr ""
 
-#: functions.php:1004
+#: functions.php:1368
 msgid "Comoros"
 msgstr ""
 
-#: functions.php:1005
+#: functions.php:1369
 msgid "Congo, Republic of"
 msgstr ""
 
-#: functions.php:1006
+#: functions.php:1370
 msgid "Congo, Democratic Republic of the"
 msgstr ""
 
-#: functions.php:1007
+#: functions.php:1371
 msgid "Cook Islands"
 msgstr ""
 
-#: functions.php:1008
+#: functions.php:1372
 msgid "Costa Rica"
 msgstr ""
 
-#: functions.php:1009
+#: functions.php:1373
 msgid "Côte d'Ivoire"
 msgstr ""
 
-#: functions.php:1010
+#: functions.php:1374
 msgid "Croatia"
 msgstr ""
 
-#: functions.php:1011
+#: functions.php:1375
 msgid "Cuba"
 msgstr ""
 
-#: functions.php:1012
+#: functions.php:1376
 msgid "Curaçao"
 msgstr ""
 
-#: functions.php:1013
+#: functions.php:1377
 msgid "Cyprus"
 msgstr ""
 
-#: functions.php:1014
+#: functions.php:1378
 msgid "Czech Republic"
 msgstr ""
 
-#: functions.php:1015
+#: functions.php:1379
 msgid "Denmark"
 msgstr ""
 
-#: functions.php:1016
+#: functions.php:1380
 msgid "Djibouti"
 msgstr ""
 
-#: functions.php:1017
+#: functions.php:1381
 msgid "Dominica"
 msgstr ""
 
-#: functions.php:1018
+#: functions.php:1382
 msgid "Dominican Republic"
 msgstr ""
 
-#: functions.php:1019
+#: functions.php:1383
 msgid "Ecuador"
 msgstr ""
 
-#: functions.php:1020
+#: functions.php:1384
 msgid "Egypt"
 msgstr ""
 
-#: functions.php:1021
+#: functions.php:1385
 msgid "El Salvador"
 msgstr ""
 
-#: functions.php:1022
+#: functions.php:1386
 msgid "Equatorial Guinea"
 msgstr ""
 
-#: functions.php:1023
+#: functions.php:1387
 msgid "Eritrea"
 msgstr ""
 
-#: functions.php:1024
+#: functions.php:1388
 msgid "Estonia"
 msgstr ""
 
-#: functions.php:1025
+#: functions.php:1389
 msgid "Ethiopia"
 msgstr ""
 
-#: functions.php:1026
+#: functions.php:1390
 msgid "Falkland Islands (Malvinas)"
 msgstr ""
 
-#: functions.php:1027
+#: functions.php:1391
 msgid "Faroe Islands"
 msgstr ""
 
-#: functions.php:1028
+#: functions.php:1392
 msgid "Fiji"
 msgstr ""
 
-#: functions.php:1029
+#: functions.php:1393
 msgid "Finland"
 msgstr ""
 
-#: functions.php:1030
+#: functions.php:1394
 msgid "France"
 msgstr ""
 
-#: functions.php:1031
+#: functions.php:1395
 msgid "French Guiana"
 msgstr ""
 
-#: functions.php:1032
+#: functions.php:1396
 msgid "French Polynesia"
 msgstr ""
 
-#: functions.php:1033
+#: functions.php:1397
 msgid "French Southern Territories"
 msgstr ""
 
-#: functions.php:1034
+#: functions.php:1398
 msgid "Gabon"
 msgstr ""
 
-#: functions.php:1035
+#: functions.php:1399
 msgid "Gambia"
 msgstr ""
 
-#: functions.php:1036
+#: functions.php:1400
 msgid "Georgia"
 msgstr ""
 
-#: functions.php:1037
+#: functions.php:1401
 msgid "Germany"
 msgstr ""
 
-#: functions.php:1038
+#: functions.php:1402
 msgid "Ghana"
 msgstr ""
 
-#: functions.php:1039
+#: functions.php:1403
 msgid "Gibraltar"
 msgstr ""
 
-#: functions.php:1040
+#: functions.php:1404
 msgid "Greece"
 msgstr ""
 
-#: functions.php:1041
+#: functions.php:1405
 msgid "Greenland"
 msgstr ""
 
-#: functions.php:1042
+#: functions.php:1406
 msgid "Grenada"
 msgstr ""
 
-#: functions.php:1043
+#: functions.php:1407
 msgid "Guadeloupe"
 msgstr ""
 
-#: functions.php:1044
+#: functions.php:1408
 msgid "Guam"
 msgstr ""
 
-#: functions.php:1045
+#: functions.php:1409
 msgid "Guatemala"
 msgstr ""
 
-#: functions.php:1046
+#: functions.php:1410
 msgid "Guernsey"
 msgstr ""
 
-#: functions.php:1047
+#: functions.php:1411
 msgid "Guinea"
 msgstr ""
 
-#: functions.php:1048
+#: functions.php:1412
 msgid "Guinea-Bissau"
 msgstr ""
 
-#: functions.php:1049
+#: functions.php:1413
 msgid "Guyana"
 msgstr ""
 
-#: functions.php:1050
+#: functions.php:1414
 msgid "Haiti"
 msgstr ""
 
-#: functions.php:1051
+#: functions.php:1415
 msgid "Heard Island and McDonald Islands"
 msgstr ""
 
-#: functions.php:1052
+#: functions.php:1416
 msgid "Holy See (Vatican City State)"
 msgstr ""
 
-#: functions.php:1053
+#: functions.php:1417
 msgid "Honduras"
 msgstr ""
 
-#: functions.php:1054
+#: functions.php:1418
 msgid "Hong Kong"
 msgstr ""
 
-#: functions.php:1055
+#: functions.php:1419
 msgid "Hungary"
 msgstr ""
 
-#: functions.php:1056
+#: functions.php:1420
 msgid "Iceland"
 msgstr ""
 
-#: functions.php:1057
+#: functions.php:1421
 msgid "India"
 msgstr ""
 
-#: functions.php:1058
+#: functions.php:1422
 msgid "Indonesia"
 msgstr ""
 
-#: functions.php:1059
+#: functions.php:1423
 msgid "Iran, Islamic Republic of"
 msgstr ""
 
-#: functions.php:1060
+#: functions.php:1424
 msgid "Iraq"
 msgstr ""
 
-#: functions.php:1061
+#: functions.php:1425
 msgid "Ireland"
 msgstr ""
 
-#: functions.php:1062
+#: functions.php:1426
 msgid "Isle of Man"
 msgstr ""
 
-#: functions.php:1063
+#: functions.php:1427
 msgid "Israel"
 msgstr ""
 
-#: functions.php:1064
+#: functions.php:1428
 msgid "Italy"
 msgstr ""
 
-#: functions.php:1065
+#: functions.php:1429
 msgid "Jamaica"
 msgstr ""
 
-#: functions.php:1066
+#: functions.php:1430
 msgid "Japan"
 msgstr ""
 
-#: functions.php:1067
+#: functions.php:1431
 msgid "Jersey"
 msgstr ""
 
-#: functions.php:1068
+#: functions.php:1432
 msgid "Jordan"
 msgstr ""
 
-#: functions.php:1069
+#: functions.php:1433
 msgid "Kazakhstan"
 msgstr ""
 
-#: functions.php:1070
+#: functions.php:1434
 msgid "Kenya"
 msgstr ""
 
-#: functions.php:1071
+#: functions.php:1435
 msgid "Kiribati"
 msgstr ""
 
-#: functions.php:1072
+#: functions.php:1436
 msgid "Korea, Democratic People's Republic of"
 msgstr ""
 
-#: functions.php:1073
+#: functions.php:1437
 msgid "Korea, Republic of"
 msgstr ""
 
-#: functions.php:1074
+#: functions.php:1438
 msgid "Kuwait"
 msgstr ""
 
-#: functions.php:1075
+#: functions.php:1439
 msgid "Kyrgyzstan"
 msgstr ""
 
-#: functions.php:1076
+#: functions.php:1440
 msgid "Lao People's Democratic Republic"
 msgstr ""
 
-#: functions.php:1077
+#: functions.php:1441
 msgid "Latvia"
 msgstr ""
 
-#: functions.php:1078
+#: functions.php:1442
 msgid "Lebanon"
 msgstr ""
 
-#: functions.php:1079
+#: functions.php:1443
 msgid "Lesotho"
 msgstr ""
 
-#: functions.php:1080
+#: functions.php:1444
 msgid "Liberia"
 msgstr ""
 
-#: functions.php:1081
+#: functions.php:1445
 msgid "Libya"
 msgstr ""
 
-#: functions.php:1082
+#: functions.php:1446
 msgid "Liechtenstein"
 msgstr ""
 
-#: functions.php:1083
+#: functions.php:1447
 msgid "Lithuania"
 msgstr ""
 
-#: functions.php:1084
+#: functions.php:1448
 msgid "Luxembourg"
 msgstr ""
 
-#: functions.php:1085
+#: functions.php:1449
 msgid "Macao"
 msgstr ""
 
-#: functions.php:1086
+#: functions.php:1450
 msgid "Macedonia, Former Yugoslav Republic of"
 msgstr ""
 
-#: functions.php:1087
+#: functions.php:1451
 msgid "Madagascar"
 msgstr ""
 
-#: functions.php:1088
+#: functions.php:1452
 msgid "Malawi"
 msgstr ""
 
-#: functions.php:1089
+#: functions.php:1453
 msgid "Malaysia"
 msgstr ""
 
-#: functions.php:1090
+#: functions.php:1454
 msgid "Maldives"
 msgstr ""
 
-#: functions.php:1091
+#: functions.php:1455
 msgid "Mali"
 msgstr ""
 
-#: functions.php:1092
+#: functions.php:1456
 msgid "Malta"
 msgstr ""
 
-#: functions.php:1093
+#: functions.php:1457
 msgid "Marshall Islands"
 msgstr ""
 
-#: functions.php:1094
+#: functions.php:1458
 msgid "Martinique"
 msgstr ""
 
-#: functions.php:1095
+#: functions.php:1459
 msgid "Mauritania"
 msgstr ""
 
-#: functions.php:1096
+#: functions.php:1460
 msgid "Mauritius"
 msgstr ""
 
-#: functions.php:1097
+#: functions.php:1461
 msgid "Mayotte"
 msgstr ""
 
-#: functions.php:1098
+#: functions.php:1462
 msgid "Mexico"
 msgstr ""
 
-#: functions.php:1099
+#: functions.php:1463
 msgid "Micronesia, Federated States of"
 msgstr ""
 
-#: functions.php:1100
+#: functions.php:1464
 msgid "Moldova, Republic of"
 msgstr ""
 
-#: functions.php:1101
+#: functions.php:1465
 msgid "Monaco"
 msgstr ""
 
-#: functions.php:1102
+#: functions.php:1466
 msgid "Mongolia"
 msgstr ""
 
-#: functions.php:1103
+#: functions.php:1467
 msgid "Montenegro"
 msgstr ""
 
-#: functions.php:1104
+#: functions.php:1468
 msgid "Montserrat"
 msgstr ""
 
-#: functions.php:1105
+#: functions.php:1469
 msgid "Morocco"
 msgstr ""
 
-#: functions.php:1106
+#: functions.php:1470
 msgid "Mozambique"
 msgstr ""
 
-#: functions.php:1107
+#: functions.php:1471
 msgid "Myanmar"
 msgstr ""
 
-#: functions.php:1108
+#: functions.php:1472
 msgid "Namibia"
 msgstr ""
 
-#: functions.php:1109
+#: functions.php:1473
 msgid "Nauru"
 msgstr ""
 
-#: functions.php:1110
+#: functions.php:1474
 msgid "Nepal"
 msgstr ""
 
-#: functions.php:1111
+#: functions.php:1475
 msgid "Netherlands"
 msgstr ""
 
-#: functions.php:1112
+#: functions.php:1476
 msgid "New Caledonia"
 msgstr ""
 
-#: functions.php:1113
+#: functions.php:1477
 msgid "New Zealand"
 msgstr ""
 
-#: functions.php:1114
+#: functions.php:1478
 msgid "Nicaragua"
 msgstr ""
 
-#: functions.php:1115
+#: functions.php:1479
 msgid "Niger"
 msgstr ""
 
-#: functions.php:1116
+#: functions.php:1480
 msgid "Nigeria"
 msgstr ""
 
-#: functions.php:1117
+#: functions.php:1481
 msgid "Niue"
 msgstr ""
 
-#: functions.php:1118
+#: functions.php:1482
 msgid "Norfolk Island"
 msgstr ""
 
-#: functions.php:1119
+#: functions.php:1483
 msgid "Northern Mariana Islands"
 msgstr ""
 
-#: functions.php:1120
+#: functions.php:1484
 msgid "Norway"
 msgstr ""
 
-#: functions.php:1121
+#: functions.php:1485
 msgid "Oman"
 msgstr ""
 
-#: functions.php:1122
+#: functions.php:1486
 msgid "Pakistan"
 msgstr ""
 
-#: functions.php:1123
+#: functions.php:1487
 msgid "Palau"
 msgstr ""
 
-#: functions.php:1124
+#: functions.php:1488
 msgid "Palestinian Territory, Occupied"
 msgstr ""
 
-#: functions.php:1125
+#: functions.php:1489
 msgid "Panama"
 msgstr ""
 
-#: functions.php:1126
+#: functions.php:1490
 msgid "Papua New Guinea"
 msgstr ""
 
-#: functions.php:1127
+#: functions.php:1491
 msgid "Paraguay"
 msgstr ""
 
-#: functions.php:1128
+#: functions.php:1492
 msgid "Peru"
 msgstr ""
 
-#: functions.php:1129
+#: functions.php:1493
 msgid "Philippines"
 msgstr ""
 
-#: functions.php:1130
+#: functions.php:1494
 msgid "Pitcairn"
 msgstr ""
 
-#: functions.php:1131
+#: functions.php:1495
 msgid "Poland"
 msgstr ""
 
-#: functions.php:1132
+#: functions.php:1496
 msgid "Portugal"
 msgstr ""
 
-#: functions.php:1133
+#: functions.php:1497
 msgid "Puerto Rico"
 msgstr ""
 
-#: functions.php:1134
+#: functions.php:1498
 msgid "Qatar"
 msgstr ""
 
-#: functions.php:1135
+#: functions.php:1499
 msgid "Réunion"
 msgstr ""
 
-#: functions.php:1136
+#: functions.php:1500
 msgid "Romania"
 msgstr ""
 
-#: functions.php:1137
+#: functions.php:1501
 msgid "Russian Federation"
 msgstr ""
 
-#: functions.php:1138
+#: functions.php:1502
 msgid "Rwanda"
 msgstr ""
 
-#: functions.php:1139
+#: functions.php:1503
 msgid "Saint Helena, Ascension and Tristan da Cunha"
 msgstr ""
 
-#: functions.php:1140
+#: functions.php:1504
 msgid "Saint Kitts and Nevis"
 msgstr ""
 
-#: functions.php:1141
+#: functions.php:1505
 msgid "Saint Lucia"
 msgstr ""
 
-#: functions.php:1142
+#: functions.php:1506
 msgid "Saint Pierre and Miquelon"
 msgstr ""
 
-#: functions.php:1143
+#: functions.php:1507
 msgid "Saint Vincent and the Grenadines"
 msgstr ""
 
-#: functions.php:1144
+#: functions.php:1508
 msgid "Samoa"
 msgstr ""
 
-#: functions.php:1145
+#: functions.php:1509
 msgid "San Marino"
 msgstr ""
 
-#: functions.php:1146
+#: functions.php:1510
 msgid "Sao Tome and Principe"
 msgstr ""
 
-#: functions.php:1147
+#: functions.php:1511
 msgid "Saudi Arabia"
 msgstr ""
 
-#: functions.php:1148
+#: functions.php:1512
 msgid "Senegal"
 msgstr ""
 
-#: functions.php:1149
+#: functions.php:1513
 msgid "Serbia"
 msgstr ""
 
-#: functions.php:1150
+#: functions.php:1514
 msgid "Seychelles"
 msgstr ""
 
-#: functions.php:1151
+#: functions.php:1515
 msgid "Sierra Leone"
 msgstr ""
 
-#: functions.php:1152
+#: functions.php:1516
 msgid "Singapore"
 msgstr ""
 
-#: functions.php:1153
+#: functions.php:1517
 msgid "Slovakia"
 msgstr ""
 
-#: functions.php:1154
+#: functions.php:1518
 msgid "Slovenia"
 msgstr ""
 
-#: functions.php:1155
+#: functions.php:1519
 msgid "Solomon Islands"
 msgstr ""
 
-#: functions.php:1156
+#: functions.php:1520
 msgid "Somalia"
 msgstr ""
 
-#: functions.php:1157
+#: functions.php:1521
 msgid "South Africa"
 msgstr ""
 
-#: functions.php:1158
+#: functions.php:1522
 msgid "South Georgia and the South Sandwich Islands"
 msgstr ""
 
-#: functions.php:1159
+#: functions.php:1523
 msgid "South Sudan"
 msgstr ""
 
-#: functions.php:1160
+#: functions.php:1524
 msgid "Spain"
 msgstr ""
 
-#: functions.php:1161
+#: functions.php:1525
 msgid "Sri Lanka"
 msgstr ""
 
-#: functions.php:1162
+#: functions.php:1526
 msgid "Sudan"
 msgstr ""
 
-#: functions.php:1163
+#: functions.php:1527
 msgid "Suriname"
 msgstr ""
 
-#: functions.php:1164
+#: functions.php:1528
 msgid "Svalbard and Jan Mayen"
 msgstr ""
 
-#: functions.php:1165
+#: functions.php:1529
 msgid "Swaziland"
 msgstr ""
 
-#: functions.php:1166
+#: functions.php:1530
 msgid "Sweden"
 msgstr ""
 
-#: functions.php:1167
+#: functions.php:1531
 msgid "Switzerland"
 msgstr ""
 
-#: functions.php:1168
+#: functions.php:1532
 msgid "Syrian Arab Republic"
 msgstr ""
 
-#: functions.php:1169
+#: functions.php:1533
 msgid "Taiwan, Province of China"
 msgstr ""
 
-#: functions.php:1170
+#: functions.php:1534
 msgid "Tajikistan"
 msgstr ""
 
-#: functions.php:1171
+#: functions.php:1535
 msgid "Tanzania, United Republic of"
 msgstr ""
 
-#: functions.php:1172
+#: functions.php:1536
 msgid "Thailand"
 msgstr ""
 
-#: functions.php:1173
+#: functions.php:1537
 msgid "Timor-Leste"
 msgstr ""
 
-#: functions.php:1174
+#: functions.php:1538
 msgid "Togo"
 msgstr ""
 
-#: functions.php:1175
+#: functions.php:1539
 msgid "Tokelau"
 msgstr ""
 
-#: functions.php:1176
+#: functions.php:1540
 msgid "Tonga"
 msgstr ""
 
-#: functions.php:1177
+#: functions.php:1541
 msgid "Trinidad and Tobago"
 msgstr ""
 
-#: functions.php:1178
+#: functions.php:1542
 msgid "Tunisia"
 msgstr ""
 
-#: functions.php:1179
+#: functions.php:1543
 msgid "Turkey"
 msgstr ""
 
-#: functions.php:1180
+#: functions.php:1544
 msgid "Turkmenistan"
 msgstr ""
 
-#: functions.php:1181
+#: functions.php:1545
 msgid "Turks and Caicos Islands"
 msgstr ""
 
-#: functions.php:1182
+#: functions.php:1546
 msgid "Tuvalu"
 msgstr ""
 
-#: functions.php:1183
+#: functions.php:1547
 msgid "Uganda"
 msgstr ""
 
-#: functions.php:1184
+#: functions.php:1548
 msgid "Ukraine"
 msgstr ""
 
-#: functions.php:1185
+#: functions.php:1549
 msgid "United Arab Emirates"
 msgstr ""
 
-#: functions.php:1186
+#: functions.php:1550
 msgid "United Kingdom"
 msgstr ""
 
-#: functions.php:1187
+#: functions.php:1551
 msgid "United States"
 msgstr ""
 
-#: functions.php:1188
+#: functions.php:1552
 msgid "United States Minor Outlying Islands"
 msgstr ""
 
-#: functions.php:1189
+#: functions.php:1553
 msgid "Uruguay"
 msgstr ""
 
-#: functions.php:1190
+#: functions.php:1554
 msgid "Uzbekistan"
 msgstr ""
 
-#: functions.php:1191
+#: functions.php:1555
 msgid "Vanuatu"
 msgstr ""
 
-#: functions.php:1192
+#: functions.php:1556
 msgid "Venezuela, Bolivarian Republic of"
 msgstr ""
 
-#: functions.php:1193
+#: functions.php:1557
 msgid "Viet Nam"
 msgstr ""
 
-#: functions.php:1194
+#: functions.php:1558
 msgid "Virgin Islands, British"
 msgstr ""
 
-#: functions.php:1195
+#: functions.php:1559
 msgid "Virgin Islands, U.S."
 msgstr ""
 
-#: functions.php:1196
+#: functions.php:1560
 msgid "Wallis and Futuna"
 msgstr ""
 
-#: functions.php:1197
+#: functions.php:1561
 msgid "Western Sahara"
 msgstr ""
 
-#: functions.php:1198
+#: functions.php:1562
 msgid "Yemen"
 msgstr ""
 
-#: functions.php:1199
+#: functions.php:1563
 msgid "Zambia"
 msgstr ""
 
-#: functions.php:1200
+#: functions.php:1564
 msgid "Zimbabwe"
 msgstr ""
 

@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.1.35
+ * Version: 0.1.36
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.2');
+define('EAS_ASSET_VERSION', '0.3');
 
 // Load other files
 require_once 'vendor/autoload.php';
@@ -49,25 +49,39 @@ function eas_start_session() {
     }
 }
 
-// Set up ajax calls for processing donation
+// Process donation (Bank Transfer and Stripe)
 add_action("wp_ajax_nopriv_donate", "eas_process_donation");
 add_action("wp_ajax_donate", "eas_process_donation");
 function eas_process_donation() {
     processDonation();
 }
 
-// Get Paypal payKey for donation
+// Process PayPal donation. Generate and return pay key for redirect to PayPal
 add_action("wp_ajax_nopriv_paypal_paykey", "eas_process_paypal_paykey");
 add_action("wp_ajax_paypal_paykey", "eas_process_paypal_paykey");
 function eas_process_paypal_paykey() {
-    getPaypalPayKey($_POST);
+    processPaypalDonation();
 }
 
-// Log Paypal transaction
+// Log Paypal transaction. User is redirected here after successful donation
 add_action("wp_ajax_nopriv_log", "eas_process_paypal_log");
 add_action("wp_ajax_log", "eas_process_paypal_log");
 function eas_process_paypal_log() {
     processPaypalLog();
+}
+
+// Generate GoCardless signup URL
+add_action("wp_ajax_nopriv_gocardless_url", "eas_process_gocardless_url");
+add_action("wp_ajax_gocardless_url", "eas_process_gocardless_url");
+function eas_process_gocardless_url() {
+    prepareGoCardlessDonation();
+}
+
+// Process GoCardless donation
+add_action("wp_ajax_nopriv_gocardless_debit", "eas_process_gocardless_debit");
+add_action("wp_ajax_gocardless_debit", "eas_process_gocardless_debit");
+function eas_process_gocardless_debit() {
+    processGoCardlessDonation();
 }
 
 // Add translations
@@ -96,7 +110,7 @@ function register_donation_styles() {
     wp_enqueue_style('donation-plugin-css');
     wp_register_style('donation-combobox-css', plugins_url('eas-donation-processor/css/bootstrap-combobox.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-combobox-css');
-    wp_register_style('donation-plugin-flags', plugins_url('eas-donation-processor/css/flags.css'), array(), EAS_ASSET_VERSION);
+    wp_register_style('donation-plugin-flags', plugins_url('eas-donation-processor/css/flags-few.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-plugin-flags');
 }
 

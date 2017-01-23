@@ -67,8 +67,6 @@ function donationForm($atts, $content = null)
     ob_start();
 ?>
 
-<div>
-
 <!-- Donation form -->
 <form action="<?php echo admin_url('admin-ajax.php') ?>" method="post" id="donationForm" class="form-horizontal">
 
@@ -208,34 +206,39 @@ function donationForm($atts, $content = null)
                     <h3><?php _e('Choose a payment method', 'eas-donation-processor') ?></h3>
                 </div>
                 <div class="form-group payment-info" id="payment-method-providers">
-                    <!-- <div class="col-sm-12"> -->
-                        <?php $checked = ' checked'; ?>
-                        <?php if (!empty($easSettings["payment.provider.stripe.$mode.public_key"])): ?>
-                            <label for="payment-creditcard" class="radio-inline">
-                                <input type="radio" name="payment" value="Stripe" tabindex="18" id="payment-creditcard"<?php echo $checked ?: ''; $checked = false; ?>>
-                                <img src="<?php echo plugins_url('images/visa.png', __FILE__) ?>" alt="Visa" width="38" height="23">
-                                <img src="<?php echo plugins_url('images/mastercard.png', __FILE__) ?>" alt="Mastercard" width="38" height="23">
-                                <img src="<?php echo plugins_url('images/americanexpress.png', __FILE__) ?>" alt="American Express" width="38" height="23">
-                            </label>
-                        <?php endif; ?>
-
-                        <?php if (!empty($easSettings["payment.provider.paypal.$mode.email_id"])): ?>
-                            <label for="payment-paypal" class="radio-inline">
-                                <input type="radio" name="payment" value="PayPal" tabindex="19" id="payment-paypal"<?php echo $checked ?: ''; $checked = false; ?>>
-                                <img src="<?php echo plugins_url('images/paypal.png', __FILE__) ?>" alt="Paypal" width="38" height="23">
-                            </label>
-                        <?php endif; ?>
-
-                        <!-- <label for="payment-skrill">
-                            <input type="radio" class="radio" name="payment" value="Skrill" tabindex="21" id="payment-skrill">
-                            <img src="<?php echo plugins_url('images/skrill.png', __FILE__) ?>" alt="Skrill" width="38" height="23">
-                        </label> -->
-
-                        <label for="payment-banktransfer" class="radio-inline">
-                            <input type="radio" name="payment" value="Banktransfer" tabindex="20" id="payment-banktransfer"<?php echo $checked ?: ''; $checked = false; ?>>
-                            <?php _e('Bank transfer', 'eas-donation-processor') ?>
+                    <?php $checked = 'checked'; ?>
+                    <?php if (!empty($easSettings["payment.provider.stripe.$mode.public_key"])): ?>
+                        <label for="payment-creditcard" class="radio-inline">
+                            <input type="radio" name="payment" value="Stripe" id="payment-creditcard" <?php echo $checked ?: ''; $checked = false; ?>>
+                            <img src="<?php echo plugins_url('images/visa.png', __FILE__) ?>" alt="Visa" width="38" height="23">
+                            <img src="<?php echo plugins_url('images/mastercard.png', __FILE__) ?>" alt="Mastercard" width="38" height="23">
+                            <img src="<?php echo plugins_url('images/americanexpress.png', __FILE__) ?>" alt="American Express" width="38" height="23">
                         </label>
-                    <!-- </div> -->
+                    <?php endif; ?>
+
+                    <?php if (!empty($easSettings["payment.provider.paypal.$mode.email_id"])): ?>
+                        <label for="payment-paypal" class="radio-inline">
+                            <input type="radio" name="payment" value="PayPal" id="payment-paypal" <?php echo $checked ?: ''; $checked = false; ?>>
+                            <img src="<?php echo plugins_url('images/paypal.png', __FILE__) ?>" alt="Paypal" width="38" height="23">
+                        </label>
+                    <?php endif; ?>
+
+                    <!-- <label for="payment-skrill">
+                        <input type="radio" class="radio" name="payment" value="Skrill" id="payment-skrill">
+                        <img src="<?php echo plugins_url('images/skrill.png', __FILE__) ?>" alt="Skrill" width="38" height="23">
+                    </label> -->
+
+                    <?php if (!empty($easSettings["payment.provider.gocardless.$mode.access_token"])): ?>
+                        <label for="payment-directdebit" class="radio-inline">
+                            <input type="radio" name="payment" value="GoCardless" id="payment-directdebit" <?php echo $checked ?: ''; $checked = false; ?>>
+                            <a href="javascript:jQuery('#payment-directdebit').click()" data-toggle="tooltip" data-container="body" data-placement="top" title="<?php _e('Available for Eurozone, UK, and Sweden', 'eas-donation-processor') ?>" style="text-decoration: none; color: inherit;"><?php _e('Direct Debit', 'eas-donation-processor') ?></a>
+                        </label>
+                    <?php endif; ?>
+
+                    <label for="payment-banktransfer" class="radio-inline">
+                        <input type="radio" name="payment" value="Banktransfer" id="payment-banktransfer" <?php echo $checked ?: ''; $checked = false; ?>>
+                        <?php _e('Bank transfer', 'eas-donation-processor') ?>
+                    </label>
                 </div>
 
                 <!-- Name -->
@@ -264,6 +267,14 @@ function donationForm($atts, $content = null)
                     <label for="donor-email" class="col-sm-3 control-label"><?php _e('Email', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
                         <input type="email" class="form-control text" name="email" id="donor-email" placeholder="">
+                    </div>
+                </div>
+
+                <!-- Anti-spam email (only used for bank transfer, reset on submit) -->
+                <div id="email-confirm-group" class="form-group required donor-info">
+                    <label for="donor-email-confirm" class="col-sm-3 control-label"><?php _e('Email', 'eas-donation-processor') ?></label>
+                    <div class="col-sm-9">
+                        <input type="email" class="form-control text" name="email-confirm" id="donor-email-confirm" value="">
                     </div>
                 </div>
 
@@ -430,9 +441,31 @@ function donationForm($atts, $content = null)
     wp_add_inline_script('donation-plugin-form', "var embeddedPPFlow = new PAYPAL.apps.DGFlow({trigger: 'submitBtn'});"); // append to scripts instead of inline because main JS is loaded at the end
 ?>
 
-<div id="drawer"><?php _e('Please fill out all required fields correctly.', 'eas-donation-processor') ?></div>
-
+<!-- GoCardless modal -->
+<div id="goCardlessModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <img src="<?php echo plugins_url('images/gocardless.png', __FILE__) ?>" alt="GoCardless" height="16">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="gc_popup_open hidden">
+                    <p><?php _e("Please continue the donation in the secure window that you've already opened.", "eas-donation-processor") ?></p>
+                    <button class="btn btn-primary" onclick="gcPopup.focus()">OK</button>
+                </div>
+                <div class="gc_popup_closed">
+                    <button id="goCardlessPopupButton" class="btn btn-primary disabled"><span class="glyphicon glyphicon-lock" style="margin-right: 5px"></span><?php _e("Set up Direct Debit", "eas-donation-processor") ?></button>
+                </div>
+            </div>
+            <!-- <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div> -->
+        </div>
+    </div>
 </div>
+
+<div id="drawer"><?php _e('Please fill out all required fields correctly.', 'eas-donation-processor') ?></div>
 
 <?php
     return ob_get_clean();
