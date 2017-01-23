@@ -500,7 +500,6 @@ ul#frequency label.active {
 }
 
 div#goCardlessModal .modal-body {
-    /*background: url(../images/loader.gif) center center no-repeat;*/
     text-align: center;
     padding: 40px 20px;
 }
