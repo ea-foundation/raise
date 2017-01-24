@@ -931,7 +931,7 @@ function reloadPaymentProviders()
 {
     // GoCardless
     var gcLabel = jQuery('#payment-method-providers label[for=payment-directdebit]');
-    if (jQuery.inArray(selectedCurrency, goCardlessSupport)) {
+    if (goCardlessSupport.indexOf(selectedCurrency) == -1) {
         gcLabel.addClass('hidden');
         gcLabel.find('input').prop('checked', false);
     } else {
