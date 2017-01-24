@@ -449,7 +449,7 @@ function donationForm($atts, $content = null)
                     <button class="btn btn-primary" onclick="gcPopup.focus()">OK</button>
                 </div>
                 <div class="gc_popup_closed">
-                    <button id="goCardlessPopupButton" class="btn btn-primary disabled"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Set up Direct Debit", "eas-donation-processor") ?></button>
+                    <button id="goCardlessPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Set up Direct Debit", "eas-donation-processor") ?></button>
                 </div>
             </div>
             <!-- <div class="modal-footer">

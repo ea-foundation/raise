@@ -14,6 +14,7 @@ var otherAmountPlaceholder  = null;
 var currentStripeKey        = '';
 var frequency               = 'once';
 var monthlySupport          = ['payment-creditcard', 'payment-banktransfer', 'payment-directdebit'];
+var goCardlessSupport       = ['EUR', 'GBP', 'SEK'];
 var gcPopup                 = null;
 var gcPollTimer             = null;
 
@@ -44,6 +45,11 @@ jQuery(document).ready(function($) {
      * Stripe setup
      */
     loadStripeHandler();
+
+    /**
+     *
+     */
+    reloadPaymentProviders();
 
     // Initialize tooltips
     $('[data-toggle="tooltip"]').tooltip({ container: 'body' }); 
@@ -255,14 +261,14 @@ jQuery(document).ready(function($) {
         frequency = $(this).siblings('input').val();
 
         // Hide payment options that do not support monthly
-        var paymentOptions = $('#payment-method-providers label');
+        var paymentOptions = $('#payment-method-providers label').not('.hidden');
         if (frequency == 'monthly') {
             var toHide = 'amount-once';
             var toShow = 'amount-monthly';
             var checked = false;
             paymentOptions.each(function(index) {
                 if ($.inArray($(this).attr('for'), monthlySupport) == -1) {
-                    $(this).css('display', 'none');
+                    $(this).addClass('hidden');
                     $(this).find('input').prop('checked', false);
                 } else {
                     // Check first possible option
@@ -278,7 +284,7 @@ jQuery(document).ready(function($) {
 
             // Make all options visible again
             paymentOptions.each(function(index) {
-                $(this).css('display', 'inline-block');
+                $(this).removeClass('hidden');
             });
         }
 
@@ -367,6 +373,9 @@ jQuery(document).ready(function($) {
 
         // Reload Stripe handler
         loadStripeHandler();
+
+        // Hide GoCardless option if currency is not supported
+        reloadPaymentProviders();
     });
 
     // Purpose dropdown stuff
@@ -494,62 +503,53 @@ function handleDirectDebitDonation()
     jQuery('form#donationForm').attr('action', wordpress_vars.ajax_endpoint);
     jQuery('form#donationForm input[name=action]').val('gocardless_url');
 
-    // Check if we have the signup URL already
-    if (jQuery('#goCardlessModal .modal-body .gc_popup_closed button.disabled').length > 0) {
-        // Get pay key
-        jQuery('form#donationForm').ajaxSubmit({
-            success: function(responseText, statusText, xhr, form) {
-                try {
-                    // Take the pay key and start the PayPal flow
-                    var response = JSON.parse(responseText);
-                    if (!('success' in response) || !response['success']) {
-                        var message = 'error' in response ? response['error'] : responseText;
-                        throw new Error(message);
-                    }
-
-                    // Open URL in modal
-                    jQuery('#goCardlessPopupButton')
-                        .removeClass('disabled')
-                        .click(function() {
-                            // Open popup
-                            openGoCardlessPopup(response['url']);
-
-                            // Show "continue donation in secure" message on modal
-                            jQuery('#goCardlessModal .modal-body .gc_popup_closed').addClass('hidden');
-                            jQuery('#goCardlessModal .modal-body .gc_popup_open').removeClass('hidden');
-
-                            // Disable button (in case donation fails, the process gets reinitiated)
-                            jQuery('#goCardlessModal .modal-body .gc_popup_closed button').addClass('disabled');
-
-                            // Start poll timer
-                            gcPollTimer = window.setInterval(function() {
-                                if (gcPopup.closed) {
-                                    window.clearInterval(gcPollTimer);
-                                    jQuery('#goCardlessModal').modal('hide');
-                                }
-                            }, 200);
-                        });
-
-                    // Show modal
-                    jQuery('#goCardlessModal').modal('show');
-                } catch (err) {
-                    // Something went wrong, show on confirmation page
-                    alert(err.message);
-
-                    // Enable buttons
-                    lockLastStep(false);
+    // Get sign up URL
+    jQuery('form#donationForm').ajaxSubmit({
+        success: function(responseText, statusText, xhr, form) {
+            try {
+                // Take the pay key and start the PayPal flow
+                var response = JSON.parse(responseText);
+                if (!('success' in response) || !response['success']) {
+                    var message = 'error' in response ? response['error'] : responseText;
+                    throw new Error(message);
                 }
-            },
-            error: function(responseText) {
-                // Should only happen on internal server error
-                var message = 'error' in response ? response['error'] : responseText;
-                alert(message);
+
+                // Open URL in modal
+                jQuery('#goCardlessPopupButton')
+                    .unbind()
+                    .click(function() {
+                        // Open popup
+                        openGoCardlessPopup(response['url']);
+
+                        // Show "continue donation in secure" message on modal
+                        jQuery('#goCardlessModal .modal-body .gc_popup_closed').addClass('hidden');
+                        jQuery('#goCardlessModal .modal-body .gc_popup_open').removeClass('hidden');
+
+                        // Start poll timer
+                        gcPollTimer = window.setInterval(function() {
+                            if (gcPopup.closed) {
+                                window.clearInterval(gcPollTimer);
+                                jQuery('#goCardlessModal').modal('hide');
+                            }
+                        }, 200);
+                    });
+
+                // Show modal
+                jQuery('#goCardlessModal').modal('show');
+            } catch (err) {
+                // Something went wrong, show on confirmation page
+                alert(err.message);
+
+                // Enable buttons
+                lockLastStep(false);
             }
-        });
-    } else {
-        // Open modal again
-        jQuery('#goCardlessModal').modal('show');
-    }
+        },
+        error: function(responseText) {
+            // Should only happen on internal server error
+            var message = 'error' in response ? response['error'] : responseText;
+            alert(message);
+        }
+    });
 
     lockLastStep(true);
 }
@@ -924,7 +924,23 @@ function getCountriesByCurrency(currency)
     }
 }
 
+/**
+ * Show/hide payment providers
+ */
+function reloadPaymentProviders()
+{
+    // GoCardless
+    var gcLabel = jQuery('#payment-method-providers label[for=payment-directdebit]');
+    if (jQuery.inArray(selectedCurrency, goCardlessSupport)) {
+        gcLabel.addClass('hidden');
+        gcLabel.find('input').prop('checked', false);
+    } else {
+        gcLabel.removeClass('hidden');
+    }
 
+    // Pre-select first provider
+    jQuery('#payment-method-providers label:not(.hidden):first input').prop('checked', true);
+}
 
 
 
