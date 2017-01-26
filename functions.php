@@ -93,6 +93,11 @@ function handleStripePayment($post)
         // Trim the data
         $post = array_map('trim', $post);
 
+        // Make sure we have the Stripe token
+        if (empty($post['stripeToken'])) {
+            throw new \Exception("No token sent ($form : $mode)");
+        }
+
         // Get the credit card details submitted by the form
         $form      = $post['form'];
         $mode      = $post['mode'];
@@ -105,6 +110,7 @@ function handleStripePayment($post)
         $email     = $post['email'];
         $frequency = $post['frequency'];
         $name      = $post['name'];
+        $purpose   = get($post['purpose'], '');
         $anonymous = get($post['anonymous'], false);
         $comment   = get($post['comment'], '');
 
@@ -129,21 +135,44 @@ function handleStripePayment($post)
         // Load secret key
         \Stripe\Stripe::setApiKey($secretKey);
 
-        // Get customer settings
-        $customerSettings = getStripeCustomerSettings($post);
-
         // Make customer
-        $customer = \Stripe\Customer::create($customerSettings);
+        $customer    = \Stripe\Customer::create(array(
+            'email'       => $email,
+            'source'      => $token,
+            'description' => $name,
+        ));
 
-        // Make charge
-        $charge = \Stripe\Charge::create(
-            array(
+        // Make charge/subscription
+        if ($frequency == 'monthly') {
+            // Get plan
+            $plan = getStripePlan($amountInt, $currency);
+
+            // Subscribe customer to plan
+            \Stripe\Subscription::create(array(
+                'customer' => $customer->id,
+                'plan'     => $plan,
+                'metadata'    => array(
+                    'url'     => $_SERVER['HTTP_REFERER'],
+                    'purpose' => $purpose,
+                ),
+                'metadata'    => array(
+                    'url'     => $_SERVER['HTTP_REFERER'],
+                    'purpose' => $purpose,
+                ),
+            ));
+        } else {
+            // Make one-time charge
+            $charge = \Stripe\Charge::create(array(
                 'customer'    => $customer->id,
                 'amount'      => $amountInt, // !!! in cents !!!
                 'currency'    => $currency,
-                'description' => 'Donation',
-            )
-        );
+                'description' => 'Donation from ' . $name,
+                'metadata'    => array(
+                    'url'     => $_SERVER['HTTP_REFERER'],
+                    'purpose' => $purpose,
+                ),
+            ));
+        }
 
         // Prepare hook
         $donation = array(
@@ -156,7 +185,7 @@ function handleStripePayment($post)
             'amount'    => $amount,
             'frequency' => $frequency,
             'type'      => 'Stripe',
-            'purpose'   => get($post['purpose'], ''),
+            'purpose'   => $purpose,
             'email'     => $email,
             'name'      => $name,
             'address'   => get($post['address'], ''),
@@ -194,68 +223,46 @@ function handleStripePayment($post)
 
         // Send notification email
         sendNotificationEmail($donation, $form);
-    } catch(\Stripe\Error\InvalidRequest $e) {
+    } catch (\Exception $e) { // \Stripe\Error\InvalidRequest
         // The card has been declined
         throw new Exception($e->getMessage() . ' ' . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency");
     }
 }
 
 /**
- * Get customer settings (once/monthly)
+ * Get monthly Stripe plan
  *
- * @param array $post Donation form data
+ * @param int $amount Plan amount in cents
+ * @param int $currency Plan currency
  * @return array
  */
-function getStripeCustomerSettings($post)
+function getStripePlan($amount, $currency)
 {
-    // Make sure we have the Stripe token
-    if (empty($post['stripeToken'])) {
-        throw new \Exception("No token sent ($form : $mode)");
-    }
+    $planId = 'donation-month-' . $currency . '-' . money_format('%i', $amount / 100);
 
-    $token     = $post['stripeToken'];
-    $email     = $post['email'];
-    $amount    = $post['amount'];
-    $currency  = $post['currency'];
-    $frequency = $post['frequency'];
+    try {
+        // Try fetching an existing plan
+        $plan = \Stripe\Plan::retrieve($planId);
+    } catch (\Exception $e) {
+        // Create a new plan
+        $params = array(
+            'amount'   => $amount,
+            'interval' => 'month',
+            'name'     => 'Monthly donation of ' . $currency . ' ' . money_format('%i', $amount / 100),
+            'currency' => $currency,
+            'id'       => $planId,
+        );
 
-    if ($frequency == 'monthly') {
-        $planId = 'donation-month-' . $currency . '-' . money_format('%i', $amount / 100);
+        $plan = \Stripe\Plan::create($params);
 
-        try {
-            // Try fetching an existing plan
-            $plan = \Stripe\Plan::retrieve($planId);
-        } catch (\Exception $e) {
-            // Create a new plan
-            $params = array(
-                'amount'   => $amount,
-                'interval' => 'month',
-                'name'     => 'Monthly donation of ' . $currency . ' ' . money_format('%i', $amount / 100),
-                'currency' => $currency,
-                'id'       => $planId,
-            );
-
-            $plan = \Stripe\Plan::create($params);
-
-            if (!$plan instanceof \Stripe\Plan) {
-                throw new \Exception('Credit card API is down. Please try later.');
-            }
-
-            $plan->save();
+        if (!$plan instanceof \Stripe\Plan) {
+            throw new \Exception('Credit card API is down. Please try later.');
         }
 
-        return array(
-            'email'  => $email,
-            'plan'   => $planId,
-            'source' => $token,
-        );
-    } else {
-        // frequency = 'once'
-        return array(
-            'email'  => $email,
-            'source' => $token,
-        );
+        $plan->save();
     }
+
+    return $plan->id;
 }
 
 /**
