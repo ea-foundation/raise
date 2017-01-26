@@ -432,6 +432,10 @@ function donationForm($atts, $content = null)
     <input id="paykey" type="hidden" name="paykey" value="">
 </form>
 <?php
+    if (!function_exists('wp_add_inline_script')) {
+        require_once(ABSPATH . 'wp-includes/functions.wp-scripts.php');
+    }
+
     wp_add_inline_script('donation-plugin-form', "var embeddedPPFlow = new PAYPAL.apps.DGFlow({trigger: 'submitBtn'});"); // append to scripts instead of inline because main JS is loaded at the end
 ?>
 
