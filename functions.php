@@ -223,9 +223,11 @@ function handleStripePayment($post)
 
         // Send notification email
         sendNotificationEmail($donation, $form);
-    } catch (\Exception $e) { // \Stripe\Error\InvalidRequest
+    } catch (\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
-        throw new Exception($e->getMessage() . ' ' . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency");
+        throw new Exception($e->getMessage() . " " . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency");
+    } catch (\Exception $e) {
+        throw new Exception($e->getMessage() . " : $form : $mode : $email : $amount : $currency");
     }
 }
 
