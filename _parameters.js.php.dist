@@ -128,21 +128,23 @@
                     "de": "Herzlichen Dank für Ihre Spende!"
                 },
                 "email": {
-                    "address": "",
-                    "sender": "",
-                    "contents": {
-                        "en": {
-                            "subject": "Your donation",
-                            "text": "Hi there\n\nThank you very much for your donation."
-                        },
-                        "de": {
-                            "subject": "Ihre Spende",
-                            "text": "Guten Tag\n\nHerzlichen Dank für Ihre Spende."
-                        }
+                    "en": {
+                        "address": "",
+                        "sender": "",
+                        "subject": "Your donation",
+                        "text": "Hi there\n\nThank you very much for your donation.",
+                        "html": false
+                    },
+                    "de": {
+                        "address": "",
+                        "sender": "",
+                        "subject": "Ihre Spende",
+                        "text": "Guten Tag\n\nHerzlichen Dank für Ihre Spende.",
+                        "html": false
                     }
                 }
             },
-            "web_hook" : {
+            "webhook" : {
                 "logging": [],
                 "mailing_list": []
             }

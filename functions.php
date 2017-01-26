@@ -125,8 +125,6 @@ function handleStripePayment($post)
             }
         }
 
-        //throw new Exception('Key: ' . $secretKeyKey . ', PK: ' . $publicKey . ', SK: ' . $secretKey);
-
         // Make sure we have the settings
         if (empty($secretKey)) {
             throw new \Exception("No form settings found for key $publicKey ($form : $mode)");
@@ -151,11 +149,7 @@ function handleStripePayment($post)
             \Stripe\Subscription::create(array(
                 'customer' => $customer->id,
                 'plan'     => $plan,
-                'metadata'    => array(
-                    'url'     => $_SERVER['HTTP_REFERER'],
-                    'purpose' => $purpose,
-                ),
-                'metadata'    => array(
+                'metadata' => array(
                     'url'     => $_SERVER['HTTP_REFERER'],
                     'purpose' => $purpose,
                 ),
