@@ -15,6 +15,7 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
     public static $prefixLengthsPsr4 = array (
         'S' => 
         array (
+            'Symfony\\Component\\Filesystem\\' => 29,
             'Stripe\\' => 7,
         ),
         'P' => 
@@ -31,6 +32,10 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
     );
 
     public static $prefixDirsPsr4 = array (
+        'Symfony\\Component\\Filesystem\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/filesystem',
+        ),
         'Stripe\\' => 
         array (
             0 => __DIR__ . '/..' . '/stripe/stripe-php/lib',
@@ -57,11 +62,31 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
         ),
     );
 
+    public static $fallbackDirsPsr4 = array (
+        0 => __DIR__ . '/..' . '/bitpay/php-client/src',
+    );
+
+    public static $prefixesPsr0 = array (
+        'S' => 
+        array (
+            'Symfony\\Component\\DependencyInjection\\' => 
+            array (
+                0 => __DIR__ . '/..' . '/symfony/dependency-injection',
+            ),
+            'Symfony\\Component\\Config\\' => 
+            array (
+                0 => __DIR__ . '/..' . '/symfony/config',
+            ),
+        ),
+    );
+
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit2f855ff12c81cc1077e510493bf9c324::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit2f855ff12c81cc1077e510493bf9c324::$prefixDirsPsr4;
+            $loader->fallbackDirsPsr4 = ComposerStaticInit2f855ff12c81cc1077e510493bf9c324::$fallbackDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit2f855ff12c81cc1077e510493bf9c324::$prefixesPsr0;
 
         }, null, ClassLoader::class);
     }

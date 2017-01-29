@@ -1,6 +1,7 @@
 {
     "require": {
         "stripe/stripe-php": "~4.3",
-        "gocardless/gocardless-pro": "^0.9.4"
+        "gocardless/gocardless-pro": "^0.9.4",
+        "bitpay/php-client": "^2.2"
     }
 }

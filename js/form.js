@@ -97,7 +97,7 @@ jQuery(document).ready(function($) {
     });
 
     // Unlock form when GoCardless modal is hidden
-    $("#goCardlessModal").on('hide.bs.modal', function () {
+    $("div.eas-modal").on('hide.bs.modal', function () {
         // No need to unlock form if donation complete
         if (jQuery('button.confirm:last span.glyphicon-ok', '#wizard').length == 0) {
             lockLastStep(false);
@@ -197,6 +197,9 @@ jQuery(document).ready(function($) {
                     break;
                 case 'payment-directdebit':
                     handleDirectDebitDonation();
+                    break;
+                case 'payment-bitcoin':
+                    handleBitcoinDonation();
                     break;
                 case 'payment-banktransfer':
                     handleBankTransferDonation();
@@ -554,9 +557,52 @@ function handleDirectDebitDonation()
     lockLastStep(true);
 }
 
-function hideGoCardlessModal()
+function handleBitcoinDonation()
 {
-    jQuery('#goCardlessModal').modal('hide');
+    // Show spinner right away
+    showSpinnerOnLastButton();
+
+    // Change form action (endpoint) and action input
+    jQuery('form#donationForm').attr('action', wordpress_vars.ajax_endpoint);
+    jQuery('form#donationForm input[name=action]').val('bitpay_url');
+
+    // Get sign up URL
+    jQuery('form#donationForm').ajaxSubmit({
+        success: function(responseText, statusText, xhr, form) {
+            try {
+                // Take the pay key and start the PayPal flow
+                var response = JSON.parse(responseText);
+                if (!('success' in response) || !response['success']) {
+                    var message = 'error' in response ? response['error'] : responseText;
+                    throw new Error(message);
+                }
+
+                // Open URL in modal
+                jQuery('#bitPayModal .modal-body').html('<iframe src="' + response.url + '"></iframe>');
+
+                // Show modal
+                jQuery('#bitPayModal').modal('show');
+            } catch (err) {
+                // Something went wrong, show on confirmation page
+                alert(err.message);
+
+                // Enable buttons
+                lockLastStep(false);
+            }
+        },
+        error: function(responseText) {
+            // Should only happen on internal server error
+            var message = 'error' in response ? response['error'] : responseText;
+            alert(message);
+        }
+    });
+
+    lockLastStep(true);
+}
+
+function hideModal(modalId)
+{
+    jQuery(modalId).modal('hide');
 }
 
 function openGoCardlessPopup(url)

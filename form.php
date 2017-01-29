@@ -222,6 +222,14 @@ function donationForm($atts, $content = null)
                         <img src="<?php echo plugins_url('images/skrill.png', __FILE__) ?>" alt="Skrill" width="38" height="23">
                     </label> -->
 
+                    <?php if (!empty($easSettings["payment.provider.bitpay.$mode.pairing_code"])): ?>
+                        <label for="payment-bitcoin" class="radio-inline">
+                            <input type="radio" name="payment" value="BitPay" id="payment-bitcoin" <?php echo $checked ?: ''; $checked = false; ?>>
+                            <img src="<?php echo plugins_url('images/bitcoin.png', __FILE__) ?>" alt="Bitcoin" width="23" height="23">
+                            <!-- <?php _e('Bitcoin', 'eas-donation-processor') ?> -->
+                        </label>
+                    <?php endif; ?>
+
                     <?php if (!empty($easSettings["payment.provider.gocardless.$mode.access_token"])): ?>
                         <label for="payment-directdebit" class="radio-inline">
                             <input type="radio" name="payment" value="GoCardless" id="payment-directdebit" <?php echo $checked ?: ''; $checked = false; ?>>
@@ -436,7 +444,7 @@ function donationForm($atts, $content = null)
 ?>
 
 <!-- GoCardless modal -->
-<div id="goCardlessModal" class="modal fade" role="dialog">
+<div id="goCardlessModal" class="modal eas-modal fade" role="dialog" data-backdrop="static">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
@@ -452,6 +460,21 @@ function donationForm($atts, $content = null)
                     <button id="goCardlessPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Set up Direct Debit", "eas-donation-processor") ?></button>
                 </div>
             </div>
+            <!-- <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div> -->
+        </div>
+    </div>
+</div>
+
+<!-- Bitpay modal -->
+<div id="bitPayModal" class="modal eas-modal fade" role="dialog" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body"></div>
             <!-- <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div> -->

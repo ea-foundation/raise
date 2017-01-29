@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.2.9
+ * Version: 0.2.10
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -21,6 +21,7 @@ define('EAS_ASSET_VERSION', '0.3');
 require_once 'vendor/autoload.php';
 require_once "_globals.php";
 require_once "_options.php";
+require_once "bitpay/EncryptedWPOptionStorage.php";
 require_once "functions.php";
 require_once "updates.php";
 require_once "form.php";
@@ -82,6 +83,27 @@ add_action("wp_ajax_nopriv_gocardless_debit", "eas_process_gocardless_debit");
 add_action("wp_ajax_gocardless_debit", "eas_process_gocardless_debit");
 function eas_process_gocardless_debit() {
     processGoCardlessDonation();
+}
+
+// Generate BitPay URL
+add_action("wp_ajax_nopriv_bitpay_url", "eas_process_bitpay_url");
+add_action("wp_ajax_bitpay_url", "eas_process_bitpay_url");
+function eas_process_bitpay_url() {
+    prepareBitPayDonation();
+}
+
+// Log BitPay donation
+add_action("wp_ajax_nopriv_bitpay_log", "eas_process_bitpay_log");
+add_action("wp_ajax_bitpay_log", "eas_process_bitpay_log");
+function eas_process_bitpay_log() {
+    processBitPayLog();
+}
+
+// Confirm BitPay donation
+add_action("wp_ajax_nopriv_bitpay_confirm", "eas_process_bitpay_confirm");
+add_action("wp_ajax_bitpay_confirm", "eas_process_bitpay_confirm");
+function eas_process_bitpay_confirm() {
+    confirmBitPayDonation();
 }
 
 // Add translations
