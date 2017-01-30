@@ -49,7 +49,7 @@ jQuery(document).ready(function($) {
     /**
      *
      */
-    reloadPaymentProviders();
+    reloadPaymentProvidersForCurrentCurrency();
 
     // Initialize tooltips
     $('[data-toggle="tooltip"]').tooltip({ container: 'body' }); 
@@ -264,13 +264,13 @@ jQuery(document).ready(function($) {
         frequency = $(this).siblings('input').val();
 
         // Hide payment options that do not support monthly
-        var paymentOptions = $('#payment-method-providers label').not('.hidden');
+        var paymentOptions = $('#payment-method-providers label');
         if (frequency == 'monthly') {
             var toHide = 'amount-once';
             var toShow = 'amount-monthly';
             var checked = false;
             paymentOptions.each(function(index) {
-                if ($.inArray($(this).attr('for'), monthlySupport) == -1) {
+                if (monthlySupport.indexOf($(this).attr('for')) == -1) {
                     $(this).addClass('hidden');
                     $(this).find('input').prop('checked', false);
                 } else {
@@ -289,6 +289,9 @@ jQuery(document).ready(function($) {
             paymentOptions.each(function(index) {
                 $(this).removeClass('hidden');
             });
+
+            // Except the ones that don't support the current currency
+            reloadPaymentProvidersForCurrentCurrency();
         }
 
         // Switch buttons if necessary
@@ -378,7 +381,7 @@ jQuery(document).ready(function($) {
         loadStripeHandler();
 
         // Hide GoCardless option if currency is not supported
-        reloadPaymentProviders();
+        reloadPaymentProvidersForCurrentCurrency();
     });
 
     // Purpose dropdown stuff
@@ -973,7 +976,7 @@ function getCountriesByCurrency(currency)
 /**
  * Show/hide payment providers
  */
-function reloadPaymentProviders()
+function reloadPaymentProvidersForCurrentCurrency()
 {
     // GoCardless
     var gcLabel = jQuery('#payment-method-providers label[for=payment-directdebit]');
