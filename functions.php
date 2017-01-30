@@ -807,7 +807,7 @@ function prepareBitPayDonation()
             throw new \Exception($message);
         }
 
-        // Save flow ID to session
+        // Save request ID to session
         $_SESSION['eas-req-id']      = $reqId; // Session token
 
         // Put user data in session. This way we can avoid other people using it to spam our logs
@@ -870,7 +870,7 @@ function processBitPayLog()
 
         // Make sure it's the same user session
         if (!isset($_GET['req']) || $_GET['req'] != $_SESSION['eas-req-id']) {
-            throw new \Exception('Invalid request' . json_encode($_GET));
+            throw new \Exception('Invalid request (' . $_SESSION['eas-req-id'] . '): ' . json_encode($_GET));
         }
 
         $amount = money_format('%i', $_SESSION['eas-amount']);
@@ -933,7 +933,7 @@ function processBitPayLog()
 
         $script = 'parent.showConfirmation("bitpay"); ';
     } catch (\Exception $e) {
-        $script = 'alert("' . $e->getMessage() . '"); ';
+        $script = "alert('" . $e->getMessage() . "'); ";
     }
 
     $script .= 'parent.hideModal("#bitPayModal");';

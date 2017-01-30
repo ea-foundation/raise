@@ -52,59 +52,7 @@
                             "public_key": ""
                         }
                     },
-                    "stripe_ch": {
-                        "live": {
-                            "secret_key": "",
-                            "public_key": ""
-                        },
-                        "sandbox": {
-                            "secret_key": "",
-                            "public_key": ""
-                        }
-                    },
-                    "stripe_chf": {
-                        "live": {
-                            "secret_key": "",
-                            "public_key": ""
-                        },
-                        "sandbox": {
-                            "secret_key": "",
-                            "public_key": ""
-                        }
-                    },
                     "paypal": {
-                        "live": {
-                            "email_id": "",
-                            "api_username": "",
-                            "api_password": "",
-                            "api_signature": "",
-                            "application_id": ""
-                        },
-                        "sandbox": {
-                            "email_id": "",
-                            "api_username": "",
-                            "api_password": "",
-                            "api_signature": "",
-                            "application_id": "APP-80W284485P519543T"
-                        }
-                    },
-                    "paypal_de": {
-                        "live": {
-                            "email_id": "",
-                            "api_username": "",
-                            "api_password": "",
-                            "api_signature": "",
-                            "application_id": ""
-                        },
-                        "sandbox": {
-                            "email_id": "",
-                            "api_username": "",
-                            "api_password": "",
-                            "api_signature": "",
-                            "application_id": "APP-80W284485P519543T"
-                        }
-                    },
-                    "paypal_eur": {
                         "live": {
                             "email_id": "",
                             "api_username": "",
