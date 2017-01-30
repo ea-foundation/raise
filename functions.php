@@ -716,19 +716,19 @@ function prepareBitPayDonation()
         }
         unset($post['amount_other']);
 
-        $form            = $post['form'];
-        $mode            = $post['mode'];
-        $language        = $post['language'];
-        $email           = $post['email'];
-        $name            = $post['name'];
-        $amount          = $post['amount'];
-        $currency        = $post['currency'];
-        $taxReceipt      = get($post['tax_receipt'], false);
-        $country         = $post['country'];
-        $frequency       = $post['frequency'];
-        $reqId           = uniqid(); // Secret request ID. Needed to prevent replay attack
-        $returnUrl       = getAjaxEndpoint() . '?action=bitpay_confirm';
-        $notificationUrl = getAjaxEndpoint() . '?action=bitpay_log&req=' . $reqId;
+        $form       = $post['form'];
+        $mode       = $post['mode'];
+        $language   = $post['language'];
+        $email      = $post['email'];
+        $name       = $post['name'];
+        $amount     = $post['amount'];
+        $currency   = $post['currency'];
+        $taxReceipt = get($post['tax_receipt'], false);
+        $country    = $post['country'];
+        $frequency  = $post['frequency'];
+        $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
+        $returnUrl  = getAjaxEndpoint() . '?action=bitpay_log&req=' . $reqId;
+        //$returnUrl       = getAjaxEndpoint() . '?action=bitpay_confirm';
 
         // Get BitPay URL
         $pairingCode = get($GLOBALS['easForms'][$form]["payment.provider.bitpay.$mode.pairing_code"]);
@@ -786,13 +786,13 @@ function prepareBitPayDonation()
         $item    = new \Bitpay\Item();
         $item
             ->setCode("$form.$mode.$frequency.$currency.$amount")
-            ->setDescription(__("Donation", "eas-donation-processor"))
+            ->setDescription("Donation from $name ($email)")
             ->setPrice(money_format('%i', $amount));
         $invoice
             ->setCurrency(new \Bitpay\Currency($currency))
             ->setItem($item)
-            ->setRedirectUrl($returnUrl)
-            ->setNotificationUrl($notificationUrl);
+            ->setRedirectUrl($returnUrl);
+            //->setNotificationUrl($notificationUrl);
 
         // Create invoice
         $client = $bitpay->get('client');
@@ -848,88 +848,99 @@ function prepareBitPayDonation()
 /**
  * AJAX endpoint for confirming BitPay donations.
  */
-function confirmBitPayDonation()
+/*function confirmBitPayDonation()
 {
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
          <body><script>parent.showConfirmation("bitpay"); parent.hideModal("#bitPayModal");</script><body></html>');
-}
+}*/
 
 /**
  * AJAX endpoint for handling donation logging for BitPay.
- * BitPay triggers this with a webhook here after successful BitPay transaction.
+ * User is forwarded here after successful BitPay transaction.
  * Takes user data from session and triggers the web hooks.
  *
- * @return string HTML with script that terminates the PayPal flow and shows the thank you step
+ * @return string HTML with script that terminates the BitPay flow and shows the thank you step
  */
 function processBitPayLog()
 {
-    // Load settings
-    loadSettings();
+    try {
+        // Load settings
+        loadSettings();
 
-    if (!isset($_GET['req']) || $_GET['req'] != $_SESSION['eas-req-id']) {
-        throw new \Exception('Invalid request' . json_encode($_GET));
-    }
+        // Make sure it's the same user session
+        if (!isset($_GET['req']) || $_GET['req'] != $_SESSION['eas-req-id']) {
+            throw new \Exception('Invalid request' . json_encode($_GET));
+        }
 
-    $amount = money_format('%i', $_SESSION['eas-amount']);
-    $email  = $_SESSION['eas-email'];
-    $name   = $_SESSION['eas-name'];
-    $form   = $_SESSION['eas-form'];
+        $amount = money_format('%i', $_SESSION['eas-amount']);
+        $email  = $_SESSION['eas-email'];
+        $name   = $_SESSION['eas-name'];
+        $form   = $_SESSION['eas-form'];
 
-    // Prepare hook
-    $donation = array(
-        "form"      => $form,
-        "mode"      => $_SESSION['eas-mode'],
-        'url'       => $_SESSION['eas-url'],
-        "language"  => $_SESSION['eas-language'],
-        "time"      => date('r'),
-        "currency"  => $_SESSION['eas-currency'],
-        "amount"    => $amount,
-        "frequency" => $_SESSION['eas-frequency'],
-        "type"      => "BitPay",
-        "purpose"   => $_SESSION['eas-purpose'],
-        "email"     => $email,
-        "name"      => $name,
-        "address"   => $_SESSION['eas-address'],
-        "zip"       => $_SESSION['eas-zip'],
-        "city"      => $_SESSION['eas-city'],
-        "country"   => getEnglishNameByCountryCode($_SESSION['eas-country']),
-        "comment"   => $_SESSION['eas-comment'],
-    );
-
-    // Reset request ID to prevent replay attacks
-    $_SESSION['eas-req-id'] = uniqid();
-
-    // Trigger logging web hook for Zapier
-    triggerLoggingWebHooks($form, $donation);
-
-    // Trigger mailing list web hook for Zapier
-    if ($_SESSION['eas-mailinglist']) {
-        $subscription = array(
-            'email' => $email,
-            'name'  => $name,
+        // Prepare hook
+        $donation = array(
+            "form"      => $form,
+            "mode"      => $_SESSION['eas-mode'],
+            'url'       => $_SESSION['eas-url'],
+            "language"  => $_SESSION['eas-language'],
+            "time"      => date('r'),
+            "currency"  => $_SESSION['eas-currency'],
+            "amount"    => $amount,
+            "frequency" => $_SESSION['eas-frequency'],
+            "type"      => "BitPay",
+            "purpose"   => $_SESSION['eas-purpose'],
+            "email"     => $email,
+            "name"      => $name,
+            "address"   => $_SESSION['eas-address'],
+            "zip"       => $_SESSION['eas-zip'],
+            "city"      => $_SESSION['eas-city'],
+            "country"   => getEnglishNameByCountryCode($_SESSION['eas-country']),
+            "comment"   => $_SESSION['eas-comment'],
         );
 
-        triggerMailingListWebHooks($form, $subscription);
+        // Reset request ID to prevent replay attacks
+        $_SESSION['eas-req-id'] = uniqid();
+
+        // Trigger logging web hook for Zapier
+        triggerLoggingWebHooks($form, $donation);
+
+        // Trigger mailing list web hook for Zapier
+        if ($_SESSION['eas-mailinglist']) {
+            $subscription = array(
+                'email' => $email,
+                'name'  => $name,
+            );
+
+            triggerMailingListWebHooks($form, $subscription);
+        }
+
+        // Save matching challenge donation post
+        saveMatchingChallengeDonationPost(
+            $form,
+            $_SESSION['eas-anonymous'] ? 'Anonymous' : $name,
+            $_SESSION['eas-currency'],
+            $amount,
+            $_SESSION['eas-frequency'],
+            $_SESSION['eas-comment']
+        );
+
+        // Send confirmation email
+        sendConfirmationEmail($email, $name, $form);
+
+        // Send notification email
+        sendNotificationEmail($donation, $form);
+
+        $script = 'parent.showConfirmation("bitpay"); ';
+    } catch (\Exception $e) {
+        $script = 'alert("' . $e->getMessage() . '"); ';
     }
 
-    // Save matching challenge donation post
-    saveMatchingChallengeDonationPost(
-        $form,
-        $_SESSION['eas-anonymous'] ? 'Anonymous' : $name,
-        $_SESSION['eas-currency'],
-        $amount,
-        $_SESSION['eas-frequency'],
-        $_SESSION['eas-comment']
-    );
+    $script .= 'parent.hideModal("#bitPayModal");';
 
-    // Send confirmation email
-    sendConfirmationEmail($email, $name, $form);
-
-    // Send notification email
-    sendNotificationEmail($donation, $form);
-
-    die('foooo');
+    die('<!doctype html>
+         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <body><script>' . $script . '</script><body></html>');
 }
 
 /**

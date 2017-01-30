@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.3');
+define('EAS_ASSET_VERSION', '0.4');
 
 // Load other files
 require_once 'vendor/autoload.php';
@@ -100,11 +100,11 @@ function eas_process_bitpay_log() {
 }
 
 // Confirm BitPay donation
-add_action("wp_ajax_nopriv_bitpay_confirm", "eas_process_bitpay_confirm");
+/*add_action("wp_ajax_nopriv_bitpay_confirm", "eas_process_bitpay_confirm");
 add_action("wp_ajax_bitpay_confirm", "eas_process_bitpay_confirm");
 function eas_process_bitpay_confirm() {
     confirmBitPayDonation();
-}
+}*/
 
 // Add translations
 add_action('plugins_loaded', 'eas_load_textdomain');
