@@ -870,7 +870,7 @@ function processBitPayLog()
 
         // Make sure it's the same user session
         if (!isset($_GET['req']) || $_GET['req'] != $_SESSION['eas-req-id']) {
-            throw new \Exception('Invalid request (' . $_SESSION['eas-req-id'] . '): ' . json_encode($_GET));
+            throw new \Exception('');
         }
 
         $amount = money_format('%i', $_SESSION['eas-amount']);
@@ -933,7 +933,7 @@ function processBitPayLog()
 
         $script = 'parent.showConfirmation("bitpay"); ';
     } catch (\Exception $e) {
-        $script = "alert('" . $e->getMessage() . "'); ";
+        $script = '';
     }
 
     $script .= 'parent.hideModal("#bitPayModal");';
