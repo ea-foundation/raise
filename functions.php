@@ -511,10 +511,11 @@ function prepareGoCardlessDonation()
         $reqId       = uniqid(); // Secret request ID. Needed to prevent replay attack
 
         // Make GoCardless redirect flow
+        $monthly      = $frequency == 'monthly' ? ", " . __("monthly", "eas-donation-processor") : "";
         $client       = getGoCardlessClient($form, $mode, $taxReceipt, $currency, $country);
         $redirectFlow = $client->redirectFlows()->create([
             "params" => [
-                "description"          => __("Donation", "eas-donation-processor"),
+                "description"          => __("Donation", "eas-donation-processor") . " ($currency $amount" . $monthly . ")",
                 "session_token"        => $reqId,
                 "success_redirect_url" => $returnUrl,
             ]
@@ -931,11 +932,14 @@ function processBitPayLog()
         // Send notification email
         sendNotificationEmail($donation, $form);
 
+        // Show thank you step
         $script = 'parent.showConfirmation("bitpay"); ';
     } catch (\Exception $e) {
+        // No need to say anything
         $script = '';
     }
 
+    // Hide modal
     $script .= 'parent.hideModal("#bitPayModal");';
 
     die('<!doctype html>
