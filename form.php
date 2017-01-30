@@ -226,7 +226,6 @@ function donationForm($atts, $content = null)
                         <label for="payment-bitcoin" class="radio-inline">
                             <input type="radio" name="payment" value="BitPay" id="payment-bitcoin" <?php echo $checked ?: ''; $checked = false; ?>>
                             <img src="<?php echo plugins_url('images/bitcoin.png', __FILE__) ?>" alt="Bitcoin" width="23" height="23">
-                            <!-- <?php _e('Bitcoin', 'eas-donation-processor') ?> -->
                         </label>
                     <?php endif; ?>
 
