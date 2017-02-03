@@ -493,54 +493,60 @@ function donationForm($atts, $content = null)
 
 </form>
 
-<!-- PayPal Adaptive payment form -->
-<form action="<?php echo $GLOBALS['paypalPaymentEndpoint'][$mode] ?>" target="PPDGFrame" class="standard hidden">
-    <input type="image" id="submitBtn" value="Pay with PayPal" src="https://www.paypalobjects.com/en_US/i/btn/btn_paynowCC_LG.gif">
-    <input id="type" type="hidden" name="expType" value="light">
-    <input id="paykey" type="hidden" name="paykey" value="">
-</form>
-<?php
-    wp_add_inline_script('donation-plugin-form', "var embeddedPPFlow = new PAYPAL.apps.DGFlow({trigger: 'submitBtn'});"); // append to scripts instead of inline because main JS is loaded at the end
+<?php if (!empty($easSettings["payment.provider.paypal.$mode.email_id"])): ?>
+    <!-- PayPal Adaptive payment form -->
+    <form action="<?php echo $GLOBALS['paypalPaymentEndpoint'][$mode] ?>" target="PPDGFrame" class="standard hidden">
+        <input type="image" id="submitBtn" value="Pay with PayPal" src="https://www.paypalobjects.com/en_US/i/btn/btn_paynowCC_LG.gif">
+        <input id="type" type="hidden" name="expType" value="light">
+        <input id="paykey" type="hidden" name="paykey" value="">
+    </form>
+<?php    
+        wp_add_inline_script('donation-plugin-form', "var embeddedPPFlow = new PAYPAL.apps.DGFlow({trigger: 'submitBtn'});"); // append to scripts instead of inline because main JS is loaded at the end
+    endif;
 ?>
 
-<!-- GoCardless modal -->
-<div id="goCardlessModal" class="modal eas-modal fade" role="dialog" data-backdrop="static">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <img src="<?php echo plugins_url('images/gocardless.png', __FILE__) ?>" alt="GoCardless" height="16">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="gc_popup_open hidden">
-                    <p><?php _e("Please continue the donation in the secure window that you've already opened.", "eas-donation-processor") ?></p>
-                    <button class="btn btn-primary" onclick="gcPopup.focus()">OK</button>
+<?php if (!empty($easSettings["payment.provider.gocardless.$mode.access_token"])): ?>
+    <!-- GoCardless modal -->
+    <div id="goCardlessModal" class="modal eas-modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <img src="<?php echo plugins_url('images/gocardless.png', __FILE__) ?>" alt="GoCardless" height="16">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
-                <div class="gc_popup_closed">
-                    <button id="goCardlessPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Set up Direct Debit", "eas-donation-processor") ?></button>
+                <div class="modal-body">
+                    <div class="gc_popup_open hidden">
+                        <p><?php _e("Please continue the donation in the secure window that you've already opened.", "eas-donation-processor") ?></p>
+                        <button class="btn btn-primary" onclick="gcPopup.focus()">OK</button>
+                    </div>
+                    <div class="gc_popup_closed">
+                        <button id="goCardlessPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Set up Direct Debit", "eas-donation-processor") ?></button>
+                    </div>
                 </div>
+                <!-- <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div> -->
             </div>
-            <!-- <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div> -->
         </div>
     </div>
-</div>
+<?php endif; ?>
 
-<!-- Bitpay modal -->
-<div id="bitPayModal" class="modal eas-modal fade" role="dialog" data-backdrop="static">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+<?php if (!empty($easSettings["payment.provider.bitpay.$mode.pairing_code"])): ?>
+    <!-- Bitpay modal -->
+    <div id="bitPayModal" class="modal eas-modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body"></div>
+                <!-- <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div> -->
             </div>
-            <div class="modal-body"></div>
-            <!-- <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div> -->
         </div>
     </div>
-</div>
+<?php endif; ?>
 
 <div id="drawer"><?php _e('Please fill out all required fields correctly.', 'eas-donation-processor') ?></div>
 
