@@ -66,7 +66,7 @@ class EasDonationProcessorOptionsPage
                     do_settings_sections('eas-donation-settings-group');
                 ?>
                 <input type="hidden" name="settings" value="">
-                <input type="hidden" name="logo">
+                <input type="hidden" name="logo" value="<?php echo $logo ?>">
                 <p>
                     Stripe checkout logo (recommended minimum size: 128x128px):<br>
                     <div class="stripe-logo" style="background-image: url('<?php echo $logo ?>')"></div><br>
