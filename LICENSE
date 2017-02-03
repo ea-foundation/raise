@@ -16,7 +16,7 @@ END OF TERMS AND CONDITIONS
 
 
 
-EAS Donation Processor includes code from stripe-php (https://github.com/stripe/stripe-php), which is licensed under the MIT license:
+EAS Donation Processor includes code from stripe-php (https://github.com/stripe/stripe-php), gocardless-pro-php (https://github.com/gocardless/gocardless-pro-php/), and php-bitpay-client (https://github.com/bitpay/php-bitpay-client), which are licensed under the MIT license:
 
 The MIT License
 
