@@ -1,0 +1,11 @@
+.stripe-logo {
+    width: 64px;
+    height: 64px;
+    margin: 3px;
+    border-radius: 100%;
+    background: #fff;
+    background-position: 50% 50%;
+    background-size: cover;
+    display: inline-block;
+    cursor: pointer;
+}

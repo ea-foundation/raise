@@ -32,7 +32,7 @@ function updateSettings()
      * Date:   2017-01-06
      * Author: Naoki Peter
      */
-    if (version_compare('0.1.24', $settingsVersion, '>')) {
+    if (version_compare($settingsVersion, '0.1.24', '<')) {
         // Rename web_hook node to webhook
         foreach (array_keys($settings['forms']) as $formName) {
             if (isset($settings['forms'][$formName]['web_hook'])) {
@@ -50,7 +50,7 @@ function updateSettings()
      * Date:   2017-01-13
      * Author: Naoki Peter
      */
-    if (version_compare('0.1.29', $settingsVersion, '>')) {
+    if (version_compare($settingsVersion, '0.1.29', '<')) {
         // HookPress plugin is obsolete now. Move HookPress endpoints to plugin settings.
         $hookPress = ABSPATH . 'wp-content/plugins/hookpress/hookpress.php';
         if (file_exists($hookPress)) {
@@ -93,6 +93,32 @@ function updateSettings()
             update_option('settings', json_encode($settings));
         }
         update_option('version', '0.1.29');
+    }
+
+    /**
+     * Date:   2017-02-03
+     * Author: Naoki Peter
+     */
+    if (version_compare($settingsVersion, '0.3.2', '<')) {
+        // Save checkbox labels for tax receipt and mailing list signup to default settings
+        $taxReceiptLabels  = array(
+            "en" => "I need a tax receipt for Germany, Switzerland, the Netherlands, or the United States",
+            "de" => "Ich benötige eine Steuerbescheinigung für Deutschland, die Schweiz, die Niederlanden oder die USA",
+        );
+        $mailingListLabels = array(
+            "en" => "Subscribe me to monthly EA updates",
+            "de" => "Monatliche EA-Updates abonnieren",
+        );
+
+        // Save to settings
+        $settings['forms']['default']['payment']['labels'] = array(
+            "tax_receipt"  => $taxReceiptLabels,
+            "mailing_list" => $mailingListLabels,
+        );
+
+        // Save changes
+        update_option('settings', json_encode($settings));
+        update_option('version', '0.3.2');
     }
 
     // Add new updates above this line

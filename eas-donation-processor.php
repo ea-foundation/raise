@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
  * Description: Process donations
- * Version: 0.3.1
+ * Version: 0.3.2
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -99,13 +99,6 @@ function eas_process_bitpay_log() {
     processBitPayLog();
 }
 
-// Confirm BitPay donation
-/*add_action("wp_ajax_nopriv_bitpay_confirm", "eas_process_bitpay_confirm");
-add_action("wp_ajax_bitpay_confirm", "eas_process_bitpay_confirm");
-function eas_process_bitpay_confirm() {
-    confirmBitPayDonation();
-}*/
-
 // Add translations
 add_action('plugins_loaded', 'eas_load_textdomain');
 function eas_load_textdomain() {
@@ -119,6 +112,9 @@ function eas_json_settings_editor() {
     wp_enqueue_script('donation-json-settings-editor');
     wp_register_style('donation-json-settings-editor-css', plugins_url('eas-donation-processor/js/jsoneditor.min.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-json-settings-editor-css');
+    wp_register_style('donation-admin-css', plugins_url('eas-donation-processor/css/admin.css'), array(), EAS_ASSET_VERSION);
+    wp_enqueue_style('donation-admin-css');
+    wp_enqueue_media();
 }
 
 /*
@@ -142,53 +138,16 @@ function register_donation_styles() {
 add_action('wp_enqueue_scripts', 'register_donation_scripts');
 function register_donation_scripts()
 {
-    // Update settings if necessary
-    updateSettings();
-
-    // Load settings
-    loadSettings();
-
-    $easForms = $GLOBALS['easForms'];
-    
-    // Amount patterns
-    $amountPatterns = array();
-    foreach ($easForms as $formName => $form) {
-        if (isset($form['amount.currency']) && is_array($form['amount.currency'])) {
-            $patterns = array();
-            foreach ($form['amount.currency'] as $currency => $currencySettings) {
-                $patterns[strtoupper($currency)] = $currencySettings['pattern'];
-            }
-            $amountPatterns[$formName] = $patterns;
-        }
-    }
-
-    // Get Stripe public keys + Paypal accounts
-    $stripeKeys = array();
-    foreach ($easForms as $formName => $form) {
-        $stripeKeys[$formName] = getStripePublicKeys($form);
-    }
-
     wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array('jquery'));
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/js/external/dg.js');
     wp_register_script('donation-combobox', plugins_url('eas-donation-processor/js/bootstrap-combobox.js'), array(), EAS_ASSET_VERSION);
-    wp_register_script('donation-plugin-form', plugins_url( 'eas-donation-processor/js/form.js' ), array('jquery', 'donation-plugin-stripe'), EAS_ASSET_VERSION);
-    wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
-        'plugin_path'           => plugin_dir_url(__FILE__),
-        'ajax_endpoint'         => admin_url('admin-ajax.php'),
-        'amount_patterns'       => $amountPatterns,
-        'stripe_public_keys'    => $stripeKeys,
-        'organization'          => $GLOBALS['easOrganization'],
-        'donate_button_once'    => __("Donate %currency-amount%", "eas-donation-processor"),
-        'donate_button_monthly' => __("Donate %currency-amount% per month", "eas-donation-processor"),
-        'donation'              => __("Donation", "eas-donation-processor"),
-        'currency2country'      => $GLOBALS['currency2country'],
-    ));
+    wp_register_script('donation-plugin-form', plugins_url('eas-donation-processor/js/form.js'), array('jquery', 'donation-plugin-stripe'), EAS_ASSET_VERSION);
 }
 
 // Register matching campaign post type
-add_action( 'init', 'create_campaign_post_type' );
+add_action('init', 'create_campaign_post_type');
 function create_campaign_post_type() {
     register_post_type( 'eas_fundraiser',
         array(
@@ -209,7 +168,7 @@ function create_campaign_post_type() {
 }
 
 // Register matching campaign donation post type
-add_action( 'init', 'create_doantion_post_type' );
+add_action('init', 'create_doantion_post_type');
 function create_doantion_post_type() {
     register_post_type( 'eas_donation',
         array(
@@ -228,6 +187,50 @@ function create_doantion_post_type() {
         )
     );
 }
+
+add_action('admin_footer', function() { 
+    /*
+    if possible try not to queue this all over the admin by adding your settings GET page val into next
+    if( empty( $_GET['page'] ) || "my-settings-page" !== $_GET['page'] ) { return; }
+    */
+?>
+<script>
+    jQuery(document).ready(function($){
+        var customUploader;
+        var logo = $('.stripe-logo');
+        var target  = $('.wrap input[name="logo"]');
+
+        logo.click(function(e) {
+            e.preventDefault();
+            //If the uploader object has already been created, reopen the dialog
+            if (customUploader) {
+                customUploader.open();
+                return;
+            }
+
+            //Extend the wp.media object
+            customUploader = wp.media.frames.file_frame = wp.media({
+                title: 'Choose Image',
+                button: {
+                    text: 'Choose Image'
+                },
+                multiple: false
+            });
+
+            //When a file is selected, grab the URL and set it as the text field's value
+            customUploader.on('select', function() {
+                attachment = customUploader.state().get('selection').first().toJSON();
+                target.val(attachment.url);
+                logo.css('backgroundImage', "url('" + attachment.url + "')");
+            });
+
+            //Open the uploader dialog
+            customUploader.open();
+        });      
+    });
+</script>
+<?php
+});
 
 /**
  * Returns current plugin version

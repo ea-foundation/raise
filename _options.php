@@ -40,18 +40,18 @@ class EasDonationProcessorOptionsPage
         updateSettings();
 
         // Load settings
-        $settings = json_decode(get_option('settings'), true);
-        $version  = get_option('version');
-
-        // Load default settings
-        $customSettings   = plugin_dir_path(__FILE__) . "_parameters.js.php";
-        $settingsFile     = file_exists($customSettings) ? $customSettings : $customSettings . '.dist';
-        $templateSettings = file_get_contents($settingsFile);
-        $templateSettings = json_decode(trim(end(explode('?>', $templateSettings, 2))), true);
+        $settings    = json_decode(get_option('settings'), true);
+        $defaultLogo = plugin_dir_url(__FILE__) . 'images/logo.png';
+        $logo        = get_option('logo', $defaultLogo);
+        $version     = get_option('version');
         
         $unsavedSettingsMessage = '';
         if (empty($settings) || count($settings) <= 1) {
-            $settings               = $templateSettings;
+            // Load default settings
+            $customSettings         = plugin_dir_path(__FILE__) . "_parameters.js.php";
+            $settingsFile           = file_exists($customSettings) ? $customSettings : $customSettings . '.dist';
+            $settingsFileContents   = file_get_contents($settingsFile);
+            $settings               = json_decode(trim(end(explode('?>', $settingsFileContents, 2))), true);
             $unsavedSettingsMessage = '<p><strong>Configure settings and save.</strong></p>';
         }
         ?>
@@ -66,6 +66,14 @@ class EasDonationProcessorOptionsPage
                     do_settings_sections('eas-donation-settings-group');
                 ?>
                 <input type="hidden" name="settings" value="">
+                <input type="hidden" name="logo">
+                <p>
+                    Stripe checkout logo (recommended minimum size: 128x128px):<br>
+                    <div class="stripe-logo" style="background-image: url('<?php echo $logo ?>')"></div><br>
+                    <?php if ($logo != $defaultLogo): ?>
+                        <button type="button" class="button reset-stripe-logo" style="width: 64px">Reset</button>
+                    <?php endif; ?>
+                </p>
                 <?php submit_button() ?>
             </form>
             <script>
@@ -81,6 +89,13 @@ class EasDonationProcessorOptionsPage
                     var json = JSON.stringify(editor.get());
                     jQuery("input[name=settings]").val(json);
                 });
+
+                // Reset stripe logo
+                jQuery('.reset-stripe-logo').click(function() {
+                    var defaultLogo = '<?php echo $defaultLogo ?>';
+                    jQuery('.stripe-logo').css('backgroundImage', "url('" + defaultLogo + "'");
+                    jQuery('input[name=logo]').val(defaultLogo);
+                });
             </script>
         </div>
         <?php
@@ -92,6 +107,7 @@ class EasDonationProcessorOptionsPage
     public function page_init()
     {        
         register_setting('eas-donation-settings-group', 'settings');
+        register_setting('eas-donation-settings-group', 'logo');
     }
 }
 

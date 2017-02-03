@@ -21,7 +21,7 @@ var gcPollTimer             = null;
 
 // Preload Stripe image
 var stripeImage = new Image();
-stripeImage.src = wordpress_vars.plugin_path + 'images/logo.png';
+stripeImage.src = wordpress_vars.logo;
 
 // Define Object keys for old browsers
 if (!Object.keys) {
@@ -834,7 +834,7 @@ function loadStripeHandler()
     // Create new Stripe handler
     stripeHandler = StripeCheckout.configure({
         key: newStripeKey,
-        image: wordpress_vars.plugin_path + 'images/logo.png',
+        image: wordpress_vars.logo,
         color: '#255A8E',
         locale: 'auto',
         token: function(token) {

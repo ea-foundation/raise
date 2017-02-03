@@ -579,13 +579,16 @@ function processGoCardlessDonation()
         $client     = getGoCardlessClient($form, $mode, $taxReceipt, $currency, $country);
 
         if (isset($_GET['redirect_flow_id']) && $_GET['redirect_flow_id'] == $_SESSION['eas-gocardless-flow-id']) {
-            $redirectFlow = $client->redirectFlows()->complete(
-                $_GET['redirect_flow_id'],
-                ["params" => ["session_token" => $_SESSION['eas-req-id']]]
-            );
-        } else {
             throw new \Exception('Invalid flow ID');
         }
+
+        // Complete flow
+        $redirectFlow = $client->redirectFlows()->complete(
+            $_GET['redirect_flow_id'],
+            ["params" => [
+                "session_token" => $_SESSION['eas-req-id']
+            ]]
+        );
 
         // Get mandate ID
         $mandateID = $redirectFlow->links->mandate;
@@ -696,6 +699,124 @@ function processGoCardlessDonation()
 }
 
 /**
+ * Get BitPay key IDs
+ *
+ * @param string $pairingCode
+ * @return array
+ */
+function getBitpayKeyIds($pairingCode)
+{
+    return array(
+        'bitpay-private-key-' . $pairingCode,
+        'bitpay-public-key-' . $pairingCode,
+        'bitpay-token-' . $pairingCode,
+    );
+}
+
+/**
+ * Get BitPay object
+ *
+ * @param string $form
+ * @param string $mode
+ * @return \Bitpay\Bitpay
+ */
+function getBitpayDependencyInjector($form, $mode)
+{
+    // Get BitPay pairing code
+    $pairingCode = get($GLOBALS['easForms'][$form]["payment.provider.bitpay.$mode.pairing_code"]);
+    if (!$pairingCode) {
+        throw new \Exception('No pairing code set');
+    }
+
+    // Get key IDs
+    list($privateKeyId, $publicKeyId, $tokenId) = getBitpayKeyIds($pairingCode);
+
+    // Get BitPay client
+    $bitpay = new \Bitpay\Bitpay(array(
+        'bitpay' => array(
+            'network'              => $mode == 'live' ? 'livenet' : 'testnet',
+            'public_key'           => $publicKeyId,
+            'private_key'          => $privateKeyId,
+            'key_storage'          => 'EAS\Bitpay\EncryptedWPOptionStorage',
+            'key_storage_password' => $pairingCode, // Abuse pairing code for this
+        )
+    ));
+
+    return $bitpay;
+}
+
+/**
+ * Get BitPay token
+ *
+ * @param \Bitpay\Bitpay $bitpay
+ * @param string $label
+ * @return \Bitpay\Token
+ */
+function generateBitpayToken(\Bitpay\Bitpay $bitpay, $label = '')
+{
+    // Get BitPay pairing code as well as key/token IDs
+    $pairingCode = $bitpay->getContainer()->getParameter('bitpay.key_storage_password');
+    list($privateKeyId, $publicKeyId, $tokenId) = getBitPayKeyIds($pairingCode);
+    
+    // Generate keys
+    $privateKey = \Bitpay\PrivateKey::create($privateKeyId)
+        ->generate();
+    $publicKey  = \Bitpay\PublicKey::create($publicKeyId)
+        ->setPrivateKey($privateKey)
+        ->generate();
+
+    // Save keys (abuse pairing code as encryption password)
+    $keyStorage = $bitpay->get('key_manager');
+    $keyStorage->persist($privateKey);
+    $keyStorage->persist($publicKey);
+
+    // Get token
+    // @var \Bitpay\SinKey
+    $sin   = \Bitpay\SinKey::create()->setPublicKey($publicKey)->generate();
+    $token = $bitpay->get('client')->createToken(array(
+        'pairingCode' => $pairingCode,
+        'label'       => $label,
+        'id'          => (string) $sin,
+    ));
+
+    // Save token
+    update_option($tokenId, $token->getToken());
+
+    return $token;
+}
+
+/**
+ * Get BitPay client
+ *
+ * @param string $form
+ * @param string $mode
+ * @return \Bitpay\Client\Client
+ */
+function getBitpayClient($form, $mode)
+{
+    // Get BitPay dependency injector
+    $bitpay = getBitpayDependencyInjector($form, $mode);
+
+    // Get BitPay pairing code as well as key/token IDs
+    $pairingCode = $bitpay->getContainer()->getParameter('bitpay.key_storage_password');
+    list($privateKeyId, $publicKeyId, $tokenId) = getBitPayKeyIds($pairingCode);
+
+    // Generate token if first time
+    if (!get_option($publicKeyId) || !get_option($privateKeyId) || !($tokenString = get_option($tokenId))) {
+        $label = $form . ' ' . $mode;
+        $token = generateBitpayToken($bitpay, $label);
+    } else {
+        $token = new \Bitpay\Token();
+        $token->setToken($tokenString);
+    }
+
+    $client = $bitpay->get('client');
+    $client->setToken($token);
+
+    return $client;
+}
+
+/**
  * AJAX endpoint that returns the BitPay URL. It stores
  * user input in session until user is forwarded back from BitPay
  */
@@ -731,64 +852,18 @@ function prepareBitPayDonation()
         $returnUrl  = getAjaxEndpoint() . '?action=bitpay_log&req=' . $reqId;
         //$returnUrl       = getAjaxEndpoint() . '?action=bitpay_confirm';
 
-        // Get BitPay URL
-        $pairingCode = get($GLOBALS['easForms'][$form]["payment.provider.bitpay.$mode.pairing_code"]);
-        if (!$pairingCode) {
-            throw new \Exception('No pairing code set');
-        }
+        // Get BitPay object and token
+        $client = getBitpayClient($form, $mode);
 
-        // Get key IDs (abuse pairing code for this)
-        $privateKeyId = 'bitpay-private-key-' . $pairingCode;
-        $publicKeyId  = 'bitpay-public-key-' . $pairingCode;
-        $tokenId      = 'bitpay-token-' . $pairingCode;
-
-        // Get BitPay client
-        $bitpay = new \Bitpay\Bitpay(array(
-            'bitpay' => array(
-                'network'              => $mode == 'live' ? 'livenet' : 'testnet',
-                'public_key'           => $publicKeyId,
-                'private_key'          => $privateKeyId,
-                'key_storage'          => 'EAS\Bitpay\EncryptedWPOptionStorage',
-                'key_storage_password' => $pairingCode, // Abuse pairing code for this
-            )
-        ));
-
-        if (!get_option($publicKeyId) || !get_option($privateKeyId) || !($tokenString = get_option($tokenId))) {
-            // Generate keys
-            $privateKey = \Bitpay\PrivateKey::create($privateKeyId)
-                ->generate();
-            $publicKey  = \Bitpay\PublicKey::create($publicKeyId)
-                ->setPrivateKey($privateKey)
-                ->generate();
-
-            // Save keys (abuse pairing code as encryption password)
-            $keyStorage = $bitpay->get('key_manager');
-            $keyStorage->persist($privateKey);
-            $keyStorage->persist($publicKey);
-
-            // Get token
-            // @var \Bitpay\SinKey
-            $sin   = \Bitpay\SinKey::create()->setPublicKey($publicKey)->generate();
-            $token = $bitpay->get('client')->createToken(array(
-                'pairingCode' => $pairingCode,
-                'label'       => $form . ' ' . $mode,
-                'id'          => (string) $sin,
-            ));
-
-            // Save token
-            update_option($tokenId, $token->getToken());
-        } else {
-            $token = new \Bitpay\Token();
-            $token->setToken($tokenString);
-        }
-
-        // Make invoice
-        $invoice = new \Bitpay\Invoice();
-        $item    = new \Bitpay\Item();
+        // Make item
+        $item = new \Bitpay\Item();
         $item
             ->setCode("$form.$mode.$frequency.$currency.$amount")
             ->setDescription("Donation from $name ($email)")
             ->setPrice(money_format('%i', $amount));
+
+        // Prepare invoice
+        $invoice = new \Bitpay\Invoice();
         $invoice
             ->setCurrency(new \Bitpay\Currency($currency))
             ->setItem($item)
@@ -796,8 +871,6 @@ function prepareBitPayDonation()
             //->setNotificationUrl($notificationUrl);
 
         // Create invoice
-        $client = $bitpay->get('client');
-        $client->setToken($token);
         try {
             $client->createInvoice($invoice);
         } catch (\Exception $e) {
@@ -810,6 +883,7 @@ function prepareBitPayDonation()
 
         // Save request ID to session
         $_SESSION['eas-req-id']      = $reqId; // Session token
+        $_SESSION['eas-invoice-id']  = $invoice->getId();
 
         // Put user data in session. This way we can avoid other people using it to spam our logs
         $_SESSION['eas-form']        = $form;
@@ -847,16 +921,6 @@ function prepareBitPayDonation()
 }
 
 /**
- * AJAX endpoint for confirming BitPay donations.
- */
-/*function confirmBitPayDonation()
-{
-    die('<!doctype html>
-         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>parent.showConfirmation("bitpay"); parent.hideModal("#bitPayModal");</script><body></html>');
-}*/
-
-/**
  * AJAX endpoint for handling donation logging for BitPay.
  * User is forwarded here after successful BitPay transaction.
  * Takes user data from session and triggers the web hooks.
@@ -871,18 +935,36 @@ function processBitPayLog()
 
         // Make sure it's the same user session
         if (!isset($_GET['req']) || $_GET['req'] != $_SESSION['eas-req-id']) {
-            throw new \Exception('');
+            throw new \Exception('Invalid request');
         }
 
-        $amount = money_format('%i', $_SESSION['eas-amount']);
+        // Reset request ID to prevent replay attacks
+        $_SESSION['eas-req-id'] = uniqid();
+
+        // Get variables
+        $amount = $_SESSION['eas-amount'];
         $email  = $_SESSION['eas-email'];
         $name   = $_SESSION['eas-name'];
         $form   = $_SESSION['eas-form'];
+        $mode   = $_SESSION['eas-mode'];
+
+        // Make sure the payment is paid
+        $client      = getBitpayClient($form, $mode);
+        $invoice     = $client->getInvoice($_SESSION['eas-invoice-id']);
+        $status      = $invoice->getStatus();
+        $validStates = array(
+            \Bitpay\Invoice::STATUS_PAID,
+            \Bitpay\Invoice::STATUS_CONFIRMED,
+            \Bitpay\Invoice::STATUS_COMPLETE,
+        );
+        if (!in_array($status, $validStates)) {
+            throw new \Exception('Not paid');
+        }
 
         // Prepare hook
         $donation = array(
             "form"      => $form,
-            "mode"      => $_SESSION['eas-mode'],
+            "mode"      => $mode,
             'url'       => $_SESSION['eas-url'],
             "language"  => $_SESSION['eas-language'],
             "time"      => date('r'),
@@ -899,9 +981,6 @@ function processBitPayLog()
             "country"   => getEnglishNameByCountryCode($_SESSION['eas-country']),
             "comment"   => $_SESSION['eas-comment'],
         );
-
-        // Reset request ID to prevent replay attacks
-        $_SESSION['eas-req-id'] = uniqid();
 
         // Trigger logging web hook for Zapier
         triggerLoggingWebHooks($form, $donation);
@@ -931,20 +1010,13 @@ function processBitPayLog()
 
         // Send notification email
         sendNotificationEmail($donation, $form);
-
-        // Show thank you step
-        $script = 'parent.showConfirmation("bitpay"); ';
     } catch (\Exception $e) {
-        // No need to say anything
-        $script = '';
+        // No need to say anything. Just show confirmation.
     }
-
-    // Hide modal
-    $script .= 'parent.hideModal("#bitPayModal");';
 
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>' . $script . '</script><body></html>');
+         <body><script>parent.showConfirmation("bitpay"); parent.hideModal("#bitPayModal");</script><body></html>');
 }
 
 /**
@@ -1451,6 +1523,7 @@ function flattenSettings($settings, &$result, $parentKey = '')
         || !hasStringKeys($settings)
         // IMPORTANT: Add parameters here that should be overwritten completely in non-default forms
         || preg_match('/payment\.purpose$/', $parentKey)
+        || preg_match('/payment\.labels$/', $parentKey)
         || preg_match('/amount\.currency$/', $parentKey)
         || preg_match('/finish\.email$/', $parentKey)
         || preg_match('/finish\.notification_email$/', $parentKey)
