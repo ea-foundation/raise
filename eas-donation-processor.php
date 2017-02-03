@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.5');
+define('EAS_ASSET_VERSION', '0.6');
 
 // Load other files
 require_once 'vendor/autoload.php';
