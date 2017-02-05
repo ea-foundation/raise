@@ -26,16 +26,6 @@ require_once "functions.php";
 require_once "updates.php";
 require_once "form.php";
 
-// Check for new version of plugin
-require 'plugin-update-checker/plugin-update-checker.php';
-$className = PucFactory::getLatestClassVersion('PucGitHubChecker');
-$myUpdateChecker = new $className(
-    'https://github.com/GBS-Schweiz/eas-donation-processor',
-    __FILE__,
-    'master'
-);
-$myUpdateChecker->setAccessToken('93a8387a061d14040a5932e12ef31d90a1be419a'); // read only
-
 // Add short code for donation form
 add_shortcode('donationForm','donationForm');
 
