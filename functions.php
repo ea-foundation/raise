@@ -578,7 +578,7 @@ function processGoCardlessDonation()
         $country    = $_SESSION['eas-country'];
         $client     = getGoCardlessClient($form, $mode, $taxReceipt, $currency, $country);
 
-        if (isset($_GET['redirect_flow_id']) && $_GET['redirect_flow_id'] == $_SESSION['eas-gocardless-flow-id']) {
+        if (!isset($_GET['redirect_flow_id']) || $_GET['redirect_flow_id'] != $_SESSION['eas-gocardless-flow-id']) {
             throw new \Exception('Invalid flow ID');
         }
 
