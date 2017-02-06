@@ -623,10 +623,10 @@ function processGoCardlessDonation()
 
         // Add subscription fields if necessary and execute payment
         if ($frequency == 'monthly') {
-            // Start paying tomorrow, unless it's the 29th, 30th, or 31st day of the month.
+            // Start paying in a week, unless it's the 29th, 30th, or 31st day of the month.
             // If that's the case, start on the first day of the following month.
-            $tomorrow                           = new \DateTime('+7 days');
-            $payment['params']['day_of_month']  = $tomorrow->format('d') <= 28 ? $tomorrow->format('d') : 1;
+            $startDate                          = new \DateTime('+7 days');
+            $payment['params']['day_of_month']  = $startDate->format('d') <= 28 ? $startDate->format('d') : 1;
             $payment['params']['interval_unit'] = 'monthly';
 
             $client->subscriptions()->create($payment);
@@ -1338,9 +1338,8 @@ function processPaypalLog()
  * @param int    $amount
  * @param string $frequency
  * @param string $comment
- * @param bool   $publish
  */
-function saveMatchingChallengeDonationPost($form, $name, $currency, $amount, $frequency, $comment, $publish = true)
+function saveMatchingChallengeDonationPost($form, $name, $currency, $amount, $frequency, $comment)
 {
     $formSettings = $GLOBALS['easForms'][$form];
 
@@ -1353,9 +1352,9 @@ function saveMatchingChallengeDonationPost($form, $name, $currency, $amount, $fr
 
     // Save donation as a custom post
     $newPost = array(
-        'post_title'  => "$name contributed $currency $amount ($frequency) to fundraiser campaign (ID = $matchingCampaign)",
-        'post_type'   => "eas_donation",
-        'post_status' => $publish ? 'publish' : 'pending',
+        "post_title"  => "$name contributed $currency $amount ($frequency) to fundraiser campaign (ID = $matchingCampaign)",
+        "post_type"   => "eas_donation",
+        "post_status" => "private",
     );
     $postId = wp_insert_post($newPost);
 
