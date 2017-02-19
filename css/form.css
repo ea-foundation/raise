@@ -511,7 +511,7 @@ div#goCardlessModal .modal-body p {
 
 div#bitPayModal .modal-body {
     background: url(../images/loader.gif) center center no-repeat;
-    height: 550px;
+    height: 650px;
 }
 
 div#bitPayModal .modal-body iframe {

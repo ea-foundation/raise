@@ -101,7 +101,7 @@ function handleStripePayment($post)
         // Get the credit card details submitted by the form
         $form      = $post['form'];
         $mode      = $post['mode'];
-        $language  = $post['language'];
+        $language  = strtoupper($post['language']);
         $token     = $post['stripeToken'];
         $publicKey = $post['stripePublicKey'];
         $amountInt = $post['amount'];
@@ -173,7 +173,7 @@ function handleStripePayment($post)
             'form'      => $form,
             'mode'      => $mode,
             'url'       => $_SERVER['HTTP_REFERER'],
-            'language'  => strtoupper($language),
+            'language'  => $language,
             'time'      => date('r'),
             'currency'  => $currency,
             'amount'    => $amount,
@@ -195,8 +195,9 @@ function handleStripePayment($post)
         // Trigger mailing list web hook for Zapier
         if (isset($post['mailinglist']) && $post['mailinglist'] == 1) {
             $subscription = array(
-                'email' => $email,
-                'name'  => $name,
+                'email'    => $email,
+                'name'     => $name,
+                'language' => $language,
             );
 
             triggerMailingListWebHooks($form, $subscription);
@@ -280,13 +281,14 @@ function handleBankTransferPayment($post)
     $name      = $post['name'];
     $email     = $post['email'];
     $form      = $post['form'];
+    $language  = strtoupper($post['language']);
 
     // Prepare hook
     $donation = array(
         'form'      => $form,
         'mode'      => $post['mode'],
         'url'       => $_SERVER['HTTP_REFERER'],
-        'language'  => strtoupper($post['language']),
+        'language'  => $language,
         'time'      => date('r'),
         'currency'  => $post['currency'],
         'amount'    => $amount,
@@ -308,8 +310,9 @@ function handleBankTransferPayment($post)
     // Triger mailing list web hook for Zapier
     if (isset($post['mailinglist']) && $post['mailinglist'] == 1) {
         $subscription = array(
-            'email' => $post['email'],
-            'name'  => get($post['name'], ''),
+            'email'    => $post['email'],
+            'name'     => get($post['name'], ''),
+            'language' => $language,
         );
 
         triggerMailingListWebHooks($post['form'], $subscription);
@@ -578,7 +581,7 @@ function processGoCardlessDonation()
         $country    = $_SESSION['eas-country'];
         $client     = getGoCardlessClient($form, $mode, $taxReceipt, $currency, $country);
 
-        if (isset($_GET['redirect_flow_id']) && $_GET['redirect_flow_id'] == $_SESSION['eas-gocardless-flow-id']) {
+        if (!isset($_GET['redirect_flow_id']) || $_GET['redirect_flow_id'] != $_SESSION['eas-gocardless-flow-id']) {
             throw new \Exception('Invalid flow ID');
         }
 
@@ -623,10 +626,10 @@ function processGoCardlessDonation()
 
         // Add subscription fields if necessary and execute payment
         if ($frequency == 'monthly') {
-            // Start paying tomorrow, unless it's the 29th, 30th, or 31st day of the month.
+            // Start paying in a week, unless it's the 29th, 30th, or 31st day of the month.
             // If that's the case, start on the first day of the following month.
-            $tomorrow                           = new \DateTime('+7 days');
-            $payment['params']['day_of_month']  = $tomorrow->format('d') <= 28 ? $tomorrow->format('d') : 1;
+            $startDate                          = new \DateTime('+7 days');
+            $payment['params']['day_of_month']  = $startDate->format('d') <= 28 ? $startDate->format('d') : 1;
             $payment['params']['interval_unit'] = 'monthly';
 
             $client->subscriptions()->create($payment);
@@ -664,8 +667,9 @@ function processGoCardlessDonation()
         // Trigger mailing list web hook for Zapier
         if ($_SESSION['eas-mailinglist']) {
             $subscription = array(
-                'email' => $email,
-                'name'  => $name,
+                'email'    => $email,
+                'name'     => $name,
+                'language' => $language,
             );
 
             triggerMailingListWebHooks($form, $subscription);
@@ -859,14 +863,19 @@ function prepareBitPayDonation()
         $item = new \Bitpay\Item();
         $item
             ->setCode("$form.$mode.$frequency.$currency.$amount")
-            ->setDescription("Donation from $name ($email)")
+            ->setDescription("$name ($email)")
             ->setPrice(money_format('%i', $amount));
+
+        // Prepare buyer
+        $buyer = new \Bitpay\Buyer();
+        $buyer->setEmail($email);
 
         // Prepare invoice
         $invoice = new \Bitpay\Invoice();
         $invoice
             ->setCurrency(new \Bitpay\Currency($currency))
             ->setItem($item)
+            ->setBuyer($buyer)
             ->setRedirectUrl($returnUrl);
             //->setNotificationUrl($notificationUrl);
 
@@ -942,11 +951,12 @@ function processBitPayLog()
         $_SESSION['eas-req-id'] = uniqid();
 
         // Get variables
-        $amount = $_SESSION['eas-amount'];
-        $email  = $_SESSION['eas-email'];
-        $name   = $_SESSION['eas-name'];
-        $form   = $_SESSION['eas-form'];
-        $mode   = $_SESSION['eas-mode'];
+        $amount   = $_SESSION['eas-amount'];
+        $email    = $_SESSION['eas-email'];
+        $name     = $_SESSION['eas-name'];
+        $form     = $_SESSION['eas-form'];
+        $mode     = $_SESSION['eas-mode'];
+        $language = $_SESSION['eas-language'];
 
         // Make sure the payment is paid
         $client      = getBitpayClient($form, $mode);
@@ -966,7 +976,7 @@ function processBitPayLog()
             "form"      => $form,
             "mode"      => $mode,
             'url'       => $_SESSION['eas-url'],
-            "language"  => $_SESSION['eas-language'],
+            "language"  => $language,
             "time"      => date('r'),
             "currency"  => $_SESSION['eas-currency'],
             "amount"    => $amount,
@@ -988,8 +998,9 @@ function processBitPayLog()
         // Trigger mailing list web hook for Zapier
         if ($_SESSION['eas-mailinglist']) {
             $subscription = array(
-                'email' => $email,
-                'name'  => $name,
+                'email'    => $email,
+                'name'     => $name,
+                'language' => $language,
             );
 
             triggerMailingListWebHooks($form, $subscription);
@@ -1255,17 +1266,18 @@ function processPaypalLog()
     loadSettings();
 
     if (isset($_GET['req']) && $_GET['req'] == $_SESSION['eas-req-id']) {
-        $amount = money_format('%i', $_SESSION['eas-amount']);
-        $email  = $_SESSION['eas-email'];
-        $name   = $_SESSION['eas-name'];
-        $form   = $_SESSION['eas-form'];
+        $amount   = money_format('%i', $_SESSION['eas-amount']);
+        $email    = $_SESSION['eas-email'];
+        $name     = $_SESSION['eas-name'];
+        $form     = $_SESSION['eas-form'];
+        $language = $_SESSION['eas-language'];
 
         // Prepare hook
         $donation = array(
             "form"      => $form,
             "mode"      => $_SESSION['eas-mode'],
-            'url'       => $_SESSION['eas-url'],
-            "language"  => $_SESSION['eas-language'],
+            "url"       => $_SESSION['eas-url'],
+            "language"  => $language,
             "time"      => date('r'),
             "currency"  => $_SESSION['eas-currency'],
             "amount"    => $amount,
@@ -1290,8 +1302,9 @@ function processPaypalLog()
         // Trigger mailing list web hook for Zapier
         if ($_SESSION['eas-mailinglist']) {
             $subscription = array(
-                'email' => $email,
-                'name'  => $name,
+                'email'    => $email,
+                'name'     => $name,
+                'language' => $language,
             );
 
             triggerMailingListWebHooks($form, $subscription);
@@ -1338,9 +1351,8 @@ function processPaypalLog()
  * @param int    $amount
  * @param string $frequency
  * @param string $comment
- * @param bool   $publish
  */
-function saveMatchingChallengeDonationPost($form, $name, $currency, $amount, $frequency, $comment, $publish = true)
+function saveMatchingChallengeDonationPost($form, $name, $currency, $amount, $frequency, $comment)
 {
     $formSettings = $GLOBALS['easForms'][$form];
 
@@ -1353,9 +1365,9 @@ function saveMatchingChallengeDonationPost($form, $name, $currency, $amount, $fr
 
     // Save donation as a custom post
     $newPost = array(
-        'post_title'  => "$name contributed $currency $amount ($frequency) to fundraiser campaign (ID = $matchingCampaign)",
-        'post_type'   => "eas_donation",
-        'post_status' => $publish ? 'publish' : 'pending',
+        "post_title"  => "$name contributed $currency $amount ($frequency) to fundraiser campaign (ID = $matchingCampaign)",
+        "post_type"   => "eas_donation",
+        "post_status" => "private",
     );
     $postId = wp_insert_post($newPost);
 
