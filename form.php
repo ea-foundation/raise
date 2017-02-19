@@ -387,7 +387,7 @@ function donationForm($atts, $content = null)
                                     if (!empty($easSettings['payment.labels']['mailing_list'])) {
                                         echo esc_html(getBestValue($easSettings['payment.labels']['mailing_list']));
                                     } else {
-                                        _e('Subscribe me to updates', 'eas-donation-processor');
+                                        _e('Subscribe me to newsletter', 'eas-donation-processor');
                                     }
                                 ?>
                             </label>
