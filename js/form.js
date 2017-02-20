@@ -41,15 +41,14 @@ if (!Object.keys) {
  * Form setup
  */
 jQuery(document).ready(function($) {
-    /**
-     * Stripe setup
-     */
+    // Stripe setup
     loadStripeHandler();
 
-    /**
-     *
-     */
+    // Reload payment provider for current currency
     reloadPaymentProvidersForCurrentCurrency();
+
+    // Reload dropdowns (can be broken depending on theme)
+    $('.dropdown-toggle').dropdown();
 
     // Initialize tooltips
     $('[data-toggle="tooltip"]').tooltip({ container: 'body' }); 

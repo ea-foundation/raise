@@ -87,6 +87,11 @@
     padding: 20px 20px; /* 200px 20px; */
 }
 
+#wizard img {
+    padding: 0;
+    width: initial;
+}
+
 @media (max-width: 767px) {
     #wizard .item {
         padding: 20px 0 0 0;
@@ -511,7 +516,7 @@ div#goCardlessModal .modal-body p {
 
 div#bitPayModal .modal-body {
     background: url(../images/loader.gif) center center no-repeat;
-    height: 650px;
+    height: 600px;
 }
 
 div#bitPayModal .modal-body iframe {
