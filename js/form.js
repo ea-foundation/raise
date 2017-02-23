@@ -250,7 +250,8 @@ jQuery(document).ready(function($) {
     // Other amount formatting 2: Only 0-9 and '.' are valid symbols
     $('input#amount-other').keypress(function(event) {
         var keyCode = event.which;
-        if (!(48 <= keyCode && keyCode <= 57) && keyCode != 190 && keyCode != 46) {
+        if (!(48 <= keyCode && keyCode <= 57) && keyCode != 190 && keyCode != 46 && keyCode != 13) {
+            // Only accept numbers, dot, backspace, and enter
             return false;
         }
     });

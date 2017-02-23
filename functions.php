@@ -485,9 +485,6 @@ function getBestGoCardlessAccessToken($form, $mode, $taxReceiptNeeded, $currency
 function prepareGoCardlessDonation()
 {
     try {
-        // Check honey pot (email-confirm)
-        checkHoneyPot($_POST);
-
         // Load settings
         loadSettings();
 
@@ -827,9 +824,6 @@ function getBitpayClient($form, $mode)
 function prepareBitPayDonation()
 {
     try {
-        // Check honey pot (email-confirm)
-        checkHoneyPot($_POST);
-
         // Load settings
         loadSettings();
 
