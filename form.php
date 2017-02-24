@@ -283,17 +283,19 @@ function donationForm($atts, $content = null)
                     <?php endif; ?>
 
                     <!-- Bank Transfer -->
-                    <label for="payment-banktransfer" class="radio-inline">
-                        <input type="radio" name="payment" value="Banktransfer" id="payment-banktransfer" <?php echo $checked ?: ''; $checked = false; ?>>
-                        <?php _e('Bank transfer', 'eas-donation-processor') ?>
-                    </label>
+                    <?php if (get($easSettings["payment.provider.banktransfer.$mode"], true)): ?>
+                        <label for="payment-banktransfer" class="radio-inline">
+                            <input type="radio" name="payment" value="Banktransfer" id="payment-banktransfer" <?php echo $checked ?: ''; $checked = false; ?>>
+                            <?php _e('Bank transfer', 'eas-donation-processor') ?>
+                        </label>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Name -->
                 <div class="form-group required donor-info">
                     <label for="donor-name" class="col-sm-3 control-label"><?php _e('Name', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control text" name="name" id="donor-name" placeholder="">
+                        <input type="text" class="form-control text" name="name" id="donor-name" autocomplete="name" placeholder="">
                     </div>
                 </div>
 
@@ -314,7 +316,7 @@ function donationForm($atts, $content = null)
                 <div class="form-group required donor-info">
                     <label for="donor-email" class="col-sm-3 control-label"><?php _e('Email', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
-                        <input type="email" class="form-control text" name="email" id="donor-email" placeholder="">
+                        <input type="email" class="form-control text" name="email" id="donor-email" autocomplete="email" placeholder="">
                     </div>
                 </div>
 
@@ -331,7 +333,7 @@ function donationForm($atts, $content = null)
                     if (!empty($easSettings['payment.purpose']) && is_array($easSettings['payment.purpose'])):
                         $firstItem = reset(array_values($easSettings['payment.purpose']));
                         if (is_array($firstItem)) {
-                            $firstItem = getBestValue($firstItem);
+                            $firstItem = getLocalizedValue($firstItem);
                         }
 
                         // Don't print dropdown when only one purpose
@@ -353,7 +355,7 @@ function donationForm($atts, $content = null)
                                     foreach ($easSettings['payment.purpose'] as $value => $labels) {
                                         // Check if there are language settings
                                         if (is_array($labels)) {
-                                            $label = getBestValue($labels);
+                                            $label = getLocalizedValue($labels);
                                         } else {
                                             $label = $labels;
                                         }
@@ -385,7 +387,7 @@ function donationForm($atts, $content = null)
                                 <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1" checked>
                                 <?php
                                     if (!empty($easSettings['payment.labels']['mailing_list'])) {
-                                        echo esc_html(getBestValue($easSettings['payment.labels']['mailing_list']));
+                                        echo esc_html(getLocalizedValue($easSettings['payment.labels']['mailing_list']));
                                     } else {
                                         _e('Subscribe me to newsletter', 'eas-donation-processor');
                                     }
@@ -404,7 +406,7 @@ function donationForm($atts, $content = null)
                                 <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1">
                                 <?php
                                     if (!empty($easSettings['payment.labels']['tax_receipt'])) {
-                                        echo esc_html(getBestValue($easSettings['payment.labels']['tax_receipt']));
+                                        echo esc_html(getLocalizedValue($easSettings['payment.labels']['tax_receipt']));
                                     } else {
                                         _e('I need a tax receipt', 'eas-donation-processor');
                                     }
@@ -419,21 +421,21 @@ function donationForm($atts, $content = null)
                     <div class="form-group donor-info optionally-required">
                         <label for="donor-address" class="col-sm-3 control-label"><?php _e('Address', 'eas-donation-processor') ?></label>
                         <div class="col-sm-9">
-                            <input type="text" class="form-control text" name="address" id="donor-address" placeholder="">
+                            <input type="text" class="form-control text" name="address" id="donor-address" autocomplete="street-address" placeholder="">
                         </div>
                     </div>
 
                     <div class="form-group donor-info optionally-required">
                         <label for="donor-zip" class="col-sm-3 control-label"><?php _e('Zip code', 'eas-donation-processor') ?></label>
                         <div class="col-sm-9">
-                            <input type="text" class="form-control text" name="zip" id="donor-zip" placeholder="">
+                            <input type="text" class="form-control text" name="zip" id="donor-zip" autocomplete="postal-code" placeholder="">
                         </div>
                     </div>
 
                     <div class="form-group donor-info optionally-required">
                         <label for="donor-city" class="col-sm-3 control-label"><?php _e('City', 'eas-donation-processor') ?></label>
                         <div class="col-sm-9">
-                            <input type="text" class="form-control text" name="city" id="donor-city" placeholder="">
+                            <input type="text" class="form-control text" name="city" id="donor-city" autocomplete="address-level2" placeholder="">
                         </div>
                     </div>
 

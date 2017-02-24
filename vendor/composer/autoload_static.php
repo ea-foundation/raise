@@ -67,6 +67,13 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
     );
 
     public static $prefixesPsr0 = array (
+        'T' => 
+        array (
+            'Twig_' => 
+            array (
+                0 => __DIR__ . '/..' . '/twig/twig/lib',
+            ),
+        ),
         'S' => 
         array (
             'Symfony\\Component\\DependencyInjection\\' => 

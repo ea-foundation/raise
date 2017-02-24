@@ -8,8 +8,8 @@
 }
 
 #progress {
-    margin:0px !important;
-    padding: 0 20px !important;
+    margin: 0 !important;
+    padding: 0 !important;
     border-bottom: 1px solid #ECEDF0;
 }
 
@@ -85,6 +85,11 @@
 /* single donation carousel item */
 #wizard .item {
     padding: 20px 20px; /* 200px 20px; */
+}
+
+#wizard img {
+    padding: 0;
+    width: initial;
 }
 
 @media (max-width: 767px) {
@@ -377,16 +382,11 @@ input#donor-country-auto {
 }
 
 #wizard div.payment-info {
-    padding: 8px 0 10px 33px;
+    padding: 7px 0 10px 15px;
 }
 
 #wizard div.payment-info img {
     margin-top: -2px;
-}
-
-#wizard div.donor-info {
-    padding-left: 15px;
-    padding-right: 15px;
 }
 
 div#donation-confirmation div.response-icon {
@@ -511,7 +511,7 @@ div#goCardlessModal .modal-body p {
 
 div#bitPayModal .modal-body {
     background: url(../images/loader.gif) center center no-repeat;
-    height: 650px;
+    height: 600px;
 }
 
 div#bitPayModal .modal-body iframe {
