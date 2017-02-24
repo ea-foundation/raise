@@ -9,7 +9,7 @@ function loadSettings()
     $easSettings = json_decode(get_option('settings'), true);
 
     // Load organization in current language
-    $easOrganization = !empty($easSettings['organization']) ? (getBestValue($easSettings['organization']) ?: '') : '';
+    $easOrganization = !empty($easSettings['organization']) ? (getLocalizedValue($easSettings['organization']) ?: '') : '';
 
     // Load settings of default form, if any
     $flattenedDefaultSettings = array();
@@ -213,11 +213,8 @@ function handleStripePayment($post)
             $comment
         );
 
-        // Send confirmation email
-        sendConfirmationEmail($email, $name, $form);
-
-        // Send notification email
-        sendNotificationEmail($donation, $form);
+        // Send emails
+        sendEmails($donation, $form);
     } catch (\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
         throw new Exception($e->getMessage() . " " . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency");
@@ -328,11 +325,8 @@ function handleBankTransferPayment($post)
         $comment
     );
 
-    // Send confirmation email
-    sendConfirmationEmail($email, $name, $form);
-
-    // Send notification email
-    sendNotificationEmail($donation, $form);
+    // Send emails
+    sendEmails($donation, $form);
 }
 
 /**
@@ -682,11 +676,8 @@ function processGoCardlessDonation()
             $_SESSION['eas-comment']
         );
 
-        // Send confirmation email
-        sendConfirmationEmail($email, $name, $form);
-
-        // Send notification email
-        sendNotificationEmail($donation, $form);
+        // Send emails
+        sendEmails($donation, $form);
 
         $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation('gocardless'); mainWindow.hideModal('#goCardlessModal');";
     } catch (\Exception $e) {
@@ -1010,11 +1001,8 @@ function processBitPayLog()
             $_SESSION['eas-comment']
         );
 
-        // Send confirmation email
-        sendConfirmationEmail($email, $name, $form);
-
-        // Send notification email
-        sendNotificationEmail($donation, $form);
+        // Send emails
+        sendEmails($donation, $form);
     } catch (\Exception $e) {
         // No need to say anything. Just show confirmation.
     }
@@ -1314,11 +1302,8 @@ function processPaypalLog()
             $_SESSION['eas-comment']
         );
 
-        // Send confirmation email
-        sendConfirmationEmail($email, $name, $form);
-
-        // Send notification email
-        sendNotificationEmail($donation, $form);
+        // Send emails
+        sendEmails($donation, $form);
 
         // Add method for showing confirmation
         $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.showConfirmation('paypal'); close();";
@@ -1471,24 +1456,22 @@ function sendNotificationEmail(array $donation, $form)
 /**
  * Send email mit thank you message
  *
- * @param string $email Donor email address
- * @param string $name Donor name
- * @param string $form Form name
+ * @param array  $donation Donation
+ * @param string $form     Form name
  */
-function sendConfirmationEmail($email, $name, $form)
+function sendConfirmationEmail(array $donation, $form)
 {
     // Only send email if we have settings (might not be the case if we're dealing with script kiddies)
     if (isset($GLOBALS['easForms'][$form]['finish.email'])) {
-        $emailSettings = $GLOBALS['easForms'][$form]['finish.email'];
+        $emailSettings = getLocalizedValue($GLOBALS['easForms'][$form]['finish.email']);
 
-        // Get email settings for user language
-        if ($emailSettings = getBestValue($emailSettings)) {
-            $subject = get($emailSettings['subject'], '');
-            $text    = str_replace('%name%', $name, get($emailSettings['text'], ''));
-        } else {
-            // Invalid settings
-            return;
-        }
+        // Get email subject and text and pass it through twig
+        $twig    = getTwig($form);
+        $subject = $twig->render('finish.email.subject', $donation);
+        $text    = $twig->render('finish.email.text', $donation);
+
+        // Handle legacy name variable in email text
+        $text = str_replace('%name%', $donation['name'], $text);
 
         //throw new \Exception("$email : $form : $language : $subject : $text");
 
@@ -1503,7 +1486,7 @@ function sendConfirmationEmail($email, $name, $form)
         add_filter('wp_mail_content_type', 'easEmailContentType', EAS_PRIORITY, 1);
 
         // Send email
-        wp_mail($email, $subject, $text);
+        wp_mail($donation['email'], $subject, $text);
 
         // Remove email hooks
         remove_filter('wp_mail_from', 'easEmailAddress', EAS_PRIORITY);
@@ -2008,7 +1991,7 @@ function getStripePublicKeys(array $form)
  * @param string|array $setting
  * @return string|array|null
  */
-function getBestValue($setting)
+function getLocalizedValue($setting)
 {
     if (is_string($setting)) {
         return $setting;
@@ -2078,6 +2061,53 @@ function checkHoneyPot($post)
     if (!empty($post['email-confirm'])) {
         throw new \Exception('bot');
     }
+}
+
+/**
+ * Get twig singleton for form emails
+ *
+ * @param string $form Form name
+ * @return Twig_Environment
+ */
+function getTwig($form)
+{
+    if (isset($GLOBALS['eas-twig'])) {
+        return $GLOBALS['eas-twig'];
+    }
+
+    // Get settings
+    $confirmationEmail = getLocalizedValue($GLOBALS['easForms'][$form]['finish.email']);
+    $isHtml            = get($confirmationEmail['html'], false);
+    $twigSettings      = array(
+        'finish.email.subject' => $confirmationEmail['subject'],
+        'finish.email.text'    => $isHtml ? nl2br($confirmationEmail['text']) : $confirmationEmail['text'],
+    );
+
+    // Instantiate twig
+    $loader = new Twig_Loader_Array($twigSettings);
+    $twig   = new Twig_Environment($loader, array(
+        'autoescape' => $isHtml,
+    ));
+
+    // Save twig globally
+    $GLOBALS['eas-twig'] = $twig;
+
+    return $twig;
+}
+
+/**
+ * Send out emails
+ *
+ * @param array  $donation Donation
+ * @param string $form     Form name
+ */
+function sendEmails(array $donation, $form)
+{
+    // Send confirmation email
+    sendConfirmationEmail($donation, $form);
+
+    // Send notification email
+    sendNotificationEmail($donation, $form);
 }
 
 /*

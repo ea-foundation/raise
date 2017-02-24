@@ -333,7 +333,7 @@ function donationForm($atts, $content = null)
                     if (!empty($easSettings['payment.purpose']) && is_array($easSettings['payment.purpose'])):
                         $firstItem = reset(array_values($easSettings['payment.purpose']));
                         if (is_array($firstItem)) {
-                            $firstItem = getBestValue($firstItem);
+                            $firstItem = getLocalizedValue($firstItem);
                         }
 
                         // Don't print dropdown when only one purpose
@@ -355,7 +355,7 @@ function donationForm($atts, $content = null)
                                     foreach ($easSettings['payment.purpose'] as $value => $labels) {
                                         // Check if there are language settings
                                         if (is_array($labels)) {
-                                            $label = getBestValue($labels);
+                                            $label = getLocalizedValue($labels);
                                         } else {
                                             $label = $labels;
                                         }
@@ -387,7 +387,7 @@ function donationForm($atts, $content = null)
                                 <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1" checked>
                                 <?php
                                     if (!empty($easSettings['payment.labels']['mailing_list'])) {
-                                        echo esc_html(getBestValue($easSettings['payment.labels']['mailing_list']));
+                                        echo esc_html(getLocalizedValue($easSettings['payment.labels']['mailing_list']));
                                     } else {
                                         _e('Subscribe me to newsletter', 'eas-donation-processor');
                                     }
@@ -406,7 +406,7 @@ function donationForm($atts, $content = null)
                                 <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1">
                                 <?php
                                     if (!empty($easSettings['payment.labels']['tax_receipt'])) {
-                                        echo esc_html(getBestValue($easSettings['payment.labels']['tax_receipt']));
+                                        echo esc_html(getLocalizedValue($easSettings['payment.labels']['tax_receipt']));
                                     } else {
                                         _e('I need a tax receipt', 'eas-donation-processor');
                                     }
