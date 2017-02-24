@@ -6,7 +6,7 @@ Main featuers:
 *   Configure several form instances (property inheritance support)
 *   Assign donations to different accounts depending on currency or donor country
 *   Sandbox API support for Stripe, PayPal, and GoCardless
-*   Send confirmation emails and notification emails
+*   Send confirmation emails (Twig support) and notification emails
 *   Send webhooks using HookPress, e.g. for mailing list signup or logging
 *   Fully translatable (currently available in en and de)
 *   Country and currency detection based on donor's IP address (powered by freegeoip.net)
