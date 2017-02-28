@@ -1539,36 +1539,15 @@ function hasStringKeys(array $array) {
 }
 
 /**
- * Get user IP address
- *
- * @return string|null
- */
-function getUserIp()
-{
-    //return '8.8.8.8'; // US
-    //return '84.227.243.215'; // CH
-
-    $ipFields = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
-
-    foreach ($ipFields as $ipField) {
-        if (isset($_SERVER[$ipField])) {
-            return $_SERVER[$ipField];
-        }
-    }
-
-    return null;
-}
-
-/**
  * Get user country from freegeoip.net, e.g. as ['code' => 'CH', 'name' => 'Switzerland']
  *
  * @param string $userIp
- * @param array
+ * @return array
  */
 function getUserCountry($userIp = null)
 {
     if (!$userIp) {
-        $userIp = getUserIp();
+        $userIp = $_SERVER['REMOTE_ADDR'];
     }
 
     try {
@@ -1581,14 +1560,16 @@ function getUserCountry($userIp = null)
 
             $response = json_decode($output, true);
 
-            if (isset($response['country_name']) && isset($response['country_code'])) {
-                return array(
-                    'code' => $response['country_code'],
-                    'name' => $response['country_name'],
-                );
-            } else {
-                return array();
+            if (empty($response['country_name']) || empty($response['country_code'])) {
+                throw new \Exception('Invalid response');
             }
+
+            return array(
+                'code' => $response['country_code'],
+                'name' => $response['country_name'],
+            );
+        } else {
+            return array();
         }
     } catch (\Exception $ex) {
         return array();
@@ -1599,7 +1580,7 @@ function getUserCountry($userIp = null)
  * Get user currency
  *
  * @param string $countryCode E.g. 'CH'
- * @return string
+ * @return string|null
  */
 function getUserCurrency($countryCode = null)
 {
