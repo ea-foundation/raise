@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: EAS Donation Processor
- * Plugin URI: https://github.com/GBS-Schweiz/eas-donation-processor
+ * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
  * Version: 0.3.11
  * Author: Naoki Peter
@@ -30,7 +30,7 @@ require_once "form.php";
 require 'plugin-update-checker/plugin-update-checker.php';
 $className = PucFactory::getLatestClassVersion('PucGitHubChecker');
 $myUpdateChecker = new $className(
-    'https://github.com/GBS-Schweiz/eas-donation-processor',
+    'https://github.com/ea-foundation/eas-donation-processor',
     __FILE__,
     'master'
 );
