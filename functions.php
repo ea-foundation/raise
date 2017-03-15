@@ -2091,6 +2091,12 @@ function sendEmails(array $donation, $form)
     sendNotificationEmail($donation, $form);
 }
 
+// Allow cross domain access
+add_action('init', 'allow_origin');
+function allow_origin() {
+    header("Access-Control-Allow-Origin: *");
+}
+
 /*
 
 function gbs_skrillRedirect($post)
