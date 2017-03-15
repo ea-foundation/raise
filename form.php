@@ -278,7 +278,7 @@ function donationForm($atts, $content = null)
                     <?php if (!empty($easSettings["payment.provider.gocardless.$mode.access_token"])): ?>
                         <label for="payment-directdebit" class="radio-inline">
                             <input type="radio" name="payment" value="GoCardless" id="payment-directdebit" <?php echo $checked ?: ''; $checked = false; ?>>
-                            <a href="javascript:jQuery('#payment-directdebit').click()" data-toggle="tooltip" data-container="body" data-placement="top" title="<?php _e('Available for Eurozone, UK, and Sweden', 'eas-donation-processor') ?>" style="text-decoration: none; color: inherit;"><?php _e('Direct Debit', 'eas-donation-processor') ?></a>
+                            <a href="#" onClick="jQuery('#payment-directdebit').click(); return false" data-toggle="tooltip" data-container="body" data-placement="top" title="<?php _e('Available for Eurozone, UK, and Sweden', 'eas-donation-processor') ?>" style="text-decoration: none; color: inherit;"><?php _e('Direct Debit', 'eas-donation-processor') ?></a>
                         </label>
                     <?php endif; ?>
 
