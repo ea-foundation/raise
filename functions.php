@@ -1463,10 +1463,11 @@ function sendConfirmationEmail(array $donation, $form)
 {
     // Only send email if we have settings (might not be the case if we're dealing with script kiddies)
     if (isset($GLOBALS['easForms'][$form]['finish.email'])) {
-        $emailSettings = getLocalizedValue($GLOBALS['easForms'][$form]['finish.email']);
+        $language      = !empty($donation['language']) ? strtolower($donation['language']) : null;
+        $emailSettings = getLocalizedValue($GLOBALS['easForms'][$form]['finish.email'], $language);
 
         // Get email subject and text and pass it through twig
-        $twig    = getTwig($form);
+        $twig    = getTwig($form, $language);
         $subject = $twig->render('finish.email.subject', $donation);
         $text    = $twig->render('finish.email.text', $donation);
 
@@ -1970,9 +1971,10 @@ function getStripePublicKeys(array $form)
  * or an array with a value per locale
  *
  * @param string|array $setting
+ * @param string       $language en|de|...
  * @return string|array|null
  */
-function getLocalizedValue($setting)
+function getLocalizedValue($setting, $language = null)
 {
     if (is_string($setting)) {
         return $setting;
@@ -1980,8 +1982,10 @@ function getLocalizedValue($setting)
 
     if (is_array($setting) && count($setting) > 0) {
         // Chosse the best translation
-        $segments = explode('_', get_locale(), 2);
-        $language = reset($segments);
+        if (empty($language)) {
+            $segments = explode('_', get_locale(), 2);
+            $language = reset($segments);
+        }
         return get($setting[$language], reset($setting));
     } else {
         return null;
@@ -2047,17 +2051,18 @@ function checkHoneyPot($post)
 /**
  * Get twig singleton for form emails
  *
- * @param string $form Form name
+ * @param string $form     Form name
+ * @param string $language de|en|...
  * @return Twig_Environment
  */
-function getTwig($form)
+function getTwig($form, $language = null)
 {
     if (isset($GLOBALS['eas-twig'])) {
         return $GLOBALS['eas-twig'];
     }
 
     // Get settings
-    $confirmationEmail = getLocalizedValue($GLOBALS['easForms'][$form]['finish.email']);
+    $confirmationEmail = getLocalizedValue($GLOBALS['easForms'][$form]['finish.email'], $language);
     $isHtml            = get($confirmationEmail['html'], false);
     $twigSettings      = array(
         'finish.email.subject' => $confirmationEmail['subject'],
@@ -2089,12 +2094,6 @@ function sendEmails(array $donation, $form)
 
     // Send notification email
     sendNotificationEmail($donation, $form);
-}
-
-// Allow cross domain access
-add_action('init', 'allow_origin');
-function allow_origin() {
-    header("Access-Control-Allow-Origin: *");
 }
 
 /*
