@@ -691,7 +691,6 @@ function handleBankTransferDonation()
 
     // Send form
     jQuery('form#donationForm').ajaxSubmit({
-        crossDomain: true,
         success: function(responseText, statusText, xhr, form) {
             try {
                 var response = JSON.parse(responseText);
