@@ -148,9 +148,11 @@ jQuery(document).ready(function($) {
                        ($(this).attr('type') == 'email' && !isValidEmail($(this).val().trim()))
             });
 
-            // Unchecked radio groups (bootstrap drop downs)
+            // Unchecked radio groups (bootstrap drop downs). Add button instead.
             var emptyRadios = $('div.item.active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
-            empty = $.merge(empty, emptyRadios.find('button'));
+            if (emptyRadios.find('button').length) {
+                empty = $.merge(empty, emptyRadios.find('button'));
+            }
 
             // If there are empty fields, then
             if (empty.length + invalid.length) {
@@ -338,9 +340,9 @@ jQuery(document).ready(function($) {
         otherInput.siblings('span.eas-error').remove();
         otherInput
             .val('')
-            .removeClass("active")
+            .removeClass('active')
             .siblings('span.input-group-addon').removeClass('active')
-            .parent().removeClass("required")
+            .parent().removeClass('required')
             .parent().removeClass('has-error')
 
         // Mark this as active
