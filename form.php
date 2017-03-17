@@ -331,9 +331,20 @@ function donationForm($atts, $content = null)
                 <!-- Purpose -->
                 <?php
                     if (!empty($easSettings['payment.purpose']) && is_array($easSettings['payment.purpose'])):
-                        $firstItem = reset(array_values($easSettings['payment.purpose']));
-                        if (is_array($firstItem)) {
-                            $firstItem = getLocalizedValue($firstItem);
+                        // Check if there's an empty option
+                        if (array_key_exists('', $easSettings['payment.purpose'])) {
+                            // Label of empty item ("Choose your purpose"), not selectable
+                            $purposeButtonLabel = $easSettings['payment.purpose'][''];
+                            $checked            = '';
+                        } else {
+                            // Label of first option (selected by default)
+                            $purposeButtonLabel = reset(array_values($easSettings['payment.purpose']));
+                            $checked            = 'checked';
+                        }
+
+                        // Localize label
+                        if (is_array($purposeButtonLabel)) {
+                            $purposeButtonLabel = getLocalizedValue($purposeButtonLabel);
                         }
 
                         // Don't print dropdown when only one purpose
@@ -342,17 +353,21 @@ function donationForm($atts, $content = null)
                             echo '<input type="hidden" name="purpose" value="' . $firstKey . '">';
                         else:
                 ?>
-                    <div class="form-group donor-info" id="donation-purpose">
+                    <div class="form-group required donor-info" id="donation-purpose">
                         <label for="donor-purpose" class="col-sm-3 control-label"><?php _e('Purpose', 'eas-donation-processor') ?></label>
                         <div class="col-sm-9">
                             <button type="button" id="donor-purpose" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span id="selected-purpose"><?php echo $firstItem ?></span>
+                                <span id="selected-purpose"><?php echo $purposeButtonLabel ?></span>
                                 <span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu scrollable-menu">
                                 <?php
-                                    $checked = 'checked';
                                     foreach ($easSettings['payment.purpose'] as $value => $labels) {
+                                        // Ignore empty values
+                                        if (empty($value)) {
+                                            continue;
+                                        }
+
                                         // Check if there are language settings
                                         if (is_array($labels)) {
                                             $label = getLocalizedValue($labels);

@@ -136,7 +136,7 @@ jQuery(document).ready(function($) {
             inputs.parent().parent().removeClass('has-error');
 
             // Get all required fields inside the page, except honey pot (#donor-email-confirm)
-            var reqInputs = $('div.item.active .required :input', '#wizard').not('#donor-email-confirm');
+            var reqInputs = $('div.item.active .required :input:not(:radio):not(:button)', '#wizard').not('#donor-email-confirm');
             // ... which are empty or invalid
             var empty = reqInputs.filter(function() {
                 return $(this).val().replace(/\s*/g, '') == '';
@@ -148,11 +148,12 @@ jQuery(document).ready(function($) {
                        ($(this).attr('type') == 'email' && !isValidEmail($(this).val().trim()))
             });
 
-            // Unchecked radio groups
+            // Unchecked radio groups (bootstrap drop downs)
             var emptyRadios = $('div.item.active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
+            empty = $.merge(empty, emptyRadios.find('button'));
 
             // If there are empty fields, then
-            if (empty.length + invalid.length + emptyRadios.length) {
+            if (empty.length + invalid.length) {
                 // slide down the drawer
                 drawer.slideDown(function()  {     
                     // Colored flash effect
@@ -174,12 +175,10 @@ jQuery(document).ready(function($) {
                     }
                 });
 
-
-                // cancel seeking of the scrollable by returning false
+                // Cancel seeking of the scrollable by returning false
                 return false;
-            // everything is good
             } else {
-                // hide the drawer
+                // Everything OK, hide the drawer
                 drawer.slideUp();
             }
         }

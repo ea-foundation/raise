@@ -406,69 +406,138 @@ function getGoCardlessClient($form, $mode, $taxReceiptNeeded, $currency, $countr
     if (empty($GLOBALS['easForms'][$form]["payment.provider.gocardless.$mode.access_token"])) {
         die("Error: No access token defined for $form (payment.provider.gocardless.$mode.access_token)");
     }
-    $accessToken = getBestGoCardlessAccessToken($form, $mode, $taxReceiptNeeded, $currency, $country);
-    
+    $settings = getBestPaymentProviderSettings("gocardless", $form, $mode, $taxReceiptNeeded, $currency, $country);
+
     return new \GoCardlessPro\Client([
-        'access_token' => $accessToken,
+        'access_token' => $settings['access_token'],
         'environment'  => $mode == 'live' ? \GoCardlessPro\Environment::LIVE : \GoCardlessPro\Environment::SANDBOX,
     ]);
 }
 
 /**
- * Get best GoCardless access token
+ * Get best payment settings for the donor
  *
+ * @param string provider
  * @param string $form
  * @param string $mode
  * @param bool   $taxReceiptNeeded
  * @param string $currency
  * @param string $country
- * @return string GoCardless access token
+ * @return array
  */
-function getBestGoCardlessAccessToken($form, $mode, $taxReceiptNeeded, $currency, $country)
-{
+function getBestPaymentProviderSettings(
+    $provider,
+    $form,
+    $mode,
+    $taxReceiptNeeded,
+    $currency,
+    $country
+) {
     // Make things lowercase
+    $provider = strtolower($provider);
     $currency = strtolower($currency);
     $country  = strtolower($country);
+
+    // Get provider properties
+    $properties = getPaymentProviderProperties($provider);
+    if (empty($properties)) {
+        throw new \Exception('Unsupported provider');
+    }
 
     // Extract settings of the form we're talking about
     $formSettings = $GLOBALS['easForms'][$form];
 
     // Check all possible settings
-    $hasCountrySetting  = isset($formSettings["payment.provider.gocardless_$country.$mode.access_token"]);
-    $hasCurrencySetting = isset($formSettings["payment.provider.gocardless_$currency.$mode.access_token"]);
-    $hasDefaultSetting  = isset($formSettings["payment.provider.gocardless.$mode.access_token"]);
+    $hasCountrySetting  = true;
+    $hasCurrencySetting = true;
+    $hasDefaultSetting  = true;
+    foreach ($properties as $property) {
+        $hasCountrySetting  = $hasCountrySetting  && isset($formSettings["payment.provider.{$provider}_$country.$mode.$property"]);
+        $hasCurrencySetting = $hasCurrencySetting && isset($formSettings["payment.provider.{$provider}_$currency.$mode.$property"]);
+        $hasDefaultSetting  = $hasDefaultSetting  && isset($formSettings["payment.provider.$provider.$mode.$property"]);
+    }
 
     // Check if there are settings for a country where the chosen currency is used.
     // This is only relevant if the donor does not need a donation receipt (always related
     // to specific country) and if there are no currency specific settings
     $hasCountryOfCurrencySetting = false;
+    $firstProperty               = $properties[0];
     $countryOfCurrency           = '';
-    //throw new \Exception(($taxReceiptNeeded ? 'yes' : 'no') . ' ' . ($hasCurrencySetting ? 'yes' : 'no'));
     if (!$taxReceiptNeeded && !$hasCurrencySetting) {
         $countries = array_map('strtolower', getCountriesByCurrency($currency));
         foreach ($countries as $country) {
-            if (isset($formSettings["payment.provider.gocardless_$country.$mode.access_token"])) {
+            if (isset($formSettings["payment.provider.{$provider}_$country.$mode.$firstProperty"])) {
+                // Make sure we have all the properties
                 $hasCountryOfCurrencySetting = true;
-                $countryOfCurrency = $country;
-                break;
+                foreach ($properties as $property) {
+                    $hasCountryOfCurrencySetting = $hasCountryOfCurrencySetting && isset($formSettings["payment.provider.{$provider}_$country.$mode.$firstProperty"]);
+                }
+
+                // If so, stop
+                if ($hasCountryOfCurrencySetting) {
+                    $countryOfCurrency = $country;
+                    break;
+                } else {
+                    $hasCountryOfCurrencySetting = false;
+                }
             }
         }
     }
 
     if ($taxReceiptNeeded && $hasCountrySetting) {
-        // Use country specific key
-        return $formSettings["payment.provider.gocardless_$country.$mode.access_token"];
+        // Use country specific settings
+        return removePrefix($formSettings, $properties, "payment.provider.{$provider}_$country.$mode.");
     } else if ($hasCurrencySetting) {
-        // Use currency specific key
-        return $formSettings["payment.provider.gocardless_$currency.$mode.access_token"];
+        // Use currency specific settings
+        return removePrefix($formSettings, $properties, "payment.provider.{$provider}_$currency.$mode.");
     } else if ($hasCountryOfCurrencySetting) {
-        // Use key of a country where the chosen currency is used
-        return $formSettings["payment.provider.gocardless_$countryOfCurrency.$mode.access_token"];
+        // Use settings of a country where the chosen currency is used
+        return removePrefix($formSettings, $properties, "payment.provider.{$provider}_$countryOfCurrency.$mode.");
     } else if ($hasDefaultSetting) {
-        // Use default key
-        return $formSettings["payment.provider.gocardless.$mode.access_token"];
+        // Use default settings
+        return removePrefix($formSettings, $properties, "payment.provider.$provider.$mode.");
     } else {
-        throw new \Exception('No GoCardless access token found');
+        throw new \Exception('No settings found');
+    }
+}
+
+/**
+ * Get setting properties without prefix
+ *
+ * @param array  $settings
+ * @param array  $properties
+ * @param string $prefix
+ * @return array
+ */
+function removePrefix(array $settings, array $properties, $prefix)
+{
+    $result = array();
+    foreach ($properties as $property) {
+        $result[$property] = $settings[$prefix . $property];
+    }
+
+    return $result;
+}
+
+/**
+ * Get payment provider settings properties
+ *
+ * @param string $provider
+ * @return array
+ */
+function getPaymentProviderProperties($provider)
+{
+    switch (strtolower($provider)) {
+        case "stripe":
+            return array("secret_key", "public_key");
+        case "paypal":
+            return array("email_id", "api_username", "api_password", "api_signature", "application_id");
+        case "gocardless":
+            return array("access_token");
+        case "bitpay":
+            return array("pairing_code");
+        default:
+            return array();
     }
 }
 
@@ -710,15 +779,19 @@ function getBitpayKeyIds($pairingCode)
  *
  * @param string $form
  * @param string $mode
+ * @param bool   $taxReceipt
+ * @param string $currency
+ * @param string $country
  * @return \Bitpay\Bitpay
  */
-function getBitpayDependencyInjector($form, $mode)
+function getBitpayDependencyInjector($form, $mode, $taxReceipt, $currency, $country)
 {
     // Get BitPay pairing code
-    $pairingCode = get($GLOBALS['easForms'][$form]["payment.provider.bitpay.$mode.pairing_code"]);
-    if (!$pairingCode) {
+    $settings = getBestPaymentProviderSettings('bitpay', $form, $mode, $taxReceipt, $currency, $country);
+    if (empty($settings['pairing_code'])) {
         throw new \Exception('No pairing code set');
     }
+    $pairingCode = $settings['pairing_code'];
 
     // Get key IDs
     list($privateKeyId, $publicKeyId, $tokenId) = getBitpayKeyIds($pairingCode);
@@ -782,12 +855,15 @@ function generateBitpayToken(\Bitpay\Bitpay $bitpay, $label = '')
  *
  * @param string $form
  * @param string $mode
+ * @param bool   $taxReceipt
+ * @param string $currency
+ * @param string $country
  * @return \Bitpay\Client\Client
  */
-function getBitpayClient($form, $mode)
+function getBitpayClient($form, $mode, $taxReceipt, $currency, $country)
 {
     // Get BitPay dependency injector
-    $bitpay = getBitpayDependencyInjector($form, $mode);
+    $bitpay = getBitpayDependencyInjector($form, $mode, $taxReceipt, $currency, $country);
 
     // Get BitPay pairing code as well as key/token IDs
     $pairingCode = $bitpay->getContainer()->getParameter('bitpay.key_storage_password');
@@ -842,7 +918,7 @@ function prepareBitPayDonation()
         //$returnUrl       = getAjaxEndpoint() . '?action=bitpay_confirm';
 
         // Get BitPay object and token
-        $client = getBitpayClient($form, $mode);
+        $client = getBitpayClient($form, $mode, $taxReceipt, $currency, $country);
 
         // Make item
         $item = new \Bitpay\Item();
@@ -936,15 +1012,18 @@ function processBitPayLog()
         $_SESSION['eas-req-id'] = uniqid();
 
         // Get variables
-        $amount   = $_SESSION['eas-amount'];
-        $email    = $_SESSION['eas-email'];
-        $name     = $_SESSION['eas-name'];
-        $form     = $_SESSION['eas-form'];
-        $mode     = $_SESSION['eas-mode'];
-        $language = $_SESSION['eas-language'];
+        $amount     = $_SESSION['eas-amount'];
+        $email      = $_SESSION['eas-email'];
+        $name       = $_SESSION['eas-name'];
+        $form       = $_SESSION['eas-form'];
+        $mode       = $_SESSION['eas-mode'];
+        $language   = $_SESSION['eas-language'];
+        $taxReceipt = $_SESSION['eas-tax-receipt'];
+        $currency   = $_SESSION['eas-currency'];
+        $country    = $_SESSION['eas-country'];
 
         // Make sure the payment is paid
-        $client      = getBitpayClient($form, $mode);
+        $client      = getBitpayClient($form, $mode, $taxReceipt, $currency, $country);
         $invoice     = $client->getInvoice($_SESSION['eas-invoice-id']);
         $status      = $invoice->getStatus();
         $validStates = array(
@@ -1045,7 +1124,7 @@ function processPaypalDonation()
         $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
 
         // Get best Paypal account for donation
-        $paypalAccount = getBestPaypalAccount($form, $mode, $taxReceipt, $currency, $country);
+        $paypalAccount = getBestPaymentProviderSettings("paypal", $form, $mode, $taxReceipt, $currency, $country);
 
         $qsConnector = strpos('?', $returnUrl) ? '&' : '?';
         $content = array(
@@ -1150,89 +1229,6 @@ function processPaypalDonation()
             'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
         )));
     }
-}
-
-/**
- * Get best Paypal account
- *
- * @param string $form
- * @param string $mode
- * @param bool   $taxReceiptNeeded
- * @param string $currency
- * @param string $country
- * @return array PayPal API data: ['email_id' => '...', api_username' => '...', 'api_password' => '...', 'api_signature' => '...']
- */
-function getBestPaypalAccount($form, $mode, $taxReceiptNeeded, $currency, $country)
-{
-    // Make things lowercase
-    $currency = strtolower($currency);
-    $country  = strtolower($country);
-
-    // Extract settings of the form we're talking about
-    $formSettings = $GLOBALS['easForms'][$form];
-
-    // Check all possible settings
-    $hasCountrySetting  = isset($formSettings["payment.provider.paypal_$country.$mode.email_id"]);
-    $hasCurrencySetting = isset($formSettings["payment.provider.paypal_$currency.$mode.email_id"]);
-    $hasDefaultSetting  = isset($formSettings["payment.provider.paypal.$mode.email_id"]);
-
-    // Check if there are settings for a country where the chosen currency is used.
-    // This is only relevant if the donor does not need a donation receipt (always related
-    // to specific country) and if there are no currency specific settings
-    $hasCountryOfCurrencySetting = false;
-    $countryOfCurrency           = '';
-    if (!$taxReceiptNeeded && !$hasCurrencySetting) {
-        $countries = array_map('strtolower', getCountriesByCurrency($currency));
-        foreach ($countries as $country) {
-            if (isset($formSettings["payment.provider.paypal_$country.$mode.email_id"])) {
-                $hasCountryOfCurrencySetting = true;
-                $countryOfCurrency           = $country;
-                break;
-            }
-        }
-    }
-
-    if ($taxReceiptNeeded && $hasCountrySetting) {
-        // Use country specific key
-        $paypalAccount = array(
-            'email_id'       => $formSettings["payment.provider.paypal_$country.$mode.email_id"],
-            'api_username'   => $formSettings["payment.provider.paypal_$country.$mode.api_username"],
-            'api_password'   => $formSettings["payment.provider.paypal_$country.$mode.api_password"],
-            'api_signature'  => $formSettings["payment.provider.paypal_$country.$mode.api_signature"],
-            'application_id' => $formSettings["payment.provider.paypal_$country.$mode.application_id"],
-        );
-    } else if ($hasCurrencySetting) {
-        // Use currency specific key
-        $paypalAccount = array(
-            'email_id'       => $formSettings["payment.provider.paypal_$currency.$mode.email_id"],
-            'api_username'   => $formSettings["payment.provider.paypal_$currency.$mode.api_username"],
-            'api_password'   => $formSettings["payment.provider.paypal_$currency.$mode.api_password"],
-            'api_signature'  => $formSettings["payment.provider.paypal_$currency.$mode.api_signature"],
-            'application_id' => $formSettings["payment.provider.paypal_$currency.$mode.application_id"],
-        );
-    } else if ($hasCountryOfCurrencySetting) {
-        // Use key of a country where the chosen currency is used
-        $paypalAccount = array(
-            'email_id'       => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.email_id"],
-            'api_username'   => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_username"],
-            'api_password'   => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_password"],
-            'api_signature'  => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.api_signature"],
-            'application_id' => $formSettings["payment.provider.paypal_$countryOfCurrency.$mode.application_id"],
-        );
-    } else if ($hasDefaultSetting) {
-        // Use default key
-        $paypalAccount = array(
-            'email_id'       => $formSettings["payment.provider.paypal.$mode.email_id"],
-            'api_username'   => $formSettings["payment.provider.paypal.$mode.api_username"],
-            'api_password'   => $formSettings["payment.provider.paypal.$mode.api_password"],
-            'api_signature'  => $formSettings["payment.provider.paypal.$mode.api_signature"],
-            'application_id' => $formSettings["payment.provider.paypal.$mode.application_id"],
-        );
-    } else {
-        throw new \Exception('No Paypal settings found');
-    }
-
-    return $paypalAccount;
 }
 
 /**
