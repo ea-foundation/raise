@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.3.18
+ * Version: 0.3.19
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary

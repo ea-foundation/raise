@@ -2006,7 +2006,8 @@ function get(&$var, $default = null) {
  */
 function getAjaxEndpoint()
 {
-    $url     = admin_url('admin-ajax.php');
+    return admin_url('admin-ajax.php');
+    /*$url     = admin_url('admin-ajax.php');
     $homeUrl = home_url();
 
     // Wrong base URL in multisite setting
@@ -2014,7 +2015,7 @@ function getAjaxEndpoint()
         $url = str_replace(site_url(), $homeUrl, $url);
     }
 
-    return $url;
+    return $url;*/
 }
 
 /**
