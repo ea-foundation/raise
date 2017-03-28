@@ -255,6 +255,12 @@ jQuery(document).ready(function($) {
             // Only accept numbers, dot, backspace, and enter
             return false;
         }
+
+        // Validate input (workaround for Safari)
+        if (keyCode == 13) {
+            $('button.confirm:first').click();
+            return false;
+        }
     });
 
     // Click on frequency labels
@@ -839,7 +845,6 @@ function loadStripeHandler()
         color: '#255A8E',
         locale: 'auto',
         token: function(token) {
-            //console.log("my object: %o", token);
             var tokenInput = jQuery('<input type="hidden" name="stripeToken">').val(token.id);
             var keyInput   = jQuery('<input type="hidden" name="stripePublicKey">').val(newStripeKey);
 

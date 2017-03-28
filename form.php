@@ -27,7 +27,7 @@ function donationForm($atts, $content = null)
     // Load settings
     $easForms = $GLOBALS['easForms'];
     if (empty($easForms[$name])) {
-        echo 'No settings found for form ' . $name . '. See Settings > Donation Settings';
+        echo 'No settings found for form ' . $name . '. See Settings > Donation Plugin';
         return;
     }
     $easSettings = $easForms[$name];
@@ -60,10 +60,10 @@ function donationForm($atts, $content = null)
         'amount_patterns'       => $amountPatterns,
         'stripe_public_keys'    => $stripeKeys,
         'organization'          => $GLOBALS['easOrganization'],
+        'currency2country'      => $GLOBALS['currency2country'],
         'donate_button_once'    => __("Donate %currency-amount%", "eas-donation-processor"),
         'donate_button_monthly' => __("Donate %currency-amount% per month", "eas-donation-processor"),
         'donation'              => __("Donation", "eas-donation-processor"),
-        'currency2country'      => $GLOBALS['currency2country'],
     ));
 
     // Enqueue previously registered scripts and styles (to prevent them loading on every page load)
@@ -338,7 +338,8 @@ function donationForm($atts, $content = null)
                             $checked            = '';
                         } else {
                             // Label of first option (selected by default)
-                            $purposeButtonLabel = reset(array_values($easSettings['payment.purpose']));
+                            $purposeValues      = array_values($easSettings['payment.purpose']);
+                            $purposeButtonLabel = reset($purposeValues);
                             $checked            = 'checked';
                         }
 
@@ -349,7 +350,8 @@ function donationForm($atts, $content = null)
 
                         // Don't print dropdown when only one purpose
                         if (count($easSettings['payment.purpose']) == 1):
-                            $firstKey = reset(array_keys($easSettings['payment.purpose']));
+                            $purposeKeys = array_keys($easSettings['payment.purpose']);
+                            $firstKey    = reset($purposeKeys);
                             echo '<input type="hidden" name="purpose" value="' . $firstKey . '">';
                         else:
                 ?>
