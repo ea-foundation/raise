@@ -136,7 +136,7 @@ jQuery(document).ready(function($) {
             inputs.parent().parent().removeClass('has-error');
 
             // Get all required fields inside the page, except honey pot (#donor-email-confirm)
-            var reqInputs = $('div.item.active .required :input', '#wizard').not('#donor-email-confirm');
+            var reqInputs = $('div.item.active .required :input:not(:radio):not(:button)', '#wizard').not('#donor-email-confirm');
             // ... which are empty or invalid
             var empty = reqInputs.filter(function() {
                 return $(this).val().replace(/\s*/g, '') == '';
@@ -148,11 +148,14 @@ jQuery(document).ready(function($) {
                        ($(this).attr('type') == 'email' && !isValidEmail($(this).val().trim()))
             });
 
-            // Unchecked radio groups
+            // Unchecked radio groups (bootstrap drop downs). Add button instead.
             var emptyRadios = $('div.item.active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
+            if (emptyRadios.find('button').length) {
+                empty = $.merge(empty, emptyRadios.find('button'));
+            }
 
             // If there are empty fields, then
-            if (empty.length + invalid.length + emptyRadios.length) {
+            if (empty.length + invalid.length) {
                 // slide down the drawer
                 drawer.slideDown(function()  {     
                     // Colored flash effect
@@ -174,12 +177,10 @@ jQuery(document).ready(function($) {
                     }
                 });
 
-
-                // cancel seeking of the scrollable by returning false
+                // Cancel seeking of the scrollable by returning false
                 return false;
-            // everything is good
             } else {
-                // hide the drawer
+                // Everything OK, hide the drawer
                 drawer.slideUp();
             }
         }
@@ -252,6 +253,12 @@ jQuery(document).ready(function($) {
         var keyCode = event.which;
         if (!(48 <= keyCode && keyCode <= 57) && keyCode != 190 && keyCode != 46 && keyCode != 13) {
             // Only accept numbers, dot, backspace, and enter
+            return false;
+        }
+
+        // Validate input (workaround for Safari)
+        if (keyCode == 13) {
+            $('button.confirm:first').click();
             return false;
         }
     });
@@ -339,9 +346,9 @@ jQuery(document).ready(function($) {
         otherInput.siblings('span.eas-error').remove();
         otherInput
             .val('')
-            .removeClass("active")
+            .removeClass('active')
             .siblings('span.input-group-addon').removeClass('active')
-            .parent().removeClass("required")
+            .parent().removeClass('required')
             .parent().removeClass('has-error')
 
         // Mark this as active
@@ -838,7 +845,6 @@ function loadStripeHandler()
         color: '#255A8E',
         locale: 'auto',
         token: function(token) {
-            //console.log("my object: %o", token);
             var tokenInput = jQuery('<input type="hidden" name="stripeToken">').val(token.id);
             var keyInput   = jQuery('<input type="hidden" name="stripePublicKey">').val(newStripeKey);
 
