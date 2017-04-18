@@ -1495,8 +1495,14 @@ function sendConfirmationEmail(array $donation, $form)
 
 /**
  * Auxiliary function for recursively falttening the settings array.
- * The flattening does not affect numeric arrays and the not partially
- * overwritable properties 'payment.purpose' and 'amount.currency'.
+ * The flattening does NOT affect numeric arrays and the following 
+ * properties:
+ * - amount.currency
+ * - payment.purpose
+ * - payment.labels
+ * - finish.success_message
+ * - finish.email
+ * - finish.notification_email
  *
  * @param array  $settings  Option array from WordPress
  * @param array  $result    Falttened result array
@@ -1511,6 +1517,7 @@ function flattenSettings($settings, &$result, $parentKey = '')
         || preg_match('/payment\.purpose$/', $parentKey)
         || preg_match('/payment\.labels$/', $parentKey)
         || preg_match('/amount\.currency$/', $parentKey)
+        || preg_match('/finish\.success_message$/', $parentKey)
         || preg_match('/finish\.email$/', $parentKey)
         || preg_match('/finish\.notification_email$/', $parentKey)
     ) {
@@ -2091,6 +2098,32 @@ function sendEmails(array $donation, $form)
 
     // Send notification email
     sendNotificationEmail($donation, $form);
+}
+
+/**
+ * Monoloinguify language labels on level
+ *
+ * @param array $labels
+ * @param int   $depth
+ * @return array
+ */
+function monolinguify(array $labels, $depth = 0)
+{
+    if (!$depth--) {
+        foreach (array_keys($labels) as $key) {
+            if (is_array($labels[$key])) {
+                $labels[$key] = getLocalizedValue($labels[$key]);
+            }
+        }
+    } else {
+        foreach (array_keys($labels) as $key) {
+            if (is_array($labels[$key])) {
+                $labels[$key] = monolinguify($labels[$key], $depth);
+            }
+        }
+    }
+
+    return $labels;
 }
 
 /*

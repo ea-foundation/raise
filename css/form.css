@@ -121,8 +121,7 @@
 }
 
 #wizard input.text {
-    color:#456;
-    letter-spacing:1px;
+    color: #456;
     outline: 0;
     margin: 0;
 }
@@ -294,7 +293,7 @@ div#amount-item span.form-control-feedback {
     font-size: 6px;
     color: white;
     position: relative;
-    left: -11.5px;
+    left: -11px;
     top: -1px; 
     margin-right: -6px;
 }
@@ -302,6 +301,10 @@ div#amount-item span.form-control-feedback {
 #wizard div.tax-confirmation {
     font-size: 12px;
     padding-bottom: 25px;
+}
+
+#wizard span.payment-method-name {
+    text-transform: capitalize;
 }
 
 #wizard div.float-left {
@@ -342,6 +345,7 @@ input#donor-country-auto {
     font-size: 14px !important;
     line-height: 1.42857143;
     margin-bottom: 0;
+    list-style-type: none;
 }
 
 #wizard .dropdown-menu>li>label {
@@ -395,6 +399,10 @@ div#donation-confirmation div.response-icon {
 
 div#payment-method-item span.form-control-feedback {
     margin-right: 15px;
+}
+
+#wizard .donor-info > div {
+    text-align: left;
 }
 
 #wizard .hidden {

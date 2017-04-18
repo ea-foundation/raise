@@ -213,8 +213,11 @@ jQuery(document).ready(function($) {
         }
 
         if (currentItem == (totalItems - 2)) {
-            // On penultimate page replace "confirm" with "donate X CHF"
-            var foo = setTimeout(function() { showLastItem(currentItem) }, 200);
+            // On penultimate page  load tax deduction labels
+            updateTaxDeductionLabels();
+
+            // ... and replace "confirm" with "donate X CHF"
+            setTimeout(function() { showLastItem(currentItem) }, 200);
         } else {
             // Go to next slide
             carouselNext();
@@ -391,15 +394,23 @@ jQuery(document).ready(function($) {
         reloadPaymentProvidersForCurrentCurrency();
     });
 
+    $('div#payment-method-providers input[type=radio][name=payment]').change(function() {
+        // Update tax deduction labels
+        updateTaxDeductionLabels();
+    });
+
     // Purpose dropdown stuff
     $('#donation-purpose input[type=radio]').change(function() {
         $('#selected-purpose').text($(this).parent().contents().filter(function() {
             return this.nodeType == 3;
         }).text());
+
+        // Update tax deduction text
+        updateTaxDeductionLabels();
     });
 
     // Country dropdown stuff
-    $('#donor-extra-info select#donor-country').change(function() {
+    $('select#donor-country').change(function() {
         // Reload Stripe handler
         var option      = $(this).find('option:selected');
         var countryCode = option.val();
@@ -409,10 +420,13 @@ jQuery(document).ready(function($) {
 
             // Make sure it's displyed correctly (autocomplete may mess with it)
             $('input#donor-country-auto').val(option.text());
-            $('#donor-extra-info input[name=country]').val(countryCode);
+            $('input[name=country]', '#wizard').val(countryCode);
 
-            // Reload stripe handlers
-            loadStripeHandler();
+            // Reload stripe handlers, trigger later (Chrome bug)
+            setTimeout(loadStripeHandler, 10);
+
+            // Update tax deduction labels
+            updateTaxDeductionLabels();
         }
     });
 
@@ -814,7 +828,7 @@ function loadStripeHandler()
             }
         }
     }
-    
+
     if (taxReceiptNeeded && hasCountrySetting) {
         // Use country specific key
         var newStripeKey = stripeSettings[userCountry.toLowerCase()][easMode];
@@ -997,9 +1011,111 @@ function reloadPaymentProvidersForCurrentCurrency()
     jQuery('#payment-method-providers label:not(.hidden):first input').prop('checked', true);
 }
 
+/**
+ * Get tax deduction labels (nested array: country > payment provider > purpose/charity)
+ */
+function updateTaxDeductionLabels()
+{
+    var labels = wordpress_vars.tax_deduction_labels;
 
+    // Only proceed if defined
+    if (!labels) {
+        return;
+    }
 
+    var paymentMethod = jQuery('input[name=payment]:checked', '#wizard');
+    if (paymentMethod.length) {
+        var paymentMethodId   = paymentMethod.attr('id').substr(8);
+        var paymentMethodName = paymentMethod.parent().find('span.payment-method-name').text();
+    } else {
+        var paymentMethodId   = null;
+        var paymentMethodName = null;
+    }
+    var purpose = jQuery('input[name=purpose]:checked', '#wizard');
+    if (purpose.length) {
+        var purposeId   = purpose.val();
+        var purposeName = purpose.parent().text();
+    } else {
+        var purposeId   = null;
+        var purposeName = null;
+    }
 
+    // Labels to check
+    var countryCodes   = !userCountry     ? ['default'] : ['default', userCountry.toLowerCase()];
+    var paymentMethods = !paymentMethodId ? ['default'] : ['default', paymentMethodId.toLowerCase()];
+    var purposes       = !purposeId       ? ['default'] : ['default', purposeId];
+    var result         = {};
+
+    // Find best labels, more specific settings override more general settings
+    for (var cc of countryCodes) {
+        for (var pm of paymentMethods) {
+            for (var p of purposes) {
+                if (checkNestedArray(labels, cc, pm, p)) {
+                    jQuery.extend(result, labels[cc][pm][p]);
+                }
+            }
+        }
+    }
+
+    // Update deductible
+    var taxReceipt = jQuery('input#tax-receipt');
+    if (result.hasOwnProperty('deductible')) {
+        // Collapse settings
+        if (!result.deductible && taxReceipt.is(':checked')) {
+            taxReceipt.click();
+        }
+        taxReceipt.prop('disabled', !result.deductible);
+    }
+
+    // Update receipt text
+    if ('receipt_text' in result) {
+        taxReceipt.parent().parent().parent().parent().show();
+        result.receipt_text = replaceTaxDeductionPlaceholders(result.receipt_text, userCountry, paymentMethodName, purposeName);
+        jQuery('span#tax-receipt-text').text(result.receipt_text);
+    } else {
+        // Hide checkbox
+        taxReceipt.prop('checked', false);
+        taxReceipt.parent().parent().parent().parent().hide();
+    }
+
+    // Update success text with nl2br
+    if ('success_text' in result) {
+        result.success_text = replaceTaxDeductionPlaceholders(result.success_text, userCountry, paymentMethodName, purposeName);
+        jQuery('div#shortcode-content').html(nl2br(result.success_text));
+    }
+}
+
+/**
+ * Add placeholders
+ */
+function replaceTaxDeductionPlaceholders(label, country, paymentMethod, purpose)
+{
+    if (!!country) {
+        label = label.replace('%country%', jQuery('select#donor-country option[value=' + country.toUpperCase() + ']').text());
+    }
+
+    if (!!paymentMethod) {
+        label = label.replace('%payment_method%', paymentMethod);
+    }
+
+    if (!!purpose) {
+        label = label.replace('%purpose%', purpose);
+    }
+
+    return label;
+}
+
+/**
+ * nl2br function from PHP
+ */
+function nl2br(str, isXhtml) {
+    if (typeof str === 'undefined' || str === null) {
+        return '';
+    }
+    // Adjust comment to avoid issue on locutus.io display
+    var breakTag = (isXhtml || typeof isXhtml === 'undefined') ? '<br ' + '/>' : '<br>';
+    return (str + '').replace(/(\r\n|\n\r|\r|\n)/g, breakTag + '$1');
+}
 
 
 
