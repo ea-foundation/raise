@@ -921,7 +921,7 @@ function getSkrillUrl($reqId, $post)
         'currency'          => $currency,
         'return_url'        => $returnUrl,
         'return_url_target' => 3, // _self
-        'logo_url'          => get_option('logo', plugin_dir_url(__FILE__) . 'images/logo.png'),
+        'logo_url'          => preg_replace("/^http:/i", "https:", get_option('logo', plugin_dir_url(__FILE__) . 'images/logo.png')),
         'language'          => strtoupper($language),
         'transaction_id'    => $reqId,
         'prepare_only'      => 1,
