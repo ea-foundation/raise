@@ -444,7 +444,7 @@ jQuery(document).ready(function($) {
             $('div#donor-extra-info').slideUp();
             $('div#donor-extra-info div.optionally-required').removeClass('required');
         }
-        // Reload stripe settings
+        // Reload Stripe settings
         loadStripeHandler();
     });
 }); // End jQuery(document).ready()

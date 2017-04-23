@@ -1018,7 +1018,7 @@ function prepareBitPayDonation()
         $_SESSION['eas-invoice-id']  = $invoice->getId();
 
         // Save user data to session
-        setDonationDataToSession($post, "PayPal", $reqId);
+        setDonationDataToSession($post, "BitPay", $reqId);
 
         // Return pay key
         die(json_encode(array(
