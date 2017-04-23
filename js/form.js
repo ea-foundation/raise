@@ -13,7 +13,7 @@ var slideTransitionInAction = false;
 var otherAmountPlaceholder  = null;
 var currentStripeKey        = '';
 var frequency               = 'once';
-var monthlySupport          = ['payment-creditcard', 'payment-banktransfer', 'payment-directdebit'];
+var monthlySupport          = ['payment-stripe', 'payment-banktransfer', 'payment-gocardless'];
 var goCardlessSupport       = ['EUR', 'GBP', 'SEK'];
 var gcPopup                 = null;
 var gcPollTimer             = null;
@@ -189,17 +189,20 @@ jQuery(document).ready(function($) {
         if (currentItem >= (totalItems - 1)) {
             // Process form
             switch ($('input[name=payment]:checked', '#wizard').attr('id')) {
-                case 'payment-creditcard':
+                case 'payment-stripe':
                     handleStripeDonation();
                     break;
                 case 'payment-paypal':
                     handlePaypalDonation();
                     break;
-                case 'payment-directdebit':
-                    handleDirectDebitDonation();
+                case 'payment-gocardless':
+                    handleGoCardlessDonation();
                     break;
-                case 'payment-bitcoin':
-                    handleBitcoinDonation();
+                case 'payment-bitpay':
+                    handleBitPayDonation();
+                    break;
+                case 'payment-skrill':
+                    handleSkrillDonation();
                     break;
                 case 'payment-banktransfer':
                     handleBankTransferDonation();
@@ -521,7 +524,7 @@ function handleStripeDonation()
     });
 }
 
-function handleDirectDebitDonation()
+function handleGoCardlessDonation()
 {
     // Show spinner right away
     showSpinnerOnLastButton();
@@ -581,7 +584,7 @@ function handleDirectDebitDonation()
     lockLastStep(true);
 }
 
-function handleBitcoinDonation()
+function handleBitPayDonation()
 {
     // Show spinner right away
     showSpinnerOnLastButton();
@@ -606,6 +609,49 @@ function handleBitcoinDonation()
 
                 // Show modal
                 jQuery('#bitPayModal').modal('show');
+            } catch (err) {
+                // Something went wrong, show on confirmation page
+                alert(err.message);
+
+                // Enable buttons
+                lockLastStep(false);
+            }
+        },
+        error: function(responseText) {
+            // Should only happen on internal server error
+            var message = 'error' in response ? response['error'] : responseText;
+            alert(message);
+        }
+    });
+
+    lockLastStep(true);
+}
+
+function handleSkrillDonation()
+{
+    // Show spinner right away
+    showSpinnerOnLastButton();
+
+    // Change form action (endpoint) and action input
+    jQuery('form#donationForm').attr('action', wordpress_vars.ajax_endpoint);
+    jQuery('form#donationForm input[name=action]').val('skrill_url');
+
+    // Get sign up URL
+    jQuery('form#donationForm').ajaxSubmit({
+        success: function(responseText, statusText, xhr, form) {
+            try {
+                // Take the pay key and start the PayPal flow
+                var response = JSON.parse(responseText);
+                if (!('success' in response) || !response['success']) {
+                    var message = 'error' in response ? response['error'] : responseText;
+                    throw new Error(message);
+                }
+
+                // Open URL in modal
+                jQuery('#skrillModal .modal-body').html('<iframe src="' + response.url + '"></iframe>');
+
+                // Show modal
+                jQuery('#skrillModal').modal('show');
             } catch (err) {
                 // Something went wrong, show on confirmation page
                 alert(err.message);
@@ -999,7 +1045,7 @@ function getCountriesByCurrency(currency)
 function reloadPaymentProvidersForCurrentCurrency()
 {
     // GoCardless
-    var gcLabel = jQuery('#payment-method-providers label[for=payment-directdebit]');
+    var gcLabel = jQuery('#payment-method-providers label[for=payment-gocardless]');
     if (goCardlessSupport.indexOf(selectedCurrency) == -1) {
         gcLabel.addClass('hidden');
         gcLabel.find('input').prop('checked', false);

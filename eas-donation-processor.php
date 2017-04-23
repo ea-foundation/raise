@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.3.21
+ * Version: 0.4.0
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.12');
+define('EAS_ASSET_VERSION', '0.14');
 
 // Load other files
 require_once 'vendor/autoload.php';
@@ -99,12 +99,28 @@ function eas_process_bitpay_url()
     prepareBitPayDonation();
 }
 
+// Generate Skrill URL
+add_action("wp_ajax_nopriv_skrill_url", "eas_process_skrill_url");
+add_action("wp_ajax_skrill_url", "eas_process_skrill_url");
+function eas_process_skrill_url()
+{
+    prepareSkrillDonation();
+}
+
 // Log BitPay donation
 add_action("wp_ajax_nopriv_bitpay_log", "eas_process_bitpay_log");
 add_action("wp_ajax_bitpay_log", "eas_process_bitpay_log");
 function eas_process_bitpay_log()
 {
     processBitPayLog();
+}
+
+// Log Skrill donation
+add_action("wp_ajax_nopriv_skrill_log", "eas_process_skrill_log");
+add_action("wp_ajax_skrill_log", "eas_process_skrill_log");
+function eas_process_skrill_log()
+{
+    processSkrillLog();
 }
 
 // Add translations

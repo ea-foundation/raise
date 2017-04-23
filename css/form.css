@@ -517,12 +517,12 @@ div#goCardlessModal .modal-body p {
     font-size: initial;
 }
 
-div#bitPayModal .modal-body {
-    background: url(../images/loader.gif) center center no-repeat;
+div.eas-iframe-modal .modal-body {
+    /*background: url(../images/loader.gif) center center no-repeat;*/
     height: 600px;
 }
 
-div#bitPayModal .modal-body iframe {
+div.eas-modal .modal-body iframe {
     border: 0;
     width: 100%;
     height: 100%;

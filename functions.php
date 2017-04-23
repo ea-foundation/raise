@@ -63,8 +63,6 @@ function processDonation()
             handleStripePayment($_POST);
         } else if ($_POST['payment'] == "Banktransfer") {
             handleBankTransferPayment($_POST);
-        //} else if ($_POST['payment'] == "Skrill") {
-            //echo gbs_skrillRedirect($_POST);
         } else {
             throw new Exception('Payment method is invalid.');
         }
@@ -190,7 +188,7 @@ function handleStripePayment($post)
         );
 
         // Trigger logging web hook for Zapier
-        triggerLoggingWebHooks($form, $donation);
+        triggerLoggingWebHooks($donation);
 
         // Trigger mailing list web hook for Zapier
         if (isset($post['mailinglist']) && $post['mailinglist'] == 1) {
@@ -214,7 +212,7 @@ function handleStripePayment($post)
         );
 
         // Send emails
-        sendEmails($donation, $form);
+        sendEmails($donation);
     } catch (\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
         throw new Exception($e->getMessage() . " " . $e->getStripeParam() . " : $form : $mode : $email : $amount : $currency");
@@ -279,6 +277,8 @@ function handleBankTransferPayment($post)
     $email     = $post['email'];
     $form      = $post['form'];
     $language  = strtoupper($post['language']);
+    $currency  = $post['currency'];
+    $frequency = $post['frequency'];
 
     // Prepare hook
     $donation = array(
@@ -287,9 +287,9 @@ function handleBankTransferPayment($post)
         'url'       => $_SERVER['HTTP_REFERER'],
         'language'  => $language,
         'time'      => date('r'),
-        'currency'  => $post['currency'],
+        'currency'  => $currency,
         'amount'    => $amount,
-        'frequency' => $post['frequency'],
+        'frequency' => $frequency,
         'type'      => 'Bank Transfer',
         'purpose'   => get($post['purpose'], ''),
         'email'     => $email,
@@ -302,7 +302,7 @@ function handleBankTransferPayment($post)
     );
 
     // Trigger hook for Zapier
-    triggerLoggingWebHooks($post['form'], $donation);
+    triggerLoggingWebHooks($donation);
 
     // Triger mailing list web hook for Zapier
     if (isset($post['mailinglist']) && $post['mailinglist'] == 1) {
@@ -317,26 +317,28 @@ function handleBankTransferPayment($post)
 
     // Save matching challenge donation post
     saveMatchingChallengeDonationPost(
-        $post['form'],
-        $anonymous ? 'Anonymous' : $post['name'],
-        $post['currency'],
+        $form,
+        $anonymous ? 'Anonymous' : $name,
+        $currency,
         $amount,
-        $post['frequency'],
+        $frequency,
         $comment
     );
 
     // Send emails
-    sendEmails($donation, $form);
+    sendEmails($donation);
 }
 
 /**
  * Send logging web hook to Zapier. See Settings > Webhooks
  *
- * @param string $form Form name
  * @param array $donation Donation data for logging
  */
-function triggerLoggingWebHooks($form, $donation)
+function triggerLoggingWebHooks($donation)
 {
+    // Get form
+    $form = get($donation['form'], '');
+
     // Trigger hooks for Zapier
     if (isset($GLOBALS['easForms'][$form]['webhook.logging'])) {
         $hooks = csvToArray($GLOBALS['easForms'][$form]['webhook.logging']);
@@ -536,6 +538,8 @@ function getPaymentProviderProperties($provider)
             return array("access_token");
         case "bitpay":
             return array("pairing_code");
+        case "skrill":
+            return array("merchant_account");
         default:
             return array();
     }
@@ -560,25 +564,20 @@ function prepareGoCardlessDonation()
         }
         unset($post['amount_other']);
 
-        $form        = $post['form'];
-        $mode        = $post['mode'];
-        $language    = $post['language'];
-        $email       = $post['email'];
-        $name        = $post['name'];
-        $amount      = $post['amount'];
-        $currency    = $post['currency'];
-        $taxReceipt  = get($post['tax_receipt'], false);
-        $country     = $post['country'];
-        $frequency   = $post['frequency'];
-        $returnUrl   = getAjaxEndpoint() . '?action=gocardless_debit';
-        $reqId       = uniqid(); // Secret request ID. Needed to prevent replay attack
-
         // Make GoCardless redirect flow
-        $monthly      = $frequency == 'monthly' ? ", " . __("monthly", "eas-donation-processor") : "";
-        $client       = getGoCardlessClient($form, $mode, $taxReceipt, $currency, $country);
+        $returnUrl    = getAjaxEndpoint() . '?action=gocardless_debit';
+        $reqId        = uniqid(); // Secret request ID. Needed to prevent replay attack
+        $monthly      = $post['frequency'] == 'monthly' ? ", " . __("monthly", "eas-donation-processor") : "";
+        $client       = getGoCardlessClient(
+            $post['form'],
+            $post['mode'],
+            get($post['tax_receipt'], false),
+            $post['currency'],
+            $post['country']
+        );
         $redirectFlow = $client->redirectFlows()->create([
             "params" => [
-                "description"          => __("Donation", "eas-donation-processor") . " ($currency $amount" . $monthly . ")",
+                "description"          => __("Donation", "eas-donation-processor") . " (" . $post['currency'] . " " . $post['amount'] . $monthly . ")",
                 "session_token"        => $reqId,
                 "success_redirect_url" => $returnUrl,
             ]
@@ -586,29 +585,9 @@ function prepareGoCardlessDonation()
 
         // Save flow ID to session
         $_SESSION['eas-gocardless-flow-id'] = $redirectFlow->id;
-        $_SESSION['eas-req-id']             = $reqId; // Session token
 
-        // Put user data in session. This way we can avoid other people using it to spam our logs
-        $_SESSION['eas-form']        = $form;
-        $_SESSION['eas-mode']        = $mode;
-        $_SESSION['eas-language']    = strtoupper($language);
-        $_SESSION['eas-url']         = $_SERVER['HTTP_REFERER'];
-        $_SESSION['eas-email']       = $email;
-        $_SESSION['eas-name']        = $name;
-        $_SESSION['eas-currency']    = $currency;
-        $_SESSION['eas-country']     = $country;
-        $_SESSION['eas-amount']      = money_format('%i', $amount);
-        $_SESSION['eas-tax-receipt'] = $taxReceipt;
-        $_SESSION['eas-frequency']   = $frequency;
-
-        // Optional fields
-        $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) ? $post['mailinglist'] == 1 : false;
-        $_SESSION['eas-purpose']     = get($post['purpose'], '');
-        $_SESSION['eas-address']     = get($post['address'], '');
-        $_SESSION['eas-zip']         = get($post['zip'], '');
-        $_SESSION['eas-city']        = get($post['city'], '');
-        $_SESSION['eas-comment']     = get($post['comment'], '');
-        $_SESSION['eas-anonymous']   = get($post['anonymous'], false);
+        // Save rest to session
+        setDonationDataToSession($post, "GoCardless", $reqId);
 
         // Return pay key
         die(json_encode(array(
@@ -633,12 +612,19 @@ function processGoCardlessDonation()
         // Load settings
         loadSettings();
 
+        // Get donation from session
+        $donation = getDonationDataFromSession();
+
+        // Reset request ID to prevent replay attacks
+        $_SESSION['eas-req-id'] = uniqid();
+
         // Get client
-        $form       = $_SESSION['eas-form'];
-        $mode       = $_SESSION['eas-mode'];
-        $taxReceipt = $_SESSION['eas-tax-receipt'];
-        $currency   = $_SESSION['eas-currency'];
-        $country    = $_SESSION['eas-country'];
+        $form       = $donation['form'];
+        $mode       = $donation['mode'];
+        $taxReceipt = $donation['tax_receipt'];
+        $currency   = $donation['currency'];
+        $country    = $donation['country'];
+        $reqId      = $donation['reqId'];
         $client     = getGoCardlessClient($form, $mode, $taxReceipt, $currency, $country);
 
         if (!isset($_GET['redirect_flow_id']) || $_GET['redirect_flow_id'] != $_SESSION['eas-gocardless-flow-id']) {
@@ -649,22 +635,22 @@ function processGoCardlessDonation()
         $redirectFlow = $client->redirectFlows()->complete(
             $_GET['redirect_flow_id'],
             ["params" => [
-                "session_token" => $_SESSION['eas-req-id']
+                "session_token" => $reqId
             ]]
         );
 
         // Get mandate ID
         $mandateID = $redirectFlow->links->mandate;
 
-        // Get other parameters from session
-        $language  = $_SESSION['eas-language'];
-        $url       = $_SESSION['eas-url'];
-        $amount    = $_SESSION['eas-amount'];
+        // Get other parameters
+        $language  = $donation['language'];
+        $url       = $donation['url'];
+        $amount    = $donation['amount'];
         $amountInt = floor($amount * 100);
-        $name      = $_SESSION['eas-name'];
-        $email     = $_SESSION['eas-email'];
-        $frequency = $_SESSION['eas-frequency'];
-        $purpose   = $_SESSION['eas-purpose'];
+        $name      = $donation['name'];
+        $email     = $donation['email'];
+        $frequency = $donation['frequency'];
+        $purpose   = $donation['purpose'];
 
         $payment = [
             "params" => [
@@ -680,7 +666,7 @@ function processGoCardlessDonation()
                 ]
             ],
             "headers" => [
-                "Idempotency-Key" => $_SESSION['eas-req-id']
+                "Idempotency-Key" => $reqId
             ],
         ];
 
@@ -697,35 +683,11 @@ function processGoCardlessDonation()
             $client->payments()->create($payment);
         }
 
-        // Prepare hook
-        $donation = array(
-            "form"      => $form,
-            "mode"      => $mode,
-            'url'       => $url,
-            "language"  => $language,
-            "time"      => date('r'),
-            "currency"  => $currency,
-            "amount"    => $amount,
-            "frequency" => $frequency,
-            "type"      => "GoCardless",
-            "purpose"   => $purpose,
-            "email"     => $email,
-            "name"      => $name,
-            "address"   => $_SESSION['eas-address'],
-            "zip"       => $_SESSION['eas-zip'],
-            "city"      => $_SESSION['eas-city'],
-            "country"   => getEnglishNameByCountryCode($country),
-            "comment"   => $_SESSION['eas-comment'],
-        );
-
-        // Reset request ID to prevent replay attacks
-        $_SESSION['eas-req-id'] = uniqid();
-
         // Trigger logging web hook for Zapier
-        triggerLoggingWebHooks($form, $donation);
+        triggerLoggingWebHooks($donation);
 
         // Trigger mailing list web hook for Zapier
-        if ($_SESSION['eas-mailinglist']) {
+        if ($donation['mailinglist']) {
             $subscription = array(
                 'email'    => $email,
                 'name'     => $name,
@@ -746,7 +708,7 @@ function processGoCardlessDonation()
         );
 
         // Send emails
-        sendEmails($donation, $form);
+        sendEmails($donation);
 
         $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation('gocardless'); mainWindow.hideModal('#goCardlessModal');";
     } catch (\Exception $e) {
@@ -787,7 +749,7 @@ function getBitpayKeyIds($pairingCode)
 function getBitpayDependencyInjector($form, $mode, $taxReceipt, $currency, $country)
 {
     // Get BitPay pairing code
-    $settings = getBestPaymentProviderSettings('bitpay', $form, $mode, $taxReceipt, $currency, $country);
+    $settings = getBestPaymentProviderSettings("bitpay", $form, $mode, $taxReceipt, $currency, $country);
     if (empty($settings['pairing_code'])) {
         throw new \Exception('No pairing code set');
     }
@@ -885,6 +847,107 @@ function getBitpayClient($form, $mode, $taxReceipt, $currency, $country)
 }
 
 /**
+ * AJAX endpoint that returns the Skrill URL. It stores
+ * user input in session until user is forwarded back from Skrill
+ */
+function prepareSkrillDonation()
+{
+    try {
+        // Load settings
+        loadSettings();
+
+        // Trim the data
+        $post = array_map('trim', $_POST);
+
+        // Replace amount_other
+        if (!empty($post['amount_other'])) {
+            $post['amount'] = $post['amount_other'];
+        }
+        unset($post['amount_other']);
+
+        // Save request ID to session
+        $reqId = uniqid(); // Secret request ID. Needed to prevent replay attack
+
+        // Get Skrill URL
+        $url = getSkrillUrl($reqId, $post);
+
+        // Put user data in session
+        setDonationDataToSession($post, "Skrill", $reqId);
+
+        // Return URL
+        die(json_encode(array(
+            'success' => true,
+            'url'     => $url,
+        )));
+    } catch (\Exception $e) {
+        die(json_encode(array(
+            'success' => false,
+            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
+        )));
+    }
+}
+
+/**
+ * Get Skrill URL
+ *
+ * @param string $reqId
+ * @param array  $post
+ * @return string
+ */
+function getSkrillUrl($reqId, $post)
+{
+    $form       = $post['form'];
+    $mode       = $post['mode'];
+    $language   = $post['language'];
+    $email      = $post['email'];
+    $name       = $post['name'];
+    $amount     = $post['amount'];
+    $currency   = $post['currency'];
+    $taxReceipt = get($post['tax_receipt'], false);
+    $country    = $post['country'];
+    $returnUrl  = getAjaxEndpoint() . '?action=skrill_log&req=' . $reqId;
+
+    // Get best Skrill account settings
+    $settings = getBestPaymentProviderSettings("skrill", $form, $mode, $taxReceipt, $currency, $country);
+
+    if (empty($settings['merchant_account'])) {
+        die('Error: No Skrill settings found for this form!');
+    }
+
+    $params = array(
+        'pay_to_email'      => $settings['merchant_account'],
+        'pay_from_email'    => $email,
+        'amount'            => $amount,
+        'currency'          => $currency,
+        'return_url'        => $returnUrl,
+        'return_url_target' => 3, // _self
+        'logo_url'          => get_option('logo', plugin_dir_url(__FILE__) . 'images/logo.png'),
+        'language'          => strtoupper($language),
+        'transaction_id'    => $reqId,
+        'prepare_only'      => 1,
+    );
+    $peer_key = version_compare(PHP_VERSION, '5.6.0', '<') ? 'CN_name' : 'peer_name';
+    $options  = array(
+        'http' => array(
+            'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method'  => 'POST',
+            'content' => http_build_query($params),
+        ),
+    );
+
+    //FIXME Remove this when XAMPP problem is fixed
+    if ($mode == 'sandbox') {
+        // Disable verify peer for local development
+        $options['ssl'] = array('verify_peer' => false);
+    }
+
+    $context = stream_context_create($options);
+    $sid     = file_get_contents($GLOBALS['SkrillApiEndpoint'], false, $context);
+
+    return $GLOBALS['SkrillApiEndpoint'] . '/?sid=' . $sid;
+}
+
+/**
  * AJAX endpoint that returns the BitPay URL. It stores
  * user input in session until user is forwarded back from BitPay
  */
@@ -951,31 +1014,11 @@ function prepareBitPayDonation()
             throw new \Exception($message);
         }
 
-        // Save request ID to session
-        $_SESSION['eas-req-id']      = $reqId; // Session token
+        // Save invoice ID to session
         $_SESSION['eas-invoice-id']  = $invoice->getId();
 
-        // Put user data in session. This way we can avoid other people using it to spam our logs
-        $_SESSION['eas-form']        = $form;
-        $_SESSION['eas-mode']        = $mode;
-        $_SESSION['eas-language']    = strtoupper($language);
-        $_SESSION['eas-url']         = $_SERVER['HTTP_REFERER'];
-        $_SESSION['eas-email']       = $email;
-        $_SESSION['eas-name']        = $name;
-        $_SESSION['eas-currency']    = $currency;
-        $_SESSION['eas-country']     = $country;
-        $_SESSION['eas-amount']      = money_format('%i', $amount);
-        $_SESSION['eas-tax-receipt'] = $taxReceipt;
-        $_SESSION['eas-frequency']   = $frequency;
-
-        // Optional fields
-        $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) ? $post['mailinglist'] == 1 : false;
-        $_SESSION['eas-purpose']     = get($post['purpose'], '');
-        $_SESSION['eas-address']     = get($post['address'], '');
-        $_SESSION['eas-zip']         = get($post['zip'], '');
-        $_SESSION['eas-city']        = get($post['city'], '');
-        $_SESSION['eas-comment']     = get($post['comment'], '');
-        $_SESSION['eas-anonymous']   = get($post['anonymous'], false);
+        // Save user data to session
+        setDonationDataToSession($post, "PayPal", $reqId);
 
         // Return pay key
         die(json_encode(array(
@@ -988,6 +1031,65 @@ function prepareBitPayDonation()
             'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
         )));
     }
+}
+
+/**
+ * AJAX endpoint for handling donation logging for Skrill.
+ * User is forwarded here after successful Skrill transaction.
+ * Takes user data from session and triggers the web hooks.
+ *
+ * @return string HTML with script that terminates the Skrill flow and shows the thank you step
+ */
+function processSkrillLog()
+{
+    try {
+        // Load settings
+        loadSettings();
+
+        // Make sure it's the same user session
+        if (!isset($_GET['req']) || $_GET['req'] != $_SESSION['eas-req-id']) {
+            throw new \Exception('Invalid request');
+        }
+
+        // Reset request ID to prevent replay attacks
+        $_SESSION['eas-req-id'] = uniqid();
+
+        // Get variables from session
+        $donation = getDonationDataFromSession();
+
+        // Trigger logging web hook for Zapier
+        triggerLoggingWebHooks($donation);
+
+        // Trigger mailing list web hook for Zapier
+        if ($_SESSION['eas-mailinglist']) {
+            $subscription = array(
+                'email'    => $donation['email'],
+                'name'     => $donation['name'],
+                'language' => $donation['language'],
+            );
+
+            triggerMailingListWebHooks($donation['form'], $subscription);
+        }
+
+        // Save matching challenge donation post
+        saveMatchingChallengeDonationPost(
+            $donation['form'],
+            $donation['anonymous'] ? 'Anonymous' : $donation['name'],
+            $donation['currency'],
+            $donation['amount'],
+            $donation['frequency'],
+            $donation['comment']
+        );
+
+        // Send emails
+        sendEmails($donation);
+    } catch (\Exception $e) {
+        // No need to say anything. Just show confirmation.
+    }
+
+    die('<!doctype html>
+         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <body><script>parent.showConfirmation("skrill"); parent.hideModal("#skrillModal");</script><body></html>');
 }
 
 /**
@@ -1011,16 +1113,16 @@ function processBitPayLog()
         // Reset request ID to prevent replay attacks
         $_SESSION['eas-req-id'] = uniqid();
 
-        // Get variables
-        $amount     = $_SESSION['eas-amount'];
-        $email      = $_SESSION['eas-email'];
-        $name       = $_SESSION['eas-name'];
-        $form       = $_SESSION['eas-form'];
-        $mode       = $_SESSION['eas-mode'];
-        $language   = $_SESSION['eas-language'];
-        $taxReceipt = $_SESSION['eas-tax-receipt'];
-        $currency   = $_SESSION['eas-currency'];
-        $country    = $_SESSION['eas-country'];
+        // Get variables from session
+        $donation   = getDonationDataFromSession();
+        $email      = $donation['email'];
+        $name       = $donation['name'];
+        $language   = $donation['language'];
+        $form       = $donation['form'];
+        $mode       = $donation['mode'];
+        $taxReceipt = $donation['tax_receipt'];
+        $currency   = $donation['currency'];
+        $country    = $donation['country'];
 
         // Make sure the payment is paid
         $client      = getBitpayClient($form, $mode, $taxReceipt, $currency, $country);
@@ -1035,32 +1137,11 @@ function processBitPayLog()
             throw new \Exception('Not paid');
         }
 
-        // Prepare hook
-        $donation = array(
-            "form"      => $form,
-            "mode"      => $mode,
-            'url'       => $_SESSION['eas-url'],
-            "language"  => $language,
-            "time"      => date('r'),
-            "currency"  => $_SESSION['eas-currency'],
-            "amount"    => $amount,
-            "frequency" => $_SESSION['eas-frequency'],
-            "type"      => "BitPay",
-            "purpose"   => $_SESSION['eas-purpose'],
-            "email"     => $email,
-            "name"      => $name,
-            "address"   => $_SESSION['eas-address'],
-            "zip"       => $_SESSION['eas-zip'],
-            "city"      => $_SESSION['eas-city'],
-            "country"   => getEnglishNameByCountryCode($_SESSION['eas-country']),
-            "comment"   => $_SESSION['eas-comment'],
-        );
-
         // Trigger logging web hook for Zapier
-        triggerLoggingWebHooks($form, $donation);
+        triggerLoggingWebHooks($donation);
 
         // Trigger mailing list web hook for Zapier
-        if ($_SESSION['eas-mailinglist']) {
+        if ($donation['mailinglist']) {
             $subscription = array(
                 'email'    => $email,
                 'name'     => $name,
@@ -1073,15 +1154,15 @@ function processBitPayLog()
         // Save matching challenge donation post
         saveMatchingChallengeDonationPost(
             $form,
-            $_SESSION['eas-anonymous'] ? 'Anonymous' : $name,
-            $_SESSION['eas-currency'],
-            $amount,
-            $_SESSION['eas-frequency'],
-            $_SESSION['eas-comment']
+            $donation['anonymous'] ? 'Anonymous' : $name,
+            $donation['currency'],
+            $donation['amount'],
+            $donation['frequency'],
+            $donation['comment']
         );
 
         // Send emails
-        sendEmails($donation, $form);
+        sendEmails($donation);
     } catch (\Exception $e) {
         // No need to say anything. Just show confirmation.
     }
@@ -1089,6 +1170,72 @@ function processBitPayLog()
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
          <body><script>parent.showConfirmation("bitpay"); parent.hideModal("#bitPayModal");</script><body></html>');
+}
+
+/**
+ * Get donation data from session
+ *
+ * @return array
+ */
+function getDonationDataFromSession()
+{
+    return array(
+        "time"        => date('r'), // new
+        "form"        => $_SESSION['eas-form'],
+        "mode"        => $_SESSION['eas-mode'],
+        "language"    => $_SESSION['eas-language'],
+        "url"         => $_SESSION['eas-url'],
+        "reqId"       => $_SESSION['eas-req-id'],
+        "email"       => $_SESSION['eas-email'],
+        "name"        => $_SESSION['eas-name'],
+        "currency"    => $_SESSION['eas-currency'],
+        "country"     => getEnglishNameByCountryCode($_SESSION['eas-country']),
+        "amount"      => $_SESSION['eas-amount'],
+        "frequency"   => $_SESSION['eas-frequency'],
+        "tax_receipt" => $_SESSION['eas-tax-receipt'],
+        "type"        => $_SESSION['eas-type'],
+        "purpose"     => $_SESSION['eas-purpose'],
+        "address"     => $_SESSION['eas-address'],
+        "zip"         => $_SESSION['eas-zip'],
+        "city"        => $_SESSION['eas-city'],
+        "mailinglist" => $_SESSION['eas-mailinglist'],
+        "comment"     => $_SESSION['eas-comment'],
+        "anonymous"   => $_SESSION['eas-anonymous'],
+    );
+}
+
+/**
+ * Set donation data to session
+ *
+ * @param array $post   Form post
+ * @param string $type  Payment provider (e.g. Stripe, PayPal, etc.)
+ * @param string $reqId Request ID (against replay attack)
+ */
+function setDonationDataToSession(array $post, $type, $reqId = null)
+{
+    // Required fields
+    $_SESSION['eas-form']        = $post['form'];
+    $_SESSION['eas-mode']        = $post['mode'];
+    $_SESSION['eas-language']    = strtoupper($post['language']);
+    $_SESSION['eas-url']         = $_SERVER['HTTP_REFERER'];
+    $_SESSION['eas-req-id']      = $reqId;
+    $_SESSION['eas-email']       = $post['email'];
+    $_SESSION['eas-name']        = $post['name'];
+    $_SESSION['eas-currency']    = $post['currency'];
+    $_SESSION['eas-country']     = $post['country'];
+    $_SESSION['eas-amount']      = money_format('%i', $post['amount']);
+    $_SESSION['eas-frequency']   = $post['frequency'];
+    $_SESSION['eas-tax-receipt'] = get($post['tax_receipt'], false);
+    $_SESSION['eas-type']        = $type;
+
+    // Optional fields
+    $_SESSION['eas-purpose']     = get($post['purpose'], '');
+    $_SESSION['eas-address']     = get($post['address'], '');
+    $_SESSION['eas-zip']         = get($post['zip'], '');
+    $_SESSION['eas-city']        = get($post['city'], '');
+    $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) && $post['mailinglist'] == 1;
+    $_SESSION['eas-comment']     = get($post['comment'], '');
+    $_SESSION['eas-anonymous']   = get($post['anonymous'], false);
 }
 
 /**
@@ -1170,7 +1317,12 @@ function processPaypalDonation()
         // WARNING: This option should NOT be "false"
         // Otherwise the connection is not secured
         // You can turn it of if you're working on the test-system with no vital data
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
+        // FIXME Remove when XAMPP problem is fixed
+        if ($mode == 'sandbox') {
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+        } else {
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
+        }
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
         // Load list file with up-to-date certificate authorities
         //curl_setopt($curl, CURLOPT_CAINFO, 'ssl/server.crt');
@@ -1195,28 +1347,8 @@ function processPaypalDonation()
             die("Error: " . $response['error'][0]['message']);
         }
 
-        // Put user data in session. This way we can avoid other people using it to spam our logs
-        $_SESSION['eas-form']        = $form;
-        $_SESSION['eas-mode']        = $mode;
-        $_SESSION['eas-language']    = strtoupper($language);
-        $_SESSION['eas-url']         = $_SERVER['HTTP_REFERER'];
-        $_SESSION['eas-req-id']      = $reqId;
-        $_SESSION['eas-email']       = $email;
-        $_SESSION['eas-name']        = $name;
-        $_SESSION['eas-currency']    = $currency;
-        $_SESSION['eas-country']     = $country;
-        $_SESSION['eas-amount']      = money_format('%i', $amount);
-        $_SESSION['eas-tax-receipt'] = $taxReceipt;
-        $_SESSION['eas-frequency']   = $frequency;
-
-        // Optional fields
-        $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) ? $post['mailinglist'] == 1 : false;
-        $_SESSION['eas-purpose']     = get($post['purpose'], '');
-        $_SESSION['eas-address']     = get($post['address'], '');
-        $_SESSION['eas-zip']         = get($post['zip'], '');
-        $_SESSION['eas-city']        = get($post['city'], '');
-        $_SESSION['eas-comment']     = get($post['comment'], '');
-        $_SESSION['eas-anonymous']   = get($post['anonymous'], false);
+        // Put user data in session
+        setDonationDataToSession($post, "PayPal", $reqId);
 
         // Return pay key
         die(json_encode(array(
@@ -1244,45 +1376,22 @@ function processPaypalLog()
     loadSettings();
 
     if (isset($_GET['req']) && $_GET['req'] == $_SESSION['eas-req-id']) {
-        $amount   = money_format('%i', $_SESSION['eas-amount']);
-        $email    = $_SESSION['eas-email'];
-        $name     = $_SESSION['eas-name'];
-        $form     = $_SESSION['eas-form'];
-        $language = $_SESSION['eas-language'];
-
         // Prepare hook
-        $donation = array(
-            "form"      => $form,
-            "mode"      => $_SESSION['eas-mode'],
-            "url"       => $_SESSION['eas-url'],
-            "language"  => $language,
-            "time"      => date('r'),
-            "currency"  => $_SESSION['eas-currency'],
-            "amount"    => $amount,
-            "frequency" => $_SESSION['eas-frequency'],
-            "type"      => "PayPal",
-            "purpose"   => $_SESSION['eas-purpose'],
-            "email"     => $email,
-            "name"      => $name,
-            "address"   => $_SESSION['eas-address'],
-            "zip"       => $_SESSION['eas-zip'],
-            "city"      => $_SESSION['eas-city'],
-            "country"   => getEnglishNameByCountryCode($_SESSION['eas-country']),
-            "comment"   => $_SESSION['eas-comment'],
-        );
+        $donation = getDonationDataFromSession();
+        $form     = $donation['form'];
 
         // Reset request ID to prevent replay attacks
         $_SESSION['eas-req-id'] = uniqid();
 
         // Trigger logging web hook for Zapier
-        triggerLoggingWebHooks($form, $donation);
+        triggerLoggingWebHooks($donation);
 
         // Trigger mailing list web hook for Zapier
         if ($_SESSION['eas-mailinglist']) {
             $subscription = array(
-                'email'    => $email,
-                'name'     => $name,
-                'language' => $language,
+                'email'    => $donation['email'],
+                'name'     => $donation['name'],
+                'language' => $donation['language'],
             );
 
             triggerMailingListWebHooks($form, $subscription);
@@ -1291,15 +1400,15 @@ function processPaypalLog()
         // Save matching challenge donation post
         saveMatchingChallengeDonationPost(
             $form,
-            $_SESSION['eas-anonymous'] ? 'Anonymous' : $name,
-            $_SESSION['eas-currency'],
-            $amount,
-            $_SESSION['eas-frequency'],
-            $_SESSION['eas-comment']
+            $donation['anonymous'] ? 'Anonymous' : $donation['name'],
+            $donation['currency'],
+            money_format('%i', $donation['amount']),
+            $donation['frequency'],
+            $donation['comment']
         );
 
         // Send emails
-        sendEmails($donation, $form);
+        sendEmails($donation);
 
         // Add method for showing confirmation
         $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.showConfirmation('paypal'); close();";
@@ -1392,10 +1501,11 @@ function easEmailContentType($original_content_type)
  * Send notification email to admin (if email set)
  *
  * @param array  $donation
- * @param string $form name
  */
-function sendNotificationEmail(array $donation, $form)
+function sendNotificationEmail(array $donation)
 {
+    $form = get($donation['form'], '');
+
     // Return if admin email not set
     if (empty($GLOBALS['easForms'][$form]['finish.notification_email'])) {
         return;
@@ -1455,8 +1565,10 @@ function sendNotificationEmail(array $donation, $form)
  * @param array  $donation Donation
  * @param string $form     Form name
  */
-function sendConfirmationEmail(array $donation, $form)
+function sendConfirmationEmail(array $donation)
 {
+    $form = get($donation['form'], '');
+
     // Only send email if we have settings (might not be the case if we're dealing with script kiddies)
     if (isset($GLOBALS['easForms'][$form]['finish.email'])) {
         $language      = !empty($donation['language']) ? strtolower($donation['language']) : null;
@@ -2089,15 +2201,14 @@ function getTwig($form, $language = null)
  * Send out emails
  *
  * @param array  $donation Donation
- * @param string $form     Form name
  */
-function sendEmails(array $donation, $form)
+function sendEmails(array $donation)
 {
     // Send confirmation email
-    sendConfirmationEmail($donation, $form);
+    sendConfirmationEmail($donation);
 
     // Send notification email
-    sendNotificationEmail($donation, $form);
+    sendNotificationEmail($donation);
 }
 
 /**
@@ -2125,35 +2236,3 @@ function monolinguify(array $labels, $depth = 0)
 
     return $labels;
 }
-
-/*
-
-function gbs_skrillRedirect($post)
-{
-    ob_start();
-?>
-    <p>You will be redirected to Skrill in a few seconds... If not, click <a href="javascript:document.getElementById('skrillUSDRedirect').submit();">here</a>.</p>
-    <form action="https://www.moneybookers.com/app/payment.pl" method="post" id="skrillUSDRedirect">
-    <input type="hidden" name="pay_to_email" value="reg-skrill@gbs-schweiz.org">
-    <input type="hidden" name="return_url" value="http://reg-charity.org">
-    <input type="hidden" name="status_url" value="donate@gbs-schweiz.org">
-    <input type="hidden" name="language" value="EN">
-    <input type="hidden" name="amount" value="<?php echo $post['amount']; ?>">
-    <input type="hidden" name="currency" value="<?php echo $post['currency']; ?>">
-    <input type="hidden" name="pay_from_email" value="<?php $post['email']; ?>">
-    <input type="hidden" name="firstname" value="<?php echo $post['firstname']; ?>">
-    <input type="hidden" name="lastname" value="<?php echo $post['lastname']; ?>">
-    <input type="hidden" name="confirmation_note" value="The world just got a bit brighter. Thanks for supporting our effective charities! If you haven't already, don't forget to go to reg-charity.org and become a REG member. And don't forget: You can reach us anytime at info@reg-charity.org"> <!-- This is somehow not working -->
-    <input type="image" src="http://reg-charity.org/wp-content/uploads/2014/10/skrill-button.png" border="0" name="submit" alt="Pay by Skrill">
-    </form>
-    <script>
-        var form = document.getElementById("skrillUSDRedirect");
-        //setTimeout(function() { form.submit(); }, 1000);
-    </script>
-<?php
-    $content = ob_get_clean();
-    // remove line breaks
-    $content = trim(preg_replace('/\s+/', ' ', $content));
-    return $content;
-}
-*/

@@ -14,6 +14,11 @@ $GLOBALS['paypalPaymentEndpoint'] = array(
 );
 
 /**
+ * Skrill
+ */
+$GLOBALS['SkrillApiEndpoint'] = 'https://pay.skrill.com';
+
+/**
  * Currency/country mapping
  */
 $GLOBALS['country2currency'] = array(
