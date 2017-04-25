@@ -7,7 +7,7 @@
  * @param string $content Page contents for donation confirmation step
  * @return string HTML form contents
  */
-function donationForm($atts, $content = null)
+function getDonationForm($atts, $content = null)
 {
     // Extract shortcode attributes (name becomes $name, etc.)
     extract(shortcode_atts(array(
