@@ -344,7 +344,7 @@ function triggerLoggingWebHooks($donation)
         $hooks = csvToArray($GLOBALS['easForms'][$form]['webhook.logging']);
         foreach ($hooks as $hook) {
             //TODO The array construct here is HookPress legacy. Remove in next major release.
-            sendWebHook($hook, array('donation' => array_filter($donation)));
+            fireWebHook($hook, array('donation' => array_filter($donation)));
         }
     }
 }
@@ -362,7 +362,7 @@ function triggerMailingListWebHooks($form, $subscription)
         $hooks = csvToArray($GLOBALS['easForms'][$form]['webhook.mailing_list']);
         foreach ($hooks as $hook) {
             //TODO The array construct here is HookPress legacy. Remove in next major release.
-            sendWebHook($hook, array('subscription' => array_filter($subscription)));
+            fireWebHook($hook, array('subscription' => array_filter($subscription)));
         }
     }
 }
@@ -373,7 +373,7 @@ function triggerMailingListWebHooks($form, $subscription)
  * @param string $url Target URL
  * @param array  $params Arguments
  */
-function sendWebHook($url, array $params)
+function fireWebHook($url, array $params)
 {
     global $wp_version;
 
