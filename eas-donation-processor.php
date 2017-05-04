@@ -19,6 +19,7 @@ define('EAS_ASSET_VERSION', '0.15');
 
 // Load other files
 require_once 'vendor/autoload.php';
+//require_once "model/Donation.php";
 require_once "_globals.php";
 require_once "_options.php";
 require_once "bitpay/EncryptedWPOptionStorage.php";
