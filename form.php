@@ -124,7 +124,7 @@ function getDonationForm($atts, $content = null)
         selectedCurrency: "<?php echo $preselectedCurrency ?>"
     }
 </script>
-<input type="hidden" name="action" value="donate"> <!-- ajax key -->
+<input type="hidden" name="action" value="eas_donate"> <!-- ajax key -->
 <input type="hidden" name="form" value="<?php echo $name ?>" id="eas-form-name">
 <input type="hidden" name="mode" value="<?php echo $live ? 'live' : 'sandbox' ?>" id="eas-form-mode">
 <input type="hidden" name="language" value="<?php echo $language ?>" id="eas-form-language">
@@ -296,7 +296,7 @@ function getDonationForm($atts, $content = null)
                     <?php if (get($easSettings["payment.provider.banktransfer.$mode"], true)): ?>
                         <!-- Bank Transfer -->
                         <label for="payment-banktransfer" class="radio-inline">
-                            <input type="radio" name="payment" value="Banktransfer" id="payment-banktransfer" <?php echo $checked ?: ''; $checked = false; ?>>
+                            <input type="radio" name="payment" value="Bank Transfer" id="payment-banktransfer" <?php echo $checked ?: ''; $checked = false; ?>>
                             <span class="payment-method-name"><?php _e('bank transfer', 'eas-donation-processor') ?></span>
                         </label>
                     <?php endif; ?>
@@ -426,7 +426,7 @@ function getDonationForm($atts, $content = null)
                 <?php endif; ?>
 
                 <!-- Mailing list -->
-                <?php if (!empty($easSettings['webhook.mailing_list'])): ?>
+                <?php if (!empty($easSettings["webhook.mailing_list.$mode"])): ?>
                 <div class="form-group donor-info">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
@@ -446,7 +446,7 @@ function getDonationForm($atts, $content = null)
                 <?php endif; ?>
 
                 <!-- Tax receipt -->
-                <div class="form-group donor-info" <?php echo !empty($easSettings['webhook.mailing_list']) ? 'style="margin-top: -15px"' : ''; ?>>
+                <div class="form-group donor-info" <?php echo !empty($easSettings["webhook.mailing_list.$mode"]) ? 'style="margin-top: -15px"' : ''; ?>>
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>

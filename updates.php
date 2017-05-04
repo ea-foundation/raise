@@ -121,6 +121,35 @@ function updateSettings()
         update_option('version', '0.3.2');
     }
 
+    /**
+     * Date:   2017-04-28
+     * Author: Naoki Peter
+     */
+    if (version_compare($settingsVersion, '0.5.0', '<')) {
+        // Add sandbox/live layer to webhook/logging and webhook/mailing_list
+        foreach (array_keys($settings['forms']) as $formName) {
+            // Logging
+            if (!empty($settings['forms'][$formName]['webhook']['logging']) && !isset($settings['forms'][$formName]['webhook']['logging']['live'])) {
+                $settings['forms'][$formName]['webhook']['logging'] = array(
+                    "live"    => $settings['forms'][$formName]['webhook']['logging'],
+                    "sandbox" => $settings['forms'][$formName]['webhook']['logging'],
+                );
+            }
+
+            // Mailing lists
+            if (!empty($settings['forms'][$formName]['webhook']['mailing_list']) && !isset($settings['forms'][$formName]['webhook']['mailing_list']['live'])) {
+                $settings['forms'][$formName]['webhook']['mailing_list'] = array(
+                    "live"    => $settings['forms'][$formName]['webhook']['mailing_list'],
+                    "sandbox" => $settings['forms'][$formName]['webhook']['mailing_list'],
+                );
+            }
+        }
+
+        // Save changes
+        update_option('settings', json_encode($settings));
+        update_option('version', '0.5.0');
+    }
+
     // Add new updates above this line
 
     update_option('version', $pluginVersion);

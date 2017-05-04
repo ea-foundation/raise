@@ -515,6 +515,10 @@ function getDonationCurrencyIsoCode()
  */
 function handleStripeDonation()
 {
+    // Change action input
+    jQuery('form#donationForm input[name=action]').val('eas_donate');
+
+    // Open handler
     stripeHandler.open({
         name: wordpress_vars.organization,
         description: wordpress_vars.donation,
@@ -529,9 +533,8 @@ function handleGoCardlessDonation()
     // Show spinner right away
     showSpinnerOnLastButton();
 
-    // Change form action (endpoint) and action input
-    jQuery('form#donationForm').attr('action', wordpress_vars.ajax_endpoint);
-    jQuery('form#donationForm input[name=action]').val('gocardless_url');
+    // Change action input
+    jQuery('form#donationForm input[name=action]').val('eas_redirect');
 
     // Get sign up URL
     jQuery('form#donationForm').ajaxSubmit({
@@ -589,9 +592,8 @@ function handleBitPayDonation()
     // Show spinner right away
     showSpinnerOnLastButton();
 
-    // Change form action (endpoint) and action input
-    jQuery('form#donationForm').attr('action', wordpress_vars.ajax_endpoint);
-    jQuery('form#donationForm input[name=action]').val('bitpay_url');
+    // Change action input
+    jQuery('form#donationForm input[name=action]').val('eas_redirect');
 
     // Get sign up URL
     jQuery('form#donationForm').ajaxSubmit({
@@ -632,9 +634,8 @@ function handleSkrillDonation()
     // Show spinner right away
     showSpinnerOnLastButton();
 
-    // Change form action (endpoint) and action input
-    jQuery('form#donationForm').attr('action', wordpress_vars.ajax_endpoint);
-    jQuery('form#donationForm input[name=action]').val('skrill_url');
+    // Change action input
+    jQuery('form#donationForm input[name=action]').val('eas_redirect');
 
     // Get sign up URL
     jQuery('form#donationForm').ajaxSubmit({
@@ -709,9 +710,8 @@ function handlePaypalDonation()
     // Show spinner right away
     showSpinnerOnLastButton();
 
-    // Change form action (endpoint) and action input
-    jQuery('form#donationForm').attr('action', wordpress_vars.ajax_endpoint);
-    jQuery('form#donationForm input[name=action]').val('paypal_paykey');
+    // Change action input
+    jQuery('form#donationForm input[name=action]').val('eas_redirect');
 
     // Get pay key
     jQuery('form#donationForm').ajaxSubmit({
@@ -752,6 +752,9 @@ function handleBankTransferDonation()
 {
     // Show spinner
     showSpinnerOnLastButton();
+
+    // Change action input
+    jQuery('form#donationForm input[name=action]').val('eas_donate');
 
     // Clear confirmation email (honey pot)
     jQuery('#donor-email-confirm').val('');

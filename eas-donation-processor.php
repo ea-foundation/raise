@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.4.4
+ * Version: 0.5.0
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.14');
+define('EAS_ASSET_VERSION', '0.15');
 
 // Load other files
 require_once 'vendor/autoload.php';
@@ -52,19 +52,19 @@ function eas_start_session()
 }
 
 // Process donation (Bank Transfer and Stripe)
-add_action("wp_ajax_nopriv_donate", "eas_process_donation");
-add_action("wp_ajax_donate", "eas_process_donation");
+add_action("wp_ajax_nopriv_eas_donate", "eas_process_donation");
+add_action("wp_ajax_eas_donate", "eas_process_donation");
 function eas_process_donation()
 {
     processDonation();
 }
 
-// Process PayPal donation. Generate and return pay key for redirect to PayPal
-add_action("wp_ajax_nopriv_paypal_paykey", "eas_process_paypal_paykey");
-add_action("wp_ajax_paypal_paykey", "eas_process_paypal_paykey");
-function eas_process_paypal_paykey()
+// Prepare redirect (PayPal, Skrill, GoCardless, BitPay)
+add_action("wp_ajax_nopriv_eas_redirect", "eas_prepare_donation");
+add_action("wp_ajax_eas_redirect", "eas_prepare_donation");
+function eas_prepare_donation()
 {
-    processPaypalDonation();
+    prepareRedirect();
 }
 
 // Log Paypal transaction. User is redirected here after successful donation
@@ -75,36 +75,12 @@ function eas_process_paypal_log()
     processPaypalLog();
 }
 
-// Generate GoCardless signup URL
-add_action("wp_ajax_nopriv_gocardless_url", "eas_process_gocardless_url");
-add_action("wp_ajax_gocardless_url", "eas_process_gocardless_url");
-function eas_process_gocardless_url()
-{
-    prepareGoCardlessDonation();
-}
-
 // Process GoCardless donation
 add_action("wp_ajax_nopriv_gocardless_debit", "eas_process_gocardless_debit");
 add_action("wp_ajax_gocardless_debit", "eas_process_gocardless_debit");
 function eas_process_gocardless_debit()
 {
     processGoCardlessDonation();
-}
-
-// Generate BitPay URL
-add_action("wp_ajax_nopriv_bitpay_url", "eas_process_bitpay_url");
-add_action("wp_ajax_bitpay_url", "eas_process_bitpay_url");
-function eas_process_bitpay_url()
-{
-    prepareBitPayDonation();
-}
-
-// Generate Skrill URL
-add_action("wp_ajax_nopriv_skrill_url", "eas_process_skrill_url");
-add_action("wp_ajax_skrill_url", "eas_process_skrill_url");
-function eas_process_skrill_url()
-{
-    prepareSkrillDonation();
 }
 
 // Log BitPay donation
@@ -157,6 +133,8 @@ function register_donation_styles()
     wp_enqueue_style('donation-combobox-css');
     wp_register_style('donation-plugin-flags', plugins_url('eas-donation-processor/css/flags-few.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-plugin-flags');
+    wp_register_style('donation-button-css', plugins_url('eas-donation-processor/css/button.css.php'), array(), EAS_ASSET_VERSION);
+    wp_enqueue_style('donation-button-css');
 }
 
 /*
