@@ -60,17 +60,6 @@
     }
 }
 
-#progress li.active span {
-    background: #0078C1;
-    color: #fff;
-    font-weight: bold;
-}
-
-#progress li.active {
-    text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8);
-    color: #0078C1;
-}
-
 #progress li.completed {
     text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8);
     color: #666666; /* #4cae4c; */
@@ -115,14 +104,14 @@
 }
 
 #wizard ul#amounts li {
-    list-style-type:none;
-    list-style-image:none;
-    margin-bottom:20px;
+    list-style-type: none;
+    list-style-image: none;
+    margin-bottom: 20px;
+    margin-right: 0;
 }
 
 #wizard input.text {
-    color:#456;
-    letter-spacing:1px;
+    color: #456;
     outline: 0;
     margin: 0;
 }
@@ -169,80 +158,6 @@ ul#amounts li {
 
 ul#amounts input {
     display: none;
-}
-
-ul#amounts input[type=text] {
-    text-overflow: ellipsis;
-    display: inline-block;
-    height: 46px;
-    font-size: inherit;
-    border-top-right-radius: 6px;
-    border-bottom-right-radius: 6px;
-    backface-visibility: hidden;
-    border: 1px solid #08b;
-    background: #0078C1;
-    backface-visibility: hidden;
-    font-weight: 700;
-    padding: 5px 15px;
-    color: #fff;
-    outline: 0;
-}
-
-ul#amounts input[type=text].active {
-    background: #5cb85c;
-    color: #fff;
-    border: 1px solid #4cae4c;
-}
-
-ul#amounts label:hover {
-    -webkit-transition: background .1s linear;
-    -moz-transition: background .1s linear;
-    transition: background .1s linear;
-    background: #1297c9;
-    color: #fff;
-    border: 1px solid #1190c0;
-}
-
-ul#amounts label {
-    background: #0078C1;
-    border: 1px solid #08b;
-    border-radius: 6px;
-    height: 46px;
-    padding: 5px 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 700;
-    color: #fff;
-    cursor: pointer;
-    outline: 0;
-    backface-visibility: hidden;
-}
-
-ul#amounts span.input-group-addon {
-    background: #0078C1;
-    backface-visibility: hidden;
-    cursor: pointer;
-    font-weight: 700;
-    padding: 5px 16px;
-    font-size: 100%;
-    color: #fff;
-    outline: 0;
-    border: 1px solid #08b;
-    border-top-left-radius: 6px;
-    border-bottom-left-radius: 6px;
-}
-
-ul#amounts span.input-group-addon.active {
-    background: #5cb85c;
-    color: #fff;
-    border: 1px solid #4cae4c;
-}
-
-ul#amounts label.active {
-    background: #5cb85c;
-    color: #fff;
-    border: 1px solid #4cae4c;
 }
 
 #wizard button.confirm {
@@ -294,7 +209,7 @@ div#amount-item span.form-control-feedback {
     font-size: 6px;
     color: white;
     position: relative;
-    left: -11.5px;
+    left: -11px;
     top: -1px; 
     margin-right: -6px;
 }
@@ -302,6 +217,10 @@ div#amount-item span.form-control-feedback {
 #wizard div.tax-confirmation {
     font-size: 12px;
     padding-bottom: 25px;
+}
+
+#wizard span.payment-method-name {
+    text-transform: capitalize;
 }
 
 #wizard div.float-left {
@@ -342,6 +261,7 @@ input#donor-country-auto {
     font-size: 14px !important;
     line-height: 1.42857143;
     margin-bottom: 0;
+    list-style-type: none;
 }
 
 #wizard .dropdown-menu>li>label {
@@ -395,6 +315,10 @@ div#donation-confirmation div.response-icon {
 
 div#payment-method-item span.form-control-feedback {
     margin-right: 15px;
+}
+
+#wizard .donor-info > div {
+    text-align: left;
 }
 
 #wizard .hidden {
@@ -494,11 +418,6 @@ ul#frequency li:not(:last-child) {
     margin-right: 20px;
 }
 
-ul#frequency label.active {
-    color: #1297c9;
-    border-bottom: 2px solid #1297c9;
-}
-
 div#goCardlessModal .modal-body {
     text-align: center;
     padding: 40px 20px;
@@ -509,12 +428,12 @@ div#goCardlessModal .modal-body p {
     font-size: initial;
 }
 
-div#bitPayModal .modal-body {
-    background: url(../images/loader.gif) center center no-repeat;
+div.eas-iframe-modal .modal-body {
+    /*background: url(../images/loader.gif) center center no-repeat;*/
     height: 600px;
 }
 
-div#bitPayModal .modal-body iframe {
+div.eas-modal .modal-body iframe {
     border: 0;
     width: 100%;
     height: 100%;

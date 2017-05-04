@@ -9,3 +9,8 @@
     display: inline-block;
     cursor: pointer;
 }
+
+.color-selection label {
+    display: inline-block;
+    width: 80px;
+}

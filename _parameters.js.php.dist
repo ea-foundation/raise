@@ -93,8 +93,14 @@
                 }
             },
             "webhook" : {
-                "logging": [],
-                "mailing_list": []
+                "logging": {
+                    "live": [],
+                    "sandbox": []
+                },
+                "mailing_list": {
+                    "live": [],
+                    "sandbox": []
+                }
             }
         },
         "my_special_form": {

@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.3.20
+ * Version: 0.5.0
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.11');
+define('EAS_ASSET_VERSION', '0.15');
 
 // Load other files
 require_once 'vendor/autoload.php';
@@ -27,11 +27,12 @@ require_once "updates.php";
 require_once "form.php";
 
 // Add short code for donation form
-add_shortcode('donationForm','donationForm');
+add_shortcode('donationForm','getDonationForm');
 
 // Start session (needed for PayPal)
 add_action('init', 'eas_start_session', 1);
-function eas_start_session() {
+function eas_start_session()
+{
     if (!session_id()) {
         session_start();
     }
@@ -41,63 +42,64 @@ function eas_start_session() {
 }
 
 // Process donation (Bank Transfer and Stripe)
-add_action("wp_ajax_nopriv_donate", "eas_process_donation");
-add_action("wp_ajax_donate", "eas_process_donation");
-function eas_process_donation() {
+add_action("wp_ajax_nopriv_eas_donate", "eas_process_donation");
+add_action("wp_ajax_eas_donate", "eas_process_donation");
+function eas_process_donation()
+{
     processDonation();
 }
 
-// Process PayPal donation. Generate and return pay key for redirect to PayPal
-add_action("wp_ajax_nopriv_paypal_paykey", "eas_process_paypal_paykey");
-add_action("wp_ajax_paypal_paykey", "eas_process_paypal_paykey");
-function eas_process_paypal_paykey() {
-    processPaypalDonation();
+// Prepare redirect (PayPal, Skrill, GoCardless, BitPay)
+add_action("wp_ajax_nopriv_eas_redirect", "eas_prepare_donation");
+add_action("wp_ajax_eas_redirect", "eas_prepare_donation");
+function eas_prepare_donation()
+{
+    prepareRedirect();
 }
 
 // Log Paypal transaction. User is redirected here after successful donation
 add_action("wp_ajax_nopriv_log", "eas_process_paypal_log");
 add_action("wp_ajax_log", "eas_process_paypal_log");
-function eas_process_paypal_log() {
+function eas_process_paypal_log()
+{
     processPaypalLog();
-}
-
-// Generate GoCardless signup URL
-add_action("wp_ajax_nopriv_gocardless_url", "eas_process_gocardless_url");
-add_action("wp_ajax_gocardless_url", "eas_process_gocardless_url");
-function eas_process_gocardless_url() {
-    prepareGoCardlessDonation();
 }
 
 // Process GoCardless donation
 add_action("wp_ajax_nopriv_gocardless_debit", "eas_process_gocardless_debit");
 add_action("wp_ajax_gocardless_debit", "eas_process_gocardless_debit");
-function eas_process_gocardless_debit() {
+function eas_process_gocardless_debit()
+{
     processGoCardlessDonation();
-}
-
-// Generate BitPay URL
-add_action("wp_ajax_nopriv_bitpay_url", "eas_process_bitpay_url");
-add_action("wp_ajax_bitpay_url", "eas_process_bitpay_url");
-function eas_process_bitpay_url() {
-    prepareBitPayDonation();
 }
 
 // Log BitPay donation
 add_action("wp_ajax_nopriv_bitpay_log", "eas_process_bitpay_log");
 add_action("wp_ajax_bitpay_log", "eas_process_bitpay_log");
-function eas_process_bitpay_log() {
+function eas_process_bitpay_log()
+{
     processBitPayLog();
+}
+
+// Log Skrill donation
+add_action("wp_ajax_nopriv_skrill_log", "eas_process_skrill_log");
+add_action("wp_ajax_skrill_log", "eas_process_skrill_log");
+function eas_process_skrill_log()
+{
+    processSkrillLog();
 }
 
 // Add translations
 add_action('plugins_loaded', 'eas_load_textdomain');
-function eas_load_textdomain() {
+function eas_load_textdomain()
+{
     load_plugin_textdomain('eas-donation-processor', false, dirname(plugin_basename(__FILE__)) . '/lang/');
 }
 
 // Add JSON settings editor
 add_action('admin_enqueue_scripts', 'eas_json_settings_editor');
-function eas_json_settings_editor() {
+function eas_json_settings_editor()
+{
     wp_register_script('donation-json-settings-editor', plugins_url('eas-donation-processor/js/jsoneditor.min.js'), array(), EAS_ASSET_VERSION);
     wp_enqueue_script('donation-json-settings-editor');
     wp_register_style('donation-json-settings-editor-css', plugins_url('eas-donation-processor/js/jsoneditor.min.css'), array(), EAS_ASSET_VERSION);
@@ -111,7 +113,8 @@ function eas_json_settings_editor() {
  * Additional Styles 
  */
 add_action('wp_enqueue_scripts', 'register_donation_styles');
-function register_donation_styles() {
+function register_donation_styles()
+{
     wp_register_style('bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
     wp_enqueue_style('bootstrap');
     wp_register_style('donation-plugin-css', plugins_url('eas-donation-processor/css/form.css'), array(), EAS_ASSET_VERSION);
@@ -120,6 +123,8 @@ function register_donation_styles() {
     wp_enqueue_style('donation-combobox-css');
     wp_register_style('donation-plugin-flags', plugins_url('eas-donation-processor/css/flags-few.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-plugin-flags');
+    wp_register_style('donation-button-css', plugins_url('eas-donation-processor/css/button.css.php'), array(), EAS_ASSET_VERSION);
+    wp_enqueue_style('donation-button-css');
 }
 
 /*
@@ -138,7 +143,8 @@ function register_donation_scripts()
 
 // Register matching campaign post type
 add_action('init', 'create_campaign_post_type');
-function create_campaign_post_type() {
+function create_campaign_post_type()
+{
     register_post_type( 'eas_fundraiser',
         array(
             'labels' => array(
@@ -159,7 +165,8 @@ function create_campaign_post_type() {
 
 // Register matching campaign donation post type
 add_action('init', 'create_doantion_post_type');
-function create_doantion_post_type() {
+function create_doantion_post_type()
+{
     register_post_type( 'eas_donation',
         array(
             'labels' => array(
@@ -177,6 +184,16 @@ function create_doantion_post_type() {
         )
     );
 }
+
+// Add settings link to plugins page
+function plugin_add_settings_link($links)
+{
+    $settings_link = '<a href="options-general.php?page=eas-donation-settings">' . __( 'Settings' ) . '</a>';
+    array_push( $links, $settings_link );
+    return $links;
+}
+$plugin = plugin_basename(__FILE__ );
+add_filter( "plugin_action_links_$plugin", 'plugin_add_settings_link' );
 
 add_action('admin_footer', function() { 
     /*
