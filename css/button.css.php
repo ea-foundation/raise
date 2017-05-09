@@ -16,54 +16,12 @@
     $textColor         = get_option('button-color-text', '#ffffff');
     $textColorHover    = get_option('button-color-text-hover', '#ffffff');
     $textColorActive   = get_option('button-color-text-active', '#ffffff');
+
+    // Widget text color
+    $widgetColorActive = get_option('widget-color-text-active', '#0078c1');
 ?>
-ul#amounts input[type=text] {
-    text-overflow: ellipsis;
-    display: inline-block;
-    height: 46px;
-    font-size: inherit;
-    border-top-right-radius: 6px;
-    border-bottom-right-radius: 6px;
-    backface-visibility: hidden;
-    border: 1px solid <?= $borderColor ?>;
-    background: <?= $backgroundColor ?>;
-    backface-visibility: hidden;
-    font-weight: 700;
-    padding: 5px 15px;
-    outline: 0;
-}
-
-/* Placeholder color */
-ul#amounts input[type=text]::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  color: <?= $textColor ?>;
-}
-ul#amounts input[type=text]::-moz-placeholder { /* Firefox 19+ */
-  color: <?= $textColor ?>;
-}
-ul#amounts input[type=text]:-ms-input-placeholder { /* IE 10+ */
-  color: <?= $textColor ?>;
-}
-ul#amounts input[type=text]:-moz-placeholder { /* Firefox 18- */
-  color: <?= $textColor ?>;
-}
-
-ul#amounts input[type=text].active {
-    background: <?= $backgroundColorActive ?>;
-    color: <?= $textColorActive ?>;
-    border: 1px solid <?= $borderColorActive ?>;
-}
-
-ul#amounts label:hover {
-    -webkit-transition: background .1s linear;
-    -moz-transition: background .1s linear;
-    transition: background .1s linear;
-    background: <?= $backgroundColorHover ?>;
-    color: <?= $textColorHover ?>;
-    border: 1px solid <?= $borderColorHover ?>;
-}
-
 ul#amounts label {
-    background: <?= $backgroundColor ?>;
+    background-color: <?= $backgroundColor ?>;
     border: 1px solid <?= $borderColor ?>;
     color: <?= $textColor ?>;
     border-radius: 6px;
@@ -78,8 +36,25 @@ ul#amounts label {
     backface-visibility: hidden;
 }
 
+ul#amounts label:hover {
+    background-color: <?= $backgroundColorHover ?>;
+    border-color: <?= $borderColorHover ?>;
+    color: <?= $textColorHover ?>;
+    -webkit-transition: background .1s linear;
+    -moz-transition: background .1s linear;
+    transition: background .1s linear;
+}
+
+ul#amounts label.active {
+    background-color: <?= $backgroundColorActive ?>;
+    border-color: <?= $borderColorActive ?>;
+    color: <?= $textColorActive ?>;
+}
+
+/* Amount other */
+
 ul#amounts span.input-group-addon {
-    background: <?= $backgroundColor ?>;
+    background-color: <?= $backgroundColor ?>;
     border: 1px solid <?= $borderColor ?>;
     border-right: 0;
     color: <?= $textColor ?>;
@@ -93,31 +68,67 @@ ul#amounts span.input-group-addon {
     border-bottom-left-radius: 6px;
 }
 
+ul#amounts input[type=text] {
+    text-overflow: ellipsis;
+    display: inline-block;
+    height: 46px;
+    font-size: inherit;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    backface-visibility: hidden;
+    border: 1px solid <?= $borderColor ?>;
+    background-color: <?= $backgroundColor ?>;
+    backface-visibility: hidden;
+    font-weight: 700;
+    padding: 5px 15px;
+    outline: 0;
+}
+
 ul#amounts span.input-group-addon.active {
-    background: <?= $backgroundColorActive ?>;
-    border: 1px solid <?= $borderColorActive ?>;
+    background-color: <?= $backgroundColorActive ?>;
+    border-color: <?= $borderColorActive ?>;
+    color: <?= $textColorActive ?>;
     border-right: 0;
+}
+
+ul#amounts input[type=text].active {
+    background-color: <?= $backgroundColorActive ?>;
+    border-color: <?= $borderColorActive ?>;
     color: <?= $textColorActive ?>;
 }
 
-ul#amounts label.active {
-    background: <?= $backgroundColorActive ?>;
-    border: 1px solid <?= $borderColorActive ?>;
-    color: <?= $textColorActive ?>;
+/* Amount other placeholder color */
+
+ul#amounts input[type=text]::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    color: <?= $textColor ?>;
 }
+ul#amounts input[type=text]::-moz-placeholder { /* Firefox 19+ */
+    color: <?= $textColor ?>;
+}
+ul#amounts input[type=text]:-ms-input-placeholder { /* IE 10+ */
+    color: <?= $textColor ?>;
+}
+ul#amounts input[type=text]:-moz-placeholder { /* Firefox 18+ */
+    color: <?= $textColor ?>;
+}
+
+/* Frequency */
 
 ul#frequency label.active {
-    color: <?= $backgroundColor ?>;
-    border-bottom: 2px solid <?= $backgroundColor ?>;
+    color: <?= $widgetColorActive ?>;
+    border-bottom: 2px solid <?= $widgetColorActive ?>;
 }
+
+/* Progress bar */
 
 #progress li.active {
     text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8);
-    color: <?= $backgroundColor ?>;
+    color: <?= $widgetColorActive ?>;
 }
 
 #progress li.active span {
-    background: <?= $backgroundColor ?>;
+    background-color: <?= $backgroundColor ?>;
+    border: 1px solid <?= $borderColor ?>;
     color: <?= $textColor ?>;
     font-weight: bold;
 }

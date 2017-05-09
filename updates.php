@@ -150,6 +150,20 @@ function updateSettings()
         update_option('version', '0.5.0');
     }
 
+    /**
+     * Date:   2017-05-09
+     * Author: Naoki Peter
+     */
+    if (version_compare($settingsVersion, '0.5.1', '<')) {
+        if (!get_option('widget-color-text-active')) {
+            // Use background color to ensure backwards compatibility
+            $backgroundColor = get_option('button-color-background', '#0078c1');
+            update_option('widget-color-text-active', $backgroundColor);
+        }
+
+        update_option('version', '0.5.1');
+    }
+
     // Add new updates above this line
 
     update_option('version', $pluginVersion);

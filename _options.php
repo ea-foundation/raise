@@ -41,15 +41,16 @@ class EasDonationProcessorOptionsPage
 
         // Default colors
         $defaultColors = array(
-            'background'        => '#0078c1',
-            'background-hover'  => '#1297c9',
-            'background-active' => '#5cb85c',
-            'border'            => '#0088bb',
-            'border-hover'      => '#1190c0',
-            'border-active'     => '#4cae4c',
-            'text'              => '#ffffff',
-            'text-hover'        => '#ffffff',
-            'text-active'       => '#ffffff',
+            'button-background'        => '#0078c1',
+            'button-background-hover'  => '#1297c9',
+            'button-background-active' => '#5cb85c',
+            'button-border'            => '#0088bb',
+            'button-border-hover'      => '#1190c0',
+            'button-border-active'     => '#4cae4c',
+            'button-text'              => '#ffffff',
+            'button-text-hover'        => '#ffffff',
+            'button-text-active'       => '#ffffff',
+            'widget-text-active'       => '#0078c1',
         );
 
         // Load settings
@@ -59,19 +60,22 @@ class EasDonationProcessorOptionsPage
         $version           = get_option('version');
         
         // Button background color
-        $backgroundColor       = get_option('button-color-background', $defaultColors['background']);
-        $backgroundColorHover  = get_option('button-color-background-hover', $defaultColors['background-hover']);
-        $backgroundColorActive = get_option('button-color-background-active', $defaultColors['background-active']);
+        $buttonBackgroundColor       = get_option('button-color-background', $defaultColors['button-background']);
+        $buttonBackgroundColorHover  = get_option('button-color-background-hover', $defaultColors['button-background-hover']);
+        $buttonBackgroundColorActive = get_option('button-color-background-active', $defaultColors['button-background-active']);
 
         // Button border color
-        $borderColor       = get_option('button-color-border', $defaultColors['border']);
-        $borderColorHover  = get_option('button-color-border-hover', $defaultColors['border-hover']);
-        $borderColorActive = get_option('button-color-border-active', $defaultColors['border-active']);
+        $buttonBorderColor       = get_option('button-color-border', $defaultColors['button-border']);
+        $buttonBorderColorHover  = get_option('button-color-border-hover', $defaultColors['button-border-hover']);
+        $buttonBorderColorActive = get_option('button-color-border-active', $defaultColors['button-border-active']);
 
         // Button text color
-        $textColor         = get_option('button-color-text', $defaultColors['text']);
-        $textColorHover    = get_option('button-color-text-hover', $defaultColors['text-hover']);
-        $textColorActive   = get_option('button-color-text-active', $defaultColors['text-active']);
+        $buttonTextColor         = get_option('button-color-text', $defaultColors['button-text']);
+        $buttonTextColorHover    = get_option('button-color-text-hover', $defaultColors['button-text-hover']);
+        $buttonTextColorActive   = get_option('button-color-text-active', $defaultColors['button-text-active']);
+
+        // Widget text color
+        $widgetTextColorActive   = get_option('widget-color-text-active', $defaultColors['widget-text-active']);
         
         $unsavedSettingsMessage = '';
         if (empty($settings) || count($settings) <= 1) {
@@ -99,46 +103,54 @@ class EasDonationProcessorOptionsPage
                 <div class="color-selection">
                     <div>
                         <label for="button-color-background">Background:</label>
-                        <input type="color" id="button-color-background" name="button-color-background" value="<?= $backgroundColor ?>">
-                        <span>(also applied to progress bar text and frequency text)</span>
+                        <input type="color" id="button-color-background" name="button-color-background" value="<?= $buttonBackgroundColor ?>">
                     </div>
                     <div>
                         <label for="button-color-border">Border:</label>
-                        <input type="color" id="button-color-border" name="button-color-border" value="<?= $borderColor ?>">
+                        <input type="color" id="button-color-border" name="button-color-border" value="<?= $buttonBorderColor ?>">
                     </div>
                     <div>
                         <label for="button-color-text">Text:</label>
-                        <input type="color" id="button-color-text" name="button-color-text" value="<?= $textColor ?>">
+                        <input type="color" id="button-color-text" name="button-color-text" value="<?= $buttonTextColor ?>">
                     </div>
                 </div>
                 <p style="font-weight: bold">On hover (mouse-over):</p>
                 <div class="color-selection">
                     <div>
                         <label for="button-color-background-hover">Background:</label>
-                        <input type="color" id="button-color-background-hover" name="button-color-background-hover" value="<?= $backgroundColorHover ?>">
+                        <input type="color" id="button-color-background-hover" name="button-color-background-hover" value="<?= $buttonBackgroundColorHover ?>">
                     </div>
                     <div>
                         <label for="button-color-border-hover">Border:</label>
-                        <input type="color" id="button-color-border-hover" name="button-color-border-hover" value="<?= $borderColorHover ?>">
+                        <input type="color" id="button-color-border-hover" name="button-color-border-hover" value="<?= $buttonBorderColorHover ?>">
                     </div>
                     <div>
                         <label for="button-color-text-hover">Text:</label>
-                        <input type="color" id="button-color-text-hover" name="button-color-text-hover" value="<?= $textColorHover ?>">
+                        <input type="color" id="button-color-text-hover" name="button-color-text-hover" value="<?= $buttonTextColorHover ?>">
                     </div>
                 </div>
                 <p style="font-weight: bold">On active (selected):</p>
                 <div class="color-selection">
                     <div>
                         <label for="button-color-background-active">Background:</label>
-                        <input type="color" id="button-color-background-active" name="button-color-background-active" value="<?= $backgroundColorActive ?>">
+                        <input type="color" id="button-color-background-active" name="button-color-background-active" value="<?= $buttonBackgroundColorActive ?>">
                     </div>
                     <div>
                         <label for="button-color-border-active">Border:</label>
-                        <input type="color" id="button-color-border-active" name="button-color-border-active" value="<?= $borderColorActive ?>">
+                        <input type="color" id="button-color-border-active" name="button-color-border-active" value="<?= $buttonBorderColorActive ?>">
                     </div>
                     <div>
                         <label for="button-color-text-active">Text:</label>
-                        <input type="color" id="button-color-text-active" name="button-color-text-active" value="<?= $textColorActive ?>">
+                        <input type="color" id="button-color-text-active" name="button-color-text-active" value="<?= $buttonTextColorActive ?>">
+                    </div>
+                </div>
+
+                <h2>Text color</h2>
+                <p style="font-weight: bold">Progress bar and frequency:</p>
+                <div class="color-selection">
+                    <div>
+                        <label for="widget-color-text-active">Active text:</label>
+                        <input type="color" id="widget-color-text-active" name="widget-color-text-active" value="<?= $widgetTextColorActive ?>">
                     </div>
                 </div>
 
@@ -206,6 +218,8 @@ class EasDonationProcessorOptionsPage
         register_setting('eas-donation-settings-group', 'button-color-text');
         register_setting('eas-donation-settings-group', 'button-color-text-hover');
         register_setting('eas-donation-settings-group', 'button-color-text-active');
+
+        register_setting('eas-donation-settings-group', 'widget-color-text-active');
     }
 }
 
