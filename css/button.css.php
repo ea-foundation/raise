@@ -19,7 +19,6 @@
 
     // Widget text color
     $widgetColorActive   = get_option('widget-color-text-active', '#0078c1');
-    $widgetColorInactive = get_option('widget-color-text-inactive', '#999999');
 
     // Confirm button color
     $confirmBackgroundColor      = get_option('confirm-button-color-background', '#5cb85c');
@@ -122,18 +121,6 @@ ul#amounts input[type=text]:-moz-placeholder { /* Firefox 18+ */
 }
 
 /* Frequency */
-
-ul#frequency label {
-    color: <?= $widgetColorInactive ?>;
-    text-transform: uppercase;
-    cursor: pointer;
-    background: none;
-    border: none;
-    font-weight: 700;
-    margin-top: 10px;
-    padding: 0;
-    outline: 0;
-}
 
 ul#frequency label.active {
     color: <?= $widgetColorActive ?>;

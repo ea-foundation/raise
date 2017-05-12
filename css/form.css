@@ -400,6 +400,18 @@ ul#frequency input {
     display: none;
 }
 
+ul#frequency label {
+    text-transform: uppercase;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #999;
+    font-weight: 700;
+    margin-top: 10px;
+    padding: 0;
+    outline: 0;
+}
+
 ul#frequency li:not(:last-child) {
     margin-right: 20px;
 }

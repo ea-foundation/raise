@@ -51,7 +51,6 @@ class EasDonationProcessorOptionsPage
             'button-color-text-hover'               => '#ffffff',
             'button-color-text-active'              => '#ffffff',
             'widget-color-text-active'              => '#0078c1',
-            'widget-color-text-inactive'            => '#999999',
             'confirm-button-color-background'       => '#5cb85c',
             'confirm-button-color-background-hover' => '#449d44',
             'confirm-button-color-border'           => '#4cae4c',
@@ -83,7 +82,6 @@ class EasDonationProcessorOptionsPage
 
         // Widget text color
         $widgetTextColorActive  = get_option('widget-color-text-active', $defaultColors['widget-color-text-active']);
-        $widgetTextColorInactive = get_option('widget-color-text-inactive', $defaultColors['widget-color-text-inactive']);
 
         // Confirm button colors
         $confirmButtonBackgroundColor      = get_option('confirm-button-color-background', $defaultColors['confirm-button-color-background']);
@@ -167,11 +165,6 @@ class EasDonationProcessorOptionsPage
                     <div>
                         <label for="widget-color-text-active">Active text:</label>
                         <input type="color" id="widget-color-text-active" name="widget-color-text-active" value="<?= $widgetTextColorActive ?>">
-                    </div>
-                    <div>
-                        <label for="widget-color-text-inactive">Inactive text:</label>
-                        <input type="color" id="widget-color-text-inactive" name="widget-color-text-inactive" value="<?= $widgetTextColorInactive ?>">
-                        (inactive frequency)
                     </div>
                 </div>
 
@@ -289,7 +282,6 @@ class EasDonationProcessorOptionsPage
         register_setting('eas-donation-settings-group', 'button-color-text-active');
 
         register_setting('eas-donation-settings-group', 'widget-color-text-active');
-        register_setting('eas-donation-settings-group', 'widget-color-text-inactive');
 
         register_setting('eas-donation-settings-group', 'confirm-button-color-background');
         register_setting('eas-donation-settings-group', 'confirm-button-color-background-hover');
