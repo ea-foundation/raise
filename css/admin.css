@@ -14,3 +14,15 @@
     display: inline-block;
     width: 80px;
 }
+
+.hidden {
+    display: none;
+}
+
+.donation-settings-block {
+    margin-top: 15px;
+}
+
+a.advanced-settings-expander {
+    cursor: pointer;
+}

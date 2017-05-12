@@ -160,15 +160,13 @@ ul#amounts input {
     display: none;
 }
 
-#wizard button.confirm {
-    width: 100% !important;
-    text-transform: none;
-    letter-spacing: 1px;
-}
-
 #wizard button.unconfirm {
     text-transform: none;
     padding: 12px 0;
+}
+
+#wizard button.unconfirm:before {
+    content: "« ";
 }
 
 #wizard div.buttons {
@@ -336,7 +334,7 @@ div#donor-extra-info {
 div#secure-transaction p {
     text-align: center;
     margin-top: 12px;
-    color: #5cb85c; /* #b2b2b2; */
+    color: #999;
     text-transform: uppercase;
     font-size: 14px;
 }
@@ -400,18 +398,6 @@ ul#frequency li {
 
 ul#frequency input {
     display: none;
-}
-
-ul#frequency label {
-    text-transform: uppercase;
-    cursor: pointer;
-    background: none;
-    border: none;
-    color: #999;
-    font-weight: 700;
-    margin-top: 10px;
-    padding: 0;
-    outline: 0;
 }
 
 ul#frequency li:not(:last-child) {

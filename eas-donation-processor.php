@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.5.1
+ * Version: 0.5.2
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.16');
+define('EAS_ASSET_VERSION', '0.17');
 
 // Load other files
 require_once 'vendor/autoload.php';
@@ -110,6 +110,8 @@ function eas_load_textdomain()
 add_action('admin_enqueue_scripts', 'eas_json_settings_editor');
 function eas_json_settings_editor()
 {
+    wp_register_script('donation-admin', plugins_url('eas-donation-processor/js/admin.js'), array(), EAS_ASSET_VERSION);
+    wp_enqueue_script('donation-admin');
     wp_register_script('donation-json-settings-editor', plugins_url('eas-donation-processor/js/jsoneditor.min.js'), array(), EAS_ASSET_VERSION);
     wp_enqueue_script('donation-json-settings-editor');
     wp_register_style('donation-json-settings-editor-css', plugins_url('eas-donation-processor/js/jsoneditor.min.css'), array(), EAS_ASSET_VERSION);

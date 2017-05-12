@@ -41,16 +41,23 @@ class EasDonationProcessorOptionsPage
 
         // Default colors
         $defaultColors = array(
-            'button-background'        => '#0078c1',
-            'button-background-hover'  => '#1297c9',
-            'button-background-active' => '#5cb85c',
-            'button-border'            => '#0088bb',
-            'button-border-hover'      => '#1190c0',
-            'button-border-active'     => '#4cae4c',
-            'button-text'              => '#ffffff',
-            'button-text-hover'        => '#ffffff',
-            'button-text-active'       => '#ffffff',
-            'widget-text-active'       => '#0078c1',
+            'button-color-background'               => '#0078c1',
+            'button-color-background-hover'         => '#1297c9',
+            'button-color-background-active'        => '#5cb85c',
+            'button-color-border'                   => '#0088bb',
+            'button-color-border-hover'             => '#1190c0',
+            'button-color-border-active'            => '#4cae4c',
+            'button-color-text'                     => '#ffffff',
+            'button-color-text-hover'               => '#ffffff',
+            'button-color-text-active'              => '#ffffff',
+            'widget-color-text-active'              => '#0078c1',
+            'widget-color-text-inactive'            => '#999999',
+            'confirm-button-color-background'       => '#5cb85c',
+            'confirm-button-color-background-hover' => '#449d44',
+            'confirm-button-color-border'           => '#4cae4c',
+            'confirm-button-color-border-hover'     => '#398439',
+            'confirm-button-color-text'             => '#ffffff',
+            'confirm-button-color-text-hover'       => '#ffffff',
         );
 
         // Load settings
@@ -60,22 +67,31 @@ class EasDonationProcessorOptionsPage
         $version           = get_option('version');
         
         // Button background color
-        $buttonBackgroundColor       = get_option('button-color-background', $defaultColors['button-background']);
-        $buttonBackgroundColorHover  = get_option('button-color-background-hover', $defaultColors['button-background-hover']);
-        $buttonBackgroundColorActive = get_option('button-color-background-active', $defaultColors['button-background-active']);
+        $buttonBackgroundColor       = get_option('button-color-background', $defaultColors['button-color-background']);
+        $buttonBackgroundColorHover  = get_option('button-color-background-hover', $defaultColors['button-color-background-hover']);
+        $buttonBackgroundColorActive = get_option('button-color-background-active', $defaultColors['button-color-background-active']);
 
         // Button border color
-        $buttonBorderColor       = get_option('button-color-border', $defaultColors['button-border']);
-        $buttonBorderColorHover  = get_option('button-color-border-hover', $defaultColors['button-border-hover']);
-        $buttonBorderColorActive = get_option('button-color-border-active', $defaultColors['button-border-active']);
+        $buttonBorderColor       = get_option('button-color-border', $defaultColors['button-color-border']);
+        $buttonBorderColorHover  = get_option('button-color-border-hover', $defaultColors['button-color-border-hover']);
+        $buttonBorderColorActive = get_option('button-color-border-active', $defaultColors['button-color-border-active']);
 
         // Button text color
-        $buttonTextColor         = get_option('button-color-text', $defaultColors['button-text']);
-        $buttonTextColorHover    = get_option('button-color-text-hover', $defaultColors['button-text-hover']);
-        $buttonTextColorActive   = get_option('button-color-text-active', $defaultColors['button-text-active']);
+        $buttonTextColor       = get_option('button-color-text', $defaultColors['button-color-text']);
+        $buttonTextColorHover  = get_option('button-color-text-hover', $defaultColors['button-color-text-hover']);
+        $buttonTextColorActive = get_option('button-color-text-active', $defaultColors['button-color-text-active']);
 
         // Widget text color
-        $widgetTextColorActive   = get_option('widget-color-text-active', $defaultColors['widget-text-active']);
+        $widgetTextColorActive  = get_option('widget-color-text-active', $defaultColors['widget-color-text-active']);
+        $widgetTextColorInactive = get_option('widget-color-text-inactive', $defaultColors['widget-color-text-inactive']);
+
+        // Confirm button colors
+        $confirmButtonBackgroundColor      = get_option('confirm-button-color-background', $defaultColors['confirm-button-color-background']);
+        $confirmButtonBackgroundColorHover = get_option('confirm-button-color-background-hover', $defaultColors['confirm-button-color-background-hover']);
+        $confirmButtonBorderColor          = get_option('confirm-button-color-border', $defaultColors['confirm-button-color-border']);
+        $confirmButtonBorderColorHover     = get_option('confirm-button-color-border-hover', $defaultColors['confirm-button-color-border-hover']);
+        $confirmButtonTextColor            = get_option('confirm-button-color-text', $defaultColors['confirm-button-color-text']);
+        $confirmButtonTextColorHover       = get_option('confirm-button-color-text-hover', $defaultColors['confirm-button-color-text-hover']);
         
         $unsavedSettingsMessage = '';
         if (empty($settings) || count($settings) <= 1) {
@@ -146,15 +162,59 @@ class EasDonationProcessorOptionsPage
                 </div>
 
                 <h2>Text color</h2>
-                <p style="font-weight: bold">Progress bar and frequency:</p>
+                <p style="font-weight: bold">Frequency and progress bar:</p>
                 <div class="color-selection">
                     <div>
                         <label for="widget-color-text-active">Active text:</label>
                         <input type="color" id="widget-color-text-active" name="widget-color-text-active" value="<?= $widgetTextColorActive ?>">
                     </div>
+                    <div>
+                        <label for="widget-color-text-inactive">Inactive text:</label>
+                        <input type="color" id="widget-color-text-inactive" name="widget-color-text-inactive" value="<?= $widgetTextColorInactive ?>">
+                        (inactive frequency)
+                    </div>
                 </div>
 
-                <button type="button" class="button reset-button-colors" style="margin-top: 15px">Reset button colors</button>
+                <div id="advanced-color-settings" class="hidden">
+                    <h2>Confirm button colors</h2>
+                    <div class="color-selection">
+                        <div>
+                            <label for="confirm-button-color-background">Background:</label>
+                            <input type="color" id="confirm-button-color-background" name="confirm-button-color-background" value="<?= $confirmButtonBackgroundColor ?>">
+                        </div>
+                        <div>
+                            <label for="confirm-button-color-border">Border:</label>
+                            <input type="color" id="confirm-button-color-border" name="confirm-button-color-border" value="<?= $confirmButtonBorderColor ?>">
+                        </div>
+                        <div>
+                            <label for="confirm-button-color-text">Text:</label>
+                            <input type="color" id="confirm-button-color-text" name="confirm-button-color-text" value="<?= $confirmButtonTextColor ?>">
+                        </div>
+                    </div>
+                    <p style="font-weight: bold">On hover (mouse-over):</p>
+                    <div class="color-selection">
+                        <div>
+                            <label for="confirm-button-color-background-hover">Background:</label>
+                            <input type="color" id="confirm-button-color-background-hover" name="confirm-button-color-background-hover" value="<?= $confirmButtonBackgroundColorHover ?>">
+                        </div>
+                        <div>
+                            <label for="confirm-button-color-border-hover">Border:</label>
+                            <input type="color" id="confirm-button-color-border-hover" name="confirm-button-color-border-hover" value="<?= $confirmButtonBorderColorHover ?>">
+                        </div>
+                        <div>
+                            <label for="confirm-button-color-text-hover">Text:</label>
+                            <input type="color" id="confirm-button-color-text-hover" name="confirm-button-color-text-hover" value="<?= $confirmButtonTextColorHover ?>">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="donation-settings-block">
+                    <a id="advanced-color-settings-expander" class="advanced-settings-expander">Show advanced color settings</a>
+                </div>
+
+                <div class="donation-settings-block">
+                    <button type="button" class="button reset-button-colors">Reset button colors</button>
+                </div>
 
                 <h2>Stripe/Skrill logo</h2>
                 <p>
@@ -191,8 +251,17 @@ class EasDonationProcessorOptionsPage
                 jQuery('.reset-button-colors').click(function() {
                     var defaultColors = <?= json_encode($defaultColors) ?>;
                     for (key in defaultColors) {
-                        jQuery('input#button-color-' + key).val(defaultColors[key]);
+                        jQuery('input#' + key).val(defaultColors[key]);
                     }
+                });
+
+                // Toggle visibility of advanced color settings
+                jQuery('a#advanced-color-settings-expander').click(function() {
+                    var advancedColorSettings = jQuery('div#advanced-color-settings');
+                    var linkLabel             = advancedColorSettings.css('display') == 'none' ? "Hide advanced color settings" : "Show advanced color settings" ;
+
+                    jQuery(this).text(linkLabel);
+                    advancedColorSettings.toggle();
                 });
             </script>
         </div>
@@ -220,6 +289,14 @@ class EasDonationProcessorOptionsPage
         register_setting('eas-donation-settings-group', 'button-color-text-active');
 
         register_setting('eas-donation-settings-group', 'widget-color-text-active');
+        register_setting('eas-donation-settings-group', 'widget-color-text-inactive');
+
+        register_setting('eas-donation-settings-group', 'confirm-button-color-background');
+        register_setting('eas-donation-settings-group', 'confirm-button-color-background-hover');
+        register_setting('eas-donation-settings-group', 'confirm-button-color-border');
+        register_setting('eas-donation-settings-group', 'confirm-button-color-border-hover');
+        register_setting('eas-donation-settings-group', 'confirm-button-color-text');
+        register_setting('eas-donation-settings-group', 'confirm-button-color-text-hover');
     }
 }
 

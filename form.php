@@ -228,7 +228,7 @@ function getDonationForm($atts, $content = null)
                 </div>
                 <div class="buttons row">
                     <div class="col-sm-4 col-sm-offset-4">
-                        <button type="button" class="btn btn-success btn-lg confirm" disabled="disabled"><?php _e('Next', 'eas-donation-processor') ?> »</button>
+                        <button type="button" class="btn btn-lg confirm" disabled="disabled"><?php _e('Next', 'eas-donation-processor') ?></button>
                     </div>
                 </div>
             </div>
@@ -510,10 +510,10 @@ function getDonationForm($atts, $content = null)
 
                 <div class="buttons row">
                     <div class="col-sm-6 col-sm-push-3">
-                        <button type="submit" class="btn btn-success btn-lg confirm" id="donation-submit"><?php _e('Next', 'eas-donation-processor') ?> »</button>
+                        <button type="submit" class="btn btn-lg confirm" id="donation-submit"><?php _e('Next', 'eas-donation-processor') ?></button>
                     </div>
                     <div class="col-xs-4 col-sm-3 col-sm-pull-6">
-                        <button type="button" class="btn btn-link unconfirm" id="donation-go-back">« <?php _e('Back', 'eas-donation-processor') ?></button>
+                        <button type="button" class="btn btn-link unconfirm" id="donation-go-back"><?php _e('Back', 'eas-donation-processor') ?></button>
                     </div>
                     <div class="col-xs-8 col-sm-12" id="secure-transaction">
                         <p class="text-success">

@@ -18,7 +18,16 @@
     $textColorActive   = get_option('button-color-text-active', '#ffffff');
 
     // Widget text color
-    $widgetColorActive = get_option('widget-color-text-active', '#0078c1');
+    $widgetColorActive   = get_option('widget-color-text-active', '#0078c1');
+    $widgetColorInactive = get_option('widget-color-text-inactive', '#999999');
+
+    // Confirm button color
+    $confirmBackgroundColor      = get_option('confirm-button-color-background', '#5cb85c');
+    $confirmBackgroundColorHover = get_option('confirm-button-color-background-hover', '#449d44');
+    $confirmBorderColor          = get_option('confirm-button-color-border', '#4cae4c');
+    $confirmBorderColorHover     = get_option('confirm-button-color-border-hover', '#398439');
+    $confirmTextColor            = get_option('confirm-button-color-text', '#ffffff');
+    $confirmTextColorHover       = get_option('confirm-button-color-text-hover', '#ffffff');
 ?>
 ul#amounts label {
     background-color: <?= $backgroundColor ?>;
@@ -114,6 +123,18 @@ ul#amounts input[type=text]:-moz-placeholder { /* Firefox 18+ */
 
 /* Frequency */
 
+ul#frequency label {
+    color: <?= $widgetColorInactive ?>;
+    text-transform: uppercase;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-weight: 700;
+    margin-top: 10px;
+    padding: 0;
+    outline: 0;
+}
+
 ul#frequency label.active {
     color: <?= $widgetColorActive ?>;
     border-bottom: 2px solid <?= $widgetColorActive ?>;
@@ -131,4 +152,25 @@ ul#frequency label.active {
     border: 1px solid <?= $borderColor ?>;
     color: <?= $textColor ?>;
     font-weight: bold;
+}
+
+/* Confirm button */
+
+#wizard button.confirm {
+    background-color: <?= $confirmBackgroundColor ?>;
+    border-color: <?= $confirmBorderColor ?>;
+    color: <?= $confirmTextColor ?>;
+    width: 100% !important;
+    text-transform: none;
+    letter-spacing: 1px;
+}
+
+#wizard button.confirm:hover {
+    background-color: <?= $confirmBackgroundColorHover ?>;
+    border-color: <?= $confirmBorderColorHover ?>;
+    color: <?= $confirmTextColorHover ?>;
+}
+
+#wizard button.confirm:after {
+    content: " »";
 }
