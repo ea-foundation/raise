@@ -113,7 +113,7 @@ function prepareRedirect()
         // Output
         switch ($post['payment']) {
             case "PayPal":
-                $response = processPaypalDonation($post);
+                $response = preparePaypalDonation($post);
                 break;
             case "Skrill":
                 $response = prepareSkrillDonation($post);
@@ -718,7 +718,7 @@ function processGoCardlessDonation()
     // Die and send script to close flow
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>' . $script . '</script><body></html>');
+         <body><script>' . $script . '</script></body></html>');
 }
 
 /**
@@ -1067,7 +1067,7 @@ function processSkrillLog()
 
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>parent.showConfirmation("skrill"); parent.hideModal("#skrillModal");</script><body></html>');
+         <body><script>parent.showConfirmation("skrill"); parent.hideModal("#skrillModal");</script></body></html>');
 }
 
 /**
@@ -1124,7 +1124,7 @@ function processBitPayLog()
 
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>parent.showConfirmation("bitpay"); parent.hideModal("#bitPayModal");</script><body></html>');
+         <body><script>parent.showConfirmation("bitpay"); parent.hideModal("#bitPayModal");</script></body></html>');
 }
 
 /**
@@ -1201,7 +1201,7 @@ function setDonationDataToSession(array $post, $reqId = null)
  * @param array $post
  * @return array
  */
-function processPaypalDonation(array $post)
+function preparePaypalDonation(array $post)
 {
     try {
         $form       = $post['form'];
@@ -1337,16 +1337,13 @@ function processPaypalLog()
     // Send emails
     sendEmails($donation);
 
-    // Add method for showing confirmation
-        $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.showConfirmation('paypal'); close();";
-
     // Make sure the contents can be displayed inside iFrame
     header_remove('X-Frame-Options');
 
     // Die and send script to close flow
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>' . $script . '</script><body></html>');
+         <body><script>var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.showConfirmation("paypal"); close();</script></body></html>');
 }
 
 /**
@@ -2051,15 +2048,6 @@ function get(&$var, $default = null) {
 function getAjaxEndpoint()
 {
     return admin_url('admin-ajax.php');
-    /*$url     = admin_url('admin-ajax.php');
-    $homeUrl = home_url();
-
-    // Wrong base URL in multisite setting
-    if (strpos($url, $homeUrl) === false) {
-        $url = str_replace(site_url(), $homeUrl, $url);
-    }
-
-    return $url;*/
 }
 
 /**
@@ -2161,3 +2149,104 @@ function monolinguify(array $labels, $depth = 0)
 
     return $labels;
 }
+
+/**
+ * AJAX call for serving tax deduction settings to an *external* instance
+ * @see loadTaxDeductionSettings
+ */
+function serveTaxDeductionSettings()
+{
+    // Allow all origins
+    header("Access-Control-Allow-Origin: *");
+
+    try {
+        // Check settings
+        if ('expose' != get_option('tax-deduction-expose')) {
+            throw new \Exception('Forbidden');
+        }
+
+        // Check secret
+        if (empty($_GET['secret']) || $_GET['secret'] != get_option('tax-deduction-secret')) {
+            throw new \Exception('Unauthorized');
+        }
+
+        // Load settings
+        loadSettings();
+
+        $form = isset($_GET['form']) ? $_GET['form'] : 'default';
+        if (!isset($GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'])) {
+            throw new \Exception('Undefined');
+        }
+
+        die(json_encode(array(
+            'success'       => true,
+            'tax_deduction' => $GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'],
+        )));
+    } catch (\Exception $e) {
+        die(json_encode(array(
+            'success' => false,
+            'message' => $e->getMessage(),
+        )));
+    }
+}
+
+/**
+ * Load tax deduction settings
+ *
+ * @see returnTaxDeductionSettings()
+ * @param string $form Form name
+ * @return array|null
+ */
+function loadTaxDeductionSettings($form)
+{
+    // Get local settings
+    $taxDeductionSettings = get($GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'], array());
+
+    // Load remote settings if necessary
+    if ('consume' == get_option('tax-deduction-expose') && $remoteUrl = get_option('tax-deduction-remote-url')) {
+        $now           = new \DateTime();
+        $lastRefreshed = new \DateTime(get_option('tax-deduction-last-refreshed', '1970-01-01'));
+        $timeInterval  = $lastRefreshed->diff($now);
+        $cacheTtl      = get_option('tax-deduction-cache-ttl', 0);
+
+        try {
+            // Get cached remote settings
+            $remoteSettings = json_decode(get_option('tax-deduction-remote-settings', array()), true);
+
+            if (!$remoteSettings || $timeInterval->days * 24 + $timeInterval->h > $cacheTtl) {
+                $remoteUrl     .= '&form=' . get_option('tax-deduction-remote-form-name', '');
+                $remoteContents = json_decode(file_get_contents($remoteUrl), true);
+                if ($remoteContents['success'] && is_array($remoteContents['tax_deduction'])) {
+                    // Save new settings
+                    update_option('tax-deduction-remote-settings', json_encode($remoteContents['tax_deduction'], JSON_PRETTY_PRINT));
+                    update_option('tax-deduction-last-refreshed', $now->format(\DateTime::ISO8601));
+
+                    $remoteSettings = $remoteContents['tax_deduction'];
+                }
+            }
+        } catch (\Exception $e) {
+            // Serve old settings
+            throw new \Exception($e->getMessage());
+            $remoteSettings = is_array($remoteSettings) ? $remoteSettings : array();
+        }
+
+        // Merge remote and local settings. Local settings override remote settings.
+        $taxDeductionSettings = array_merge($remoteSettings, $taxDeductionSettings);
+    }
+
+    return $taxDeductionSettings ? monolinguify($taxDeductionSettings, 3) : null;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

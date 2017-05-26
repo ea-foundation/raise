@@ -54,7 +54,7 @@ function getDonationForm($atts, $content = null)
     }
 
     // Get tax deduction labels
-    $taxDeductionLabels = !empty($easSettings['payment.labels']['tax_deduction']) ? monolinguify($easSettings['payment.labels']['tax_deduction'], 3) : null;
+    $taxDeductionLabels = loadTaxDeductionSettings($name);
 
     // Localize script
     wp_localize_script('donation-plugin-form', 'wordpress_vars', array(

@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.5.2
+ * Version: 0.5.3
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.17');
+define('EAS_ASSET_VERSION', '0.18');
 
 // Load other files
 require_once 'vendor/autoload.php';
@@ -97,6 +97,14 @@ add_action("wp_ajax_skrill_log", "eas_process_skrill_log");
 function eas_process_skrill_log()
 {
     processSkrillLog();
+}
+
+// Get tax deduction settings
+add_action("wp_ajax_nopriv_tax_deduction_settings", "eas_tax_deduction_settings");
+add_action("wp_ajax_tax_deduction_settings", "eas_tax_deduction_settings");
+function eas_tax_deduction_settings()
+{
+    serveTaxDeductionSettings();
 }
 
 // Add translations

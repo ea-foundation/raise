@@ -10,6 +10,17 @@
     cursor: pointer;
 }
 
+h2 {
+    clear: both;
+    margin-top: 40px;
+}
+
+.color-selection {
+    float: left;
+    margin-right: 40px;
+    margin-bottom: 30px;
+}
+
 .color-selection label {
     display: inline-block;
     width: 80px;
@@ -20,9 +31,37 @@
 }
 
 .donation-settings-block {
+    clear: both;
     margin-top: 15px;
 }
 
 a.advanced-settings-expander {
     cursor: pointer;
+}
+
+select[name=tax-deduction-expose] {
+    margin-bottom: 12px;
+}
+
+div#tax-deduction-expose-settings label,
+div#tax-deduction-consume-settings label {
+    vertical-align: top;
+    display: inline-block;
+    width: 90px;
+}
+
+input#tax-deduction-url, input#tax-deduction-remote-url {
+    width: 80%;
+}
+
+input#tax-deduction-cache-ttl {
+    width: 50px;
+}
+
+textarea#tax-deduction-remote-settings {
+    width: 80%;
+}
+
+span#tax-deduction-notice {
+    color: red;
 }

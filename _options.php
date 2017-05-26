@@ -115,6 +115,7 @@ class EasDonationProcessorOptionsPage
                 <input type="hidden" name="logo" value="<?php echo $logo ?>">
                 <h2>Button colors</h2>
                 <div class="color-selection">
+                    <p style="font-weight: bold">Regular</p>
                     <div>
                         <label for="button-color-background">Background:</label>
                         <input type="color" id="button-color-background" name="button-color-background" value="<?= $buttonBackgroundColor ?>">
@@ -128,8 +129,8 @@ class EasDonationProcessorOptionsPage
                         <input type="color" id="button-color-text" name="button-color-text" value="<?= $buttonTextColor ?>">
                     </div>
                 </div>
-                <p style="font-weight: bold">On hover (mouse-over):</p>
                 <div class="color-selection">
+                    <p style="font-weight: bold">On hover (mouse-over)</p>
                     <div>
                         <label for="button-color-background-hover">Background:</label>
                         <input type="color" id="button-color-background-hover" name="button-color-background-hover" value="<?= $buttonBackgroundColorHover ?>">
@@ -143,8 +144,8 @@ class EasDonationProcessorOptionsPage
                         <input type="color" id="button-color-text-hover" name="button-color-text-hover" value="<?= $buttonTextColorHover ?>">
                     </div>
                 </div>
-                <p style="font-weight: bold">On active (selected):</p>
                 <div class="color-selection">
+                    <p style="font-weight: bold">On active (selected)</p>
                     <div>
                         <label for="button-color-background-active">Background:</label>
                         <input type="color" id="button-color-background-active" name="button-color-background-active" value="<?= $buttonBackgroundColorActive ?>">
@@ -160,8 +161,8 @@ class EasDonationProcessorOptionsPage
                 </div>
 
                 <h2>Text color</h2>
-                <p style="font-weight: bold">Frequency and progress bar:</p>
                 <div class="color-selection">
+                    <p style="font-weight: bold">Frequency and progress bar</p>
                     <div>
                         <label for="widget-color-text-active">Active text:</label>
                         <input type="color" id="widget-color-text-active" name="widget-color-text-active" value="<?= $widgetTextColorActive ?>">
@@ -171,6 +172,7 @@ class EasDonationProcessorOptionsPage
                 <div id="advanced-color-settings" class="hidden">
                     <h2>Confirm button colors</h2>
                     <div class="color-selection">
+                        <p style="font-weight: bold">Regular</p>
                         <div>
                             <label for="confirm-button-color-background">Background:</label>
                             <input type="color" id="confirm-button-color-background" name="confirm-button-color-background" value="<?= $confirmButtonBackgroundColor ?>">
@@ -184,8 +186,8 @@ class EasDonationProcessorOptionsPage
                             <input type="color" id="confirm-button-color-text" name="confirm-button-color-text" value="<?= $confirmButtonTextColor ?>">
                         </div>
                     </div>
-                    <p style="font-weight: bold">On hover (mouse-over):</p>
                     <div class="color-selection">
+                        <p style="font-weight: bold">On hover (mouse-over)</p>
                         <div>
                             <label for="confirm-button-color-background-hover">Background:</label>
                             <input type="color" id="confirm-button-color-background-hover" name="confirm-button-color-background-hover" value="<?= $confirmButtonBackgroundColorHover ?>">
@@ -202,11 +204,11 @@ class EasDonationProcessorOptionsPage
                 </div>
 
                 <div class="donation-settings-block">
-                    <a id="advanced-color-settings-expander" class="advanced-settings-expander">Show advanced color settings</a>
+                    <a data-expander-target="advanced-color-settings" class="advanced-settings-expander">Show advanced color settings</a>
                 </div>
 
                 <div class="donation-settings-block">
-                    <button type="button" class="button reset-button-colors">Reset button colors</button>
+                    <button type="button" class="button reset-button-colors">Reset button and text colors</button>
                 </div>
 
                 <h2>Stripe/Skrill logo</h2>
@@ -217,6 +219,59 @@ class EasDonationProcessorOptionsPage
                         <button type="button" class="button reset-stripe-logo">Reset logo</button>
                     <?php endif; ?>
                 </p>
+
+                <div id="advanced-settings" class="hidden">
+                    <?php
+                        $taxDeductionExpose = get_option('tax-deduction-expose', 'disabled');
+                    ?>
+                    <h2>Tax deduction label sharing</h2>
+                    <select name="tax-deduction-expose">
+                        <option value="disabled" <?= $taxDeductionExpose == 'disabled' ? 'selected' : '' ?>>Disabled</option>
+                        <option value="expose"   <?= $taxDeductionExpose == 'expose'   ? 'selected' : '' ?>>Expose</option>
+                        <option value="consume"  <?= $taxDeductionExpose == 'consume'  ? 'selected' : '' ?>>Consume</option>
+                    </select>
+                    <div id="tax-deduction-expose-settings" class="<?= $taxDeductionExpose == 'expose' ? '' : 'hidden' ?>">
+                        <div>
+                            <label for="tax-deduction-secret">Secret:</label>
+                            <input id="tax-deduction-secret" type="text" name="tax-deduction-secret" value="<?= get_option('tax-deduction-secret', '') ?>">
+                        </div>
+                        <div>
+                            <label for="tax-deduction-url">URL:</label>
+                            <input id="tax-deduction-url" type="text" value="<?= getAjaxEndpoint() . '?action=tax_deduction_settings&secret=' . get_option('tax-deduction-secret', '') ?>" readonly>
+                        </div>
+                    </div>
+                    <div id="tax-deduction-consume-settings" class="<?= $taxDeductionExpose == 'consume' ? '' : 'hidden' ?>">
+                        <div>
+                            <label for="tax-deduction-remote-url">Remote URL:</label>
+                            <input id="tax-deduction-remote-url" type="text" name="tax-deduction-remote-url" value="<?= get_option('tax-deduction-remote-url', '') ?>">
+                        </div>
+                        <div>
+                            <label for="tax-deduction-remote-form-name">Form name:</label>
+                            <input id="tax-deduction-remote-form-name" type="text" name="tax-deduction-remote-form-name" value="<?= get_option('tax-deduction-remote-form-name', 'default') ?>">
+                        </div>
+                        <div>
+                            <label for="tax-deduction-cache-ttl">Cache TTL:</label>
+                            <input id="tax-deduction-cache-ttl" type="number" name="tax-deduction-cache-ttl" min="1" value="<?= get_option('tax-deduction-cache-ttl', '72') ?>"> hours
+                        </div>
+                        <div>
+                            <label for="tax-deduction-remote-settings">Remote settings:</label>
+                            <textarea id="tax-deduction-remote-settings" name="tax-deduction-remote-settings" rows="8" readonly><?= get_option('tax-deduction-remote-settings', '') ?></textarea>
+                        </div>
+                        <div class="donation-settings-block">
+                            <button type="button" class="button reload-tax-deduction">Refresh remote settings</button>
+                            <div style="display: inline-block; width: auto">
+                                <label for="tax-deduction-last-refreshed" style="width: 100px; vertical-align: middle; margin-left: 20px;">Last refreshed:</label>
+                                <input id="tax-deduction-last-refreshed" placeholder="-" type="text" name="tax-deduction-last-refreshed" style="border: 0; box-shadow: none; width: 210px; vertical-align: middle" value="<?= get_option('tax-deduction-last-refreshed', '') ?>" readonly>
+                                <span id="tax-deduction-notice"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="donation-settings-block">
+                    <a data-expander-target="advanced-settings" class="advanced-settings-expander">Show advanced settings</a>
+                </div>
+
                 <?php submit_button() ?>
             </form>
             <script>
@@ -249,12 +304,55 @@ class EasDonationProcessorOptionsPage
                 });
 
                 // Toggle visibility of advanced color settings
-                jQuery('a#advanced-color-settings-expander').click(function() {
-                    var advancedColorSettings = jQuery('div#advanced-color-settings');
-                    var linkLabel             = advancedColorSettings.css('display') == 'none' ? "Hide advanced color settings" : "Show advanced color settings" ;
+                jQuery('a.advanced-settings-expander').click(function() {
+                    var advancedColorSettings = jQuery('#' + jQuery(this).attr('data-expander-target'));
+                    var linkLabel             = advancedColorSettings.css('display') == 'none' ? jQuery(this).text().replace("Show", "Hide") : jQuery(this).text().replace("Hide", "Show");
 
                     jQuery(this).text(linkLabel);
                     advancedColorSettings.toggle();
+                });
+
+                // Toggle visibility tax deduction settings
+                jQuery('select[name=tax-deduction-expose]').change(function() {
+                    switch (jQuery(this).val()) {
+                        case 'expose':
+                            jQuery(this).siblings('div#tax-deduction-expose-settings').show();
+                            jQuery(this).siblings('div#tax-deduction-consume-settings').hide();
+                            break;
+                        case 'consume':
+                            jQuery(this).siblings('div#tax-deduction-expose-settings').hide();
+                            jQuery(this).siblings('div#tax-deduction-consume-settings').show();
+                            break;
+                        default:
+                            jQuery(this).siblings('div').hide();
+                    }
+                });
+
+                // Update exposed URL
+                jQuery('input#tax-deduction-secret').keyup(function() {
+                    jQuery('input#tax-deduction-url').val("<?= getAjaxEndpoint() . '?action=tax_deduction_settings&secret=' ?>" + encodeURI(jQuery(this).val()));
+                });
+
+                // Reload remote settings
+                jQuery('button.reload-tax-deduction').click(function() {
+                    var urlRegExp = /https?:\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+                    var remoteUrl = jQuery('input#tax-deduction-remote-url').val() + '&form=' + encodeURI(jQuery('input#tax-deduction-remote-form-name').val());
+                    if (urlRegExp.test(remoteUrl)) {
+                        jQuery.get(remoteUrl).done(function (data) {
+                            var response = JSON.parse(data);
+                            if (response.success) {
+                                jQuery('textarea#tax-deduction-remote-settings').text(JSON.stringify(response.tax_deduction, null, 4));
+                                var m = new Date();
+                                var dateString = m.getUTCFullYear() + "-" + ("0" + (m.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + m.getUTCDate()).slice(-2) + "T" + ("0" + m.getUTCHours()).slice(-2) + ":" + ("0" + m.getUTCMinutes()).slice(-2) + ":" + ("0" + m.getUTCSeconds()).slice(-2) + '+0000';
+                                jQuery('input#tax-deduction-last-refreshed').val(dateString);
+                                jQuery('#tax-deduction-notice').text('(not saved yet)');
+                            } else {
+                                alert('Reload failed: ' + data);
+                            }
+                        });
+                    } else {
+                        alert("Error: Fill in remote URL");
+                    }
                 });
             </script>
         </div>
@@ -289,6 +387,14 @@ class EasDonationProcessorOptionsPage
         register_setting('eas-donation-settings-group', 'confirm-button-color-border-hover');
         register_setting('eas-donation-settings-group', 'confirm-button-color-text');
         register_setting('eas-donation-settings-group', 'confirm-button-color-text-hover');
+
+        register_setting('eas-donation-settings-group', 'tax-deduction-expose');
+        register_setting('eas-donation-settings-group', 'tax-deduction-secret');
+        register_setting('eas-donation-settings-group', 'tax-deduction-cache-ttl');
+        register_setting('eas-donation-settings-group', 'tax-deduction-last-refreshed');
+        register_setting('eas-donation-settings-group', 'tax-deduction-remote-url');
+        register_setting('eas-donation-settings-group', 'tax-deduction-remote-form-name');
+        register_setting('eas-donation-settings-group', 'tax-deduction-remote-settings');
     }
 }
 
