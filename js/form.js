@@ -792,7 +792,9 @@ function handleBankTransferDonation()
 
 function showSpinnerOnLastButton()
 {
-    jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>');
+    jQuery('button.confirm:last', '#wizard')
+        .html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>')
+        .removeClass('donation-continue');
 }
 
 function lockLastStep(locked)
@@ -807,7 +809,9 @@ function lockLastStep(locked)
 
     if (!locked) {
         // Restore submit button
-        jQuery('button.confirm:last', '#wizard').html(getLastButtonText(easFormName));
+        jQuery('button.confirm:last', '#wizard')
+            .html(getLastButtonText(easFormName))
+            .addClass('donation-continue');
     }
 }
 

@@ -158,6 +158,6 @@ ul#frequency label.active {
     color: <?= $confirmTextColorHover ?>;
 }
 
-#wizard button.confirm:after {
+#wizard button.donation-continue:after {
     content: " »";
 }

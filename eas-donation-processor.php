@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.5.3
+ * Version: 0.5.4
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.18');
+define('EAS_ASSET_VERSION', '0.19');
 
 // Load other files
 require_once 'vendor/autoload.php';
@@ -135,7 +135,7 @@ function eas_json_settings_editor()
 add_action('wp_enqueue_scripts', 'register_donation_styles');
 function register_donation_styles()
 {
-    wp_register_style('bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
+    wp_register_style('bootstrap', plugins_url('eas-donation-processor/css/scoped-bootstrap.min.css')); // '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
     wp_enqueue_style('bootstrap');
     wp_register_style('donation-plugin-css', plugins_url('eas-donation-processor/css/form.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-plugin-css');
@@ -153,7 +153,7 @@ function register_donation_styles()
 add_action('wp_enqueue_scripts', 'register_donation_scripts');
 function register_donation_scripts()
 {
-    wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array('jquery'));
+    wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', array('jquery'));
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/js/external/dg.js');
