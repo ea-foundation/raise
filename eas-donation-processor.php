@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.5.0
+ * Version: 0.5.4
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.15');
+define('EAS_ASSET_VERSION', '0.19');
 
 // Load other files
 require_once 'vendor/autoload.php';
@@ -89,6 +89,14 @@ function eas_process_skrill_log()
     processSkrillLog();
 }
 
+// Get tax deduction settings
+add_action("wp_ajax_nopriv_tax_deduction_settings", "eas_tax_deduction_settings");
+add_action("wp_ajax_tax_deduction_settings", "eas_tax_deduction_settings");
+function eas_tax_deduction_settings()
+{
+    serveTaxDeductionSettings();
+}
+
 // Add translations
 add_action('plugins_loaded', 'eas_load_textdomain');
 function eas_load_textdomain()
@@ -100,6 +108,8 @@ function eas_load_textdomain()
 add_action('admin_enqueue_scripts', 'eas_json_settings_editor');
 function eas_json_settings_editor()
 {
+    wp_register_script('donation-admin', plugins_url('eas-donation-processor/js/admin.js'), array(), EAS_ASSET_VERSION);
+    wp_enqueue_script('donation-admin');
     wp_register_script('donation-json-settings-editor', plugins_url('eas-donation-processor/js/jsoneditor.min.js'), array(), EAS_ASSET_VERSION);
     wp_enqueue_script('donation-json-settings-editor');
     wp_register_style('donation-json-settings-editor-css', plugins_url('eas-donation-processor/js/jsoneditor.min.css'), array(), EAS_ASSET_VERSION);
@@ -115,7 +125,7 @@ function eas_json_settings_editor()
 add_action('wp_enqueue_scripts', 'register_donation_styles');
 function register_donation_styles()
 {
-    wp_register_style('bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
+    wp_register_style('bootstrap', plugins_url('eas-donation-processor/css/scoped-bootstrap.min.css')); // '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
     wp_enqueue_style('bootstrap');
     wp_register_style('donation-plugin-css', plugins_url('eas-donation-processor/css/form.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-plugin-css');
@@ -133,7 +143,7 @@ function register_donation_styles()
 add_action('wp_enqueue_scripts', 'register_donation_scripts');
 function register_donation_scripts()
 {
-    wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array('jquery'));
+    wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', array('jquery'));
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/js/external/dg.js');

@@ -160,15 +160,13 @@ ul#amounts input {
     display: none;
 }
 
-#wizard button.confirm {
-    width: 100% !important;
-    text-transform: none;
-    letter-spacing: 1px;
-}
-
 #wizard button.unconfirm {
     text-transform: none;
     padding: 12px 0;
+}
+
+#wizard button.unconfirm:before {
+    content: "« ";
 }
 
 #wizard div.buttons {
@@ -182,7 +180,7 @@ ul#amounts input {
 div#payment-method-providers label {
     margin-left: 0;
     margin-right: 10px;
-    margin-bottom: 5px;
+    margin-bottom: 5px !important; /* theme compatibility hack */
 }
 
 div#payment-method-providers label:last-child {
@@ -336,7 +334,7 @@ div#donor-extra-info {
 div#secure-transaction p {
     text-align: center;
     margin-top: 12px;
-    color: #5cb85c; /* #b2b2b2; */
+    color: #999;
     text-transform: uppercase;
     font-size: 14px;
 }
@@ -388,7 +386,7 @@ ul#frequency li {
     display: inline;
     list-style-type:none;
     list-style-image:none;
-    margin-bottom: 20px;
+    margin-bottom: 20px !important; /* theme compatibility hack */
     font-size: 18px;
 }
 
@@ -410,6 +408,7 @@ ul#frequency label {
     color: #999;
     font-weight: 700;
     margin-top: 10px;
+    margin-bottom: 5px !important; /* theme compatibility hack */
     padding: 0;
     outline: 0;
 }
@@ -460,4 +459,23 @@ div.eas-modal .modal-body iframe {
     width:100%;
     display:none;
     z-index:1031;
+}
+
+.btstrp .close {
+    float: right;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1;
+    color: #000;
+    text-shadow: 0 1px 0 #fff;
+    filter: alpha(opacity=20);
+    opacity: .2;
+}
+
+.btstrp button.close {
+    -webkit-appearance: none;
+    padding: 0;
+    cursor: pointer;
+    background: 0 0;
+    border: 0;
 }

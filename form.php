@@ -54,7 +54,7 @@ function getDonationForm($atts, $content = null)
     }
 
     // Get tax deduction labels
-    $taxDeductionLabels = !empty($easSettings['payment.labels']['tax_deduction']) ? monolinguify($easSettings['payment.labels']['tax_deduction'], 3) : null;
+    $taxDeductionLabels = loadTaxDeductionSettings($name);
 
     // Localize script
     wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
@@ -112,6 +112,9 @@ function getDonationForm($atts, $content = null)
     }
     ob_start();
 ?>
+
+<!-- Start Bootstrap scope -->
+<div class="btstrp">
 
 <!-- Donation form -->
 <form action="<?php echo admin_url('admin-ajax.php') ?>" method="post" id="donationForm" class="form-horizontal">
@@ -228,7 +231,7 @@ function getDonationForm($atts, $content = null)
                 </div>
                 <div class="buttons row">
                     <div class="col-sm-4 col-sm-offset-4">
-                        <button type="button" class="btn btn-success btn-lg confirm" disabled="disabled"><?php _e('Next', 'eas-donation-processor') ?> »</button>
+                        <button type="button" class="btn btn-lg confirm donation-continue" disabled="disabled"><?php _e('Next', 'eas-donation-processor') ?></button>
                     </div>
                 </div>
             </div>
@@ -446,7 +449,7 @@ function getDonationForm($atts, $content = null)
                 <?php endif; ?>
 
                 <!-- Tax receipt -->
-                <div class="form-group donor-info" <?php echo !empty($easSettings["webhook.mailing_list.$mode"]) ? 'style="margin-top: -15px"' : ''; ?>>
+                <div class="form-group donor-info" <?= !empty($easSettings["webhook.mailing_list.$mode"]) ? 'style="margin-top: -15px"' : ''; ?>>
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>
@@ -510,10 +513,10 @@ function getDonationForm($atts, $content = null)
 
                 <div class="buttons row">
                     <div class="col-sm-6 col-sm-push-3">
-                        <button type="submit" class="btn btn-success btn-lg confirm" id="donation-submit"><?php _e('Next', 'eas-donation-processor') ?> »</button>
+                        <button type="submit" class="btn btn-lg confirm donation-continue" id="donation-submit"><?php _e('Next', 'eas-donation-processor') ?></button>
                     </div>
                     <div class="col-xs-4 col-sm-3 col-sm-pull-6">
-                        <button type="button" class="btn btn-link unconfirm" id="donation-go-back">« <?php _e('Back', 'eas-donation-processor') ?></button>
+                        <button type="button" class="btn btn-link unconfirm" id="donation-go-back"><?php _e('Back', 'eas-donation-processor') ?></button>
                     </div>
                     <div class="col-xs-8 col-sm-12" id="secure-transaction">
                         <p class="text-success">
@@ -614,6 +617,8 @@ function getDonationForm($atts, $content = null)
 
 <div id="drawer"><?php _e('Please fill out all required fields correctly.', 'eas-donation-processor') ?></div>
 
+</div>
+<!-- End Bootstrap scope -->
 <?php
     return ob_get_clean();
 }

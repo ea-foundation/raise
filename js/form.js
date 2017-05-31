@@ -436,14 +436,18 @@ jQuery(document).ready(function($) {
     // Tax receipt toggle
     $('input#tax-receipt').change(function() {
         taxReceiptNeeded = $(this).is(':checked');
+
         // Toggle donor form display and required class
         if (taxReceiptNeeded) {
-            $('div#donor-extra-info').slideDown();
-            $('div#donor-extra-info div.optionally-required').addClass('required');
+            $('div#donor-extra-info')
+                .slideDown()
+                .find('div.optionally-required').addClass('required');
         } else {
-            $('div#donor-extra-info').slideUp();
-            $('div#donor-extra-info div.optionally-required').removeClass('required');
+            $('div#donor-extra-info')
+                .slideUp()
+                .find('div.optionally-required').removeClass('required');
         }
+
         // Reload Stripe settings
         loadStripeHandler();
     });
@@ -476,7 +480,7 @@ function getLastButtonText(formName)
     var amount           = getDonationAmount();
     var currencyCode     = getDonationCurrencyIsoCode();
     var currencyAmount   = currencies[formName][currencyCode].replace('%amount%', amount);
-    var buttonFinalText  = frequency == 'monthly' ? wordpress_vars.donate_button_monthly + ' »' : wordpress_vars.donate_button_once + ' »';
+    var buttonFinalText  = frequency == 'monthly' ? wordpress_vars.donate_button_monthly : wordpress_vars.donate_button_once;
     return buttonFinalText.replace('%currency-amount%', currencyAmount);
 }
 
@@ -788,7 +792,9 @@ function handleBankTransferDonation()
 
 function showSpinnerOnLastButton()
 {
-    jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>');
+    jQuery('button.confirm:last', '#wizard')
+        .html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>')
+        .removeClass('donation-continue');
 }
 
 function lockLastStep(locked)
@@ -803,7 +809,9 @@ function lockLastStep(locked)
 
     if (!locked) {
         // Restore submit button
-        jQuery('button.confirm:last', '#wizard').html(getLastButtonText(easFormName));
+        jQuery('button.confirm:last', '#wizard')
+            .html(getLastButtonText(easFormName))
+            .addClass('donation-continue');
     }
 }
 
