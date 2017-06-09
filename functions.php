@@ -2160,10 +2160,13 @@ function serveTaxDeductionSettings()
 {
     try {
         $form = get($_GET['form'], 'default');
-        return new WP_REST_Response(array(
+        $response = new WP_REST_Response(array(
             'success'       => true,
             'tax_deduction' => $GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'],
         ));
+        $response->header('Access-Control-Allow-Origin', '*');
+
+        return $response;
     } catch (\Exception $e) {
         return new WP_REST_Response(array(
             'success' => false,
