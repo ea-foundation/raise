@@ -127,8 +127,8 @@ function eas_json_settings_editor()
 add_action('wp_enqueue_scripts', 'register_donation_styles');
 function register_donation_styles()
 {
-    wp_register_style('bootstrap-scoped', plugins_url('eas-donation-processor/css/scoped-bootstrap.min.css'));
-    wp_enqueue_style('bootstrap-scoped');
+    wp_register_style('bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
+    wp_enqueue_style('bootstrap');
     wp_register_style('donation-plugin-css', plugins_url('eas-donation-processor/css/form.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-plugin-css');
     wp_register_style('donation-combobox-css', plugins_url('eas-donation-processor/css/bootstrap-combobox.css'), array(), EAS_ASSET_VERSION);
