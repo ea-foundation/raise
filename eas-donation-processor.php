@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.5.5
+ * Version: 0.5.6
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.19');
+define('EAS_ASSET_VERSION', '0.20');
 
 // Load other files
 require_once 'vendor/autoload.php';
@@ -89,14 +89,6 @@ function eas_process_skrill_log()
     processSkrillLog();
 }
 
-// Get tax deduction settings
-add_action("wp_ajax_nopriv_tax_deduction_settings", "eas_tax_deduction_settings");
-add_action("wp_ajax_tax_deduction_settings", "eas_tax_deduction_settings");
-function eas_tax_deduction_settings()
-{
-    serveTaxDeductionSettings();
-}
-
 // Add translations
 add_action('plugins_loaded', 'eas_load_textdomain');
 function eas_load_textdomain()
@@ -151,11 +143,11 @@ function register_donation_scripts()
     wp_register_script('donation-plugin-form', plugins_url('eas-donation-processor/js/form.js'), array('jquery', 'donation-plugin-stripe'), EAS_ASSET_VERSION);
 }
 
-// Register matching campaign post type
+// Register fundraiser post type
 add_action('init', 'create_campaign_post_type');
 function create_campaign_post_type()
 {
-    register_post_type( 'eas_fundraiser',
+    register_post_type('eas_fundraiser',
         array(
             'labels' => array(
                 'name'          => __("Fundraisers", "eas-donation-processor"),
@@ -269,6 +261,33 @@ function getPluginVersion() {
 
     return $GLOBALS['easPluginVersion'];
 }
+
+/**
+ * Register a tax deduction REST endpoint
+ */
+add_action('rest_api_init', function() {
+    register_rest_route('eas-donation-processor/v1', '/tax-deduction/(?P<secret>\w+)', array(
+        'methods'  => 'GET',
+        'callback' => 'serveTaxDeductionSettings',
+        'permission_callback' => function ($request) {
+            if ('expose' != get_option('tax-deduction-expose')) {
+                return new WP_Error('rest_forbidden', 'Tax deduction sharing is disabled', array('status' => 403));
+            }
+
+            if ($request['secret'] != get_option('tax-deduction-secret')) {
+                return new WP_Error('rest_bad_request', 'Invalid secret', array('status' => 400));
+            }
+
+            loadSettings();
+            $form = get($_GET['form'], 'default');
+            if (!isset($GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'])) {
+                return new WP_Error('rest_not_found', 'Form not found', array('status' => 404));
+            }
+
+            return true;
+        }
+    ));
+});
 
 
 

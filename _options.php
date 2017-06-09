@@ -237,7 +237,7 @@ class EasDonationProcessorOptionsPage
                         </div>
                         <div>
                             <label for="tax-deduction-url">URL:</label>
-                            <input id="tax-deduction-url" type="text" value="<?= getAjaxEndpoint() . '?action=tax_deduction_settings&secret=' . get_option('tax-deduction-secret', '') ?>" readonly>
+                            <input id="tax-deduction-url" type="text" value="<?= site_url('/wp-json/eas-donation-processor/v1/tax-deduction/' . get_option('tax-deduction-secret', '')) ?>" readonly>
                         </div>
                     </div>
                     <div id="tax-deduction-consume-settings" class="<?= $taxDeductionExpose == 'consume' ? '' : 'hidden' ?>">
@@ -330,16 +330,15 @@ class EasDonationProcessorOptionsPage
 
                 // Update exposed URL
                 jQuery('input#tax-deduction-secret').keyup(function() {
-                    jQuery('input#tax-deduction-url').val("<?= getAjaxEndpoint() . '?action=tax_deduction_settings&secret=' ?>" + encodeURI(jQuery(this).val()));
+                    jQuery('input#tax-deduction-url').val("<?= site_url('/wp-json/eas-donation-processor/v1/tax-deduction/') ?>" + encodeURI(jQuery(this).val()));
                 });
 
                 // Reload remote settings
                 jQuery('button.reload-tax-deduction').click(function() {
                     var urlRegExp = /https?:\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
-                    var remoteUrl = jQuery('input#tax-deduction-remote-url').val() + '&form=' + encodeURI(jQuery('input#tax-deduction-remote-form-name').val());
+                    var remoteUrl = jQuery('input#tax-deduction-remote-url').val() + '?form=' + encodeURI(jQuery('input#tax-deduction-remote-form-name').val());
                     if (urlRegExp.test(remoteUrl)) {
-                        jQuery.get(remoteUrl).done(function (data) {
-                            var response = JSON.parse(data);
+                        jQuery.get(remoteUrl).done(function (response) {
                             if (response.success) {
                                 jQuery('textarea#tax-deduction-remote-settings').text(JSON.stringify(response.tax_deduction, null, 4));
                                 var m = new Date();

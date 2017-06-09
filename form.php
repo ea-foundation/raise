@@ -309,7 +309,7 @@ function getDonationForm($atts, $content = null)
                 <div class="form-group required donor-info">
                     <label for="donor-name" class="col-sm-3 control-label"><?php _e('Name', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control text" name="name" id="donor-name" autocomplete="name" placeholder="">
+                        <input type="text" class="form-control text" name="name" id="donor-name" placeholder="">
                     </div>
                 </div>
 
@@ -330,7 +330,7 @@ function getDonationForm($atts, $content = null)
                 <div class="form-group required donor-info">
                     <label for="donor-email" class="col-sm-3 control-label"><?php _e('Email', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
-                        <input type="email" class="form-control text" name="email" id="donor-email" autocomplete="email" placeholder="">
+                        <input type="email" class="form-control text" name="email" id="donor-email" placeholder="">
                     </div>
                 </div>
 
@@ -473,21 +473,21 @@ function getDonationForm($atts, $content = null)
                     <div class="form-group donor-info optionally-required">
                         <label for="donor-address" class="col-sm-3 control-label"><?php _e('Address', 'eas-donation-processor') ?></label>
                         <div class="col-sm-9">
-                            <input type="text" class="form-control text" name="address" id="donor-address" autocomplete="street-address" placeholder="">
+                            <input type="text" class="form-control text" name="address" id="donor-address" placeholder="">
                         </div>
                     </div>
 
                     <div class="form-group donor-info optionally-required">
                         <label for="donor-zip" class="col-sm-3 control-label"><?php _e('Zip code', 'eas-donation-processor') ?></label>
                         <div class="col-sm-9">
-                            <input type="text" class="form-control text" name="zip" id="donor-zip" autocomplete="postal-code" placeholder="">
+                            <input type="text" class="form-control text" name="zip" id="donor-zip" placeholder="">
                         </div>
                     </div>
 
                     <div class="form-group donor-info optionally-required">
                         <label for="donor-city" class="col-sm-3 control-label"><?php _e('City', 'eas-donation-processor') ?></label>
                         <div class="col-sm-9">
-                            <input type="text" class="form-control text" name="city" id="donor-city" autocomplete="address-level2" placeholder="">
+                            <input type="text" class="form-control text" name="city" id="donor-city" placeholder="">
                         </div>
                     </div>
 
@@ -515,7 +515,7 @@ function getDonationForm($atts, $content = null)
                     <div class="col-sm-6 col-sm-push-3">
                         <button type="submit" class="btn btn-lg confirm donation-continue" id="donation-submit"><?php _e('Next', 'eas-donation-processor') ?></button>
                     </div>
-                    <div class="col-xs-4 col-sm-3 col-sm-pull-6">
+                    <div class="col-xs-4 col-sm-3 col-sm-pull-6" style="text-align: left">
                         <button type="button" class="btn btn-link unconfirm" id="donation-go-back"><?php _e('Back', 'eas-donation-processor') ?></button>
                     </div>
                     <div class="col-xs-8 col-sm-12" id="secure-transaction">

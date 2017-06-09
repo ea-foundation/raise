@@ -2152,41 +2152,23 @@ function monolinguify(array $labels, $depth = 0)
 
 /**
  * AJAX call for serving tax deduction settings to an *external* instance
+ *
+ * @return WP_REST_Response
  * @see loadTaxDeductionSettings
  */
 function serveTaxDeductionSettings()
 {
-    // Allow all origins
-    header("Access-Control-Allow-Origin: *");
-
     try {
-        // Check settings
-        if ('expose' != get_option('tax-deduction-expose')) {
-            throw new \Exception('Forbidden');
-        }
-
-        // Check secret
-        if (empty($_GET['secret']) || $_GET['secret'] != get_option('tax-deduction-secret')) {
-            throw new \Exception('Unauthorized');
-        }
-
-        // Load settings
-        loadSettings();
-
-        $form = isset($_GET['form']) ? $_GET['form'] : 'default';
-        if (!isset($GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'])) {
-            throw new \Exception('Undefined');
-        }
-
-        die(json_encode(array(
+        $form = get($_GET['form'], 'default');
+        return new WP_REST_Response(array(
             'success'       => true,
             'tax_deduction' => $GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'],
-        )));
+        ));
     } catch (\Exception $e) {
-        die(json_encode(array(
+        return new WP_REST_Response(array(
             'success' => false,
             'message' => $e->getMessage(),
-        )));
+        ));
     }
 }
 
