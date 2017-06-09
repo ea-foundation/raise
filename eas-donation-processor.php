@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.5.7
+ * Version: 0.5.9
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -25,6 +25,16 @@ require_once "bitpay/EncryptedWPOptionStorage.php";
 require_once "functions.php";
 require_once "updates.php";
 require_once "form.php";
+
+// Check for new version of plugin
+require 'plugin-update-checker/plugin-update-checker.php';
+$className = PucFactory::getLatestClassVersion('PucGitHubChecker');
+$myUpdateChecker = new $className(
+    'https://github.com/ea-foundation/eas-donation-processor',
+    __FILE__,
+    'master'
+);
+$myUpdateChecker->setAccessToken('93a8387a061d14040a5932e12ef31d90a1be419a'); // read only
 
 // Add short code for donation form
 add_shortcode('donationForm','getDonationForm');
