@@ -2159,7 +2159,7 @@ function monolinguify(array $labels, $depth = 0)
 function serveTaxDeductionSettings()
 {
     try {
-        $form = get($_GET['form'], 'default');
+        $form     = get($_GET['form'], 'default');
         $response = new WP_REST_Response(array(
             'success'       => true,
             'tax_deduction' => $GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'],
@@ -2199,7 +2199,7 @@ function loadTaxDeductionSettings($form)
             $remoteSettings = json_decode(get_option('tax-deduction-remote-settings', array()), true);
 
             if (!$remoteSettings || $timeInterval->days * 24 + $timeInterval->h > $cacheTtl) {
-                $remoteUrl     .= '&form=' . get_option('tax-deduction-remote-form-name', '');
+                $remoteUrl     .= '?form=' . get_option('tax-deduction-remote-form-name', '');
                 $remoteContents = json_decode(file_get_contents($remoteUrl), true);
                 if ($remoteContents['success'] && is_array($remoteContents['tax_deduction'])) {
                     // Save new settings

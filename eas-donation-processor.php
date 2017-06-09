@@ -3,7 +3,7 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.5.9
+ * Version: 0.6.0
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -280,14 +280,17 @@ add_action('rest_api_init', function() {
         'methods'  => 'GET',
         'callback' => 'serveTaxDeductionSettings',
         'permission_callback' => function ($request) {
+            // Check expose status
             if ('expose' != get_option('tax-deduction-expose')) {
                 return new WP_Error('rest_forbidden', 'Tax deduction sharing is disabled', array('status' => 403));
             }
 
+            // Check secret
             if ($request['secret'] != get_option('tax-deduction-secret')) {
                 return new WP_Error('rest_bad_request', 'Invalid secret', array('status' => 400));
             }
 
+            // Check form exists
             loadSettings();
             $form = get($_GET['form'], 'default');
             if (!isset($GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'])) {
