@@ -17,6 +17,7 @@ var monthlySupport          = ['payment-stripe', 'payment-banktransfer', 'paymen
 var goCardlessSupport       = ['EUR', 'GBP', 'SEK'];
 var gcPopup                 = null;
 var gcPollTimer             = null;
+var taxDeductionSuccessText = null;
 
 
 // Preload Stripe image
@@ -215,6 +216,7 @@ jQuery(document).ready(function($) {
             return false;
         }
 
+        // If we're not at the end, do the following
         if (currentItem == (totalItems - 2)) {
             // On penultimate page  load tax deduction labels
             updateTaxDeductionLabels();
@@ -222,7 +224,7 @@ jQuery(document).ready(function($) {
             // ... and replace "confirm" with "donate X CHF"
             setTimeout(function() { showLastItem(currentItem) }, 200);
         } else {
-            // Go to next slide
+            // Otherwise go to next slide
             carouselNext();
         }
     });
@@ -773,6 +775,12 @@ function handleBankTransferDonation()
                     throw new Error(message);
                 }
 
+                // Update tax deduction success text with reference
+                if (taxDeductionSuccessText) {
+                    taxDeductionSuccessText = taxDeductionSuccessText.replace('%reference%', response['reference']);
+                    jQuery('div#shortcode-content').html(taxDeductionSuccessText);
+                }
+
                 // Everything worked! Display short code content on confirmation page
                 // Change glyphicon from "spinner" to "OK" and go to confirmation page
                 showConfirmation('banktransfer');
@@ -1117,7 +1125,7 @@ function updateTaxDeductionLabels()
     // Update deductible
     var taxReceipt = jQuery('input#tax-receipt');
     if (result.hasOwnProperty('deductible')) {
-        // Collapse settings
+        // Collapse address details if open
         if (!result.deductible && taxReceipt.is(':checked')) {
             taxReceipt.click();
         }
@@ -1137,8 +1145,8 @@ function updateTaxDeductionLabels()
 
     // Update success text with nl2br
     if ('success_text' in result) {
-        result.success_text = replaceTaxDeductionPlaceholders(result.success_text, userCountry, paymentMethodName, purposeName);
-        jQuery('div#shortcode-content').html(nl2br(result.success_text));
+        taxDeductionSuccessText = nl2br(replaceTaxDeductionPlaceholders(result.success_text, userCountry, paymentMethodName, purposeName));
+        jQuery('div#shortcode-content').html(taxDeductionSuccessText);
     }
 }
 

@@ -158,19 +158,29 @@ function processDonation()
             if (empty($_POST['stripeToken']) || empty($_POST['stripePublicKey'])) {
                 throw new \Exception("No Stripe token sent");
             }
+
+            // Handle payment
             handleStripePayment($donation, $_POST['stripeToken'], $_POST['stripePublicKey']);
+
+            // Prepare response
+            $response = array('success' => true);
         } else if ($donation['type'] == "Bank Transfer") {
             // Check honey pot (confirm email)
             checkHoneyPot($_POST);
 
-            handleBankTransferPayment($donation);
+            // Handle payment
+            $reference = handleBankTransferPayment($donation);
+
+            // Prepare response
+            $response = array(
+                'success'   => true,
+                'reference' => $reference,
+            );
         } else {
             throw new \Exception('Payment method is invalid.');
         }
 
-        die(json_encode(array(
-            'success' => true,
-        )));
+        die(json_encode($response));
     } catch (\Exception $e) {
         die(json_encode(array(
             'success' => false,
@@ -313,9 +323,14 @@ function bindFormData(Eas\Donation $donation)
  * Process bank transfer payment (simply log it)
  *
  * @param array $donation Donation form data
+ * @return string Reference number
  */
 function handleBankTransferPayment(array $donation)
 {
+    // Generate reference number and add to donation
+    $reference             = getBankTransferReference(8, get($donation['purpose']));
+    $donation['reference'] = $reference;
+
     // Trigger web hooks
     triggerWebHooks($donation);
 
@@ -324,6 +339,8 @@ function handleBankTransferPayment(array $donation)
 
     // Send emails
     sendEmails($donation);
+
+    return $reference;
 }
 
 /**
@@ -2222,7 +2239,42 @@ function loadTaxDeductionSettings($form)
     return $taxDeductionSettings ? monolinguify($taxDeductionSettings, 3) : null;
 }
 
+/**
+ * Get bank transfer token
+ *
+ * @param int    $length      Total length, without prefix and hyphens
+ * @param string $prefix      Constitutes a separate block
+ * @param int    $blockLength Blocks are separated by a hyphen
+ * @param string $separator   Separates blocks
+ * @return string
+ */
+function getBankTransferReference($length, $prefix = '', $blockLength = 4, $separator = '-')
+{
+    $codeAlphabet = "ABCDEFGHJKLMNPQRTWXYZ"; // without I, O, V, U, S
+    $codeAlphabet.= "0123456789";
+    $max          = strlen($codeAlphabet);
+    $token        = "";
 
+    // Generate token
+    for ($i = 0; $i < $length; $i++) {
+        $token .= $codeAlphabet[rand(0, $max-1)];
+    }
+
+    // Chunk split token string
+    $tokenArray = str_split($token, $blockLength);
+
+    // Add prefix to token array
+    if (!empty($prefix)) {
+        // All external regranting purposes get the XRG prefix
+        if (preg_match('#^XRG#', $prefix)) {
+            $prefix = "XRG";
+        }
+
+        array_unshift($tokenArray, strtoupper($prefix));
+    }
+
+    return join($separator, $tokenArray);
+}
 
 
 
