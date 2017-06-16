@@ -491,7 +491,8 @@ function getBestPaymentProviderSettings(
     }
 
     // Extract settings of the form we're talking about
-    $formSettings = $GLOBALS['easForms'][$form];
+    $formSettings      = $GLOBALS['easForms'][$form];
+    $countryCompulsory = get($formSettings['payment.extra_fields.country'], false);
 
     // Check all possible settings
     $hasCountrySetting  = true;
@@ -509,7 +510,7 @@ function getBestPaymentProviderSettings(
     $hasCountryOfCurrencySetting = false;
     $firstProperty               = $properties[0];
     $countryOfCurrency           = '';
-    if (!$taxReceiptNeeded && !$hasCurrencySetting) {
+    if (!$countryCompulsory && !$taxReceiptNeeded && !$hasCurrencySetting) {
         $countries = array_map('strtolower', getCountriesByCurrency($currency));
         foreach ($countries as $country) {
             if (isset($formSettings["payment.provider.{$provider}_$country.$mode.$firstProperty"])) {
@@ -530,7 +531,7 @@ function getBestPaymentProviderSettings(
         }
     }
 
-    if ($taxReceiptNeeded && $hasCountrySetting) {
+    if ($hasCountrySetting && ($taxReceiptNeeded || $countryCompulsory)) {
         // Use country specific settings
         return removePrefix($formSettings, $properties, "payment.provider.{$provider}_$country.$mode.");
     } else if ($hasCurrencySetting) {
