@@ -2,7 +2,8 @@
 Donation-Plugin for WordPress, inspired by the donation widget on Barack Obama's support page
 
 Main featuers:
-*   Handle Stripe, PayPal, GoCardless (direct debit), BitPay (bitcoin), Skrill, and bank transactions
+*   Handle one-time donations from Stripe, PayPal, GoCardless (direct debit), BitPay (bitcoin), Skrill, and bank transactions
+*   Handle recurring donations from Stripe, GoCardless, Skrill, and bank transactions
 *   Configure several form instances (property inheritance support)
 *   Assign donations to different accounts depending on currency or donor country
 *   Sandbox API support for Stripe, PayPal, and GoCardless

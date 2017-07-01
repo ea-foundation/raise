@@ -234,7 +234,7 @@ function handleStripePayment($donation, $token, $publicKey)
             $plan = getStripePlan($amountInt, $donation['currency']);
 
             // Subscribe customer to plan
-            \Stripe\Subscription::create(array(
+            $subscription = \Stripe\Subscription::create(array(
                 'customer' => $customer->id,
                 'plan'     => $plan,
                 'metadata' => array(
@@ -242,6 +242,9 @@ function handleStripePayment($donation, $token, $publicKey)
                     'purpose' => $donation['purpose'],
                 ),
             ));
+
+            // Add vendor reference ID
+            $donation['vendor_subscription_id'] = $subscription->id;
         } else {
             // Make one-time charge
             $charge = \Stripe\Charge::create(array(
@@ -254,7 +257,13 @@ function handleStripePayment($donation, $token, $publicKey)
                     'purpose' => $donation['purpose'],
                 ),
             ));
+
+            // Add vendor transaction ID
+            $donation['vendor_transaction_id'] = $charge->id;
         }
+
+        // Add customer ID
+        $donation['vendor_customer_id'] = $customer->id;
 
         // Trigger web hooks
         triggerWebHooks($donation);
@@ -369,6 +378,9 @@ function triggerLoggingWebHooks($donation)
     // Get form and mode
     $form = get($donation['form'], '');
     $mode = get($donation['mode'], '');
+
+    // Unset reqId (not needed)
+    unset($donation['reqId']);
 
     // Trigger hooks for Zapier
     if (isset($GLOBALS['easForms'][$form]["webhook.logging.$mode"])) {
@@ -675,9 +687,6 @@ function processGoCardlessDonation()
             ]]
         );
 
-        // Get mandate ID
-        $mandateID = $redirectFlow->links->mandate;
-
         // Get other parameters
         $language  = $donation['language'];
         $url       = $donation['url'];
@@ -690,10 +699,10 @@ function processGoCardlessDonation()
 
         $payment = [
             "params" => [
-                "amount" => $amountInt, // in cents!
+                "amount"   => $amountInt, // in cents!
                 "currency" => $currency,
                 "links" => [
-                  "mandate" => $mandateID,
+                    "mandate" => $redirectFlow->links->mandate,
                 ],
                 "metadata" => [
                     "Form"     => $form,
@@ -719,6 +728,9 @@ function processGoCardlessDonation()
             $client->payments()->create($payment);
         }
 
+        // Add vendor customer ID to donation
+        $donation['vendor_customer_id'] = $redirectFlow->links->customer;
+
         // Trigger web hooks
         triggerWebHooks($donation);
 
@@ -728,9 +740,9 @@ function processGoCardlessDonation()
         // Send emails
         sendEmails($donation);
 
-        $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation('gocardless'); mainWindow.hideModal('#goCardlessModal');";
+        $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation('gocardless'); mainWindow.hideModal();";
     } catch (\Exception $e) {
-        $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; alert('" . $e->getMessage() . "'); mainWindow.hideModal('#goCardlessModal');";
+        $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; alert('" . $e->getMessage() . "'); mainWindow.hideModal();";
     }
 
     // Die and send script to close flow
@@ -932,6 +944,17 @@ function getSkrillUrl($reqId, $post)
         'payment_methods'   => "WLT", // Skrill comes first
         'prepare_only'      => 1, // Return URL instead of form HTML
     );
+
+    // Add parameters for monthly donations
+    if ($post['frequency'] == 'monthly') {
+        $recStartDate = new \DateTime('+1 month');
+        $params['rec_amount']     = $post['amount'];
+        $params['rec_start_date'] = $recStartDate->format('d/m/Y');
+        $params['rec_period']     = 1;
+        $params['rec_cycle']      = 'month';
+    }
+
+    // Make options
     $options = array(
         'http' => array(
             'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
@@ -1011,7 +1034,7 @@ function prepareBitPayDonation(array $post)
         }
 
         // Save invoice ID to session
-        $_SESSION['eas-invoice-id']  = $invoice->getId();
+        $_SESSION['eas-vendor-transaction-id']  = $invoice->getId();
 
         // Save user data to session
         setDonationDataToSession($post, $reqId);
@@ -1085,7 +1108,7 @@ function processSkrillLog()
 
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>parent.showConfirmation("skrill"); parent.hideModal("#skrillModal");</script></body></html>');
+         <body><script>parent.showConfirmation("skrill"); parent.hideModal();</script></body></html>');
 }
 
 /**
@@ -1106,18 +1129,18 @@ function processBitPayLog()
 
         // Get variables from session
         $donation   = getDonationFromSession();
-        $email      = $donation['email'];
-        $name       = $donation['name'];
-        $language   = $donation['language'];
         $form       = $donation['form'];
         $mode       = $donation['mode'];
         $taxReceipt = $donation['tax_receipt'];
         $currency   = $donation['currency'];
         $country    = $donation['country'];
 
+        // Add vendor transaction ID (BitPay invoice ID)
+        $donation['vendor_transaction_id'] = $_SESSION['eas-vendor-transaction-id'];
+
         // Make sure the payment is paid
         $client      = getBitpayClient($form, $mode, $taxReceipt, $currency, $country);
-        $invoice     = $client->getInvoice($_SESSION['eas-invoice-id']);
+        $invoice     = $client->getInvoice($_SESSION['eas-vendor-transaction-id']);
         $status      = $invoice->getStatus();
         $validStates = array(
             \Bitpay\Invoice::STATUS_PAID,
@@ -1142,7 +1165,7 @@ function processBitPayLog()
 
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>parent.showConfirmation("bitpay"); parent.hideModal("#bitPayModal");</script></body></html>');
+         <body><script>var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation("bitpay"); mainWindow.hideModal();</script></body></html>');
 }
 
 /**
@@ -1182,7 +1205,7 @@ function getDonationFromSession()
 /**
  * Set donation data to session
  *
- * @param array $post   Form post
+ * @param array  $post  Form post
  * @param string $reqId Request ID (against replay attack)
  */
 function setDonationDataToSession(array $post, $reqId = null)

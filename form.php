@@ -563,7 +563,7 @@ function getDonationForm($atts, $content = null)
 
 <?php if (!empty($easSettings["payment.provider.gocardless.$mode.access_token"])): ?>
     <!-- GoCardless modal -->
-    <div id="goCardlessModal" class="modal eas-modal fade" role="dialog" data-backdrop="static">
+    <div id="GoCardlessModal" class="modal eas-modal eas-popup-modal fade" role="dialog" data-backdrop="static">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
@@ -571,17 +571,14 @@ function getDonationForm($atts, $content = null)
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="gc_popup_open hidden">
+                    <div class="eas_popup_open hidden">
                         <p><?php _e("Please continue the donation in the secure window that you've already opened.", "eas-donation-processor") ?></p>
-                        <button class="btn btn-primary" onclick="gcPopup.focus()">OK</button>
+                        <button class="btn btn-primary" onclick="easPopup.focus()">OK</button>
                     </div>
-                    <div class="gc_popup_closed">
-                        <button id="goCardlessPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Set up Direct Debit", "eas-donation-processor") ?></button>
+                    <div class="eas_popup_closed">
+                        <button id="GoCardlessPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Set up Direct Debit", "eas-donation-processor") ?></button>
                     </div>
                 </div>
-                <!-- <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div> -->
             </div>
         </div>
     </div>
@@ -589,21 +586,30 @@ function getDonationForm($atts, $content = null)
 
 <?php if (!empty($easSettings["payment.provider.bitpay.$mode.pairing_code"])): ?>
     <!-- Bitpay modal -->
-    <div id="bitPayModal" class="modal eas-modal eas-iframe-modal fade" role="dialog" data-backdrop="static">
-        <div class="modal-dialog">
+    <div id="BitPayModal" class="modal eas-modal eas-popup-modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
+                    <img src="<?php echo plugins_url('images/bitpay.png', __FILE__) ?>" alt="BitPay" height="16">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
-                <div class="modal-body"></div>
+                <div class="modal-body">
+                    <div class="eas_popup_open hidden">
+                        <p><?php _e("Please continue the donation in the secure window that you've already opened.", "eas-donation-processor") ?></p>
+                        <button class="btn btn-primary" onclick="easPopup.focus()">OK</button>
+                    </div>
+                    <div class="eas_popup_closed">
+                        <button id="BitPayPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Pay by Bitcoin", "eas-donation-processor") ?></button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 <?php endif; ?>
 
 <?php if (!empty($easSettings["payment.provider.skrill.$mode.merchant_account"])): ?>
-    <!-- Bitpay modal -->
-    <div id="skrillModal" class="modal eas-modal eas-iframe-modal fade" role="dialog" data-backdrop="static">
+    <!-- Skrill modal -->
+    <div id="SkrillModal" class="modal eas-modal eas-iframe-modal fade" role="dialog" data-backdrop="static">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">

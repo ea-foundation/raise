@@ -13,9 +13,9 @@ var slideTransitionInAction = false;
 var otherAmountPlaceholder  = null;
 var currentStripeKey        = '';
 var frequency               = 'once';
-var monthlySupport          = ['payment-stripe', 'payment-banktransfer', 'payment-gocardless'];
+var monthlySupport          = ['payment-stripe', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
 var goCardlessSupport       = ['EUR', 'GBP', 'SEK'];
-var gcPopup                 = null;
+var easPopup                = null;
 var gcPollTimer             = null;
 var taxDeductionSuccessText = null;
 
@@ -96,26 +96,26 @@ jQuery(document).ready(function($) {
         event.preventDefault();
     });
 
-    // Unlock form when GoCardless modal is hidden
-    $("div.eas-modal").on('hide.bs.modal', function () {
+    // Unlock form when EAS popup modal is hidden
+    $("div.eas-popup-modal").on('hide.bs.modal', function () {
         // No need to unlock form if donation complete
         if (jQuery('button.confirm:last span.glyphicon-ok', '#wizard').length == 0) {
             lockLastStep(false);
         }
 
         // Close popup (if still open)
-        if (gcPopup && !gcPopup.closed) {
-            gcPopup.close();
+        if (easPopup && !easPopup.closed) {
+            easPopup.close();
         }
     });
 
-    // Lock form when GoCardless modal is shown and reset modal contents
-    $("#goCardlessModal").on('show.bs.modal', function () {
+    // Lock form when EAS popup modal is shown and reset modal contents
+    $("div.eas-popup-modal").on('show.bs.modal', function () {
         lockLastStep(true);
 
         // Reset modal
-        jQuery('#goCardlessModal .modal-body .gc_popup_closed').removeClass('hidden');
-        jQuery('#goCardlessModal .modal-body .gc_popup_open').addClass('hidden');
+        $(this).find('.modal-body .eas_popup_closed').removeClass('hidden');
+        $(this).find('.modal-body .eas_popup_open').addClass('hidden');
     });
 
     // Validation logic is done inside the onBeforeSeek callback
@@ -197,13 +197,13 @@ jQuery(document).ready(function($) {
                     handlePaypalDonation();
                     break;
                 case 'payment-gocardless':
-                    handleGoCardlessDonation();
+                    handlePopupDonation('GoCardless');
                     break;
                 case 'payment-bitpay':
-                    handleBitPayDonation();
+                    handlePopupDonation('BitPay');
                     break;
                 case 'payment-skrill':
-                    handleSkrillDonation();
+                    handleIFrameDonation('Skrill');
                     break;
                 case 'payment-banktransfer':
                     handleBankTransferDonation();
@@ -534,7 +534,7 @@ function handleStripeDonation()
     });
 }
 
-function handleGoCardlessDonation()
+function handlePopupDonation(provider)
 {
     // Show spinner right away
     showSpinnerOnLastButton();
@@ -554,27 +554,27 @@ function handleGoCardlessDonation()
                 }
 
                 // Open URL in modal
-                jQuery('#goCardlessPopupButton')
+                jQuery('#' + provider +'PopupButton')
                     .unbind()
                     .click(function() {
                         // Open popup
-                        openGoCardlessPopup(response['url']);
+                        openEasPopup(response['url'], provider);
 
                         // Show "continue donation in secure" message on modal
-                        jQuery('#goCardlessModal .modal-body .gc_popup_closed').addClass('hidden');
-                        jQuery('#goCardlessModal .modal-body .gc_popup_open').removeClass('hidden');
+                        jQuery('#' + provider + 'Modal .modal-body .eas_popup_closed').addClass('hidden');
+                        jQuery('#' + provider + 'Modal .modal-body .eas_popup_open').removeClass('hidden');
 
                         // Start poll timer
                         gcPollTimer = window.setInterval(function() {
-                            if (gcPopup.closed) {
+                            if (easPopup.closed) {
                                 window.clearInterval(gcPollTimer);
-                                jQuery('#goCardlessModal').modal('hide');
+                                jQuery('#' + provider + 'Modal').modal('hide');
                             }
                         }, 200);
                     });
 
                 // Show modal
-                jQuery('#goCardlessModal').modal('show');
+                jQuery('#' + provider + 'Modal').modal('show');
             } catch (err) {
                 // Something went wrong, show on confirmation page
                 alert(err.message);
@@ -593,7 +593,7 @@ function handleGoCardlessDonation()
     lockLastStep(true);
 }
 
-function handleBitPayDonation()
+function handleIFrameDonation(provider)
 {
     // Show spinner right away
     showSpinnerOnLastButton();
@@ -605,7 +605,6 @@ function handleBitPayDonation()
     jQuery('form#donationForm').ajaxSubmit({
         success: function(responseText, statusText, xhr, form) {
             try {
-                // Take the pay key and start the PayPal flow
                 var response = JSON.parse(responseText);
                 if (!('success' in response) || !response['success']) {
                     var message = 'error' in response ? response['error'] : responseText;
@@ -613,10 +612,10 @@ function handleBitPayDonation()
                 }
 
                 // Open URL in modal
-                jQuery('#bitPayModal .modal-body').html('<iframe src="' + response.url + '"></iframe>');
+                jQuery('#' + provider + 'Modal .modal-body').html('<iframe src="' + response.url + '"></iframe>');
 
                 // Show modal
-                jQuery('#bitPayModal').modal('show');
+                jQuery('#' + provider + 'Modal').modal('show');
             } catch (err) {
                 // Something went wrong, show on confirmation page
                 alert(err.message);
@@ -635,56 +634,14 @@ function handleBitPayDonation()
     lockLastStep(true);
 }
 
-function handleSkrillDonation()
+function hideModal()
 {
-    // Show spinner right away
-    showSpinnerOnLastButton();
-
-    // Change action input
-    jQuery('form#donationForm input[name=action]').val('eas_redirect');
-
-    // Get sign up URL
-    jQuery('form#donationForm').ajaxSubmit({
-        success: function(responseText, statusText, xhr, form) {
-            try {
-                // Take the pay key and start the PayPal flow
-                var response = JSON.parse(responseText);
-                if (!('success' in response) || !response['success']) {
-                    var message = 'error' in response ? response['error'] : responseText;
-                    throw new Error(message);
-                }
-
-                // Open URL in modal
-                jQuery('#skrillModal .modal-body').html('<iframe src="' + response.url + '"></iframe>');
-
-                // Show modal
-                jQuery('#skrillModal').modal('show');
-            } catch (err) {
-                // Something went wrong, show on confirmation page
-                alert(err.message);
-
-                // Enable buttons
-                lockLastStep(false);
-            }
-        },
-        error: function(responseText) {
-            // Should only happen on internal server error
-            var message = 'error' in response ? response['error'] : responseText;
-            alert(message);
-        }
-    });
-
-    lockLastStep(true);
+    jQuery('.eas-modal').modal('hide');
 }
 
-function hideModal(modalId)
+function openEasPopup(url, title)
 {
-    jQuery(modalId).modal('hide');
-}
-
-function openGoCardlessPopup(url)
-{
-    gcPopup = popupCenter(url, 'GoCardless', 420, 560);
+    easPopup = popupCenter(url, title, 420, 560);
     return false;
 }
 
