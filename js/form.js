@@ -1047,7 +1047,7 @@ function updateTaxDeductionLabels()
 
     var paymentMethod = jQuery('input[name=payment]:checked', '#wizard');
     if (paymentMethod.length) {
-        var paymentMethodId   = paymentMethod.attr('id').substr(8);
+        var paymentMethodId   = paymentMethod.attr('id').substr(8); // Strip `payment-` prefix
         var paymentMethodName = paymentMethod.parent().find('span.payment-method-name').text();
     } else {
         var paymentMethodId   = null;

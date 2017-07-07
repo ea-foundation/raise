@@ -1537,6 +1537,9 @@ function sendConfirmationEmail(array $donation)
         $language      = !empty($donation['language']) ? strtolower($donation['language']) : null;
         $emailSettings = getLocalizedValue($GLOBALS['easForms'][$form]['finish.email'], $language);
 
+        // Add tax dedcution labels to donation
+        $donation += getTaxDeductionSettingsByDonation($donation);
+
         // Get email subject and text and pass it through twig
         $twig    = getTwig($form, $language);
         $subject = $twig->render('finish.email.subject', $donation);
@@ -2196,6 +2199,7 @@ function monolinguify(array $labels, $depth = 0)
  *
  * @return WP_REST_Response
  * @see loadTaxDeductionSettings
+ * @see getTaxDeductionSettingsByDonation
  */
 function serveTaxDeductionSettings()
 {
@@ -2217,11 +2221,45 @@ function serveTaxDeductionSettings()
 }
 
 /**
+ * Load tax deduction settings for donation
+ *
+ * @param array $donation
+ * @return array
+ * @see serveTaxDeductionSettings
+ * @see loadTaxDeductionSettings
+ */
+function getTaxDeductionSettingsByDonation(array $donation)
+{
+    $settings = array();
+
+    if ($taxDeductionSettings = loadTaxDeductionSettings($donation['form'])) {
+        $countries = !empty($donation['country']) ? ['default', strtolower($donation['country'])] : ['default'];
+        $types     = !empty($donation['type'])    ? ['default', strtolower($donation['type'])]    : ['default']; // Payment provider
+        $purposes  = !empty($donation['purpose']) ? ['default', $donation['purpose']]             : ['default'];
+
+        // Find best labels, more specific settings override more general settings
+        foreach ($countries as $country) {
+            foreach ($types as $type) {
+                foreach ($purposes as $purpose) {
+                    if (!empty($taxDeductionSettings[$country][$type][$purpose])) {
+                        $settings = array_merge($settings, $taxDeductionSettings[$country][$type][$purpose]);
+                    }
+                }
+            }
+        }
+    }
+
+    return $settings;
+}
+
+/**
  * Load tax deduction settings
  *
  * @see returnTaxDeductionSettings()
  * @param string $form Form name
  * @return array|null
+ * @see serveTaxDeductionSettings
+ * @see getTaxDeductionSettingsByDonation
  */
 function loadTaxDeductionSettings($form)
 {
