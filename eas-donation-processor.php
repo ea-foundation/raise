@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * GitHub Plugin URI: ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.7.6
+ * Version: 0.7.7
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary

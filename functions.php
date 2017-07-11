@@ -2238,9 +2238,9 @@ function getTaxDeductionSettingsByDonation(array $donation)
     $settings = array();
 
     if ($taxDeductionSettings = loadTaxDeductionSettings($donation['form'])) {
-        $countries = !empty($donation['country']) ? ['default', strtolower($donation['country'])] : ['default'];
-        $types     = !empty($donation['type'])    ? ['default', strtolower($donation['type'])]    : ['default']; // Payment provider
-        $purposes  = !empty($donation['purpose']) ? ['default', $donation['purpose']]             : ['default'];
+        $countries = !empty($donation['country']) ? ['default', strtolower($donation['country'])]                    : ['default'];
+        $types     = !empty($donation['type'])    ? ['default', str_replace(" ", "", strtolower($donation['type']))] : ['default']; // Payment provider
+        $purposes  = !empty($donation['purpose']) ? ['default', $donation['purpose']]                                : ['default'];
 
         // Find best labels, more specific settings override more general settings
         foreach ($countries as $country) {
