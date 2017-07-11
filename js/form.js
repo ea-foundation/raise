@@ -5,6 +5,7 @@ var easFormName             = easDonationConfig.formName;
 var easMode                 = easDonationConfig.mode;
 var userCountry             = easDonationConfig.userCountry;
 var selectedCurrency        = easDonationConfig.selectedCurrency;
+var countryCompulsory       = easDonationConfig.countryCompulsory;
 var currencies              = wordpress_vars.amount_patterns;
 var stripeHandlers          = null;
 var totalItems              = 0;
@@ -18,6 +19,7 @@ var goCardlessSupport       = ['EUR', 'GBP', 'SEK'];
 var easPopup                = null;
 var gcPollTimer             = null;
 var taxDeductionSuccessText = null;
+var taxDeductionDisabled    = true;
 
 
 // Preload Stripe image
@@ -427,11 +429,11 @@ jQuery(document).ready(function($) {
             $('input#donor-country-auto').val(option.text());
             $('input[name=country]', '#wizard').val(countryCode);
 
-            // Reload stripe handlers, trigger later (Chrome bug)
-            setTimeout(loadStripeHandler, 10);
-
             // Update tax deduction labels
             updateTaxDeductionLabels();
+
+            // Reload stripe handlers, trigger later (Chrome bug)
+            setTimeout(loadStripeHandler, 10);
         }
     });
 
@@ -773,6 +775,9 @@ function lockLastStep(locked)
     jQuery('div.checkbox input', '#payment-method-item').prop('disabled', locked);
 
     if (!locked) {
+        // Make sure tax deduction stays disabled when not possible
+        jQuery('#tax-receipt').prop('disabled', taxDeductionDisabled);
+
         // Restore submit button
         jQuery('button.confirm:last', '#wizard')
             .html(getLastButtonText(easFormName))
@@ -840,7 +845,7 @@ function loadStripeHandler()
     // to specific country) and if there are no currency specific settings
     var hasCountryOfCurrencySetting = false;
     var countryOfCurrency           = '';
-    if (!taxReceiptNeeded && !hasCurrencySetting) {
+    if (!countryCompulsory && !taxReceiptNeeded && !hasCurrencySetting) {
         var countries = getCountriesByCurrency(selectedCurrency);
         for (var i = 0; i < countries.length; i++) {
             if (checkNestedArray(stripeSettings, countries[i].toLowerCase(), easMode)) {
@@ -851,7 +856,7 @@ function loadStripeHandler()
         }
     }
 
-    if (taxReceiptNeeded && hasCountrySetting) {
+    if (hasCountrySetting && (taxReceiptNeeded || countryCompulsory)) {
         // Use country specific key
         var newStripeKey = stripeSettings[userCountry.toLowerCase()][easMode];
     } else if (hasCurrencySetting) {
@@ -869,7 +874,7 @@ function loadStripeHandler()
 
     // Check if the key changed
     if (currentStripeKey == newStripeKey) {
-        // Unlock form
+        // Unlock form and exit
         lockLastStep(false);
         return;
     }
@@ -1082,11 +1087,13 @@ function updateTaxDeductionLabels()
     // Update deductible
     var taxReceipt = jQuery('input#tax-receipt');
     if (result.hasOwnProperty('deductible')) {
+        taxDeductionDisabled = !result.deductible;
+
         // Collapse address details if open
-        if (!result.deductible && taxReceipt.is(':checked')) {
+        if (taxDeductionDisabled && taxReceipt.is(':checked')) {
             taxReceipt.click();
         }
-        taxReceipt.prop('disabled', !result.deductible);
+        taxReceipt.prop('disabled', taxDeductionDisabled);
     }
 
     // Update receipt text

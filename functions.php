@@ -75,7 +75,7 @@ function getDonationFromPost()
         'address'     => get($post['address'], ''),
         'zip'         => get($post['zip'], ''),
         'city'        => get($post['city'], ''),
-        'country'     => getEnglishNameByCountryCode(get($post['country'], '')),
+        'country'     => get($post['country'], ''),
         'comment'     => get($post['comment'], ''),
         'anonymous'   => get($post['anonymous'], false),
         'mailinglist' => get($post['mailinglist'], false),
@@ -381,6 +381,11 @@ function triggerLoggingWebHooks($donation)
 
     // Unset reqId (not needed)
     unset($donation['reqId']);
+
+    // Translate country code to English
+    if (!empty($donation['country'])) {
+        $donation['country'] = getEnglishNameByCountryCode($donation['country']);
+    }
 
     // Trigger hooks for Zapier
     if (isset($GLOBALS['easForms'][$form]["webhook.logging.$mode"])) {
@@ -2241,7 +2246,7 @@ function getTaxDeductionSettingsByDonation(array $donation)
         foreach ($countries as $country) {
             foreach ($types as $type) {
                 foreach ($purposes as $purpose) {
-                    if (!empty($taxDeductionSettings[$country][$type][$purpose])) {
+                    if (isset($taxDeductionSettings[$country][$type][$purpose])) {
                         $settings = array_merge($settings, $taxDeductionSettings[$country][$type][$purpose]);
                     }
                 }

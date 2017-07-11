@@ -104,10 +104,10 @@ function getDonationForm($atts, $content = null)
     // Handle redirection case after successful payment
     if (isset($_GET['success']) && $_GET['success'] == 'true') {
         // Set status to payed to prevent replay attacks on our logs
-        $checkoutCssClass = '';
+        $checkoutCssClass     = '';
         $confirmationCssClass = ' active';
     } else {
-        $checkoutCssClass = ' active';
+        $checkoutCssClass     = ' active';
         $confirmationCssClass = '';
     }
     ob_start();
@@ -121,10 +121,11 @@ function getDonationForm($atts, $content = null)
 
 <script>
     var easDonationConfig = {
-        formName:         "<?php echo $name ?>",
-        mode:             "<?php echo $mode ?>",
-        userCountry:      "<?php echo $userCountryCode ?>",
-        selectedCurrency: "<?php echo $preselectedCurrency ?>"
+        formName:          "<?= $name ?>",
+        mode:              "<?= $mode ?>",
+        userCountry:       "<?= $userCountryCode ?>",
+        selectedCurrency:  "<?= $preselectedCurrency ?>",
+        countryCompulsory: "<?= get($easSettings['payment.extra_fields.country'], false) ? true : false ?>"
     }
 </script>
 <input type="hidden" name="action" value="eas_donate"> <!-- ajax key -->
@@ -314,7 +315,7 @@ function getDonationForm($atts, $content = null)
                 </div>
 
                 <!-- Donate anonymously (matching campaigns) -->
-                <?php if (!empty($easSettings['campaign']) && !empty($easSettings['payment.extra_fields.anonymous']) && $easSettings['payment.extra_fields.anonymous']): ?>
+                <?php if (!empty($easSettings['campaign']) && get($easSettings['payment.extra_fields.anonymous'], false)): ?>
                 <div class="form-group donor-info" style="margin-top: -17px">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
@@ -343,7 +344,7 @@ function getDonationForm($atts, $content = null)
                 </div>
 
                 <!-- Country (if necessary for tax deduction) -->
-                <?php if (!empty($easSettings['payment.extra_fields.country']) && $easSettings['payment.extra_fields.country']): ?>
+                <?php if (get($easSettings['payment.extra_fields.country'], false)): ?>
                 <div class="form-group required donor-info">
                     <label for="donor-country" class="col-sm-3 control-label"><?php _e('Country', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
@@ -419,7 +420,7 @@ function getDonationForm($atts, $content = null)
                 <?php endif; endif; ?>
 
                 <!-- Comment -->
-                <?php if (!empty($easSettings['payment.extra_fields.comment']) && $easSettings['payment.extra_fields.comment']): ?>
+                <?php if (get($easSettings['payment.extra_fields.comment'], false)): ?>
                 <div class="form-group donor-info">
                     <label for="donor-comment" class="col-sm-3 control-label"><?php _e('Public comment', 'eas-donation-processor') ?> (<?php _e('optional', 'eas-donation-processor') ?>)</label>
                     <div class="col-sm-9">
