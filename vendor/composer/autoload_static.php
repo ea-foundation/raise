@@ -85,6 +85,17 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
                 0 => __DIR__ . '/..' . '/symfony/config',
             ),
         ),
+        'P' => 
+        array (
+            'Psr\\Log\\' => 
+            array (
+                0 => __DIR__ . '/..' . '/psr/log',
+            ),
+            'PayPal' => 
+            array (
+                0 => __DIR__ . '/..' . '/paypal/rest-api-sdk-php/lib',
+            ),
+        ),
     );
 
     public static function getInitializer(ClassLoader $loader)

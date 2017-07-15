@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * GitHub Plugin URI: ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.7.7
+ * Version: 0.7.8
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -16,7 +16,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.23');
+define('EAS_ASSET_VERSION', '0.24');
 
 // Load other files
 require_once 'vendor/autoload.php';
@@ -58,12 +58,12 @@ function eas_prepare_donation()
     prepareRedirect();
 }
 
-// Log Paypal transaction. User is redirected here after successful donation
-add_action("wp_ajax_nopriv_log", "eas_process_paypal_log");
-add_action("wp_ajax_log", "eas_process_paypal_log");
-function eas_process_paypal_log()
+// Execute and log Paypal transaction
+add_action("wp_ajax_nopriv_paypal_execute", "eas_process_paypal_execute");
+add_action("wp_ajax_paypal_execute", "eas_process_paypal_execute");
+function eas_process_paypal_execute()
 {
-    processPaypalLog();
+    executePaypalDonation();
 }
 
 // Process GoCardless donation
@@ -139,7 +139,7 @@ function register_donation_scripts()
     wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', array('jquery'));
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
-    wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/js/external/dg.js');
+    wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/api/checkout.v4.js');
     wp_register_script('donation-combobox', plugins_url('eas-donation-processor/js/bootstrap-combobox.js'), array(), EAS_ASSET_VERSION);
     wp_register_script('donation-plugin-form', plugins_url('eas-donation-processor/js/form.js'), array('jquery', 'donation-plugin-stripe'), EAS_ASSET_VERSION);
 }

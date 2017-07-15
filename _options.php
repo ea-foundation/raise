@@ -284,6 +284,13 @@ class EasDonationProcessorOptionsPage
                 // Stringify editor JSON and put it into hidden form field before submitting the form
                 jQuery('#donation-setting-form').submit(function() {
                     // Sringify JSON and save it
+                    try {
+                        eval('(' + JSON.stringify(editor.get()) + ')');
+                    } catch (e) {
+                        alert(e);
+                        return false;
+                    }
+
                     var json = JSON.stringify(editor.get());
                     jQuery("input[name=settings]").val(json);
                 });

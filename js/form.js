@@ -99,25 +99,25 @@ jQuery(document).ready(function($) {
     });
 
     // Unlock form when EAS popup modal is hidden
-    $("div.eas-popup-modal").on('hide.bs.modal', function () {
+    $("div.eas-modal").on('hide.bs.modal', function () {
         // No need to unlock form if donation complete
         if (jQuery('button.confirm:last span.glyphicon-ok', '#wizard').length == 0) {
             lockLastStep(false);
         }
 
         // Close popup (if still open)
-        if (easPopup && !easPopup.closed) {
+        if ($(this).hasClass('eas-popup-modal') && easPopup && !easPopup.closed) {
             easPopup.close();
         }
     });
 
     // Lock form when EAS popup modal is shown and reset modal contents
-    $("div.eas-popup-modal").on('show.bs.modal', function () {
-        lockLastStep(true);
-
+    $("div.eas-modal").on('show.bs.modal', function () {
         // Reset modal
-        $(this).find('.modal-body .eas_popup_closed').removeClass('hidden');
-        $(this).find('.modal-body .eas_popup_open').addClass('hidden');
+        if ($(this).hasClass('eas-popup-modal')) {
+            $(this).find('.modal-body .eas_popup_closed').removeClass('hidden');
+            $(this).find('.modal-body .eas_popup_open').addClass('hidden');
+        }
     });
 
     // Validation logic is done inside the onBeforeSeek callback
@@ -196,7 +196,7 @@ jQuery(document).ready(function($) {
                     handleStripeDonation();
                     break;
                 case 'payment-paypal':
-                    handlePaypalDonation();
+                    handlePayPalDonation();
                     break;
                 case 'payment-gocardless':
                     handlePopupDonation('GoCardless');
@@ -457,7 +457,66 @@ jQuery(document).ready(function($) {
     });
 }); // End jQuery(document).ready()
 
+/**
+ * PayPal checkout.js
+ */
+paypal.Button.render({
+    env: easMode == 'sandbox' ? 'sandbox' : 'production',
+    style: {
+        label: 'checkout',  // checkout | credit | pay
+        size:  'small',     // small | medium | responsive
+        shape: 'pill',      // pill | rect
+        color: 'blue'       // gold | blue | silver
+    },
+    payment: function() {
+        // Close modal
+        jQuery('#PayPalModal').modal('hide');
 
+        // Send form
+        return new paypal.Promise(function(resolve, reject) {
+            jQuery('form#donationForm').ajaxSubmit({
+                success: function(responseText) {
+                    var response = JSON.parse(responseText);
+                    if (!('success' in response) || !response['success']) {
+                        var message = 'error' in response ? response['error'] : responseText;
+                        throw new Error(message);
+                    }
+
+                    // Resolve payment
+                    resolve(response.paymentID);
+                },
+                error: function(err) {
+                    // Should only happen on internal server error
+                    reject(err);
+
+                    // Unlock last step
+                    lockLastStep(false);
+                }
+            });
+        });
+    },
+    onAuthorize: function(data) {
+        // Show spinner on form
+        showSpinnerOnLastButton();
+
+        // Lock last step
+        lockLastStep(true);
+
+        // Execute payment
+        jQuery.post(wordpress_vars.ajax_endpoint, { action: "paypal_execute", paymentID: data.paymentID, payerID: data.payerID })
+            .done(function(data) {
+                showConfirmation('paypal');
+            })
+            .fail(function(err)  {
+                alert('An error occured: ' + err);
+                lockLastStep(false);
+            });
+    },
+    onCancel: function(data) {
+        lockLastStep(false);
+    }
+
+}, '#PayPalPopupButton');
 
 
 /**
@@ -548,7 +607,6 @@ function handlePopupDonation(provider)
     jQuery('form#donationForm').ajaxSubmit({
         success: function(responseText, statusText, xhr, form) {
             try {
-                // Take the pay key and start the PayPal flow
                 var response = JSON.parse(responseText);
                 if (!('success' in response) || !response['success']) {
                     var message = 'error' in response ? response['error'] : responseText;
@@ -667,52 +725,6 @@ function popupCenter(url, title, w, h) {
     return newWindow;
 }
 
-/**
- * Handle Paypal donation
- */
-function handlePaypalDonation()
-{
-    // Show spinner right away
-    showSpinnerOnLastButton();
-
-    // Change action input
-    jQuery('form#donationForm input[name=action]').val('eas_redirect');
-
-    // Get pay key
-    jQuery('form#donationForm').ajaxSubmit({
-        success: function(responseText, statusText, xhr, form) {
-            try {
-                // Take the pay key and start the PayPal flow
-                var response = JSON.parse(responseText);
-                if (!('success' in response) || !response['success']) {
-                    var message = 'error' in response ? response['error'] : responseText;
-                    throw new Error(message);
-                }
-
-                // Insert pay key in PayPal form
-                jQuery('input[id=paykey]').val(response['paykey']);
-                
-                // Open PayPal lightbox
-                jQuery('input[id=submitBtn]').click();
-            } catch (err) {
-                // Something went wrong, show on confirmation page
-                alert(err.message);
-
-                // Enable buttons
-                lockLastStep(false);
-            }
-        },
-        error: function(responseText) {
-            // Should only happen on internal server error
-            var message = 'error' in response ? response['error'] : responseText;
-            alert(message);
-        }
-    });
-
-    // Disable confirm button, email and checkboxes
-    lockLastStep(true);
-}
-
 function handleBankTransferDonation()
 {
     // Show spinner
@@ -755,6 +767,18 @@ function handleBankTransferDonation()
 
     // Disable submit button, back button, and payment options
     lockLastStep(true);
+}
+
+function handlePayPalDonation()
+{
+    // Show spinner
+    showSpinnerOnLastButton();
+
+    // Change action input
+    jQuery('form#donationForm input[name=action]').val('eas_redirect');
+
+    // Open modal
+    jQuery('#PayPalModal').modal('show');
 }
 
 function showSpinnerOnLastButton()

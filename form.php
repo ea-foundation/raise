@@ -74,7 +74,7 @@ function getDonationForm($atts, $content = null)
     wp_enqueue_script('donation-plugin-bootstrapjs');
     wp_enqueue_script('donation-plugin-jqueryformjs');
     wp_enqueue_script('donation-plugin-stripe');
-    if (!empty($easSettings["payment.provider.paypal.$mode.email_id"])) {
+    if (!empty($easSettings["payment.provider.paypal.$mode.client_id"])) {
         wp_enqueue_script('donation-plugin-paypal');
     }
     wp_enqueue_script('donation-plugin-form');
@@ -262,7 +262,7 @@ function getDonationForm($atts, $content = null)
                         </label>
                     <?php endif; ?>
 
-                    <?php if (!empty($easSettings["payment.provider.paypal.$mode.email_id"])): ?>
+                    <?php if (!empty($easSettings["payment.provider.paypal.$mode.client_id"])): ?>
                         <!-- PayPal -->
                         <label for="payment-paypal" class="radio-inline">
                             <input type="radio" name="payment" value="PayPal" id="payment-paypal" <?php echo $checked ?: ''; $checked = false; ?>>
@@ -532,9 +532,12 @@ function getDonationForm($atts, $content = null)
 
             <!-- Confirmation -->
             <div class="item<?php echo $confirmationCssClass ?>" id="donation-confirmation">
-                <div class="alert alert-success flexible">
-                    <div class"response-text">
-                        <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
+                <div class="alert alert-success">
+                    <div class="response-icon">
+                        <img src="<?php echo plugins_url('images/ok.png', __FILE__) ?>" alt="Donation complete">
+                        <!-- <span class="glyphicon glyphicon glyphicon-ok-circle" aria-hidden="true"></span> -->
+                    </div>
+                    <div class="response-text">
                         <strong><span id="success-text"><?php echo esc_html(getLocalizedValue($easSettings["finish.success_message"])) ?></span></strong>
                     </div>
                 </div>
@@ -550,17 +553,27 @@ function getDonationForm($atts, $content = null)
 
 </form>
 
-<?php if (!empty($easSettings["payment.provider.paypal.$mode.email_id"])): ?>
-    <!-- PayPal Adaptive payment form -->
-    <form action="<?php echo $GLOBALS['paypalPaymentEndpoint'][$mode] ?>" target="PPDGFrame" class="standard hidden">
-        <input type="image" id="submitBtn" value="Pay with PayPal" src="https://www.paypalobjects.com/en_US/i/btn/btn_paynowCC_LG.gif">
-        <input id="type" type="hidden" name="expType" value="light">
-        <input id="paykey" type="hidden" name="paykey" value="">
-    </form>
-<?php    
-        wp_add_inline_script('donation-plugin-form', "var embeddedPPFlow = new PAYPAL.apps.DGFlow({trigger: 'submitBtn'});"); // append to scripts instead of inline because main JS is loaded at the end
-    endif;
-?>
+<?php if (!empty($easSettings["payment.provider.paypal.$mode.client_id"])): ?>
+    <!-- GoCardless modal -->
+    <div id="PayPalModal" class="modal eas-modal eas-popup-modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="eas_popup_open hidden">
+                        <p><?php _e("Please continue the donation in the secure window that you've already opened.", "eas-donation-processor") ?></p>
+                        <button class="btn btn-primary" onclick="easPopup.focus()">OK</button>
+                    </div>
+                    <div class="eas_popup_closed">
+                        <div id="PayPalPopupButton"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
 
 <?php if (!empty($easSettings["payment.provider.gocardless.$mode.access_token"])): ?>
     <!-- GoCardless modal -->

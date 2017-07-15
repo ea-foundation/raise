@@ -125,7 +125,7 @@ function prepareRedirect()
                 $response = prepareBitPayDonation($post);
                 break;
             default:
-                throw new \Exception('Payment method is invalid.');
+                throw new \Exception('Payment method ' . $post['payment'] . ' is invalid');
         }
 
         // Return response
@@ -177,7 +177,7 @@ function processDonation()
                 'reference' => $reference,
             );
         } else {
-            throw new \Exception('Payment method is invalid.');
+            throw new \Exception('Payment method is invalid');
         }
 
         die(json_encode($response));
@@ -595,7 +595,7 @@ function getPaymentProviderProperties($provider)
         case "stripe":
             return array("secret_key", "public_key");
         case "paypal":
-            return array("email_id", "api_username", "api_password", "api_signature", "application_id");
+            return array("client_id", "client_secret");
         case "gocardless":
             return array("access_token");
         case "bitpay":
@@ -647,10 +647,10 @@ function prepareGoCardlessDonation(array $post)
             'success' => true,
             'url'     => $redirectFlow->redirect_url,
         );
-    } catch (\Exception $e) {
+    } catch (\Exception $ex) {
         return array(
             'success' => false,
-            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
+            'error'   => "An error occured and your donation could not be processed (" .  $ex->getMessage() . "). Please contact us.",
         );
     }
 }
@@ -1250,138 +1250,109 @@ function setDonationDataToSession(array $post, $reqId = null)
 function preparePaypalDonation(array $post)
 {
     try {
-        $form       = $post['form'];
-        $mode       = $post['mode'];
-        $language   = $post['language'];
-        $email      = $post['email'];
-        $name       = $post['name'];
-        $amount     = $post['amount'];
-        $currency   = $post['currency'];
-        $taxReceipt = get($post['tax_receipt'], false);
-        $country    = $post['country'];
-        $frequency  = $post['frequency'];
-        $returnUrl  = getAjaxEndpoint();
-        $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
+        // Make payer
+        $payer = new \PayPal\Api\Payer();
+        $payer->setPaymentMethod("paypal");
 
-        // Get best Paypal account for donation
-        $paypalAccount = getBestPaymentProviderSettings("paypal", $form, $mode, $taxReceipt, $currency, $country);
+        // Make amount
+        $amount = new \PayPal\Api\Amount();
+        $amount->setCurrency($post['currency'])
+            ->setTotal($post['amount']);
 
-        $qsConnector = strpos('?', $returnUrl) ? '&' : '?';
-        $content = array(
-            "actionType"      => "PAY",
-            "returnUrl"       => $returnUrl . $qsConnector . "action=log&req=" . $reqId,
-            "cancelUrl"       => $returnUrl . $qsConnector . "action=log",
-            "requestEnvelope" => array(
-                "errorLanguage" => "en_US",
-                "detailLevel"   => "ReturnAll",
-            ),
-            "currencyCode"    => $currency,
-            "receiverList"    => array(
-                "receiver" => array(
-                    array(
-                        "email"  => $paypalAccount['email_id'],
-                        "amount" => $amount,
-                    )
-                )
-            )
+        // Make transaction
+        $transaction = new \PayPal\Api\Transaction();
+        $transaction->setAmount($amount)
+            ->setDescription($post['name'] . ' (' . $post['email'] . ')')
+            ->setInvoiceNumber(uniqid());
+
+        // Make redirect URLs
+        $returnUrl    = getAjaxEndpoint() . '?action=paypal_execute';
+        $redirectUrls = new \PayPal\Api\RedirectUrls();
+        $redirectUrls->setReturnUrl($returnUrl)
+            ->setCancelUrl($returnUrl);
+
+        // Make payment
+        $payment = new \PayPal\Api\Payment();
+        $payment->setIntent("sale")
+            ->setPayer($payer)
+            ->setTransactions(array($transaction))
+            ->setRedirectUrls($redirectUrls);
+
+        // Get API context end create payment
+        $apiContext = getPayPalApiContext(
+            $post['form'],
+            $post['mode'],
+            get($post['tax_receipt'], false),
+            $post['currency'],
+            $post['country']
         );
+        $payment->create($apiContext);
 
-        $headers = array(
-            'X-PAYPAL-SECURITY-USERID: '      . $paypalAccount['api_username'],
-            'X-PAYPAL-SECURITY-PASSWORD: '    . $paypalAccount['api_password'],
-            'X-PAYPAL-SECURITY-SIGNATURE: '   . $paypalAccount['api_signature'],
-            'X-PAYPAL-DEVICE-IPADDRESS: '     . $_SERVER['REMOTE_ADDR'],
-            'X-PAYPAL-REQUEST-DATA-FORMAT: '  . 'JSON',
-            'X-PAYPAL-RESPONSE-DATA-FORMAT: ' . 'JSON',
-            'X-PAYPAL-APPLICATION-ID: '       . $paypalAccount['application_id'],
-        );
+        // Save doantion to session
+        setDonationDataToSession($post);
 
-        // Set Options for CURL
-        $curl = curl_init($GLOBALS['paypalPayKeyEndpoint'][$mode]);
-        curl_setopt($curl, CURLOPT_HEADER, false);
-        // Return Response to Application
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        // Execute call via http-POST
-        curl_setopt($curl, CURLOPT_POST, true);
-        // Set POST-Body
-        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($content));
-        // Set headers
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        // WARNING: This option should NOT be "false"
-        // Otherwise the connection is not secured
-        // You can turn it of if you're working on the test-system with no vital data
-        // FIXME Remove when XAMPP problem is fixed
-        if ($mode == 'sandbox') {
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-        } else {
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
-        }
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-        // Load list file with up-to-date certificate authorities
-        //curl_setopt($curl, CURLOPT_CAINFO, 'ssl/server.crt');
-        // CURL-Execute & catch response
-        $jsonResponse = curl_exec($curl);
-        // Get HTTP-Status, abort if Status != 200
-        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        if ($status != 200) {
-            die(json_encode(array(
-                'success' => false,
-                'error'   => "Error: Call to " . $GLOBALS['paypalPayKeyEndpoint'][$mode] . " failed with status $status, " .
-                             "response " . $jsonResponse . ", curl_error " . curl_error($curl) . ", curl_errno " .
-                             curl_errno($curl) . ", HTTP-Status: " . $status,
-            )));
-        }
-        // Close connection
-        curl_close($curl);
-
-        //Convert response into an array and extract the payKey
-        $response = json_decode($jsonResponse, true);
-        if ($response['responseEnvelope']['ack'] != 'Success') {
-            die("Error: " . $response['error'][0]['message']);
-        }
-
-        // Put user data in session
-        setDonationDataToSession($post, $reqId);
-
-        // Return pay key
         return array(
-            'success' => true,
-            'paykey'  => $response['payKey'],
+            'success'   => true,
+            'paymentID' => $payment->getId(),
         );
-    } catch (\Exception $e) {
+    } catch (\PayPal\Exception\PayPalConnectionException $ex) {
         return array(
             'success' => false,
-            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
+            'error'   => "An error occured and your donation could not be processed (" .  $ex->getData() . "). Please contact us.",
+        );
+    } catch (\Exception $ex) {
+        return array(
+            'success' => false,
+            'error'   => "An error occured and your donation could not be processed (" .  $ex->getMessage() . "). Please contact us.",
         );
     }
 }
 
 /**
- * AJAX endpoint for handling donation logging for PayPal.
- * User is forwarded here after successful Paypal transaction.
+ * AJAX endpoint for executing and logging PayPal donations.
  * Takes user data from session and triggers the web hooks.
  *
  * @return string HTML with script that terminates the PayPal flow and shows the thank you step
  */
-function processPaypalLog()
+function executePaypalDonation()
 {
-    // Load settings
-    loadSettings();
+    try {
+        // Load settings
+        loadSettings();
 
-    // Make sure it's the same user session
-    verifySession();
+        // Prepare hook
+        $donation = getDonationFromSession();
 
-    // Prepare hook
-    $donation = getDonationFromSession();
+        // Get API context
+        $apiContext = getPayPalApiContext(
+            $donation['form'],
+            $donation['mode'],
+            $donation['tax_receipt'],
+            $donation['currency'],
+            $donation['country']
+        );
 
-    // Trigger web hooks
-    triggerWebHooks($donation);
+        // Execute payment
+        $paymentId = $_POST['paymentID'];
+        $payment   = \PayPal\Api\Payment::get($paymentId, $apiContext);
+        $execution = new \PayPal\Api\PaymentExecution();
+        $execution->setPayerId($_POST['payerID']);
+        $payment->execute($execution, $apiContext);
 
-    // Save matching challenge donation post
-    saveMatchingChallengeDonationPost($donation);
+        // Trigger web hooks
+        triggerWebHooks($donation);
 
-    // Send emails
-    sendEmails($donation);
+        // Save matching challenge donation post
+        saveMatchingChallengeDonationPost($donation);
+
+        // Send emails
+        sendEmails($donation);
+
+        // Make script
+        $script = 'var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.showConfirmation("paypal"); close();';
+    } catch (\Exception $ex) {
+        $script = 'var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.lockLastStep(false); close();';
+    }
 
     // Make sure the contents can be displayed inside iFrame
     header_remove('X-Frame-Options');
@@ -1389,7 +1360,7 @@ function processPaypalLog()
     // Die and send script to close flow
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.showConfirmation("paypal"); close();</script></body></html>');
+         <body><script>' . $script . '</script></body></html>');
 }
 
 /**
@@ -2343,7 +2314,31 @@ function getBankTransferReference($length, $prefix = '', $blockLength = 4, $sepa
     return join($separator, $tokenArray);
 }
 
+/**
+ * Get PayPal API context
+ *
+ * @param string $form
+ * @param string $mode
+ * @param bool   $taxReceipt
+ * @param string $currency
+ * @param string $country
+ * @return \PayPal\Rest\ApiContext
+ */
+function getPayPalApiContext($form, $mode, $taxReceipt, $currency, $country)
+{
+    // Get best settings
+    $settings = getBestPaymentProviderSettings("paypal", $form, $mode, $taxReceipt, $currency, $country);
+    if (empty($settings['client_id']) || empty($settings['client_secret'])) {
+        throw new \Exception('One of the following is not set: client_id, client_secret');
+    }
 
+    return new \PayPal\Rest\ApiContext(
+        new \PayPal\Auth\OAuthTokenCredential(
+            $settings['client_id'],
+            $settings['client_secret']
+        )
+    );
+}
 
 
 
