@@ -535,7 +535,6 @@ function getDonationForm($atts, $content = null)
                 <div class="alert alert-success">
                     <div class="response-icon">
                         <img src="<?php echo plugins_url('images/ok.png', __FILE__) ?>" alt="Donation complete">
-                        <!-- <span class="glyphicon glyphicon glyphicon-ok-circle" aria-hidden="true"></span> -->
                     </div>
                     <div class="response-text">
                         <strong><span id="success-text"><?php echo esc_html(getLocalizedValue($easSettings["finish.success_message"])) ?></span></strong>
@@ -554,7 +553,7 @@ function getDonationForm($atts, $content = null)
 </form>
 
 <?php if (!empty($easSettings["payment.provider.paypal.$mode.client_id"])): ?>
-    <!-- GoCardless modal -->
+    <!-- PayPal modal -->
     <div id="PayPalModal" class="modal eas-modal eas-popup-modal fade" role="dialog" data-backdrop="static">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">

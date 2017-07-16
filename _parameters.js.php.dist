@@ -54,18 +54,12 @@
                     },
                     "paypal": {
                         "live": {
-                            "email_id": "",
-                            "api_username": "",
-                            "api_password": "",
-                            "api_signature": "",
-                            "application_id": ""
+                            "client_id": "",
+                            "client_secret": ""
                         },
                         "sandbox": {
-                            "email_id": "",
-                            "api_username": "",
-                            "api_password": "",
-                            "api_signature": "",
-                            "application_id": "APP-80W284485P519543T"
+                            "client_id": "",
+                            "client_secret": ""
                         }
                     }
                 }

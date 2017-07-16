@@ -1192,7 +1192,7 @@ function getDonationFromSession()
         "email"       => $_SESSION['eas-email'],
         "name"        => $_SESSION['eas-name'],
         "currency"    => $_SESSION['eas-currency'],
-        "country"     => getEnglishNameByCountryCode($_SESSION['eas-country']),
+        "country"     => $_SESSION['eas-country'],
         "amount"      => $_SESSION['eas-amount'],
         "frequency"   => $_SESSION['eas-frequency'],
         "tax_receipt" => $_SESSION['eas-tax-receipt'],
@@ -1348,19 +1348,14 @@ function executePaypalDonation()
         // Send emails
         sendEmails($donation);
 
-        // Make script
-        $script = 'var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.showConfirmation("paypal"); close();';
+        // Send response
+        die(json_encode(array('success' => true)));
     } catch (\Exception $ex) {
-        $script = 'var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.embeddedPPFlow.closeFlow(); mainWindow.lockLastStep(false); close();';
+        die(json_encode(array(
+            'success' => false,
+            'error'   => $ex->getMessage(),
+        )));
     }
-
-    // Make sure the contents can be displayed inside iFrame
-    header_remove('X-Frame-Options');
-
-    // Die and send script to close flow
-    die('<!doctype html>
-         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>' . $script . '</script></body></html>');
 }
 
 /**

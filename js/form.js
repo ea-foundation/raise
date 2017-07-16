@@ -479,7 +479,8 @@ paypal.Button.render({
                     var response = JSON.parse(responseText);
                     if (!('success' in response) || !response['success']) {
                         var message = 'error' in response ? response['error'] : responseText;
-                        throw new Error(message);
+                        alert(message);
+                        return;
                     }
 
                     // Resolve payment
@@ -504,7 +505,16 @@ paypal.Button.render({
 
         // Execute payment
         jQuery.post(wordpress_vars.ajax_endpoint, { action: "paypal_execute", paymentID: data.paymentID, payerID: data.payerID })
-            .done(function(data) {
+            .done(function(responseText) {
+                var response = JSON.parse(responseText);
+                if (!('success' in response) || !response['success']) {
+                    var message = 'error' in response ? response['error'] : responseText;
+                    lockLastStep(false);
+                    alert(message);
+                    return;
+                }
+
+                // Everything worked. Show confirmation.
                 showConfirmation('paypal');
             })
             .fail(function(err)  {
@@ -610,7 +620,7 @@ function handlePopupDonation(provider)
                 var response = JSON.parse(responseText);
                 if (!('success' in response) || !response['success']) {
                     var message = 'error' in response ? response['error'] : responseText;
-                    throw new Error(message);
+                    alert(message);
                 }
 
                 // Open URL in modal
@@ -771,9 +781,6 @@ function handleBankTransferDonation()
 
 function handlePayPalDonation()
 {
-    // Show spinner
-    showSpinnerOnLastButton();
-
     // Change action input
     jQuery('form#donationForm input[name=action]').val('eas_redirect');
 
