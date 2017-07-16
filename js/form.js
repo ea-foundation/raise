@@ -462,6 +462,7 @@ jQuery(document).ready(function($) {
  */
 paypal.Button.render({
     env: easMode == 'sandbox' ? 'sandbox' : 'production',
+    commit: true,
     style: {
         label: 'checkout',  // checkout | credit | pay
         size:  'small',     // small | medium | responsive
