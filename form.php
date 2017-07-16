@@ -561,13 +561,7 @@ function getDonationForm($atts, $content = null)
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="eas_popup_open hidden">
-                        <p><?php _e("Please continue the donation in the secure window that you've already opened.", "eas-donation-processor") ?></p>
-                        <button class="btn btn-primary" onclick="easPopup.focus()">OK</button>
-                    </div>
-                    <div class="eas_popup_closed">
-                        <div id="PayPalPopupButton"></div>
-                    </div>
+                    <div id="PayPalPopupButton"></div>
                 </div>
             </div>
         </div>
