@@ -1241,6 +1241,131 @@ function setDonationDataToSession(array $post, $reqId = null)
 }
 
 /**
+ * Make PayPal payment (= one-time payment)
+ *
+ * @param array $post
+ * @return PayPal\Api\Payment
+ */
+function createPayPalPayment(array $post)
+{
+    // Make payer
+    $payer = new \PayPal\Api\Payer();
+    $payer->setPaymentMethod("paypal");
+
+    // Make amount
+    $amount = new \PayPal\Api\Amount();
+    $amount->setCurrency($post['currency'])
+        ->setTotal($post['amount']);
+
+    // Make transaction
+    $transaction = new \PayPal\Api\Transaction();
+    $transaction->setAmount($amount)
+        ->setDescription($post['name'] . ' (' . $post['email'] . ')')
+        ->setInvoiceNumber(uniqid());
+
+    // Make redirect URLs
+    $returnUrl    = getAjaxEndpoint() . '?action=paypal_execute';
+    $redirectUrls = new \PayPal\Api\RedirectUrls();
+    $redirectUrls->setReturnUrl($returnUrl)
+        ->setCancelUrl($returnUrl);
+
+    // Make payment
+    $payment = new \PayPal\Api\Payment();
+    $payment->setIntent("sale")
+        ->setPayer($payer)
+        ->setTransactions(array($transaction))
+        ->setRedirectUrls($redirectUrls);
+
+    // Get API context end create payment
+    $apiContext = getPayPalApiContext(
+        $post['form'],
+        $post['mode'],
+        get($post['tax_receipt'], false),
+        $post['currency'],
+        $post['country']
+    );
+
+    return $payment->create($apiContext);
+}
+
+/**
+ * Make PayPal billing agreement (= recurring payment)
+ *
+ * @param array $post
+ * @return \PayPal\Api\Agreement
+ */
+function createPayPalBillingAgreement(array $post)
+{
+    // Make new plan
+    $plan = new \PayPal\Api\Plan();
+    $plan->setName('Monthly Donation')
+        ->setDescription('Monthly donation of ' . $post['currency'] . ' ' . $post['amount'])
+        ->setType('INFINITE');
+
+    // Make payment definition
+    $paymentDefinition = new \PayPal\Api\PaymentDefinition();
+    $paymentDefinition->setName('Regular Payments')
+        ->setType('REGULAR')
+        ->setFrequency('Month')
+        ->setFrequencyInterval('1')
+        ->setCycles('0')
+        ->setAmount(new \PayPal\Api\Currency(array('value' => $post['amount'], 'currency' => $post['currency'])));
+
+    // Make merchant preferences
+    $returnUrl           = getAjaxEndpoint() . '?action=paypal_execute';
+    $merchantPreferences = new \PayPal\Api\MerchantPreferences();
+    $merchantPreferences->setReturnUrl($returnUrl)
+        ->setCancelUrl($returnUrl)
+        ->setAutoBillAmount("yes")
+        ->setInitialFailAmountAction("CONTINUE")
+        ->setMaxFailAttempts("0");
+
+    // Put things together and create
+    $apiContext = getPayPalApiContext(
+        $post['form'],
+        $post['mode'],
+        get($post['tax_receipt'], false),
+        $post['currency'],
+        $post['country']
+    );
+    $plan->setPaymentDefinitions(array($paymentDefinition))
+        ->setMerchantPreferences($merchantPreferences)
+        ->create($apiContext);
+
+    // Activate plan
+    $patch = new \PayPal\Api\Patch();
+    $value = new \PayPal\Common\PayPalModel('{
+       "state":"ACTIVE"
+     }');
+    $patch->setOp('replace')
+        ->setPath('/')
+        ->setValue($value);
+    $patchRequest = new PayPal\Api\PatchRequest();
+    $patchRequest->addPatch($patch);
+    $plan->update($patchRequest, $apiContext);
+
+    // Make payer
+    $payer = new \PayPal\Api\Payer();
+    $payer->setPaymentMethod('paypal');
+
+    // Make a fresh plan
+    $planID = $plan->getId();
+    $plan   = new \PayPal\Api\Plan();
+    $plan->setId($planID);
+
+    // Make agreement
+    $agreement = new \PayPal\Api\Agreement();
+    $startDate = new \DateTime('+1 day'); // Activation can take up to 24 hours
+    $agreement->setName(__("Monthly Donation", "eas-donation-processor") . ': ' . $post['currency'] . ' ' . $post['amount'])
+        ->setDescription(__("Monthly Donation", "eas-donation-processor") . ': ' . $post['currency'] . ' ' . $post['amount'])
+        ->setStartDate($startDate->format('c'))
+        ->setPlan($plan)
+        ->setPayer($payer);
+
+    return $agreement->create($apiContext);
+}
+
+/**
  * Returns Paypal pay key for donation. It stores
  * user input in session until user is forwarded back from Paypal
  *
@@ -1250,51 +1375,31 @@ function setDonationDataToSession(array $post, $reqId = null)
 function preparePaypalDonation(array $post)
 {
     try {
-        // Make payer
-        $payer = new \PayPal\Api\Payer();
-        $payer->setPaymentMethod("paypal");
+        if ($post['frequency'] == 'monthly') {
+            $billingAgreement = createPayPalBillingAgreement($post);
 
-        // Make amount
-        $amount = new \PayPal\Api\Amount();
-        $amount->setCurrency($post['currency'])
-            ->setTotal($post['amount']);
+            // Save doantion to session
+            setDonationDataToSession($post);
 
-        // Make transaction
-        $transaction = new \PayPal\Api\Transaction();
-        $transaction->setAmount($amount)
-            ->setDescription($post['name'] . ' (' . $post['email'] . ')')
-            ->setInvoiceNumber(uniqid());
+            // Parse approval link
+            $approvalLinkParts = parse_url($billingAgreement->getApprovalLink());
+            parse_str($approvalLinkParts['query'], $query);
 
-        // Make redirect URLs
-        $returnUrl    = getAjaxEndpoint() . '?action=paypal_execute';
-        $redirectUrls = new \PayPal\Api\RedirectUrls();
-        $redirectUrls->setReturnUrl($returnUrl)
-            ->setCancelUrl($returnUrl);
+            return array(
+                'success' => true,
+                'token'   => $query['token'],
+            );
+        } else {
+            $payment = createPayPalPayment($post);
 
-        // Make payment
-        $payment = new \PayPal\Api\Payment();
-        $payment->setIntent("sale")
-            ->setPayer($payer)
-            ->setTransactions(array($transaction))
-            ->setRedirectUrls($redirectUrls);
+            // Save doantion to session
+            setDonationDataToSession($post);
 
-        // Get API context end create payment
-        $apiContext = getPayPalApiContext(
-            $post['form'],
-            $post['mode'],
-            get($post['tax_receipt'], false),
-            $post['currency'],
-            $post['country']
-        );
-        $payment->create($apiContext);
-
-        // Save doantion to session
-        setDonationDataToSession($post);
-
-        return array(
-            'success'   => true,
-            'paymentID' => $payment->getId(),
-        );
+            return array(
+                'success'   => true,
+                'paymentID' => $payment->getId(),
+            );
+        }
     } catch (\PayPal\Exception\PayPalConnectionException $ex) {
         return array(
             'success' => false,
@@ -1332,12 +1437,20 @@ function executePaypalDonation()
             $donation['country']
         );
 
-        // Execute payment
-        $paymentId = $_POST['paymentID'];
-        $payment   = \PayPal\Api\Payment::get($paymentId, $apiContext);
-        $execution = new \PayPal\Api\PaymentExecution();
-        $execution->setPayerId($_POST['payerID']);
-        $payment->execute($execution, $apiContext);
+        if (!empty($_POST['paymentID']) && !empty($_POST['payerID'])) {
+            // Execute payment (one-time)
+            $paymentId = $_POST['paymentID'];
+            $payment   = \PayPal\Api\Payment::get($paymentId, $apiContext);
+            $execution = new \PayPal\Api\PaymentExecution();
+            $execution->setPayerId($_POST['payerID']);
+            $payment->execute($execution, $apiContext);
+        } else if (!empty($_POST['token'])) {
+            // Execute billing agreement (monthly)
+            $agreement = new \PayPal\Api\Agreement();
+            $agreement->execute($_POST['token'], $apiContext);
+        } else {
+            throw new \Exception("An error occured. Payment aborted.");
+        }
 
         // Trigger web hooks
         triggerWebHooks($donation);

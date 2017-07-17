@@ -14,7 +14,7 @@ var slideTransitionInAction = false;
 var otherAmountPlaceholder  = null;
 var currentStripeKey        = '';
 var frequency               = 'once';
-var monthlySupport          = ['payment-stripe', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
+var monthlySupport          = ['payment-stripe', 'payment-paypal', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
 var goCardlessSupport       = ['EUR', 'GBP', 'SEK'];
 var easPopup                = null;
 var gcPollTimer             = null;
@@ -485,8 +485,9 @@ if (typeof paypal !== 'undefined') {
                             return;
                         }
 
-                        // Resolve payment
-                        resolve(response.paymentID);
+                        // Resolve payment / billing agreement
+                        var token = 'paymentID' in response ? response.paymentID : response.token;
+                        resolve(token);
                     },
                     error: function(err) {
                         // Should only happen on internal server error
@@ -506,7 +507,20 @@ if (typeof paypal !== 'undefined') {
             lockLastStep(true);
 
             // Execute payment
-            jQuery.post(wordpress_vars.ajax_endpoint, { action: "paypal_execute", paymentID: data.paymentID, payerID: data.payerID })
+            var params = { action: "paypal_execute" };
+            if ('paymentID' in data && 'payerID' in data) {
+                params.paymentID = data.paymentID;
+                params.payerID   = data.payerID;
+            } else if ('paymentToken' in data) {
+                params.token = data.paymentToken;
+            } else {
+                alert('An error occured. Donation aborted.');
+                lockLastStep(false);
+                return;
+            }
+
+            // Execute payment / billing agreement
+            jQuery.post(wordpress_vars.ajax_endpoint, params)
                 .done(function(responseText) {
                     var response = JSON.parse(responseText);
                     if (!('success' in response) || !response['success']) {
