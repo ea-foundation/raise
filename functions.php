@@ -113,7 +113,7 @@ function prepareRedirect()
         // Output
         switch ($post['payment']) {
             case "PayPal":
-                $response = preparePaypalDonation($post);
+                $response = preparePayPalDonation($post);
                 break;
             case "Skrill":
                 $response = prepareSkrillDonation($post);
@@ -1372,7 +1372,7 @@ function createPayPalBillingAgreement(array $post)
  * @param array $post
  * @return array
  */
-function preparePaypalDonation(array $post)
+function preparePayPalDonation(array $post)
 {
     try {
         if ($post['frequency'] == 'monthly') {
