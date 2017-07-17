@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * GitHub Plugin URI: ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.8.3
+ * Version: 0.8.4
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -141,7 +141,7 @@ function register_donation_scripts()
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/api/checkout.v4.js');
     wp_register_script('donation-combobox', plugins_url('eas-donation-processor/js/bootstrap-combobox.js'), array(), EAS_ASSET_VERSION);
-    wp_register_script('donation-plugin-form', plugins_url('eas-donation-processor/js/form.js'), array('jquery', 'donation-plugin-stripe', 'donation-plugin-paypal'), EAS_ASSET_VERSION);
+    wp_register_script('donation-plugin-form', plugins_url('eas-donation-processor/js/form.js'), array('jquery', 'donation-plugin-stripe'), EAS_ASSET_VERSION);
 }
 
 // Register fundraiser post type
