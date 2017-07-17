@@ -460,75 +460,76 @@ jQuery(document).ready(function($) {
 /**
  * PayPal checkout.js
  */
-paypal.Button.render({
-    env: easMode == 'sandbox' ? 'sandbox' : 'production',
-    commit: true,
-    style: {
-        label: 'checkout',  // checkout | credit | pay
-        size:  'small',     // small | medium | responsive
-        shape: 'pill',      // pill | rect
-        color: 'blue'       // gold | blue | silver
-    },
-    payment: function() {
-        // Close modal
-        jQuery('#PayPalModal').modal('hide');
+if (typeof paypal !== 'undefined') {
+    paypal.Button.render({
+        env: easMode == 'sandbox' ? 'sandbox' : 'production',
+        commit: true,
+        style: {
+            label: 'checkout',  // checkout | credit | pay
+            size:  'small',     // small | medium | responsive
+            shape: 'pill',      // pill | rect
+            color: 'blue'       // gold | blue | silver
+        },
+        payment: function() {
+            // Close modal
+            jQuery('#PayPalModal').modal('hide');
 
-        // Send form
-        return new paypal.Promise(function(resolve, reject) {
-            jQuery('form#donationForm').ajaxSubmit({
-                success: function(responseText) {
+            // Send form
+            return new paypal.Promise(function(resolve, reject) {
+                jQuery('form#donationForm').ajaxSubmit({
+                    success: function(responseText) {
+                        var response = JSON.parse(responseText);
+                        if (!('success' in response) || !response['success']) {
+                            var message = 'error' in response ? response['error'] : responseText;
+                            alert(message);
+                            return;
+                        }
+
+                        // Resolve payment
+                        resolve(response.paymentID);
+                    },
+                    error: function(err) {
+                        // Should only happen on internal server error
+                        reject(err);
+
+                        // Unlock last step
+                        lockLastStep(false);
+                    }
+                });
+            });
+        },
+        onAuthorize: function(data) {
+            // Show spinner on form
+            showSpinnerOnLastButton();
+
+            // Lock last step
+            lockLastStep(true);
+
+            // Execute payment
+            jQuery.post(wordpress_vars.ajax_endpoint, { action: "paypal_execute", paymentID: data.paymentID, payerID: data.payerID })
+                .done(function(responseText) {
                     var response = JSON.parse(responseText);
                     if (!('success' in response) || !response['success']) {
                         var message = 'error' in response ? response['error'] : responseText;
+                        lockLastStep(false);
                         alert(message);
                         return;
                     }
 
-                    // Resolve payment
-                    resolve(response.paymentID);
-                },
-                error: function(err) {
-                    // Should only happen on internal server error
-                    reject(err);
-
-                    // Unlock last step
+                    // Everything worked. Show confirmation.
+                    showConfirmation('paypal');
+                })
+                .fail(function(err)  {
+                    alert('An error occured: ' + err);
                     lockLastStep(false);
-                }
-            });
-        });
-    },
-    onAuthorize: function(data) {
-        // Show spinner on form
-        showSpinnerOnLastButton();
+                });
+        },
+        onCancel: function(data) {
+            lockLastStep(false);
+        }
 
-        // Lock last step
-        lockLastStep(true);
-
-        // Execute payment
-        jQuery.post(wordpress_vars.ajax_endpoint, { action: "paypal_execute", paymentID: data.paymentID, payerID: data.payerID })
-            .done(function(responseText) {
-                var response = JSON.parse(responseText);
-                if (!('success' in response) || !response['success']) {
-                    var message = 'error' in response ? response['error'] : responseText;
-                    lockLastStep(false);
-                    alert(message);
-                    return;
-                }
-
-                // Everything worked. Show confirmation.
-                showConfirmation('paypal');
-            })
-            .fail(function(err)  {
-                alert('An error occured: ' + err);
-                lockLastStep(false);
-            });
-    },
-    onCancel: function(data) {
-        lockLastStep(false);
-    }
-
-}, '#PayPalPopupButton');
-
+    }, '#PayPalPopupButton');
+}
 
 /**
  * Auxiliary functions
