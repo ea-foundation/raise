@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * GitHub Plugin URI: ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.8.6
+ * Version: 0.8.7
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -19,7 +19,7 @@ define('EAS_PRIORITY', 12838790321);
 define('EAS_ASSET_VERSION', '0.27');
 
 // Load other files
-require_once 'vendor/autoload.php';
+require_once "vendor/autoload.php";
 require_once "_globals.php";
 require_once "_options.php";
 require_once "bitpay/EncryptedWPOptionStorage.php";
