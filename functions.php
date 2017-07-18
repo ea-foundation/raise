@@ -2440,12 +2440,18 @@ function getPayPalApiContext($form, $mode, $taxReceipt, $currency, $country)
         throw new \Exception('One of the following is not set: client_id, client_secret');
     }
 
-    return new \PayPal\Rest\ApiContext(
+    $apiContext = new \PayPal\Rest\ApiContext(
         new \PayPal\Auth\OAuthTokenCredential(
             $settings['client_id'],
             $settings['client_secret']
         )
     );
+
+    if ($mode == 'live') {
+        $apiContext->setConfig(array('mode' => 'live'));
+    }
+
+    return $apiContext;
 }
 
 
