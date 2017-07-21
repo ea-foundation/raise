@@ -868,8 +868,9 @@ function getBitpayClient($form, $mode, $taxReceipt, $currency, $country)
 
     // Generate token if first time
     if (!get_option($publicKeyId) || !get_option($privateKeyId) || !($tokenString = get_option($tokenId))) {
-        $label = $form . ' ' . $mode;
-        $token = generateBitpayToken($bitpay, $label);
+        $urlParts = parse_url(home_url());
+        $label    = $urlParts['host'];
+        $token    = generateBitpayToken($bitpay, $label);
     } else {
         $token = new \Bitpay\Token();
         $token->setToken($tokenString);
@@ -2431,6 +2432,7 @@ function getBankTransferReference($length, $prefix = '', $blockLength = 4, $sepa
  * @param string $currency
  * @param string $country
  * @return \PayPal\Rest\ApiContext
+ * @throws \Exception
  */
 function getPayPalApiContext($form, $mode, $taxReceipt, $currency, $country)
 {
