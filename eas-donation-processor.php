@@ -139,7 +139,7 @@ function register_donation_scripts()
     wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', array('jquery'));
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
-    wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/api/checkout.v4.js');
+    wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/api/checkout.js?data-version-4'); // The query string is actually supposed to be a separate attribute without value, see below
     wp_register_script('donation-combobox', plugins_url('eas-donation-processor/js/bootstrap-combobox.js'), array(), EAS_ASSET_VERSION);
     wp_register_script('donation-plugin-form', plugins_url('eas-donation-processor/js/form.js'), array('jquery', 'donation-plugin-stripe'), EAS_ASSET_VERSION);
 }
@@ -189,14 +189,26 @@ function create_doantion_post_type()
 }
 
 // Add settings link to plugins page
+$plugin = plugin_basename(__FILE__);
+add_filter("plugin_action_links_$plugin", 'plugin_add_settings_link');
 function plugin_add_settings_link($links)
 {
-    $settings_link = '<a href="options-general.php?page=eas-donation-settings">' . __( 'Settings' ) . '</a>';
-    array_push( $links, $settings_link );
+    $settings_link = '<a href="options-general.php?page=eas-donation-settings">' . __('Settings') . '</a>';
+    array_push($links, $settings_link);
     return $links;
 }
-$plugin = plugin_basename(__FILE__ );
-add_filter( "plugin_action_links_$plugin", 'plugin_add_settings_link' );
+
+// Set attribute data-version-4 for PayPal Checkout.js
+// Enable when data-version-5 is out
+/*add_filter('clean_url', 'unclean_url', 10, 3);
+function unclean_url($good_protocol_url, $original_url, $_context){
+    if (false !== strpos($original_url, '?data-version-4')){
+        remove_filter('clean_url', 'unclean_url', 10, 3);
+        $url_parts = parse_url($good_protocol_url);
+        return '//' . $url_parts['host'] . $url_parts['path'] . "' data-version-4 charset='UTF-8";
+    }
+    return $good_protocol_url;
+}*/
 
 add_action('admin_footer', function() { 
     /*
