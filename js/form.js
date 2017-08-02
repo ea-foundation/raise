@@ -836,7 +836,7 @@ function showConfirmation(paymentProvider)
 {
     // Hide all payment provider related divs on confirmation page except the ones from paymentProvider
     jQuery('#payment-method-providers input[name=payment]').each(function(index) {
-        var provider = jQuery(this).attr('value').toLowerCase();
+        var provider = jQuery(this).val().toLowerCase().replace(/\s/g, "");
         if (paymentProvider != provider) {
             jQuery('#shortcode-content .eas-' + provider).hide();
         }
