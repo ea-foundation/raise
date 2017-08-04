@@ -2230,7 +2230,7 @@ function getTwig($form, $language = null)
     // Instantiate twig
     $loader = new Twig_Loader_Array($twigSettings);
     $twig   = new Twig_Environment($loader, array(
-        'autoescape' => $isHtml,
+        'autoescape' => $isHtml ? 'html' : false,
     ));
 
     // Save twig globally
