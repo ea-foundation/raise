@@ -2415,8 +2415,8 @@ function getBankTransferReference($form, $prefix = '', $length = 8, $blockLength
     if (!empty($prefix)) {
         // Check if reference number prefix is defined
         if (
-            ($predefinedPrefix = get($GLOBALS['easForms'][$form]['finish.reference_number_prefix.' . $prefix])) ||
-            ($predefinedPrefix = get($GLOBALS['easForms'][$form]['finish.reference_number_prefix.default']))
+            ($predefinedPrefix = get($GLOBALS['easForms'][$form]['payment.reference_number_prefix.' . $prefix])) ||
+            ($predefinedPrefix = get($GLOBALS['easForms'][$form]['payment.reference_number_prefix.default']))
         ) {
             $prefix = $predefinedPrefix;
         }
