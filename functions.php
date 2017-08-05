@@ -337,7 +337,7 @@ function bindFormData(Eas\Donation $donation)
 function handleBankTransferPayment(array $donation)
 {
     // Generate reference number and add to donation
-    $reference             = getBankTransferReference(8, get($donation['purpose']));
+    $reference             = getBankTransferReference($donation['form'], get($donation['purpose']));
     $donation['reference'] = $reference;
 
     // Trigger web hooks
@@ -2389,13 +2389,14 @@ function loadTaxDeductionSettings($form)
 /**
  * Get bank transfer token
  *
- * @param int    $length      Total length, without prefix and hyphens
+ * @param string $form        Form name
  * @param string $prefix      Constitutes a separate block
+ * @param int    $length      Total length, without prefix and hyphens
  * @param int    $blockLength Blocks are separated by a hyphen
  * @param string $separator   Separates blocks
  * @return string
  */
-function getBankTransferReference($length, $prefix = '', $blockLength = 4, $separator = '-')
+function getBankTransferReference($form, $prefix = '', $length = 8, $blockLength = 4, $separator = '-')
 {
     $codeAlphabet = "ABCDEFGHJKLMNPQRTWXYZ"; // without I, O, V, U, S
     $codeAlphabet.= "0123456789";
@@ -2412,9 +2413,12 @@ function getBankTransferReference($length, $prefix = '', $blockLength = 4, $sepa
 
     // Add prefix to token array
     if (!empty($prefix)) {
-        // All external regranting purposes get the XRG prefix
-        if (preg_match('#^XRG#', $prefix)) {
-            $prefix = "XRG";
+        // Check if reference number prefix is defined
+        if (
+            ($predefinedPrefix = get($GLOBALS['easForms'][$form]['finish.reference_number_prefix.' . $prefix])) ||
+            ($predefinedPrefix = get($GLOBALS['easForms'][$form]['finish.reference_number_prefix.default']))
+        ) {
+            $prefix = $predefinedPrefix;
         }
 
         array_unshift($tokenArray, strtoupper($prefix));
