@@ -77,6 +77,7 @@ function getDonationFromPost()
         'city'        => get($post['city'], ''),
         'country'     => get($post['country'], ''),
         'comment'     => get($post['comment'], ''),
+        'account'     => get($post['account'], ''),
         'anonymous'   => get($post['anonymous'], false),
         'mailinglist' => get($post['mailinglist'], false),
     );
@@ -1204,6 +1205,7 @@ function getDonationFromSession()
         "city"        => $_SESSION['eas-city'],
         "mailinglist" => $_SESSION['eas-mailinglist'],
         "comment"     => $_SESSION['eas-comment'],
+        "account"     => $_SESSION['eas-account'],
         "anonymous"   => $_SESSION['eas-anonymous'],
     );
 }
@@ -1238,6 +1240,7 @@ function setDonationDataToSession(array $post, $reqId = null)
     $_SESSION['eas-city']        = get($post['city'], '');
     $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) && $post['mailinglist'] == 1;
     $_SESSION['eas-comment']     = get($post['comment'], '');
+    $_SESSION['eas-account']     = get($post['account'], '');
     $_SESSION['eas-anonymous']   = get($post['anonymous'], false);
 }
 
@@ -1676,8 +1679,9 @@ function flattenSettings($settings, &$result, $parentKey = '')
     // Return scalar values, numeric arrays and special values
     if (!is_array($settings)
         || !hasStringKeys($settings)
-        // IMPORTANT: Add parameters here that should be overwritten completely in non-default forms
+        // IMPORTANT: Add parameters here that should be overridden completely in non-default forms
         || preg_match('/payment\.purpose$/', $parentKey)
+        || preg_match('/payment\.provider\.banktransfer\.accounts$/', $parentKey)
         || preg_match('/payment\.labels$/', $parentKey)
         || preg_match('/amount\.currency$/', $parentKey)
         || preg_match('/finish\.success_message$/', $parentKey)
@@ -2458,6 +2462,26 @@ function getPayPalApiContext($form, $mode, $taxReceipt, $currency, $country)
     }
 
     return $apiContext;
+}
+
+/**
+ * Localize array keys
+ *
+ * @param array $array
+ * @return array
+ */
+function localizeKeys(array $array)
+{
+    $localizedArray = array();
+    foreach ($array as $account => $accountData) {
+        $localizedKeys = array_map(function($key) {
+            return __($key, "eas-donation-processor");
+        }, array_keys($accountData));
+
+        $localizedArray[$account] = array_combine($localizedKeys, array_values($accountData));
+    }
+
+    return $localizedArray;
 }
 
 

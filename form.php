@@ -56,6 +56,9 @@ function getDonationForm($atts, $content = null)
     // Get tax deduction labels
     $taxDeductionLabels = loadTaxDeductionSettings($name);
 
+    // Get bank accounts
+    $bankAccounts = localizeKeys(get($easSettings['payment.provider.banktransfer.accounts'], array()));
+
     // Localize script
     wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
         'logo'                  => $logo,
@@ -63,6 +66,7 @@ function getDonationForm($atts, $content = null)
         'amount_patterns'       => $amountPatterns,
         'stripe_public_keys'    => $stripeKeys,
         'tax_deduction_labels'  => $taxDeductionLabels,
+        'bank_accounts'         => $bankAccounts,
         'organization'          => $GLOBALS['easOrganization'],
         'currency2country'      => $GLOBALS['currency2country'],
         'donate_button_once'    => __("Donate %currency-amount%", "eas-donation-processor"),
@@ -132,6 +136,7 @@ function getDonationForm($atts, $content = null)
 <input type="hidden" name="form" value="<?php echo $name ?>" id="eas-form-name">
 <input type="hidden" name="mode" value="<?php echo $live ? 'live' : 'sandbox' ?>" id="eas-form-mode">
 <input type="hidden" name="language" value="<?php echo $language ?>" id="eas-form-language">
+<input type="hidden" name="account" value="" id="eas-form-account">
 
 <!-- Scrollable root element -->
 <div id="wizard">

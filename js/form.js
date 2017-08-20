@@ -774,7 +774,7 @@ function handleBankTransferDonation()
 
                 // Update tax deduction success text with reference
                 if (taxDeductionSuccessText) {
-                    taxDeductionSuccessText = taxDeductionSuccessText.replace('%reference%', response['reference']);
+                    taxDeductionSuccessText = taxDeductionSuccessText.replace('%reference_number%', response['reference']);
                     jQuery('div#shortcode-content').html(taxDeductionSuccessText);
                 }
 
@@ -1154,9 +1154,22 @@ function updateTaxDeductionLabels()
         taxReceipt.parent().parent().parent().parent().hide();
     }
 
+    // Update account
+    var accountData = {};
+    if ('account' in result) {
+        jQuery('#eas-form-account').val(result.account);
+
+        // Add account data
+        if (result.account in wordpress_vars.bank_accounts && typeof wordpress_vars.bank_accounts[result.account] === 'object') {
+            accountData = wordpress_vars.bank_accounts[result.account];
+        }
+    } else {
+        jQuery('#eas-form-account').val('');
+    }
+
     // Update success text with nl2br
     if ('success_text' in result) {
-        taxDeductionSuccessText = nl2br(replaceTaxDeductionPlaceholders(result.success_text, userCountry, paymentMethodName, purposeName));
+        taxDeductionSuccessText = nl2br(replaceTaxDeductionPlaceholders(result.success_text, userCountry, paymentMethodName, purposeName, accountData));
         jQuery('div#shortcode-content').html(taxDeductionSuccessText);
     }
 }
@@ -1164,7 +1177,7 @@ function updateTaxDeductionLabels()
 /**
  * Add placeholders
  */
-function replaceTaxDeductionPlaceholders(label, country, paymentMethod, purpose)
+function replaceTaxDeductionPlaceholders(label, country, paymentMethod, purpose, accountData)
 {
     if (!!country) {
         label = label.replace('%country%', jQuery('select#donor-country option[value=' + country.toUpperCase() + ']').text());
@@ -1176,6 +1189,13 @@ function replaceTaxDeductionPlaceholders(label, country, paymentMethod, purpose)
 
     if (!!purpose) {
         label = label.replace('%purpose%', purpose);
+    }
+
+    if (!jQuery.isEmptyObject(accountData)) {
+        var accountDataString = Object.keys(accountData).map(function(key, index) {
+            return '<strong>' + key + '</strong>: ' + accountData[key];
+        }).join("\n");
+        label = label.replace('%bank_account_formatted%', accountDataString);
     }
 
     return label;
