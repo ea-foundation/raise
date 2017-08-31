@@ -5,9 +5,9 @@
 /**
  * Update settings
  */
-function updateSettings()
+function eas_update_settings()
 {
-    $pluginVersion = getPluginVersion();
+    $pluginVersion = eas_get_plugin_version();
 
     // Get settings
     $settings        = json_decode(get_option('settings'), true);

@@ -28,7 +28,7 @@ require_once "updates.php";
 require_once "form.php";
 
 // Add short code for donation form
-add_shortcode('donationForm','getDonationForm');
+add_shortcode('donationForm','eas_get_donation_form');
 
 // Start session (needed for PayPal)
 add_action('init', 'eas_start_session', 1);
@@ -45,50 +45,26 @@ function eas_start_session()
 // Process donation (Bank Transfer and Stripe)
 add_action("wp_ajax_nopriv_eas_donate", "eas_process_donation");
 add_action("wp_ajax_eas_donate", "eas_process_donation");
-function eas_process_donation()
-{
-    processDonation();
-}
 
 // Prepare redirect (PayPal, Skrill, GoCardless, BitPay)
-add_action("wp_ajax_nopriv_eas_redirect", "eas_prepare_donation");
-add_action("wp_ajax_eas_redirect", "eas_prepare_donation");
-function eas_prepare_donation()
-{
-    prepareRedirect();
-}
+add_action("wp_ajax_nopriv_eas_redirect", "eas_prepare_redirect");
+add_action("wp_ajax_eas_redirect", "eas_prepare_redirect");
 
 // Execute and log Paypal transaction
-add_action("wp_ajax_nopriv_paypal_execute", "eas_process_paypal_execute");
-add_action("wp_ajax_paypal_execute", "eas_process_paypal_execute");
-function eas_process_paypal_execute()
-{
-    executePaypalDonation();
-}
+add_action("wp_ajax_nopriv_paypal_execute", "eas_execute_paypal_donation");
+add_action("wp_ajax_paypal_execute", "eas_execute_paypal_donation");
 
 // Process GoCardless donation
-add_action("wp_ajax_nopriv_gocardless_debit", "eas_process_gocardless_debit");
-add_action("wp_ajax_gocardless_debit", "eas_process_gocardless_debit");
-function eas_process_gocardless_debit()
-{
-    processGoCardlessDonation();
-}
+add_action("wp_ajax_nopriv_gocardless_debit", "eas_process_gocardless_donation");
+add_action("wp_ajax_gocardless_debit", "eas_process_gocardless_donation");
 
 // Log BitPay donation
 add_action("wp_ajax_nopriv_bitpay_log", "eas_process_bitpay_log");
 add_action("wp_ajax_bitpay_log", "eas_process_bitpay_log");
-function eas_process_bitpay_log()
-{
-    processBitPayLog();
-}
 
 // Log Skrill donation
 add_action("wp_ajax_nopriv_skrill_log", "eas_process_skrill_log");
 add_action("wp_ajax_skrill_log", "eas_process_skrill_log");
-function eas_process_skrill_log()
-{
-    processSkrillLog();
-}
 
 // Add translations
 add_action('plugins_loaded', 'eas_load_textdomain');
@@ -115,8 +91,8 @@ function eas_json_settings_editor()
 /*
  * Additional Styles 
  */
-add_action('wp_enqueue_scripts', 'register_donation_styles');
-function register_donation_styles()
+add_action('wp_enqueue_scripts', 'eas_register_donation_styles');
+function eas_register_donation_styles()
 {
     wp_register_style('bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
     wp_enqueue_style('bootstrap');
@@ -133,8 +109,8 @@ function register_donation_styles()
 /*
  * Additional Scripts  
  */
-add_action('wp_enqueue_scripts', 'register_donation_scripts');
-function register_donation_scripts()
+add_action('wp_enqueue_scripts', 'eas_register_donation_scripts');
+function eas_register_donation_scripts()
 {
     wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', array('jquery'));
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
@@ -145,8 +121,8 @@ function register_donation_scripts()
 }
 
 // Register fundraiser post type
-add_action('init', 'create_campaign_post_type');
-function create_campaign_post_type()
+add_action('init', 'eas_create_campaign_post_type');
+function eas_create_campaign_post_type()
 {
     register_post_type('eas_fundraiser',
         array(
@@ -167,8 +143,8 @@ function create_campaign_post_type()
 }
 
 // Register matching campaign donation post type
-add_action('init', 'create_doantion_post_type');
-function create_doantion_post_type()
+add_action('init', 'eas_create_doantion_post_type');
+function eas_create_doantion_post_type()
 {
     register_post_type( 'eas_donation',
         array(
@@ -190,8 +166,8 @@ function create_doantion_post_type()
 
 // Add settings link to plugins page
 $plugin = plugin_basename(__FILE__);
-add_filter("plugin_action_links_$plugin", 'plugin_add_settings_link');
-function plugin_add_settings_link($links)
+add_filter("plugin_action_links_$plugin", 'eas_plugin_add_settings_link');
+function eas_plugin_add_settings_link($links)
 {
     $settings_link = '<a href="options-general.php?page=eas-donation-settings">' . __('Settings') . '</a>';
     array_push($links, $settings_link);
@@ -259,7 +235,7 @@ add_action('admin_footer', function() {
  *
  * @return string Plugin version
  */
-function getPluginVersion() {
+function eas_get_plugin_version() {
     if (!empty($GLOBALS['easPluginVersion'])) {
         return $GLOBALS['easPluginVersion'];
     }
@@ -281,7 +257,7 @@ function getPluginVersion() {
 add_action('rest_api_init', function() {
     register_rest_route('eas-donation-processor/v1', '/tax-deduction/(?P<secret>\w+)', array(
         'methods'  => 'GET',
-        'callback' => 'serveTaxDeductionSettings',
+        'callback' => 'eas_serve_tax_deduction_settings',
         'permission_callback' => function ($request) {
             // Check expose status
             if ('expose' != get_option('tax-deduction-expose')) {
@@ -294,8 +270,8 @@ add_action('rest_api_init', function() {
             }
 
             // Check form exists
-            loadSettings();
-            $form = get($_GET['form'], 'default');
+            eas_load_settings();
+            $form = eas_get($_GET['form'], 'default');
             if (!isset($GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'])) {
                 return new WP_Error('rest_not_found', 'Form not found', array('status' => 404));
             }

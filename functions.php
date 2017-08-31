@@ -3,18 +3,18 @@
 /**
  * Load plugin settings and save it to GLOBALS
  */
-function loadSettings()
+function eas_load_settings()
 {
     // Load parameters
     $easSettings = json_decode(get_option('settings'), true);
 
     // Load organization in current language
-    $easOrganization = !empty($easSettings['organization']) ? (getLocalizedValue($easSettings['organization']) ?: '') : '';
+    $easOrganization = !empty($easSettings['organization']) ? (eas_get_localized_value($easSettings['organization']) ?: '') : '';
 
     // Load settings of default form, if any
     $flattenedDefaultSettings = array();
     if (isset($easSettings['forms']['default'])) {
-        flattenSettings($easSettings['forms']['default'], $flattenedDefaultSettings);
+        eas_flatten_settings($easSettings['forms']['default'], $flattenedDefaultSettings);
     }
     $easForms = array('default' => $flattenedDefaultSettings);
 
@@ -23,7 +23,7 @@ function loadSettings()
         foreach ($easSettings['forms'] as $name => $extraSettings) {
             if ($name != 'default') {
                 $flattenedExtraSettings = array();
-                flattenSettings($extraSettings, $flattenedExtraSettings);
+                eas_flatten_settings($extraSettings, $flattenedExtraSettings);
                 $easForms[$name] = array_merge($easForms['default'], $flattenedExtraSettings);
             }
         }
@@ -40,7 +40,7 @@ function loadSettings()
  * @return array
  * @throws \Exception
  */
-function getDonationFromPost()
+function eas_get_donation_from_post()
 {
     // Trim the data
     $post = array_map('trim', $_POST);
@@ -69,24 +69,23 @@ function getDonationFromPost()
         'amount'      => $post['amount'],
         'frequency'   => $post['frequency'],
         'type'        => $post['payment'],
-        'purpose'     => get($post['purpose'], ''),
+        'purpose'     => eas_get($post['purpose'], ''),
         'email'       => $post['email'],
         'name'        => $post['name'],
-        'address'     => get($post['address'], ''),
-        'zip'         => get($post['zip'], ''),
-        'city'        => get($post['city'], ''),
-        'country'     => get($post['country'], ''),
-        'comment'     => get($post['comment'], ''),
-        'account'     => get($post['account'], ''),
-        'anonymous'   => get($post['anonymous'], false),
-        'mailinglist' => get($post['mailinglist'], false),
+        'address'     => eas_get($post['address'], ''),
+        'zip'         => eas_get($post['zip'], ''),
+        'city'        => eas_get($post['city'], ''),
+        'country'     => eas_get($post['country'], ''),
+        'comment'     => eas_get($post['comment'], ''),
+        'account'     => eas_get($post['account'], ''),
+        'anonymous'   => eas_get($post['anonymous'], false),
+        'mailinglist' => eas_get($post['mailinglist'], false),
     );
 
     /*$donation           = new Donation($post);
     $donation->time     = date('c');
     $donation->url      = $_SERVER['HTTP_REFERER'];
     $donation->language = strtoupper($donation->language);
-    $donation->country  = getEnglishNameByCountryCode($donation->country);
 
     return $donation;*/
 }
@@ -96,11 +95,11 @@ function getDonationFromPost()
  *
  * @return string JSON response
  */
-function prepareRedirect()
+function eas_prepare_redirect()
 {
     try {
         // Load settings
-        loadSettings();
+        eas_load_settings();
 
         // Trim the data
         $post = array_map('trim', $_POST);
@@ -114,16 +113,16 @@ function prepareRedirect()
         // Output
         switch ($post['payment']) {
             case "PayPal":
-                $response = preparePayPalDonation($post);
+                $response = eas_prepare_paypal_donation($post);
                 break;
             case "Skrill":
-                $response = prepareSkrillDonation($post);
+                $response = eas_prepare_skrill_donation($post);
                 break;
             case "GoCardless":
-                $response = prepareGoCardlessDonation($post);
+                $response = eas_prepare_gocardless_donation($post);
                 break;
             case "BitPay":
-                $response = prepareBitPayDonation($post);
+                $response = eas_prepare_bitpay_donation($post);
                 break;
             default:
                 throw new \Exception('Payment method ' . $post['payment'] . ' is invalid');
@@ -144,14 +143,14 @@ function prepareRedirect()
  *
  * @return string JSON response
  */
-function processDonation()
+function eas_process_donation()
 {
     try {
         // Load settings
-        loadSettings();
+        eas_load_settings();
 
         // Get donation
-        $donation = getDonationFromPost();
+        $donation = eas_get_donation_from_post();
 
         // Output
         if ($donation['type'] == "Stripe") {
@@ -161,16 +160,16 @@ function processDonation()
             }
 
             // Handle payment
-            handleStripePayment($donation, $_POST['stripeToken'], $_POST['stripePublicKey']);
+            eas_handle_stripe_payment($donation, $_POST['stripeToken'], $_POST['stripePublicKey']);
 
             // Prepare response
             $response = array('success' => true);
         } else if ($donation['type'] == "Bank Transfer") {
             // Check honey pot (confirm email)
-            checkHoneyPot($_POST);
+            eas_check_honey_pot($_POST);
 
             // Handle payment
-            $reference = handleBankTransferPayment($donation);
+            $reference = eas_handle_banktransfer_payment($donation);
 
             // Prepare response
             $response = array(
@@ -198,7 +197,7 @@ function processDonation()
  * @param string $publicKey
  * @throws \Exception On error from Stripe API
  */
-function handleStripePayment($donation, $token, $publicKey)
+function eas_handle_stripe_payment($donation, $token, $publicKey)
 {
     // Create the charge on Stripe's servers - this will charge the user's card
     try {
@@ -232,7 +231,7 @@ function handleStripePayment($donation, $token, $publicKey)
         $amountInt = (int)($donation['amount'] * 100);
         if ($donation['frequency'] == 'monthly') {
             // Get plan
-            $plan = getStripePlan($amountInt, $donation['currency']);
+            $plan = eas_get_stripe_plan($amountInt, $donation['currency']);
 
             // Subscribe customer to plan
             $subscription = \Stripe\Subscription::create(array(
@@ -267,13 +266,13 @@ function handleStripePayment($donation, $token, $publicKey)
         $donation['vendor_customer_id'] = $customer->id;
 
         // Trigger web hooks
-        triggerWebHooks($donation);
+        eas_trigger_webhooks($donation);
 
         // Save matching challenge donation post
-        saveMatchingChallengeDonationPost($donation);
+        eas_save_matching_challenge_donation_post($donation);
 
         // Send emails
-        sendEmails($donation);
+        eas_send_emails($donation);
     } catch (\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
         throw new \Exception($e->getMessage() . " " . $e->getStripeParam()); // . " : $form : $mode : $email : $amount : $currency");
@@ -289,7 +288,7 @@ function handleStripePayment($donation, $token, $publicKey)
  * @param int $currency Plan currency
  * @return array
  */
-function getStripePlan($amount, $currency)
+function eas_get_stripe_plan($amount, $currency)
 {
     $planId = 'donation-month-' . $currency . '-' . money_format('%i', $amount / 100);
 
@@ -324,7 +323,7 @@ function getStripePlan($amount, $currency)
  * @param Eas\Donation $donation
  * @return Eas\Donation
  */
-function bindFormData(Eas\Donation $donation)
+function eas_bind_form_data(Eas\Donation $donation)
 {
     //TODO
 }
@@ -335,20 +334,20 @@ function bindFormData(Eas\Donation $donation)
  * @param array $donation Donation form data
  * @return string Reference number
  */
-function handleBankTransferPayment(array $donation)
+function eas_handle_banktransfer_payment(array $donation)
 {
     // Generate reference number and add to donation
-    $reference             = getBankTransferReference($donation['form'], get($donation['purpose']));
+    $reference             = eas_get_banktransfer_reference($donation['form'], eas_get($donation['purpose']));
     $donation['reference'] = $reference;
 
     // Trigger web hooks
-    triggerWebHooks($donation);
+    eas_trigger_webhooks($donation);
 
     // Save matching challenge donation post
-    saveMatchingChallengeDonationPost($donation);
+    eas_save_matching_challenge_donation_post($donation);
 
     // Send emails
-    sendEmails($donation);
+    eas_send_emails($donation);
 
     return $reference;
 }
@@ -358,14 +357,14 @@ function handleBankTransferPayment(array $donation)
  *
  * @param array $donation
  */
-function triggerWebHooks(array $donation)
+function eas_trigger_webhooks(array $donation)
 {
     // Logging
-    triggerLoggingWebHooks($donation);
+    eas_trigger_logging_webhooks($donation);
 
     // Mailing list
     if ($donation['mailinglist']) {
-        triggerMailingListWebHooks($donation);
+        eas_trigger_mailinglist_webhooks($donation);
     }
 }
 
@@ -374,26 +373,26 @@ function triggerWebHooks(array $donation)
  *
  * @param array $donation Donation data for logging
  */
-function triggerLoggingWebHooks($donation)
+function eas_trigger_logging_webhooks($donation)
 {
     // Get form and mode
-    $form = get($donation['form'], '');
-    $mode = get($donation['mode'], '');
+    $form = eas_get($donation['form'], '');
+    $mode = eas_get($donation['mode'], '');
 
     // Unset reqId (not needed)
     unset($donation['reqId']);
 
     // Translate country code to English
     if (!empty($donation['country'])) {
-        $donation['country'] = getEnglishNameByCountryCode($donation['country']);
+        $donation['country'] = eas_get_english_name_by_country_code($donation['country']);
     }
 
     // Trigger hooks for Zapier
     if (isset($GLOBALS['easForms'][$form]["webhook.logging.$mode"])) {
-        $hooks = csvToArray($GLOBALS['easForms'][$form]["webhook.logging.$mode"]);
+        $hooks = eas_csv_to_array($GLOBALS['easForms'][$form]["webhook.logging.$mode"]);
         foreach ($hooks as $hook) {
             //TODO The array construct here is HookPress legacy. Remove in next major release.
-            fireWebHook($hook, array('donation' => array_filter($donation)));
+            eas_send_webhook($hook, array('donation' => array_filter($donation)));
         }
     }
 }
@@ -403,11 +402,11 @@ function triggerLoggingWebHooks($donation)
  *
  * @param array $donation Donation data
  */
-function triggerMailingListWebHooks($donation)
+function eas_trigger_mailinglist_webhooks($donation)
 {
     // Get form and mode
-    $form = get($donation['form'], '');
-    $mode = get($donation['mode'], '');
+    $form = eas_get($donation['form'], '');
+    $mode = eas_get($donation['mode'], '');
 
     // Trigger hooks for Zapier
     if (isset($GLOBALS['easForms'][$form]["webhook.mailing_list.$mode"])) {
@@ -421,10 +420,10 @@ function triggerMailingListWebHooks($donation)
         );
 
         // Iterate over hooks
-        $hooks = csvToArray($GLOBALS['easForms'][$form]["webhook.mailing_list.$mode"]);
+        $hooks = eas_csv_to_array($GLOBALS['easForms'][$form]["webhook.mailing_list.$mode"]);
         foreach ($hooks as $hook) {
             //TODO The array construct here is HookPress legacy. Remove in next major release.
-            fireWebHook($hook, array('subscription' => array_filter($subscription)));
+            eas_send_webhook($hook, array('subscription' => array_filter($subscription)));
         }
     }
 }
@@ -435,7 +434,7 @@ function triggerMailingListWebHooks($donation)
  * @param string $url Target URL
  * @param array  $params Arguments
  */
-function fireWebHook($url, array $params)
+function eas_send_webhook($url, array $params)
 {
     global $wp_version;
 
@@ -443,7 +442,7 @@ function fireWebHook($url, array $params)
         return;
     }
 
-    $version   = getPluginVersion();
+    $version   = eas_get_plugin_version();
     $userAgent = "EAS-Donation-Processor/{$version} (compatible; WordPress {$wp_version}; +https://ea-foundation.org/)";
     $args      = array(
         'user-agent' => $userAgent,
@@ -464,13 +463,13 @@ function fireWebHook($url, array $params)
  * @param string $country
  * @return \GoCardlessPro\Client
  */
-function getGoCardlessClient($form, $mode, $taxReceiptNeeded, $currency, $country)
+function eas_get_gocardless_client($form, $mode, $taxReceiptNeeded, $currency, $country)
 {
     // Get access token
     if (empty($GLOBALS['easForms'][$form]["payment.provider.gocardless.$mode.access_token"])) {
         die("Error: No access token defined for $form (payment.provider.gocardless.$mode.access_token)");
     }
-    $settings = getBestPaymentProviderSettings("gocardless", $form, $mode, $taxReceiptNeeded, $currency, $country);
+    $settings = eas_get_best_payment_provider_settings("gocardless", $form, $mode, $taxReceiptNeeded, $currency, $country);
 
     return new \GoCardlessPro\Client([
         'access_token' => $settings['access_token'],
@@ -489,7 +488,7 @@ function getGoCardlessClient($form, $mode, $taxReceiptNeeded, $currency, $countr
  * @param string $country
  * @return array
  */
-function getBestPaymentProviderSettings(
+function eas_get_best_payment_provider_settings(
     $provider,
     $form,
     $mode,
@@ -503,14 +502,14 @@ function getBestPaymentProviderSettings(
     $country  = strtolower($country);
 
     // Get provider properties
-    $properties = getPaymentProviderProperties($provider);
+    $properties = eas_get_payment_provider_properties($provider);
     if (empty($properties)) {
         throw new \Exception('Unsupported provider');
     }
 
     // Extract settings of the form we're talking about
     $formSettings      = $GLOBALS['easForms'][$form];
-    $countryCompulsory = get($formSettings['payment.extra_fields.country'], false);
+    $countryCompulsory = eas_get($formSettings['payment.extra_fields.country'], false);
 
     // Check all possible settings
     $hasCountrySetting  = true;
@@ -529,7 +528,7 @@ function getBestPaymentProviderSettings(
     $firstProperty               = $properties[0];
     $countryOfCurrency           = '';
     if (!$countryCompulsory && !$taxReceiptNeeded && !$hasCurrencySetting) {
-        $countries = array_map('strtolower', getCountriesByCurrency($currency));
+        $countries = array_map('strtolower', eas_get_countries_by_currency($currency));
         foreach ($countries as $country) {
             if (isset($formSettings["payment.provider.{$provider}_$country.$mode.$firstProperty"])) {
                 // Make sure we have all the properties
@@ -551,16 +550,16 @@ function getBestPaymentProviderSettings(
 
     if ($hasCountrySetting && ($taxReceiptNeeded || $countryCompulsory)) {
         // Use country specific settings
-        return removePrefix($formSettings, $properties, "payment.provider.{$provider}_$country.$mode.");
+        return eas_remove_prefix($formSettings, $properties, "payment.provider.{$provider}_$country.$mode.");
     } else if ($hasCurrencySetting) {
         // Use currency specific settings
-        return removePrefix($formSettings, $properties, "payment.provider.{$provider}_$currency.$mode.");
+        return eas_remove_prefix($formSettings, $properties, "payment.provider.{$provider}_$currency.$mode.");
     } else if ($hasCountryOfCurrencySetting) {
         // Use settings of a country where the chosen currency is used
-        return removePrefix($formSettings, $properties, "payment.provider.{$provider}_$countryOfCurrency.$mode.");
+        return eas_remove_prefix($formSettings, $properties, "payment.provider.{$provider}_$countryOfCurrency.$mode.");
     } else if ($hasDefaultSetting) {
         // Use default settings
-        return removePrefix($formSettings, $properties, "payment.provider.$provider.$mode.");
+        return eas_remove_prefix($formSettings, $properties, "payment.provider.$provider.$mode.");
     } else {
         throw new \Exception('No settings found');
     }
@@ -574,7 +573,7 @@ function getBestPaymentProviderSettings(
  * @param string $prefix
  * @return array
  */
-function removePrefix(array $settings, array $properties, $prefix)
+function eas_remove_prefix(array $settings, array $properties, $prefix)
 {
     $result = array();
     foreach ($properties as $property) {
@@ -590,7 +589,7 @@ function removePrefix(array $settings, array $properties, $prefix)
  * @param string $provider
  * @return array
  */
-function getPaymentProviderProperties($provider)
+function eas_get_payment_provider_properties($provider)
 {
     switch (strtolower($provider)) {
         case "stripe":
@@ -615,17 +614,17 @@ function getPaymentProviderProperties($provider)
  * @param array $post
  * @return array
  */
-function prepareGoCardlessDonation(array $post)
+function eas_prepare_gocardless_donation(array $post)
 {
     try {
         // Make GoCardless redirect flow
-        $returnUrl    = getAjaxEndpoint() . '?action=gocardless_debit';
+        $returnUrl    = eas_get_ajax_endpoint() . '?action=gocardless_debit';
         $reqId        = uniqid(); // Secret request ID. Needed to prevent replay attack
         $monthly      = $post['frequency'] == 'monthly' ? ", " . __("monthly", "eas-donation-processor") : "";
-        $client       = getGoCardlessClient(
+        $client       = eas_get_gocardless_client(
             $post['form'],
             $post['mode'],
-            get($post['tax_receipt'], false),
+            eas_get($post['tax_receipt'], false),
             $post['currency'],
             $post['country']
         );
@@ -641,7 +640,7 @@ function prepareGoCardlessDonation(array $post)
         $_SESSION['eas-gocardless-flow-id'] = $redirectFlow->id;
 
         // Save rest to session
-        setDonationDataToSession($post, $reqId);
+        eas_set_donation_data_to_session($post, $reqId);
 
         // Return pay key
         return array(
@@ -660,17 +659,17 @@ function prepareGoCardlessDonation(array $post)
  * AJAX endpoint that debits donor with GoCardless.
  * The user is redirected here after successful signup.
  */
-function processGoCardlessDonation()
+function eas_process_gocardless_donation()
 {
     try {
         // Load settings
-        loadSettings();
+        eas_load_settings();
 
         // Get donation from session
-        $donation = getDonationFromSession();
+        $donation = eas_get_donation_from_session();
 
         // Reset request ID to prevent replay attacks
-        resetRequestId();
+        eas_reset_request_id();
 
         // Get client
         $form       = $donation['form'];
@@ -679,7 +678,7 @@ function processGoCardlessDonation()
         $currency   = $donation['currency'];
         $country    = $donation['country'];
         $reqId      = $donation['reqId'];
-        $client     = getGoCardlessClient($form, $mode, $taxReceipt, $currency, $country);
+        $client     = eas_get_gocardless_client($form, $mode, $taxReceipt, $currency, $country);
 
         if (!isset($_GET['redirect_flow_id']) || $_GET['redirect_flow_id'] != $_SESSION['eas-gocardless-flow-id']) {
             throw new \Exception('Invalid flow ID');
@@ -738,13 +737,13 @@ function processGoCardlessDonation()
         $donation['vendor_customer_id'] = $redirectFlow->links->customer;
 
         // Trigger web hooks
-        triggerWebHooks($donation);
+        eas_trigger_webhooks($donation);
 
         // Save matching challenge donation post
-        saveMatchingChallengeDonationPost($donation);
+        eas_save_matching_challenge_donation_post($donation);
 
         // Send emails
-        sendEmails($donation);
+        eas_send_emails($donation);
 
         $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation('gocardless'); mainWindow.hideModal();";
     } catch (\Exception $e) {
@@ -763,7 +762,7 @@ function processGoCardlessDonation()
  * @param string $pairingCode
  * @return array
  */
-function getBitpayKeyIds($pairingCode)
+function eas_get_bitpay_key_ids($pairingCode)
 {
     return array(
         'bitpay-private-key-' . $pairingCode,
@@ -782,17 +781,17 @@ function getBitpayKeyIds($pairingCode)
  * @param string $country
  * @return \Bitpay\Bitpay
  */
-function getBitpayDependencyInjector($form, $mode, $taxReceipt, $currency, $country)
+function eas_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $currency, $country)
 {
     // Get BitPay pairing code
-    $settings = getBestPaymentProviderSettings("bitpay", $form, $mode, $taxReceipt, $currency, $country);
+    $settings = eas_get_best_payment_provider_settings("bitpay", $form, $mode, $taxReceipt, $currency, $country);
     if (empty($settings['pairing_code'])) {
         throw new \Exception('No pairing code set');
     }
     $pairingCode = $settings['pairing_code'];
 
     // Get key IDs
-    list($privateKeyId, $publicKeyId, $tokenId) = getBitpayKeyIds($pairingCode);
+    list($privateKeyId, $publicKeyId, $tokenId) = eas_get_bitpay_key_ids($pairingCode);
 
     // Get BitPay client
     $bitpay = new \Bitpay\Bitpay(array(
@@ -815,11 +814,11 @@ function getBitpayDependencyInjector($form, $mode, $taxReceipt, $currency, $coun
  * @param string $label
  * @return \Bitpay\Token
  */
-function generateBitpayToken(\Bitpay\Bitpay $bitpay, $label = '')
+function eas_generate_bitpay_token(\Bitpay\Bitpay $bitpay, $label = '')
 {
     // Get BitPay pairing code as well as key/token IDs
     $pairingCode = $bitpay->getContainer()->getParameter('bitpay.key_storage_password');
-    list($privateKeyId, $publicKeyId, $tokenId) = getBitPayKeyIds($pairingCode);
+    list($privateKeyId, $publicKeyId, $tokenId) = eas_get_bitpay_key_ids($pairingCode);
     
     // Generate keys
     $privateKey = \Bitpay\PrivateKey::create($privateKeyId)
@@ -858,20 +857,20 @@ function generateBitpayToken(\Bitpay\Bitpay $bitpay, $label = '')
  * @param string $country
  * @return \Bitpay\Client\Client
  */
-function getBitpayClient($form, $mode, $taxReceipt, $currency, $country)
+function eas_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country)
 {
     // Get BitPay dependency injector
-    $bitpay = getBitpayDependencyInjector($form, $mode, $taxReceipt, $currency, $country);
+    $bitpay = eas_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $currency, $country);
 
     // Get BitPay pairing code as well as key/token IDs
     $pairingCode = $bitpay->getContainer()->getParameter('bitpay.key_storage_password');
-    list($privateKeyId, $publicKeyId, $tokenId) = getBitPayKeyIds($pairingCode);
+    list($privateKeyId, $publicKeyId, $tokenId) = eas_get_bitpay_key_ids($pairingCode);
 
     // Generate token if first time
     if (!get_option($publicKeyId) || !get_option($privateKeyId) || !($tokenString = get_option($tokenId))) {
         $urlParts = parse_url(home_url());
         $label    = $urlParts['host'];
-        $token    = generateBitpayToken($bitpay, $label);
+        $token    = eas_generate_bitpay_token($bitpay, $label);
     } else {
         $token = new \Bitpay\Token();
         $token->setToken($tokenString);
@@ -890,17 +889,17 @@ function getBitpayClient($form, $mode, $taxReceipt, $currency, $country)
  * @param array $post
  * @return array
  */
-function prepareSkrillDonation(array $post)
+function eas_prepare_skrill_donation(array $post)
 {
     try {
         // Save request ID to session
         $reqId = uniqid(); // Secret request ID. Needed to prevent replay attack
 
         // Put user data in session
-        setDonationDataToSession($post, $reqId);
+        eas_set_donation_data_to_session($post, $reqId);
 
         // Get Skrill URL
-        $url = getSkrillUrl($reqId, $post);
+        $url = eas_get_skrill_url($reqId, $post);
 
         // Return URL
         return array(
@@ -922,14 +921,14 @@ function prepareSkrillDonation(array $post)
  * @param array  $post
  * @return string
  */
-function getSkrillUrl($reqId, $post)
+function eas_get_skrill_url($reqId, $post)
 {
     // Get best Skrill account settings
-    $settings = getBestPaymentProviderSettings(
+    $settings = eas_get_best_payment_provider_settings(
         "skrill",
         $post['form'],
         $post['mode'],
-        get($post['tax_receipt'], false),
+        eas_get($post['tax_receipt'], false),
         $post['currency'],
         $post['country']
     );
@@ -943,7 +942,7 @@ function getSkrillUrl($reqId, $post)
         'pay_from_email'    => $post['email'],
         'amount'            => $post['amount'],
         'currency'          => $post['currency'],
-        'return_url'        => getAjaxEndpoint() . '?action=skrill_log&req=' . $reqId,
+        'return_url'        => eas_get_ajax_endpoint() . '?action=skrill_log&req=' . $reqId,
         'return_url_target' => 3, // _self
         'logo_url'          => preg_replace("/^http:/i", "https:", get_option('logo', plugin_dir_url(__FILE__) . 'images/logo.png')),
         'language'          => strtoupper($post['language']),
@@ -989,7 +988,7 @@ function getSkrillUrl($reqId, $post)
  * @param array $post
  * @return array
  */
-function prepareBitPayDonation(array $post)
+function eas_prepare_bitpay_donation(array $post)
 {
     try {
         $form       = $post['form'];
@@ -999,15 +998,15 @@ function prepareBitPayDonation(array $post)
         $name       = $post['name'];
         $amount     = $post['amount'];
         $currency   = $post['currency'];
-        $taxReceipt = get($post['tax_receipt'], false);
+        $taxReceipt = eas_get($post['tax_receipt'], false);
         $country    = $post['country'];
         $frequency  = $post['frequency'];
         $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
-        $returnUrl  = getAjaxEndpoint() . '?action=bitpay_log&req=' . $reqId;
-        //$returnUrl       = getAjaxEndpoint() . '?action=bitpay_confirm';
+        $returnUrl  = eas_get_ajax_endpoint() . '?action=bitpay_log&req=' . $reqId;
+        //$returnUrl       = eas_get_ajax_endpoint() . '?action=bitpay_confirm';
 
         // Get BitPay object and token
-        $client = getBitpayClient($form, $mode, $taxReceipt, $currency, $country);
+        $client = eas_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country);
 
         // Make item
         $item = new \Bitpay\Item();
@@ -1044,7 +1043,7 @@ function prepareBitPayDonation(array $post)
         $_SESSION['eas-vendor-transaction-id']  = $invoice->getId();
 
         // Save user data to session
-        setDonationDataToSession($post, $reqId);
+        eas_set_donation_data_to_session($post, $reqId);
 
         // Return pay key
         return array(
@@ -1064,20 +1063,20 @@ function prepareBitPayDonation(array $post)
  *
  * @throws \Exception
  */
-function verifySession()
+function eas_verify_session()
 {
     if (!isset($_GET['req']) || $_GET['req'] != $_SESSION['eas-req-id']) {
         throw new \Exception('Invalid request');
     }
 
     // Reset request ID to prevent replay attacks
-    resetRequestId();
+    eas_reset_request_id();
 }
 
 /**
  * Reset request ID from session (used for payment providers with redirect)
  */
-function resetRequestId()
+function eas_reset_request_id()
 {
     $_SESSION['eas-req-id'] = uniqid();
 }
@@ -1089,26 +1088,26 @@ function resetRequestId()
  *
  * @return string HTML with script that terminates the Skrill flow and shows the thank you step
  */
-function processSkrillLog()
+function eas_process_skrill_log()
 {
     try {
         // Load settings
-        loadSettings();
+        eas_load_settings();
 
         // Make sure it's the same user session
-        verifySession();
+        eas_verify_session();
 
         // Get variables from session
-        $donation = getDonationFromSession();
+        $donation = eas_get_donation_from_session();
 
         // Trigger web hooks
-        triggerWebHooks($donation);
+        eas_trigger_webhooks($donation);
 
         // Save matching challenge donation post
-        saveMatchingChallengeDonationPost($donation);
+        eas_save_matching_challenge_donation_post($donation);
 
         // Send emails
-        sendEmails($donation);
+        eas_send_emails($donation);
     } catch (\Exception $e) {
         // No need to say anything. Just show confirmation.
     }
@@ -1125,17 +1124,17 @@ function processSkrillLog()
  *
  * @return string HTML with script that terminates the BitPay flow and shows the thank you step
  */
-function processBitPayLog()
+function eas_process_bitpay_log()
 {
     try {
         // Load settings
-        loadSettings();
+        eas_load_settings();
 
         // Make sure it's the same user session
-        verifySession();
+        eas_verify_session();
 
         // Get variables from session
-        $donation   = getDonationFromSession();
+        $donation   = eas_get_donation_from_session();
         $form       = $donation['form'];
         $mode       = $donation['mode'];
         $taxReceipt = $donation['tax_receipt'];
@@ -1146,7 +1145,7 @@ function processBitPayLog()
         $donation['vendor_transaction_id'] = $_SESSION['eas-vendor-transaction-id'];
 
         // Make sure the payment is paid
-        $client      = getBitpayClient($form, $mode, $taxReceipt, $currency, $country);
+        $client      = eas_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country);
         $invoice     = $client->getInvoice($_SESSION['eas-vendor-transaction-id']);
         $status      = $invoice->getStatus();
         $validStates = array(
@@ -1159,13 +1158,13 @@ function processBitPayLog()
         }
 
         // Trigger web hooks
-        triggerWebHooks($donation);
+        eas_trigger_webhooks($donation);
 
         // Save matching challenge donation post
-        saveMatchingChallengeDonationPost($donation);
+        eas_save_matching_challenge_donation_post($donation);
 
         // Send emails
-        sendEmails($donation);
+        eas_send_emails($donation);
     } catch (\Exception $e) {
         // No need to say anything. Just show confirmation.
     }
@@ -1180,7 +1179,7 @@ function processBitPayLog()
  *
  * @return Eas/Donation
  */
-function getDonationFromSession()
+function eas_get_donation_from_session()
 {
     //return unserialize($_SESSION['eas-donation']);
 
@@ -1216,7 +1215,7 @@ function getDonationFromSession()
  * @param array  $post  Form post
  * @param string $reqId Request ID (against replay attack)
  */
-function setDonationDataToSession(array $post, $reqId = null)
+function eas_set_donation_data_to_session(array $post, $reqId = null)
 {
     // Required fields
     $_SESSION['eas-form']        = $post['form'];
@@ -1230,18 +1229,18 @@ function setDonationDataToSession(array $post, $reqId = null)
     $_SESSION['eas-country']     = $post['country'];
     $_SESSION['eas-amount']      = money_format('%i', $post['amount']);
     $_SESSION['eas-frequency']   = $post['frequency'];
-    $_SESSION['eas-tax-receipt'] = get($post['tax_receipt'], false);
+    $_SESSION['eas-tax-receipt'] = eas_get($post['tax_receipt'], false);
     $_SESSION['eas-type']        = $post['payment'];
 
     // Optional fields
-    $_SESSION['eas-purpose']     = get($post['purpose'], '');
-    $_SESSION['eas-address']     = get($post['address'], '');
-    $_SESSION['eas-zip']         = get($post['zip'], '');
-    $_SESSION['eas-city']        = get($post['city'], '');
+    $_SESSION['eas-purpose']     = eas_get($post['purpose'], '');
+    $_SESSION['eas-address']     = eas_get($post['address'], '');
+    $_SESSION['eas-zip']         = eas_get($post['zip'], '');
+    $_SESSION['eas-city']        = eas_get($post['city'], '');
     $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) && $post['mailinglist'] == 1;
-    $_SESSION['eas-comment']     = get($post['comment'], '');
-    $_SESSION['eas-account']     = get($post['account'], '');
-    $_SESSION['eas-anonymous']   = get($post['anonymous'], false);
+    $_SESSION['eas-comment']     = eas_get($post['comment'], '');
+    $_SESSION['eas-account']     = eas_get($post['account'], '');
+    $_SESSION['eas-anonymous']   = eas_get($post['anonymous'], false);
 }
 
 /**
@@ -1250,7 +1249,7 @@ function setDonationDataToSession(array $post, $reqId = null)
  * @param array $post
  * @return PayPal\Api\Payment
  */
-function createPayPalPayment(array $post)
+function eas_create_paypal_payment(array $post)
 {
     // Make payer
     $payer = new \PayPal\Api\Payer();
@@ -1268,7 +1267,7 @@ function createPayPalPayment(array $post)
         ->setInvoiceNumber(uniqid());
 
     // Make redirect URLs
-    $returnUrl    = getAjaxEndpoint() . '?action=paypal_execute';
+    $returnUrl    = eas_get_ajax_endpoint() . '?action=paypal_execute';
     $redirectUrls = new \PayPal\Api\RedirectUrls();
     $redirectUrls->setReturnUrl($returnUrl)
         ->setCancelUrl($returnUrl);
@@ -1281,10 +1280,10 @@ function createPayPalPayment(array $post)
         ->setRedirectUrls($redirectUrls);
 
     // Get API context end create payment
-    $apiContext = getPayPalApiContext(
+    $apiContext = eas_get_paypal_api_context(
         $post['form'],
         $post['mode'],
-        get($post['tax_receipt'], false),
+        eas_get($post['tax_receipt'], false),
         $post['currency'],
         $post['country']
     );
@@ -1298,7 +1297,7 @@ function createPayPalPayment(array $post)
  * @param array $post
  * @return \PayPal\Api\Agreement
  */
-function createPayPalBillingAgreement(array $post)
+function eas_create_paypal_billing_agreement(array $post)
 {
     // Make new plan
     $plan = new \PayPal\Api\Plan();
@@ -1316,7 +1315,7 @@ function createPayPalBillingAgreement(array $post)
         ->setAmount(new \PayPal\Api\Currency(array('value' => $post['amount'], 'currency' => $post['currency'])));
 
     // Make merchant preferences
-    $returnUrl           = getAjaxEndpoint() . '?action=paypal_execute';
+    $returnUrl           = eas_get_ajax_endpoint() . '?action=paypal_execute';
     $merchantPreferences = new \PayPal\Api\MerchantPreferences();
     $merchantPreferences->setReturnUrl($returnUrl)
         ->setCancelUrl($returnUrl)
@@ -1325,10 +1324,10 @@ function createPayPalBillingAgreement(array $post)
         ->setMaxFailAttempts("0");
 
     // Put things together and create
-    $apiContext = getPayPalApiContext(
+    $apiContext = eas_get_paypal_api_context(
         $post['form'],
         $post['mode'],
-        get($post['tax_receipt'], false),
+        eas_get($post['tax_receipt'], false),
         $post['currency'],
         $post['country']
     );
@@ -1376,14 +1375,14 @@ function createPayPalBillingAgreement(array $post)
  * @param array $post
  * @return array
  */
-function preparePayPalDonation(array $post)
+function eas_prepare_paypal_donation(array $post)
 {
     try {
         if ($post['frequency'] == 'monthly') {
-            $billingAgreement = createPayPalBillingAgreement($post);
+            $billingAgreement = eas_create_paypal_billing_agreement($post);
 
             // Save doantion to session
-            setDonationDataToSession($post);
+            eas_set_donation_data_to_session($post);
 
             // Parse approval link
             $approvalLinkParts = parse_url($billingAgreement->getApprovalLink());
@@ -1394,10 +1393,10 @@ function preparePayPalDonation(array $post)
                 'token'   => $query['token'],
             );
         } else {
-            $payment = createPayPalPayment($post);
+            $payment = eas_create_paypal_payment($post);
 
             // Save doantion to session
-            setDonationDataToSession($post);
+            eas_set_donation_data_to_session($post);
 
             return array(
                 'success'   => true,
@@ -1423,17 +1422,17 @@ function preparePayPalDonation(array $post)
  *
  * @return string HTML with script that terminates the PayPal flow and shows the thank you step
  */
-function executePaypalDonation()
+function eas_execute_paypal_donation()
 {
     try {
         // Load settings
-        loadSettings();
+        eas_load_settings();
 
         // Prepare hook
-        $donation = getDonationFromSession();
+        $donation = eas_get_donation_from_session();
 
         // Get API context
-        $apiContext = getPayPalApiContext(
+        $apiContext = eas_get_paypal_api_context(
             $donation['form'],
             $donation['mode'],
             $donation['tax_receipt'],
@@ -1457,13 +1456,13 @@ function executePaypalDonation()
         }
 
         // Trigger web hooks
-        triggerWebHooks($donation);
+        eas_trigger_webhooks($donation);
 
         // Save matching challenge donation post
-        saveMatchingChallengeDonationPost($donation);
+        eas_save_matching_challenge_donation_post($donation);
 
         // Send emails
-        sendEmails($donation);
+        eas_send_emails($donation);
 
         // Send response
         die(json_encode(array('success' => true)));
@@ -1480,7 +1479,7 @@ function executePaypalDonation()
  *
  * @param array $donation
  */
-function saveMatchingChallengeDonationPost(array $donation)
+function eas_save_matching_challenge_donation_post(array $donation)
 {
     $form      = $donation['form'];
     $name      = $donation['anonymous'] ? 'Anonymous' : $donation['name'];
@@ -1521,7 +1520,7 @@ function saveMatchingChallengeDonationPost(array $donation)
  * @param string $original_email_address
  * @return string
  */
-function easEmailAddress($original_email_address)
+function eas_get_email_address($original_email_address)
 {
     return !empty($GLOBALS['easEmailAddress']) ? $GLOBALS['easEmailAddress'] : $original_email_address;
 }
@@ -1553,9 +1552,9 @@ function easEmailContentType($original_content_type)
  *
  * @param array  $donation
  */
-function sendNotificationEmail(array $donation)
+function eas_send_notification_email(array $donation)
 {
-    $form = get($donation['form'], '');
+    $form = eas_get($donation['form'], '');
 
     // Return if admin email not set
     if (empty($GLOBALS['easForms'][$form]['finish.notification_email'])) {
@@ -1599,8 +1598,8 @@ function sendNotificationEmail(array $donation)
     // Prepare email
     $freq    = !empty($donation['frequency']) && $donation['frequency'] == 'monthly' ? ' (monthly)' : '';
     $subject = $form
-               . ' : ' . get($donation['currency'], '') . ' ' . get($donation['amount'], '') . $freq
-               . ' : ' . get($donation['name'], '');
+               . ' : ' . eas_get($donation['currency'], '') . ' ' . eas_get($donation['amount'], '') . $freq
+               . ' : ' . eas_get($donation['name'], '');
     $text    = '';
     foreach ($donation as $key => $value) {
         $text .= $key . ' : ' . $value . "\n";
@@ -1616,20 +1615,20 @@ function sendNotificationEmail(array $donation)
  * @param array  $donation Donation
  * @param string $form     Form name
  */
-function sendConfirmationEmail(array $donation)
+function eas_send_confirmation_email(array $donation)
 {
-    $form = get($donation['form'], '');
+    $form = eas_get($donation['form'], '');
 
     // Only send email if we have settings (might not be the case if we're dealing with script kiddies)
     if (isset($GLOBALS['easForms'][$form]['finish.email'])) {
         $language      = !empty($donation['language']) ? strtolower($donation['language']) : null;
-        $emailSettings = getLocalizedValue($GLOBALS['easForms'][$form]['finish.email'], $language);
+        $emailSettings = eas_get_localized_value($GLOBALS['easForms'][$form]['finish.email'], $language);
 
         // Add tax dedcution labels to donation
-        $donation += getTaxDeductionSettingsByDonation($donation);
+        $donation += eas_get_tax_deduction_settings_by_donation($donation);
 
         // Get email subject and text and pass it through twig
-        $twig    = getTwig($form, $language);
+        $twig    = eas_get_twig($form, $language);
         $subject = $twig->render('finish.email.subject', $donation);
         $text    = $twig->render('finish.email.text', $donation);
 
@@ -1639,22 +1638,22 @@ function sendConfirmationEmail(array $donation)
         //throw new \Exception("$email : $form : $language : $subject : $text");
 
         // The filters below need to access the email settings
-        $GLOBALS['easEmailSender']      = get($emailSettings['sender']);
-        $GLOBALS['easEmailAddress']     = get($emailSettings['address']);
-        $GLOBALS['easEmailContentType'] = get($emailSettings['html'], false) ? 'text/html' : 'text/plain';
+        $GLOBALS['easEmailSender']      = eas_get($emailSettings['sender']);
+        $GLOBALS['easEmailAddress']     = eas_get($emailSettings['address']);
+        $GLOBALS['easEmailContentType'] = eas_get($emailSettings['html'], false) ? 'text/html' : 'text/plain';
 
         // Add email hooks
-        add_filter('wp_mail_from', 'easEmailAddress', EAS_PRIORITY, 1);
-        add_filter('wp_mail_from_name', 'easEmailSender', EAS_PRIORITY, 1);
-        add_filter('wp_mail_content_type', 'easEmailContentType', EAS_PRIORITY, 1);
+        add_filter('wp_mail_from', 'eas_get_email_address', EAS_PRIORITY, 1);
+        add_filter('wp_mail_from_name', 'eas_get_email_sender', EAS_PRIORITY, 1);
+        add_filter('wp_mail_content_type', 'eas_get_email_content_type', EAS_PRIORITY, 1);
 
         // Send email
         wp_mail($donation['email'], $subject, $text);
 
         // Remove email hooks
-        remove_filter('wp_mail_from', 'easEmailAddress', EAS_PRIORITY);
-        remove_filter('wp_mail_from_name', 'easEmailSender', EAS_PRIORITY);
-        remove_filter('wp_mail_content_type', 'easEmailContentType', EAS_PRIORITY);
+        remove_filter('wp_mail_from', 'eas_get_email_address', EAS_PRIORITY);
+        remove_filter('wp_mail_from_name', 'eas_get_email_sender', EAS_PRIORITY);
+        remove_filter('wp_mail_content_type', 'eas_get_email_content_type', EAS_PRIORITY);
     }
 }
 
@@ -1674,11 +1673,11 @@ function sendConfirmationEmail(array $donation)
  * @param array  $result    Falttened result array
  * @param string $parentKey Parent node path
  */
-function flattenSettings($settings, &$result, $parentKey = '')
+function eas_flatten_settings($settings, &$result, $parentKey = '')
 {
     // Return scalar values, numeric arrays and special values
     if (!is_array($settings)
-        || !hasStringKeys($settings)
+        || !eas_has_string_keys($settings)
         // IMPORTANT: Add parameters here that should be overridden completely in non-default forms
         || preg_match('/payment\.purpose$/', $parentKey)
         || preg_match('/payment\.provider\.banktransfer\.accounts$/', $parentKey)
@@ -1695,7 +1694,7 @@ function flattenSettings($settings, &$result, $parentKey = '')
     // Do recursion on rest
     foreach ($settings as $key => $item) {
         $flattenedKey = !empty($parentKey) ? $parentKey . '.' . $key : $key;
-        flattenSettings($item, $result, $flattenedKey);
+        eas_flatten_settings($item, $result, $flattenedKey);
     }
 }
 
@@ -1705,7 +1704,7 @@ function flattenSettings($settings, &$result, $parentKey = '')
  * @param array $array The array in question
  * @return bool
  */
-function hasStringKeys(array $array) {
+function eas_has_string_keys(array $array) {
     return count(array_filter(array_keys($array), 'is_string')) > 0;
 }
 
@@ -1715,7 +1714,7 @@ function hasStringKeys(array $array) {
  * @param string $userIp
  * @return array
  */
-function getUserCountry($userIp = null)
+function eas_get_user_country($userIp = null)
 {
     if (!$userIp) {
         $userIp = $_SERVER['REMOTE_ADDR'];
@@ -1753,10 +1752,10 @@ function getUserCountry($userIp = null)
  * @param string $countryCode E.g. 'CH'
  * @return string|null
  */
-function getUserCurrency($countryCode = null)
+function eas_get_user_currency($countryCode = null)
 {
     if (!$countryCode) {
-        $userCountry = getUserCountry();
+        $userCountry = eas_get_user_country();
         if (!$userCountry) {
             return null;
         }
@@ -1765,7 +1764,7 @@ function getUserCurrency($countryCode = null)
 
     $mapping = $GLOBALS['country2currency'];
 
-    return get($mapping[$countryCode]);
+    return eas_get($mapping[$countryCode]);
 }
 
 /**
@@ -1783,7 +1782,7 @@ function getUserCurrency($countryCode = null)
  * @param array|string[] Country list gets filtered, e.g. array('CH') will only return Switzerland
  * @return array
  */
-function getSortedCountryList($countryCodeFilters = array())
+function eas_get_sorted_country_list($countryCodeFilters = array())
 {
     $countries = array(
         "AF" => __("Afghanistan", "eas-donation-processor"),
@@ -2062,10 +2061,10 @@ function getSortedCountryList($countryCodeFilters = array())
  * @param string $countryCode E.g. "CH" or "US"
  * @return string E.g. "Switzerland" or "United States"
  */
-function getEnglishNameByCountryCode($countryCode)
+function eas_get_english_name_by_country_code($countryCode)
 {
     $countryCode = strtoupper($countryCode);
-    return get($GLOBALS['code2country'][$countryCode], $countryCode);
+    return eas_get($GLOBALS['code2country'][$countryCode], $countryCode);
 }
 
 /**
@@ -2074,11 +2073,11 @@ function getEnglishNameByCountryCode($countryCode)
  * @param string $currency E.g. "CHF"
  * @return array E.g. array("LI", "CH")
  */
-function getCountriesByCurrency($currency)
+function eas_get_countries_by_currency($currency)
 {
     $mapping = $GLOBALS['currency2country'];
 
-    return get($mapping[strtoupper($currency)], array());
+    return eas_get($mapping[strtoupper($currency)], array());
 }
 
 /**
@@ -2098,7 +2097,7 @@ function getCountriesByCurrency($currency)
  * @param array $form Settings array of the form
  * @return array
  */
-function getStripePublicKeys(array $form)
+function eas_get_stripe_public_keys(array $form)
 {
     $formStripeKeys = array();
 
@@ -2144,7 +2143,7 @@ function getStripePublicKeys(array $form)
  * @param string       $language en|de|...
  * @return string|array|null
  */
-function getLocalizedValue($setting, $language = null)
+function eas_get_localized_value($setting, $language = null)
 {
     if (is_string($setting)) {
         return $setting;
@@ -2156,7 +2155,7 @@ function getLocalizedValue($setting, $language = null)
             $segments = explode('_', get_locale(), 2);
             $language = reset($segments);
         }
-        return get($setting[$language], reset($setting));
+        return eas_get($setting[$language], reset($setting));
     } else {
         return null;
     }
@@ -2169,7 +2168,7 @@ function getLocalizedValue($setting, $language = null)
  * @param mixed $default
  * @return mixed
  */
-function get(&$var, $default = null) {
+function eas_get(&$var, $default = null) {
     return isset($var) ? $var : $default;
 }
 
@@ -2178,7 +2177,7 @@ function get(&$var, $default = null) {
  *
  * @return string
  */
-function getAjaxEndpoint()
+function eas_get_ajax_endpoint()
 {
     return admin_url('admin-ajax.php');
 }
@@ -2189,7 +2188,7 @@ function getAjaxEndpoint()
  * @param string|array $var
  * @return array
  */
-function csvToArray($var)
+function eas_csv_to_array($var)
 {
     if (is_array($var)) {
         return $var;
@@ -2203,7 +2202,7 @@ function csvToArray($var)
  *
  * @param array $post
  */
-function checkHoneyPot($post)
+function eas_check_honey_pot($post)
 {
     if (!empty($post['email-confirm'])) {
         throw new \Exception('bot');
@@ -2217,15 +2216,15 @@ function checkHoneyPot($post)
  * @param string $language de|en|...
  * @return Twig_Environment
  */
-function getTwig($form, $language = null)
+function eas_get_twig($form, $language = null)
 {
     if (isset($GLOBALS['eas-twig'])) {
         return $GLOBALS['eas-twig'];
     }
 
     // Get settings
-    $confirmationEmail = getLocalizedValue($GLOBALS['easForms'][$form]['finish.email'], $language);
-    $isHtml            = get($confirmationEmail['html'], false);
+    $confirmationEmail = eas_get_localized_value($GLOBALS['easForms'][$form]['finish.email'], $language);
+    $isHtml            = eas_get($confirmationEmail['html'], false);
     $twigSettings      = array(
         'finish.email.subject' => $confirmationEmail['subject'],
         'finish.email.text'    => $isHtml ? nl2br($confirmationEmail['text']) : $confirmationEmail['text'],
@@ -2248,13 +2247,13 @@ function getTwig($form, $language = null)
  *
  * @param array  $donation Donation
  */
-function sendEmails(array $donation)
+function eas_send_emails(array $donation)
 {
     // Send confirmation email
-    sendConfirmationEmail($donation);
+    eas_send_confirmation_email($donation);
 
     // Send notification email
-    sendNotificationEmail($donation);
+    eas_send_notification_email($donation);
 }
 
 /**
@@ -2264,18 +2263,18 @@ function sendEmails(array $donation)
  * @param int   $depth
  * @return array
  */
-function monolinguify(array $labels, $depth = 0)
+function eas_monolinguify(array $labels, $depth = 0)
 {
     if (!$depth--) {
         foreach (array_keys($labels) as $key) {
             if (is_array($labels[$key])) {
-                $labels[$key] = getLocalizedValue($labels[$key]);
+                $labels[$key] = eas_get_localized_value($labels[$key]);
             }
         }
     } else {
         foreach (array_keys($labels) as $key) {
             if (is_array($labels[$key])) {
-                $labels[$key] = monolinguify($labels[$key], $depth);
+                $labels[$key] = eas_monolinguify($labels[$key], $depth);
             }
         }
     }
@@ -2290,10 +2289,10 @@ function monolinguify(array $labels, $depth = 0)
  * @see loadTaxDeductionSettings
  * @see getTaxDeductionSettingsByDonation
  */
-function serveTaxDeductionSettings()
+function eas_serve_tax_deduction_settings()
 {
     try {
-        $form     = get($_GET['form'], 'default');
+        $form     = eas_get($_GET['form'], 'default');
         $response = new WP_REST_Response(array(
             'success'       => true,
             'tax_deduction' => $GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'],
@@ -2314,14 +2313,14 @@ function serveTaxDeductionSettings()
  *
  * @param array $donation
  * @return array
- * @see serveTaxDeductionSettings
+ * @see eas_serve_tax_deduction_settings
  * @see loadTaxDeductionSettings
  */
-function getTaxDeductionSettingsByDonation(array $donation)
+function eas_get_tax_deduction_settings_by_donation(array $donation)
 {
     $settings = array();
 
-    if ($taxDeductionSettings = loadTaxDeductionSettings($donation['form'])) {
+    if ($taxDeductionSettings = eas_load_tax_deduction_settings($donation['form'])) {
         $countries = !empty($donation['country']) ? ['default', strtolower($donation['country'])]                    : ['default'];
         $types     = !empty($donation['type'])    ? ['default', str_replace(" ", "", strtolower($donation['type']))] : ['default']; // Payment provider
         $purposes  = !empty($donation['purpose']) ? ['default', $donation['purpose']]                                : ['default'];
@@ -2347,13 +2346,13 @@ function getTaxDeductionSettingsByDonation(array $donation)
  * @see returnTaxDeductionSettings()
  * @param string $form Form name
  * @return array|null
- * @see serveTaxDeductionSettings
+ * @see eas_serve_tax_deduction_settings
  * @see getTaxDeductionSettingsByDonation
  */
-function loadTaxDeductionSettings($form)
+function eas_load_tax_deduction_settings($form)
 {
     // Get local settings
-    $taxDeductionSettings = get($GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'], array());
+    $taxDeductionSettings = eas_get($GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'], array());
 
     // Load remote settings if necessary
     if ('consume' == get_option('tax-deduction-expose') && $remoteUrl = get_option('tax-deduction-remote-url')) {
@@ -2387,7 +2386,7 @@ function loadTaxDeductionSettings($form)
         $taxDeductionSettings = array_merge($remoteSettings, $taxDeductionSettings);
     }
 
-    return $taxDeductionSettings ? monolinguify($taxDeductionSettings, 3) : null;
+    return $taxDeductionSettings ? eas_monolinguify($taxDeductionSettings, 3) : null;
 }
 
 /**
@@ -2400,7 +2399,7 @@ function loadTaxDeductionSettings($form)
  * @param string $separator   Separates blocks
  * @return string
  */
-function getBankTransferReference($form, $prefix = '', $length = 8, $blockLength = 4, $separator = '-')
+function eas_get_banktransfer_reference($form, $prefix = '', $length = 8, $blockLength = 4, $separator = '-')
 {
     $codeAlphabet = "ABCDEFGHJKLMNPQRTWXYZ"; // without I, O, V, U, S
     $codeAlphabet.= "0123456789";
@@ -2419,8 +2418,8 @@ function getBankTransferReference($form, $prefix = '', $length = 8, $blockLength
     if (!empty($prefix)) {
         // Check if reference number prefix is defined
         if (
-            ($predefinedPrefix = get($GLOBALS['easForms'][$form]['payment.reference_number_prefix.' . $prefix])) ||
-            ($predefinedPrefix = get($GLOBALS['easForms'][$form]['payment.reference_number_prefix.default']))
+            ($predefinedPrefix = eas_get($GLOBALS['easForms'][$form]['payment.reference_number_prefix.' . $prefix])) ||
+            ($predefinedPrefix = eas_get($GLOBALS['easForms'][$form]['payment.reference_number_prefix.default']))
         ) {
             $prefix = $predefinedPrefix;
         }
@@ -2442,10 +2441,10 @@ function getBankTransferReference($form, $prefix = '', $length = 8, $blockLength
  * @return \PayPal\Rest\ApiContext
  * @throws \Exception
  */
-function getPayPalApiContext($form, $mode, $taxReceipt, $currency, $country)
+function eas_get_paypal_api_context($form, $mode, $taxReceipt, $currency, $country)
 {
     // Get best settings
-    $settings = getBestPaymentProviderSettings("paypal", $form, $mode, $taxReceipt, $currency, $country);
+    $settings = eas_get_best_payment_provider_settings("paypal", $form, $mode, $taxReceipt, $currency, $country);
     if (empty($settings['client_id']) || empty($settings['client_secret'])) {
         throw new \Exception('One of the following is not set: client_id, client_secret');
     }
@@ -2470,7 +2469,7 @@ function getPayPalApiContext($form, $mode, $taxReceipt, $currency, $country)
  * @param array $array
  * @return array
  */
-function localizeKeys(array $array)
+function eas_localize_keys(array $array)
 {
     $localizedArray = array();
     foreach ($array as $account => $accountData) {

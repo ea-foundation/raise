@@ -7,7 +7,7 @@
  * @param string $content Page contents for donation confirmation step
  * @return string HTML form contents
  */
-function getDonationForm($atts, $content = null)
+function eas_get_donation_form($atts, $content = null)
 {
     // Extract shortcode attributes (name becomes $name, etc.)
     extract(shortcode_atts(array(
@@ -19,10 +19,10 @@ function getDonationForm($atts, $content = null)
     $mode = !$live ? 'sandbox' : 'live';
 
     // Update settings
-    updateSettings();
+    eas_update_settings();
 
     // Load settings
-    loadSettings();
+    eas_load_settings();
 
     // Load settings
     $easForms = $GLOBALS['easForms'];
@@ -50,14 +50,14 @@ function getDonationForm($atts, $content = null)
     // Get Stripe public keys
     $stripeKeys = array();
     foreach ($easForms as $formName => $form) {
-        $stripeKeys[$formName] = getStripePublicKeys($form);
+        $stripeKeys[$formName] = eas_get_stripe_public_keys($form);
     }
 
     // Get tax deduction labels
-    $taxDeductionLabels = loadTaxDeductionSettings($name);
+    $taxDeductionLabels = eas_load_tax_deduction_settings($name);
 
     // Get bank accounts
-    $bankAccounts = localizeKeys(get($easSettings['payment.provider.banktransfer.accounts'], array()));
+    $bankAccounts = eas_localize_keys(eas_get($easSettings['payment.provider.banktransfer.accounts'], array()));
 
     // Localize script
     wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
@@ -97,9 +97,9 @@ function getDonationForm($atts, $content = null)
     } else {
         $supportedCurrencies = array();
     }
-    $userCountry                = getUserCountry();
+    $userCountry                = eas_get_user_country();
     $userCountryCode            = $userCountry['code'];
-    $userCurrency               = getUserCurrency($userCountryCode);
+    $userCurrency               = eas_get_user_currency($userCountryCode);
     $supportedCurrencyCodes     = array_keys($supportedCurrencies);
     $preselectedCurrency        = $userCurrency && in_array($userCurrency, $supportedCurrencyCodes) ? $userCurrency : reset($supportedCurrencyCodes);
     $preselectedCurrencyFlag    = $preselectedCurrency && isset($supportedCurrencies[$preselectedCurrency]['country_flag']) ? $supportedCurrencies[$preselectedCurrency]['country_flag'] : '';
@@ -129,7 +129,7 @@ function getDonationForm($atts, $content = null)
         mode:              "<?= $mode ?>",
         userCountry:       "<?= $userCountryCode ?>",
         selectedCurrency:  "<?= $preselectedCurrency ?>",
-        countryCompulsory: "<?= get($easSettings['payment.extra_fields.country'], false) ? true : false ?>"
+        countryCompulsory: "<?= eas_get($easSettings['payment.extra_fields.country'], false) ? true : false ?>"
     }
 </script>
 <input type="hidden" name="action" value="eas_donate"> <!-- ajax key -->
@@ -198,7 +198,7 @@ function getDonationForm($atts, $content = null)
                     <ul id="amounts" class="radio">
                         <?php
                             // Once buttons
-                            $cols          = min(12, get($easSettings["amount.columns"], 3));
+                            $cols          = min(12, eas_get($easSettings["amount.columns"], 3));
                             $buttonColSpan = floor(12 / $cols);
                             $tabIndex      = 0;
                             if (!empty($easSettings["amount.button"]) && is_array($easSettings["amount.button"])) {
@@ -222,7 +222,7 @@ function getDonationForm($atts, $content = null)
                             }
                         ?>
 
-                        <?php if (get($easSettings["amount.custom"], true)): ?>
+                        <?php if (eas_get($easSettings["amount.custom"], true)): ?>
 
                             <li class="col-xs-<?php echo  12 - ($buttonColSpan * $tabIndex % 12) ?>">
                                 <div class="input-group">
@@ -302,7 +302,7 @@ function getDonationForm($atts, $content = null)
                         </label>
                     <?php endif; ?>
 
-                    <?php if (get($easSettings["payment.provider.banktransfer.$mode"], true)): ?>
+                    <?php if (eas_get($easSettings["payment.provider.banktransfer.$mode"], true)): ?>
                         <!-- Bank Transfer -->
                         <label for="payment-banktransfer" class="radio-inline">
                             <input type="radio" name="payment" value="Bank Transfer" id="payment-banktransfer" <?php echo $checked ?: ''; $checked = false; ?>>
@@ -320,7 +320,7 @@ function getDonationForm($atts, $content = null)
                 </div>
 
                 <!-- Donate anonymously (matching campaigns) -->
-                <?php if (!empty($easSettings['campaign']) && get($easSettings['payment.extra_fields.anonymous'], false)): ?>
+                <?php if (!empty($easSettings['campaign']) && eas_get($easSettings['payment.extra_fields.anonymous'], false)): ?>
                 <div class="form-group donor-info" style="margin-top: -17px">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
@@ -349,14 +349,14 @@ function getDonationForm($atts, $content = null)
                 </div>
 
                 <!-- Country (if necessary for tax deduction) -->
-                <?php if (get($easSettings['payment.extra_fields.country'], false)): ?>
+                <?php if (eas_get($easSettings['payment.extra_fields.country'], false)): ?>
                 <div class="form-group required donor-info">
                     <label for="donor-country" class="col-sm-3 control-label"><?php _e('Country', 'eas-donation-processor') ?></label>
                     <div class="col-sm-9">
                         <select class="combobox form-control" name="country" id="donor-country">
                             <option></option>
                             <?php
-                                $countries = getSortedCountryList();
+                                $countries = eas_get_sorted_country_list();
                                 foreach ($countries as $code => $country) {
                                     $checked = $userCountryCode == $code ? 'selected' : '';
                                     echo '<option value="' . $code . '" '  . $checked . '>' . $country[0] . '</option>';
@@ -384,7 +384,7 @@ function getDonationForm($atts, $content = null)
 
                         // Localize label
                         if (is_array($purposeButtonLabel)) {
-                            $purposeButtonLabel = getLocalizedValue($purposeButtonLabel);
+                            $purposeButtonLabel = eas_get_localized_value($purposeButtonLabel);
                         }
 
                         // Don't print dropdown when only one purpose
@@ -395,7 +395,7 @@ function getDonationForm($atts, $content = null)
                         else:
                 ?>
                     <div class="form-group required donor-info" id="donation-purpose">
-                        <label for="donor-purpose" class="col-sm-3 control-label"><?php echo getLocalizedValue(get($easSettings['payment.labels']['purpose'], __('Purpose', 'eas-donation-processor'))) ?></label>
+                        <label for="donor-purpose" class="col-sm-3 control-label"><?php echo eas_get_localized_value(eas_get($easSettings['payment.labels']['purpose'], __('Purpose', 'eas-donation-processor'))) ?></label>
                         <div class="col-sm-9">
                             <button type="button" id="donor-purpose" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span id="selected-purpose"><?php echo $purposeButtonLabel ?></span>
@@ -411,7 +411,7 @@ function getDonationForm($atts, $content = null)
 
                                         // Check if there are language settings
                                         if (is_array($labels)) {
-                                            $label = getLocalizedValue($labels);
+                                            $label = eas_get_localized_value($labels);
                                         } else {
                                             $label = $labels;
                                         }
@@ -425,7 +425,7 @@ function getDonationForm($atts, $content = null)
                 <?php endif; endif; ?>
 
                 <!-- Comment -->
-                <?php if (get($easSettings['payment.extra_fields.comment'], false)): ?>
+                <?php if (eas_get($easSettings['payment.extra_fields.comment'], false)): ?>
                 <div class="form-group donor-info">
                     <label for="donor-comment" class="col-sm-3 control-label"><?php _e('Public comment', 'eas-donation-processor') ?> (<?php _e('optional', 'eas-donation-processor') ?>)</label>
                     <div class="col-sm-9">
@@ -443,7 +443,7 @@ function getDonationForm($atts, $content = null)
                                 <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1" checked>
                                 <?php
                                     if (!empty($easSettings['payment.labels']['mailing_list'])) {
-                                        echo esc_html(getLocalizedValue($easSettings['payment.labels']['mailing_list']));
+                                        echo esc_html(eas_get_localized_value($easSettings['payment.labels']['mailing_list']));
                                     } else {
                                         _e('Subscribe me to newsletter', 'eas-donation-processor');
                                     }
@@ -463,7 +463,7 @@ function getDonationForm($atts, $content = null)
                                 <span id="tax-receipt-text">
                                 <?php
                                     if (!empty($easSettings['payment.labels']['tax_receipt'])) {
-                                        echo esc_html(getLocalizedValue($easSettings['payment.labels']['tax_receipt']));
+                                        echo esc_html(eas_get_localized_value($easSettings['payment.labels']['tax_receipt']));
                                     } else {
                                         _e('I need a tax receipt', 'eas-donation-processor');
                                     }
@@ -504,7 +504,7 @@ function getDonationForm($atts, $content = null)
                             <select class="combobox form-control" name="country" id="donor-country">
                                 <option></option>
                                 <?php
-                                    $countries = getSortedCountryList();
+                                    $countries = eas_get_sorted_country_list();
                                     foreach ($countries as $code => $country) {
                                         $checked = $userCountryCode == $code ? 'selected' : '';
                                         echo '<option value="' . $code . '" '  . $checked . '>' . $country[0] . '</option>';
@@ -542,7 +542,7 @@ function getDonationForm($atts, $content = null)
                         <img src="<?php echo plugins_url('images/ok.png', __FILE__) ?>" alt="Donation complete">
                     </div>
                     <div class="response-text">
-                        <strong><span id="success-text"><?php echo esc_html(getLocalizedValue($easSettings["finish.success_message"])) ?></span></strong>
+                        <strong><span id="success-text"><?php echo esc_html(eas_get_localized_value($easSettings["finish.success_message"])) ?></span></strong>
                     </div>
                 </div>
                 <div id="shortcode-content">
