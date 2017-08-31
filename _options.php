@@ -37,7 +37,7 @@ class EasDonationProcessorOptionsPage
     public function create_admin_page()
     {
         // Update settings if necessary
-        updateSettings();
+        eas_update_settings();
 
         // Default colors
         $defaultColors = array(
