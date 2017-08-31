@@ -56,8 +56,8 @@ function eas_get_donation_form($atts, $content = null)
     // Get tax deduction labels
     $taxDeductionLabels = eas_load_tax_deduction_settings($name);
 
-    // Get bank accounts
-    $bankAccounts = eas_localize_keys(eas_get($easSettings['payment.provider.banktransfer.accounts'], array()));
+    // Get bank accounts and localize their labels
+    $bankAccounts = array_map('eas_localize_array_keys', eas_get($easSettings['payment.provider.banktransfer.accounts'], array()));
 
     // Localize script
     wp_localize_script('donation-plugin-form', 'wordpress_vars', array(

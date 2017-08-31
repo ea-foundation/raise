@@ -375,17 +375,12 @@ function eas_trigger_webhooks(array $donation)
  */
 function eas_trigger_logging_webhooks($donation)
 {
+    // Clean up webhook data
+    eas_clean_up_webhook_data($donation);
+
     // Get form and mode
     $form = eas_get($donation['form'], '');
     $mode = eas_get($donation['mode'], '');
-
-    // Unset reqId (not needed)
-    unset($donation['reqId']);
-
-    // Translate country code to English
-    if (!empty($donation['country'])) {
-        $donation['country'] = eas_get_english_name_by_country_code($donation['country']);
-    }
 
     // Trigger hooks for Zapier
     if (isset($GLOBALS['easForms'][$form]["webhook.logging.$mode"])) {
@@ -394,6 +389,23 @@ function eas_trigger_logging_webhooks($donation)
             //TODO The array construct here is HookPress legacy. Remove in next major release.
             eas_send_webhook($hook, array('donation' => array_filter($donation)));
         }
+    }
+}
+
+/**
+ * Remove unncecessary field from webhook data
+ *
+ * @param array $donation
+ */
+function eas_clean_up_webhook_data(array &$donation)
+{
+    // Unset reqId and bank_account_formatted (not needed)
+    unset($donation['reqId']);
+    unset($donation['bank_account_formatted']);
+
+    // Translate country code to English
+    if (!empty($donation['country'])) {
+        $donation['country'] = eas_get_english_name_by_country_code($donation['country']);
     }
 }
 
@@ -1531,7 +1543,7 @@ function eas_get_email_address($original_email_address)
  * @param string $original_email_sender
  * @return string
  */
-function easEmailSender($original_email_sender)
+function eas_get_email_sender($original_email_sender)
 {
     return !empty($GLOBALS['easEmailSender']) ? $GLOBALS['easEmailSender'] : $original_email_sender;
 }
@@ -1542,7 +1554,7 @@ function easEmailSender($original_email_sender)
  * @param string $original_content_type
  * @return string
  */
-function easEmailContentType($original_content_type)
+function eas_get_email_content_type($original_content_type)
 {
     return $GLOBALS['easEmailContentType'];
 }
@@ -2335,6 +2347,20 @@ function eas_get_tax_deduction_settings_by_donation(array $donation)
                 }
             }
         }
+
+        // Get %bank_account_formatted% and insert reference number (if present)
+        if ($donation['type'] == 'Bank Transfer' &&
+            $account = eas_localize_array_keys(eas_get($GLOBALS['easForms'][$donation['form']]['payment.provider.banktransfer.accounts'][$donation['account']], array()))
+        ) {
+            // Insert %reference_number%
+            if ($reference = eas_get($donation['reference'])) {
+                $settings['bank_account'] = array_map(function ($val) use ($reference) {
+                    return str_replace('%reference_number%', $reference, $val);
+                }, $account);
+            } else {
+                $settings['bank_account'] = $account;
+            }
+        }
     }
 
     return $settings;
@@ -2469,18 +2495,13 @@ function eas_get_paypal_api_context($form, $mode, $taxReceipt, $currency, $count
  * @param array $array
  * @return array
  */
-function eas_localize_keys(array $array)
+function eas_localize_array_keys(array $array)
 {
-    $localizedArray = array();
-    foreach ($array as $account => $accountData) {
-        $localizedKeys = array_map(function($key) {
-            return __($key, "eas-donation-processor");
-        }, array_keys($accountData));
+    $localizedKeys = array_map(function($key) {
+        return __($key, "eas-donation-processor");
+    }, array_keys($array));
 
-        $localizedArray[$account] = array_combine($localizedKeys, array_values($accountData));
-    }
-
-    return $localizedArray;
+    return array_combine($localizedKeys, array_values($array));
 }
 
 
