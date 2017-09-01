@@ -2298,8 +2298,8 @@ function eas_monolinguify(array $labels, $depth = 0)
  * AJAX call for serving tax deduction settings to an *external* instance
  *
  * @return WP_REST_Response
- * @see loadTaxDeductionSettings
- * @see getTaxDeductionSettingsByDonation
+ * @see eas_load_tax_deduction_settings
+ * @see eas_get_tax_deduction_settings_by_donation
  */
 function eas_serve_tax_deduction_settings()
 {
@@ -2326,7 +2326,7 @@ function eas_serve_tax_deduction_settings()
  * @param array $donation
  * @return array
  * @see eas_serve_tax_deduction_settings
- * @see loadTaxDeductionSettings
+ * @see eas_load_tax_deduction_settings
  */
 function eas_get_tax_deduction_settings_by_donation(array $donation)
 {
@@ -2369,11 +2369,10 @@ function eas_get_tax_deduction_settings_by_donation(array $donation)
 /**
  * Load tax deduction settings
  *
- * @see returnTaxDeductionSettings()
  * @param string $form Form name
  * @return array|null
  * @see eas_serve_tax_deduction_settings
- * @see getTaxDeductionSettingsByDonation
+ * @see eas_get_tax_deduction_settings_by_donation
  */
 function eas_load_tax_deduction_settings($form)
 {
