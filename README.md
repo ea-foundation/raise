@@ -20,18 +20,18 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-* >= PHP 5.6.3
-* >= WordPress 4.8.1
+* PHP 5.6.3 or newer
+* WordPress 4.8 or newer
 
 ### Installation
 
-**Manual**
+#### Manual
 
 1. Download the latest zip from https://github.com/ea-foundation/eas-donation-processor.
 2. On the WordPress plugin admin page, click install and upload the zip file (or upload the zip to the folder wp-content/plugins of your wordpress installation and extract all the files.)
 3. Activate the plugin.
 
-**Git**
+#### Git
 
 Using git, browse to your /wp-content/plugins/ directory and clone this repository:
 
@@ -41,7 +41,7 @@ git clone https://github.com/ea-foundation/eas-donation-processor
 
 Go to your Plugins screen and click Activate.
 
-**With Github Updater**
+#### With Github Updater
 
 1. Install the Github Updater plugin and activate it.
 2. Go to Settings > Github Updater and open the **Install Plugin** tab.
