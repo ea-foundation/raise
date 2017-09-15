@@ -52,8 +52,10 @@ https://goo.gl/vYKzYG
 
 ## Built With
 
-* [stripe/stripe-php](https://github.com/stripe/stripe-php) - Stripe SDK
-* [paypal/rest-api-sdk-php](https://github.com/paypal/rest-api-sdk-php) - PayPal SDK
+* [Stripe Checkout](https://stripe.com/checkout) - Stripe front-end integration
+* [stripe/stripe-php](https://github.com/stripe/stripe-php) - Stripe back-end SDK
+* [paypal/paypal-checkout](https://github.com/paypal/paypal-checkout) - PayPal front-end integration
+* [paypal/rest-api-sdk-php](https://github.com/paypal/rest-api-sdk-php) - PayPal back-end SDK
 * [gocardless/gocardless-pro-php](https://github.com/gocardless/gocardless-pro-php) - GoCardless SDK
 * [bitpay/php-client](https://github.com/bitpay/php-client) - BitPay SDK
 * [twigphp/Twig](https://github.com/twigphp/twig) - Template Engine (used for formatting confirmation emails)

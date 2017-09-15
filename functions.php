@@ -2,11 +2,32 @@
 
 /**
  * Load plugin settings and save it to GLOBALS
+ *
+ * @throws \Exception
  */
 function eas_load_settings()
 {
     // Load parameters
     $easSettings = json_decode(get_option('settings'), true);
+
+    // Check if config plugin is around
+    $globalSettings = array();
+    if (function_exists('eas_donation_processor_config')) {
+        if ($globalSettings = eas_donation_processor_config()) {
+            // Merge organization node
+            if (empty($easSettings['organization'])) {
+                $easSettings['organization'] = eas_get($globalSettings['organization'], "");
+            }
+
+            // Merge forms node
+            $easSettings['forms'] = array_merge(
+                eas_get($globalSettings['forms'], []),
+                eas_get($easSettings['forms'], [])
+            );
+        } else {
+            throw new \Exception("Syntax error in config plugin JSON");
+        }
+    }
 
     // Load organization in current language
     $easOrganization = !empty($easSettings['organization']) ? (eas_get_localized_value($easSettings['organization']) ?: '') : '';
@@ -63,7 +84,7 @@ function eas_get_donation_from_post()
         'form'        => $post['form'],
         'mode'        => $post['mode'],
         'url'         => $_SERVER['HTTP_REFERER'],
-        'language'    => strtoupper($post['language']),
+        'language'    => $post['language'],
         'time'        => date('c'),
         'currency'    => $post['currency'],
         'amount'      => $post['amount'],
@@ -78,8 +99,9 @@ function eas_get_donation_from_post()
         'country'     => eas_get($post['country'], ''),
         'comment'     => eas_get($post['comment'], ''),
         'account'     => eas_get($post['account'], ''),
-        'anonymous'   => eas_get($post['anonymous'], false),
-        'mailinglist' => eas_get($post['mailinglist'], false),
+        'anonymous'   => (bool) eas_get($post['anonymous'], false),
+        'mailinglist' => (bool) eas_get($post['mailinglist'], false),
+        'tax_receipt' => (bool) eas_get($post['tax_receipt'], false),
     );
 
     /*$donation           = new Donation($post);
@@ -359,11 +381,14 @@ function eas_handle_banktransfer_payment(array $donation)
  */
 function eas_trigger_webhooks(array $donation)
 {
+    // Clean up webhook data
+    eas_clean_up_webhook_data($donation);
+
     // Logging
     eas_trigger_logging_webhooks($donation);
 
     // Mailing list
-    if ($donation['mailinglist']) {
+    if ($donation['mailinglist'] == 'yes') {
         eas_trigger_mailinglist_webhooks($donation);
     }
 }
@@ -375,9 +400,6 @@ function eas_trigger_webhooks(array $donation)
  */
 function eas_trigger_logging_webhooks($donation)
 {
-    // Clean up webhook data
-    eas_clean_up_webhook_data($donation);
-
     // Get form and mode
     $form = eas_get($donation['form'], '');
     $mode = eas_get($donation['mode'], '');
@@ -403,9 +425,15 @@ function eas_clean_up_webhook_data(array &$donation)
     unset($donation['reqId']);
     unset($donation['bank_account_formatted']);
 
+    // Transform boolean values to yes/no string
+    $donation = array_map(function($val) {
+        return is_bool($val) ? ($val ? 'yes' : 'no') : $val;
+    }, $donation);
+
     // Translate country code to English
     if (!empty($donation['country'])) {
-        $donation['country'] = eas_get_english_name_by_country_code($donation['country']);
+        $donation['country_code'] = $donation['country'];
+        $donation['country']      = eas_get_english_name_by_country_code($donation['country']);
     }
 }
 
@@ -654,7 +682,7 @@ function eas_prepare_gocardless_donation(array $post)
         // Save rest to session
         eas_set_donation_data_to_session($post, $reqId);
 
-        // Return pay key
+        // Return redirect URL
         return array(
             'success' => true,
             'url'     => $redirectFlow->redirect_url,
@@ -949,7 +977,8 @@ function eas_get_skrill_url($reqId, $post)
         die('Error: No Skrill settings found for this form!');
     }
 
-    $params  = array(
+    // Prepare parameter array
+    $params = array(
         'pay_to_email'      => $settings['merchant_account'],
         'pay_from_email'    => $post['email'],
         'amount'            => $post['amount'],
@@ -1232,7 +1261,7 @@ function eas_set_donation_data_to_session(array $post, $reqId = null)
     // Required fields
     $_SESSION['eas-form']        = $post['form'];
     $_SESSION['eas-mode']        = $post['mode'];
-    $_SESSION['eas-language']    = strtoupper($post['language']);
+    $_SESSION['eas-language']    = $post['language'];
     $_SESSION['eas-url']         = $_SERVER['HTTP_REFERER'];
     $_SESSION['eas-req-id']      = $reqId;
     $_SESSION['eas-email']       = $post['email'];
@@ -1241,7 +1270,6 @@ function eas_set_donation_data_to_session(array $post, $reqId = null)
     $_SESSION['eas-country']     = $post['country'];
     $_SESSION['eas-amount']      = money_format('%i', $post['amount']);
     $_SESSION['eas-frequency']   = $post['frequency'];
-    $_SESSION['eas-tax-receipt'] = eas_get($post['tax_receipt'], false);
     $_SESSION['eas-type']        = $post['payment'];
 
     // Optional fields
@@ -1249,10 +1277,11 @@ function eas_set_donation_data_to_session(array $post, $reqId = null)
     $_SESSION['eas-address']     = eas_get($post['address'], '');
     $_SESSION['eas-zip']         = eas_get($post['zip'], '');
     $_SESSION['eas-city']        = eas_get($post['city'], '');
-    $_SESSION['eas-mailinglist'] = isset($post['mailinglist']) && $post['mailinglist'] == 1;
     $_SESSION['eas-comment']     = eas_get($post['comment'], '');
     $_SESSION['eas-account']     = eas_get($post['account'], '');
-    $_SESSION['eas-anonymous']   = eas_get($post['anonymous'], false);
+    $_SESSION['eas-tax-receipt'] = (bool) eas_get($post['tax_receipt'], false);
+    $_SESSION['eas-mailinglist'] = (bool) eas_get($post['mailinglist'], false);
+    $_SESSION['eas-anonymous']   = (bool) eas_get($post['anonymous'], false);
 }
 
 /**
@@ -1633,7 +1662,7 @@ function eas_send_confirmation_email(array $donation)
 
     // Only send email if we have settings (might not be the case if we're dealing with script kiddies)
     if (isset($GLOBALS['easForms'][$form]['finish.email'])) {
-        $language      = !empty($donation['language']) ? strtolower($donation['language']) : null;
+        $language      = eas_get($donation['language']);
         $emailSettings = eas_get_localized_value($GLOBALS['easForms'][$form]['finish.email'], $language);
 
         // Add tax dedcution labels to donation
@@ -1646,8 +1675,6 @@ function eas_send_confirmation_email(array $donation)
 
         // Handle legacy name variable in email text
         $text = str_replace('%name%', $donation['name'], $text);
-
-        //throw new \Exception("$email : $form : $language : $subject : $text");
 
         // The filters below need to access the email settings
         $GLOBALS['easEmailSender']      = eas_get($emailSettings['sender']);
@@ -2234,12 +2261,15 @@ function eas_get_twig($form, $language = null)
         return $GLOBALS['eas-twig'];
     }
 
+    // Load macros
+    $macros = file_get_contents(plugins_url('eas-donation-processor/email_macros.html'));
+
     // Get settings
     $confirmationEmail = eas_get_localized_value($GLOBALS['easForms'][$form]['finish.email'], $language);
     $isHtml            = eas_get($confirmationEmail['html'], false);
     $twigSettings      = array(
         'finish.email.subject' => $confirmationEmail['subject'],
-        'finish.email.text'    => $isHtml ? nl2br($confirmationEmail['text']) : $confirmationEmail['text'],
+        'finish.email.text'    => $macros . ($isHtml ? nl2br($confirmationEmail['text']) : $confirmationEmail['text']),
     );
 
     // Instantiate twig

@@ -506,7 +506,7 @@ if (typeof paypal !== 'undefined') {
             // Lock last step
             lockLastStep(true);
 
-            // Execute payment
+            // Prepare parameters
             var params = { action: "paypal_execute" };
             if ('paymentID' in data && 'payerID' in data) {
                 params.paymentID = data.paymentID;
