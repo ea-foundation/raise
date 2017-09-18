@@ -1700,6 +1700,13 @@ function eas_send_confirmation_email(array $donation)
         $subject = $twig->render('finish.email.subject', $donation);
         $text    = $twig->render('finish.email.text', $donation);
 
+        // Repalce %bank_account_formatted% in success_text with macro
+        if (!empty($donation['bank_account'])) {
+            $bankAccount = eas_get($emailSettings['html'], false) ? $twig->render('bank_account_formatted_html', $donation)
+                                                                  : $twig->render('bank_account_formatted_text', $donation);
+            $text = str_replace('%bank_account_formatted%', $bankAccount, $text);
+        }
+
         // Handle legacy name variable in email text
         $text = str_replace('%name%', $donation['name'], $text);
 
@@ -2296,8 +2303,10 @@ function eas_get_twig($form, $language = null)
     $confirmationEmail = eas_get_localized_value($formSettings['finish.email'], $language);
     $isHtml            = eas_get($confirmationEmail['html'], false);
     $twigSettings      = array(
-        'finish.email.subject' => $confirmationEmail['subject'],
-        'finish.email.text'    => $macros . ($isHtml ? nl2br($confirmationEmail['text']) : $confirmationEmail['text']),
+        'finish.email.subject'        => $confirmationEmail['subject'],
+        'finish.email.text'           => $macros . ($isHtml ? nl2br($confirmationEmail['text']) : $confirmationEmail['text']),
+        'bank_account_formatted_html' => $macros . "{{ _self.dump(bank_account, 'html') }}",
+        'bank_account_formatted_text' => $macros . "{{ _self.dump(bank_account, 'text') }}",
     );
 
     // Instantiate twig
