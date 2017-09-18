@@ -1,12 +1,18 @@
 <?php if (!defined('ABSPATH')) exit;
 
 /**
- * Load plugin settings and save it to GLOBALS
+ * Load form settings
  *
+ * @param string $form Form name
+ * @return array
  * @throws \Exception
  */
-function eas_load_settings()
+function eas_load_settings($form)
 {
+    if (isset($GLOBALS['easForms'][$form])) {
+        return $GLOBALS['easForms'][$form];
+    }
+
     // Load parameters
     $easSettings = json_decode(get_option('settings'), true);
 
@@ -33,6 +39,9 @@ function eas_load_settings()
     $easOrganization = !empty($easSettings['organization']) ? (eas_get_localized_value($easSettings['organization']) ?: '') : '';
 
     // Load settings of default form, if any
+    if ($form == 'default' && !isset($easSettings['forms']['default'])) {
+        throw new \Exception("No settings found for form 'default'. See Settings > Donation Plugin");
+    }
     $flattenedDefaultSettings = array();
     if (isset($easSettings['forms']['default'])) {
         eas_flatten_settings($easSettings['forms']['default'], $flattenedDefaultSettings);
@@ -40,19 +49,21 @@ function eas_load_settings()
     $easForms = array('default' => $flattenedDefaultSettings);
 
     // Get custom form settings
-    if (isset($easSettings['forms'])) {
-        foreach ($easSettings['forms'] as $name => $extraSettings) {
-            if ($name != 'default') {
-                $flattenedExtraSettings = array();
-                eas_flatten_settings($extraSettings, $flattenedExtraSettings);
-                $easForms[$name] = array_merge($easForms['default'], $flattenedExtraSettings);
-            }
+    if ($form != 'default') {
+        if (isset($easSettings['forms'][$form])) {
+            $flattenedExtraSettings = array();
+            eas_flatten_settings($easSettings['forms'][$form], $flattenedExtraSettings);
+            $easForms[$form] = array_merge($easForms['default'], $flattenedExtraSettings);
+        } else {
+            throw new \Exception("No settings found for form '$form'. See Settings > Donation Plugin");
         }
     }
 
     // Add easForms to GLOBALS
     $GLOBALS['easOrganization'] = $easOrganization;
     $GLOBALS['easForms']        = $easForms;
+
+    return $easForms[$form];
 }
 
 /**
@@ -120,9 +131,6 @@ function eas_get_donation_from_post()
 function eas_prepare_redirect()
 {
     try {
-        // Load settings
-        eas_load_settings();
-
         // Trim the data
         $post = array_map('trim', $_POST);
 
@@ -168,9 +176,6 @@ function eas_prepare_redirect()
 function eas_process_donation()
 {
     try {
-        // Load settings
-        eas_load_settings();
-
         // Get donation
         $donation = eas_get_donation_from_post();
 
@@ -223,8 +228,8 @@ function eas_handle_stripe_payment($donation, $token, $publicKey)
 {
     // Create the charge on Stripe's servers - this will charge the user's card
     try {
-        // Find the secret key that goes with the public key
-        $formSettings = $GLOBALS['easForms'][$donation['form']];
+        // Find the secret key that goes with the public key (note: settings array is flat)
+        $formSettings = eas_load_settings($donation['form']);
         $secretKey    = '';
         foreach ($formSettings as $key => $value) {
             if ($value === $publicKey) {
@@ -287,14 +292,8 @@ function eas_handle_stripe_payment($donation, $token, $publicKey)
         // Add customer ID
         $donation['vendor_customer_id'] = $customer->id;
 
-        // Trigger web hooks
-        eas_trigger_webhooks($donation);
-
-        // Save matching challenge donation post
-        eas_save_matching_challenge_donation_post($donation);
-
-        // Send emails
-        eas_send_emails($donation);
+        // Do post donation actions
+        eas_do_post_donation_actions($donation);
     } catch (\Stripe\Error\InvalidRequest $e) {
         // The card has been declined
         throw new \Exception($e->getMessage() . " " . $e->getStripeParam()); // . " : $form : $mode : $email : $amount : $currency");
@@ -362,14 +361,8 @@ function eas_handle_banktransfer_payment(array $donation)
     $reference             = eas_get_banktransfer_reference($donation['form'], eas_get($donation['purpose']));
     $donation['reference'] = $reference;
 
-    // Trigger web hooks
-    eas_trigger_webhooks($donation);
-
-    // Save matching challenge donation post
-    eas_save_matching_challenge_donation_post($donation);
-
-    // Send emails
-    eas_send_emails($donation);
+    // Do post donation actions
+    eas_do_post_donation_actions($donation);
 
     return $reference;
 }
@@ -381,9 +374,6 @@ function eas_handle_banktransfer_payment(array $donation)
  */
 function eas_trigger_webhooks(array $donation)
 {
-    // Clean up webhook data
-    eas_clean_up_webhook_data($donation);
-
     // Logging
     eas_trigger_logging_webhooks($donation);
 
@@ -405,11 +395,12 @@ function eas_trigger_logging_webhooks($donation)
     $mode = eas_get($donation['mode'], '');
 
     // Trigger hooks for Zapier
-    if (isset($GLOBALS['easForms'][$form]["webhook.logging.$mode"])) {
-        $hooks = eas_csv_to_array($GLOBALS['easForms'][$form]["webhook.logging.$mode"]);
+    $formSettings = eas_load_settings($form);
+    if (isset($formSettings["webhook.logging.$mode"])) {
+        $hooks = eas_csv_to_array($formSettings["webhook.logging.$mode"]);
         foreach ($hooks as $hook) {
             //TODO The array construct here is HookPress legacy. Remove in next major release.
-            eas_send_webhook($hook, array('donation' => array_filter($donation)));
+            eas_send_webhook($hook, array('donation' => $donation));
         }
     }
 }
@@ -418,8 +409,9 @@ function eas_trigger_logging_webhooks($donation)
  * Remove unncecessary field from webhook data
  *
  * @param array $donation
+ * @return array
  */
-function eas_clean_up_webhook_data(array &$donation)
+function eas_clean_up_donation_data(array $donation)
 {
     // Unset reqId and bank_account_formatted (not needed)
     unset($donation['reqId']);
@@ -435,6 +427,8 @@ function eas_clean_up_webhook_data(array &$donation)
         $donation['country_code'] = $donation['country'];
         $donation['country']      = eas_get_english_name_by_country_code($donation['country']);
     }
+
+    return array_filter($donation);
 }
 
 /**
@@ -449,7 +443,8 @@ function eas_trigger_mailinglist_webhooks($donation)
     $mode = eas_get($donation['mode'], '');
 
     // Trigger hooks for Zapier
-    if (isset($GLOBALS['easForms'][$form]["webhook.mailing_list.$mode"])) {
+    $formSettings = eas_load_settings($form);
+    if (isset($formSettings["webhook.mailing_list.$mode"])) {
         // Get subscription data
         $subscription = array(
             'form'     => $donation['form'],
@@ -460,10 +455,10 @@ function eas_trigger_mailinglist_webhooks($donation)
         );
 
         // Iterate over hooks
-        $hooks = eas_csv_to_array($GLOBALS['easForms'][$form]["webhook.mailing_list.$mode"]);
+        $hooks = eas_csv_to_array($formSettings["webhook.mailing_list.$mode"]);
         foreach ($hooks as $hook) {
             //TODO The array construct here is HookPress legacy. Remove in next major release.
-            eas_send_webhook($hook, array('subscription' => array_filter($subscription)));
+            eas_send_webhook($hook, array('subscription' => $subscription));
         }
     }
 }
@@ -506,7 +501,8 @@ function eas_send_webhook($url, array $params)
 function eas_get_gocardless_client($form, $mode, $taxReceiptNeeded, $currency, $country)
 {
     // Get access token
-    if (empty($GLOBALS['easForms'][$form]["payment.provider.gocardless.$mode.access_token"])) {
+    $formSettings = eas_load_settings($form);
+    if (empty($formSettings["payment.provider.gocardless.$mode.access_token"])) {
         die("Error: No access token defined for $form (payment.provider.gocardless.$mode.access_token)");
     }
     $settings = eas_get_best_payment_provider_settings("gocardless", $form, $mode, $taxReceiptNeeded, $currency, $country);
@@ -548,7 +544,7 @@ function eas_get_best_payment_provider_settings(
     }
 
     // Extract settings of the form we're talking about
-    $formSettings      = $GLOBALS['easForms'][$form];
+    $formSettings      = eas_load_settings($form);
     $countryCompulsory = eas_get($formSettings['payment.extra_fields.country'], false);
 
     // Check all possible settings
@@ -702,9 +698,6 @@ function eas_prepare_gocardless_donation(array $post)
 function eas_process_gocardless_donation()
 {
     try {
-        // Load settings
-        eas_load_settings();
-
         // Get donation from session
         $donation = eas_get_donation_from_session();
 
@@ -776,14 +769,8 @@ function eas_process_gocardless_donation()
         // Add vendor customer ID to donation
         $donation['vendor_customer_id'] = $redirectFlow->links->customer;
 
-        // Trigger web hooks
-        eas_trigger_webhooks($donation);
-
-        // Save matching challenge donation post
-        eas_save_matching_challenge_donation_post($donation);
-
-        // Send emails
-        eas_send_emails($donation);
+        // Do post donation actions
+        eas_do_post_donation_actions($donation);
 
         $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation('gocardless'); mainWindow.hideModal();";
     } catch (\Exception $e) {
@@ -1132,23 +1119,14 @@ function eas_reset_request_id()
 function eas_process_skrill_log()
 {
     try {
-        // Load settings
-        eas_load_settings();
-
         // Make sure it's the same user session
         eas_verify_session();
 
-        // Get variables from session
+        // Get donation from session
         $donation = eas_get_donation_from_session();
 
-        // Trigger web hooks
-        eas_trigger_webhooks($donation);
-
-        // Save matching challenge donation post
-        eas_save_matching_challenge_donation_post($donation);
-
-        // Send emails
-        eas_send_emails($donation);
+        // Do post donation actions
+        eas_do_post_donation_actions($donation);
     } catch (\Exception $e) {
         // No need to say anything. Just show confirmation.
     }
@@ -1168,13 +1146,10 @@ function eas_process_skrill_log()
 function eas_process_bitpay_log()
 {
     try {
-        // Load settings
-        eas_load_settings();
-
         // Make sure it's the same user session
         eas_verify_session();
 
-        // Get variables from session
+        // Get donation from session
         $donation   = eas_get_donation_from_session();
         $form       = $donation['form'];
         $mode       = $donation['mode'];
@@ -1198,14 +1173,8 @@ function eas_process_bitpay_log()
             throw new \Exception('Not paid');
         }
 
-        // Trigger web hooks
-        eas_trigger_webhooks($donation);
-
-        // Save matching challenge donation post
-        eas_save_matching_challenge_donation_post($donation);
-
-        // Send emails
-        eas_send_emails($donation);
+        // Do post donation actions
+        eas_do_post_donation_actions($donation);
     } catch (\Exception $e) {
         // No need to say anything. Just show confirmation.
     }
@@ -1466,10 +1435,7 @@ function eas_prepare_paypal_donation(array $post)
 function eas_execute_paypal_donation()
 {
     try {
-        // Load settings
-        eas_load_settings();
-
-        // Prepare hook
+        // Get donation from session
         $donation = eas_get_donation_from_session();
 
         // Get API context
@@ -1496,14 +1462,8 @@ function eas_execute_paypal_donation()
             throw new \Exception("An error occured. Payment aborted.");
         }
 
-        // Trigger web hooks
-        eas_trigger_webhooks($donation);
-
-        // Save matching challenge donation post
-        eas_save_matching_challenge_donation_post($donation);
-
-        // Send emails
-        eas_send_emails($donation);
+        // Do post donation actions
+        eas_do_post_donation_actions($donation);
 
         // Send response
         die(json_encode(array('success' => true)));
@@ -1516,6 +1476,71 @@ function eas_execute_paypal_donation()
 }
 
 /**
+ * Save donation log (custom post) if enabled
+ *
+ * @param array $donation
+ */
+function eas_save_donation_log_post(array $donation)
+{
+    // Check if max defined
+    $formSettings = eas_load_settings($donation['form']);
+    if (empty($formSettings["log.max"])) {
+        // Logs disabled
+        return;
+    }
+
+    $logMax    = (int) $formSettings["log.max"];
+    $form      = $donation['form'];
+    $name      = $donation['name'];
+    $currency  = $donation['currency'];
+    $amount    = $donation['amount'];
+    $frequency = $donation['frequency'];
+
+    // Save donation as a custom post
+    $newPost = array(
+        "post_title"  => "$name donated $currency $amount ($frequency) on $form",
+        "post_type"   => "eas_donation_log",
+        "post_status" => "private",
+    );
+    $postId = wp_insert_post($newPost);
+
+    // Add custom fields
+    foreach ($donation as $key => $value) {
+        add_post_meta($postId, $key, $value);
+    }
+
+    // Delete old post from queue
+    $args = array(
+        'post_type'  => 'eas_donation_log',
+        'meta_key'   => 'form',
+        'meta_value' => $form,
+        'offset'     => $logMax,
+        'orderby'    => 'ID',
+        'order'      => 'DESC',
+    );
+    $query = new WP_Query($args);
+    while ($query->have_posts()) {
+        $query->the_post();
+        wp_delete_post(get_the_ID());
+    }
+    wp_reset_postdata();
+}
+
+/**
+ * Save custom posts (fundraiser donation post, donation log post)
+ *
+ * @param array $donation
+ */
+function eas_save_custom_posts(array $donation)
+{
+    // Fundraiser donation post (if it's the case)
+    eas_save_matching_challenge_donation_post($donation);
+
+    // Donation log post (if enabled)
+    eas_save_donation_log_post($donation);
+}
+
+/**
  * Save matching challenge donation (custom post) if a matching challenge campaign is linked to the form
  *
  * @param array $donation
@@ -1523,15 +1548,15 @@ function eas_execute_paypal_donation()
 function eas_save_matching_challenge_donation_post(array $donation)
 {
     $form      = $donation['form'];
-    $name      = $donation['anonymous'] ? 'Anonymous' : $donation['name'];
+    $name      = $donation['anonymous'] == 'yes' ? 'Anonymous' : $donation['name'];
     $currency  = $donation['currency'];
     $amount    = $donation['amount'];
     $frequency = $donation['frequency'];
     $comment   = $donation['comment'];
 
-    $formSettings = $GLOBALS['easForms'][$form];
+    $formSettings = eas_load_settings($form);
 
-    if (empty($formSettings["campaign"])) {
+    if (empty($formSettings['campaign'])) {
         // No fundraiser campaign set
         return;
     }
@@ -1598,11 +1623,12 @@ function eas_send_notification_email(array $donation)
     $form = eas_get($donation['form'], '');
 
     // Return if admin email not set
-    if (empty($GLOBALS['easForms'][$form]['finish.notification_email'])) {
+    $formSettings = eas_load_settings($form);
+    if (empty($formSettings['finish.notification_email'])) {
         return;
     }
 
-    $emails = $GLOBALS['easForms'][$form]['finish.notification_email'];
+    $emails = $formSettings['finish.notification_email'];
 
     // Run email filters if array
     if (is_array($emails)) {
@@ -1658,12 +1684,13 @@ function eas_send_notification_email(array $donation)
  */
 function eas_send_confirmation_email(array $donation)
 {
-    $form = eas_get($donation['form'], '');
+    $form         = eas_get($donation['form'], '');
+    $formSettings = eas_load_settings($form);
 
     // Only send email if we have settings (might not be the case if we're dealing with script kiddies)
-    if (isset($GLOBALS['easForms'][$form]['finish.email'])) {
+    if (isset($formSettings['finish.email'])) {
         $language      = eas_get($donation['language']);
-        $emailSettings = eas_get_localized_value($GLOBALS['easForms'][$form]['finish.email'], $language);
+        $emailSettings = eas_get_localized_value($formSettings['finish.email'], $language);
 
         // Add tax dedcution labels to donation
         $donation += eas_get_tax_deduction_settings_by_donation($donation);
@@ -2265,7 +2292,8 @@ function eas_get_twig($form, $language = null)
     $macros = file_get_contents(plugins_url('eas-donation-processor/email_macros.html'));
 
     // Get settings
-    $confirmationEmail = eas_get_localized_value($GLOBALS['easForms'][$form]['finish.email'], $language);
+    $formSettings      = eas_load_settings($form);
+    $confirmationEmail = eas_get_localized_value($formSettings['finish.email'], $language);
     $isHtml            = eas_get($confirmationEmail['html'], false);
     $twigSettings      = array(
         'finish.email.subject' => $confirmationEmail['subject'],
@@ -2334,10 +2362,11 @@ function eas_monolinguify(array $labels, $depth = 0)
 function eas_serve_tax_deduction_settings()
 {
     try {
-        $form     = eas_get($_GET['form'], 'default');
-        $response = new WP_REST_Response(array(
+        $form         = eas_get($_GET['form'], '');
+        $formSettings = eas_load_settings($form);
+        $response     = new WP_REST_Response(array(
             'success'       => true,
-            'tax_deduction' => $GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'],
+            'tax_deduction' => $formSettings['payment.labels']['tax_deduction'],
         ));
         $response->header('Access-Control-Allow-Origin', '*');
 
@@ -2379,8 +2408,10 @@ function eas_get_tax_deduction_settings_by_donation(array $donation)
         }
 
         // Get %bank_account_formatted% and insert reference number (if present)
+        $form         = eas_get($donation['form'], '');
+        $formSettings = eas_load_settings($form);
         if ($donation['type'] == 'Bank Transfer' &&
-            $account = eas_localize_array_keys(eas_get($GLOBALS['easForms'][$donation['form']]['payment.provider.banktransfer.accounts'][$donation['account']], array()))
+            $account = eas_localize_array_keys(eas_get($formSettings['payment.provider.banktransfer.accounts'][$donation['account']], array()))
         ) {
             // Insert %reference_number%
             if ($reference = eas_get($donation['reference'])) {
@@ -2407,7 +2438,8 @@ function eas_get_tax_deduction_settings_by_donation(array $donation)
 function eas_load_tax_deduction_settings($form)
 {
     // Get local settings
-    $taxDeductionSettings = eas_get($GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'], array());
+    $formSettings         = eas_load_settings($form);
+    $taxDeductionSettings = eas_get($formSettings['payment.labels']['tax_deduction'], array());
 
     // Load remote settings if necessary
     if ('consume' == get_option('tax-deduction-expose') && $remoteUrl = get_option('tax-deduction-remote-url')) {
@@ -2471,10 +2503,13 @@ function eas_get_banktransfer_reference($form, $prefix = '', $length = 8, $block
 
     // Add prefix to token array
     if (!empty($prefix)) {
+        // Load settings
+        $formSettings = eas_load_settings($form);
+
         // Check if reference number prefix is defined
         if (
-            ($predefinedPrefix = eas_get($GLOBALS['easForms'][$form]['payment.reference_number_prefix.' . $prefix])) ||
-            ($predefinedPrefix = eas_get($GLOBALS['easForms'][$form]['payment.reference_number_prefix.default']))
+            ($predefinedPrefix = eas_get($formSettings['payment.reference_number_prefix.' . $prefix])) ||
+            ($predefinedPrefix = eas_get($formSettings['payment.reference_number_prefix.default']))
         ) {
             $prefix = $predefinedPrefix;
         }
@@ -2533,6 +2568,25 @@ function eas_localize_array_keys(array $array)
     return array_combine($localizedKeys, array_values($array));
 }
 
+/**
+ * Clean up donation data, save local posts, send webhooks, send emails
+ *
+ * @param array $donation
+ */
+function eas_do_post_donation_actions($donation)
+{
+    // Clean up donation data
+    $cleanDonation = eas_clean_up_donation_data($donation);
+
+    // Save custom posts (if enabled)
+    eas_save_custom_posts($cleanDonation);
+
+    // Trigger web hooks
+    eas_trigger_webhooks($cleanDonation);
+
+    // Send emails
+    eas_send_emails($cleanDonation);
+}
 
 
 

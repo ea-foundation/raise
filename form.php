@@ -22,36 +22,26 @@ function eas_get_donation_form($atts, $content = null)
     eas_update_settings();
 
     // Load settings
-    eas_load_settings();
-
-    // Load settings
-    $easForms = $GLOBALS['easForms'];
-    if (empty($easForms[$name])) {
-        echo 'No settings found for form ' . $name . '. See Settings > Donation Plugin';
+    try {
+        $easSettings = eas_load_settings($name);    
+    } catch (\Exception $ex) {
+        echo $ex->getMessage();
         return;
     }
-    $easSettings = $easForms[$name];
 
     // Load logo
     $logo = get_option('logo', plugin_dir_url(__FILE__) . 'images/logo.png');
     
     // Make amount patterns
     $amountPatterns = array();
-    foreach ($easForms as $formName => $form) {
-        if (isset($form['amount.currency']) && is_array($form['amount.currency'])) {
-            $patterns = array();
-            foreach ($form['amount.currency'] as $currency => $currencySettings) {
-                $patterns[strtoupper($currency)] = $currencySettings['pattern'];
-            }
-            $amountPatterns[$formName] = $patterns;
+    if (isset($easSettings['amount.currency']) && is_array($easSettings['amount.currency'])) {
+        foreach ($easSettings['amount.currency'] as $currency => $currencySettings) {
+            $amountPatterns[strtoupper($currency)] = $currencySettings['pattern'];
         }
     }
 
     // Get Stripe public keys
-    $stripeKeys = array();
-    foreach ($easForms as $formName => $form) {
-        $stripeKeys[$formName] = eas_get_stripe_public_keys($form);
-    }
+    $stripeKeys = eas_get_stripe_public_keys($easSettings);
 
     // Get tax deduction labels
     $taxDeductionLabels = eas_load_tax_deduction_settings($name);
@@ -125,7 +115,6 @@ function eas_get_donation_form($atts, $content = null)
 
 <script>
     var easDonationConfig = {
-        formName:          "<?= $name ?>",
         mode:              "<?= $mode ?>",
         userCountry:       "<?= $userCountryCode ?>",
         selectedCurrency:  "<?= $preselectedCurrency ?>",
@@ -256,7 +245,7 @@ function eas_get_donation_form($atts, $content = null)
                     <h3><?php _e('Choose a payment method', 'eas-donation-processor') ?></h3>
                 </div>
                 <div class="form-group payment-info" id="payment-method-providers">
-                    <?php if (!empty($easSettings["payment.provider.stripe.$mode.public_key"])): ?>
+                    <?php if (empty($easSettings["payment.provider.stripe.$mode.disabled"]) && !empty($easSettings["payment.provider.stripe.$mode.public_key"])): ?>
                         <!-- Stripe -->
                         <label for="payment-stripe" class="radio-inline">
                             <input type="radio" name="payment" value="Stripe" id="payment-stripe" <?php echo $checked ?: ''; $checked = false; ?>>
@@ -267,7 +256,7 @@ function eas_get_donation_form($atts, $content = null)
                         </label>
                     <?php endif; ?>
 
-                    <?php if (!empty($easSettings["payment.provider.paypal.$mode.client_id"])): ?>
+                    <?php if (empty($easSettings["payment.provider.paypal.$mode.disabled"]) && !empty($easSettings["payment.provider.paypal.$mode.client_id"])): ?>
                         <!-- PayPal -->
                         <label for="payment-paypal" class="radio-inline">
                             <input type="radio" name="payment" value="PayPal" id="payment-paypal" <?php echo $checked ?: ''; $checked = false; ?>>
@@ -276,7 +265,7 @@ function eas_get_donation_form($atts, $content = null)
                         </label>
                     <?php endif; ?>
 
-                    <?php if (!empty($easSettings["payment.provider.skrill.$mode.merchant_account"])): ?>
+                    <?php if (empty($easSettings["payment.provider.skrill.$mode.disabled"]) && !empty($easSettings["payment.provider.skrill.$mode.merchant_account"])): ?>
                         <!-- Skrill -->
                         <label for="payment-skrill" class="radio-inline">
                             <input type="radio" name="payment" value="Skrill" id="payment-skrill" <?php echo $checked ?: ''; $checked = false; ?>>
@@ -285,7 +274,7 @@ function eas_get_donation_form($atts, $content = null)
                         </label>
                     <?php endif; ?>
 
-                    <?php if (!empty($easSettings["payment.provider.bitpay.$mode.pairing_code"])): ?>
+                    <?php if (empty($easSettings["payment.provider.bitpay.$mode.disabled"]) && !empty($easSettings["payment.provider.bitpay.$mode.pairing_code"])): ?>
                         <!-- BitPay -->
                         <label for="payment-bitpay" class="radio-inline">
                             <input type="radio" name="payment" value="BitPay" id="payment-bitpay" <?php echo $checked ?: ''; $checked = false; ?>>
@@ -294,7 +283,7 @@ function eas_get_donation_form($atts, $content = null)
                         </label>
                     <?php endif; ?>
 
-                    <?php if (!empty($easSettings["payment.provider.gocardless.$mode.access_token"])): ?>
+                    <?php if (empty($easSettings["payment.provider.gocardless.$mode.disabled"]) && !empty($easSettings["payment.provider.gocardless.$mode.access_token"])): ?>
                         <!-- GoCardless -->
                         <label for="payment-gocardless" class="radio-inline">
                             <input type="radio" name="payment" value="GoCardless" id="payment-gocardless" <?php echo $checked ?: ''; $checked = false; ?>>

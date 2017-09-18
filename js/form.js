@@ -1,7 +1,6 @@
 /**
  * Settings
  */
-var easFormName             = easDonationConfig.formName;
 var easMode                 = easDonationConfig.mode;
 var userCountry             = easDonationConfig.userCountry;
 var selectedCurrency        = easDonationConfig.selectedCurrency;
@@ -386,7 +385,7 @@ jQuery(document).ready(function($) {
         $(this).parent().parent().parent().parent().removeClass('open');
 
         // Set new currency on buttons and on custom input field
-        var currencyString = currencies[easFormName][selectedCurrency];
+        var currencyString = currencies[selectedCurrency];
         $('ul#amounts>li>label').text(
             function(i, val) {
                 return currencyString.replace('%amount%', $(this).prev('input').attr('value')); 
@@ -564,11 +563,11 @@ function disableConfirmButton(n)
     jQuery('button.confirm:eq(' + n + ')').prop('disabled', true);
 }
 
-function getLastButtonText(formName)
+function getLastButtonText()
 {
     var amount           = getDonationAmount();
     var currencyCode     = getDonationCurrencyIsoCode();
-    var currencyAmount   = currencies[formName][currencyCode].replace('%amount%', amount);
+    var currencyAmount   = currencies[currencyCode].replace('%amount%', amount);
     var buttonFinalText  = frequency == 'monthly' ? wordpress_vars.donate_button_monthly : wordpress_vars.donate_button_once;
     return buttonFinalText.replace('%currency-amount%', currencyAmount);
 }
@@ -576,7 +575,7 @@ function getLastButtonText(formName)
 function showLastItem(currentItem)
 {
     // Change text of last confirm button
-    jQuery('button.confirm:last', '#wizard').text(getLastButtonText(easFormName));
+    jQuery('button.confirm:last', '#wizard').text(getLastButtonText());
 
     // Go to next slide
     carouselNext();
@@ -827,7 +826,7 @@ function lockLastStep(locked)
 
         // Restore submit button
         jQuery('button.confirm:last', '#wizard')
-            .html(getLastButtonText(easFormName))
+            .html(getLastButtonText())
             .addClass('donation-continue');
     }
 }
@@ -873,7 +872,7 @@ function showConfirmation(paymentProvider)
 function loadStripeHandler()
 {
     // Get best matching key
-    var stripeSettings = wordpress_vars.stripe_public_keys[easFormName];
+    var stripeSettings = wordpress_vars.stripe_public_keys;
     if (Object.keys(stripeSettings).length == 0) {
         // No Stripe settings for this form
         return;

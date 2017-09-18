@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * GitHub Plugin URI: ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.10.0
+ * Version: 0.10.1
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -16,7 +16,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.28');
+define('EAS_ASSET_VERSION', '0.29');
 
 // Load other files
 require_once "vendor/autoload.php";
@@ -146,7 +146,7 @@ function eas_create_campaign_post_type()
 add_action('init', 'eas_create_doantion_post_type');
 function eas_create_doantion_post_type()
 {
-    register_post_type( 'eas_donation',
+    register_post_type('eas_donation',
         array(
             'labels' => array(
                 'name'          => __("Fundraiser Donations", "eas-donation-processor"),
@@ -159,6 +159,28 @@ function eas_create_doantion_post_type()
             'public'              => true,
             'has_archive'         => true,
             'menu_icon'           => 'dashicons-heart',
+            'exclude_from_search' => 'true',
+        )
+    );
+}
+
+// Register matching campaign donation post type
+add_action('init', 'eas_create_doantion_log_post_type');
+function eas_create_doantion_log_post_type()
+{
+    register_post_type('eas_donation_log',
+        array(
+            'labels' => array(
+                'name'          => __("Donation Logs", "eas-donation-processor"),
+                'singular_name' => __("Donation Log", "eas-donation-processor"),
+                'add_new_item'  => __("Add New Donation Log", "eas-donation-processor"),
+                'edit_item'     => __("Edit Donation Log", "eas-donation-processor"),
+                'new_item'      => __("New Donation Log", "eas-donation-processor"),
+            ),
+            'supports'            => array('title', 'custom-fields'),
+            'public'              => true,
+            'has_archive'         => true,
+            'menu_icon'           => 'dashicons-list-view',
             'exclude_from_search' => 'true',
         )
     );
@@ -270,10 +292,11 @@ add_action('rest_api_init', function() {
             }
 
             // Check form exists
-            eas_load_settings();
-            $form = eas_get($_GET['form'], 'default');
-            if (!isset($GLOBALS['easForms'][$form]['payment.labels']['tax_deduction'])) {
-                return new WP_Error('rest_not_found', 'Form not found', array('status' => 404));
+            try {
+                $form = eas_get($_GET['form'], '');
+                eas_load_settings($form);
+            } catch (\Exception $ex) {
+                return new WP_Error('rest_not_found', $ex->getMessage(), array('status' => 404));
             }
 
             return true;
