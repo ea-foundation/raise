@@ -164,6 +164,27 @@ function eas_update_settings()
         update_option('version', '0.5.1');
     }
 
+    /**
+     * Date:   2017-09-19
+     * Author: Naoki Peter
+     */
+    if (version_compare($settingsVersion, '0.11.3', '<')) {
+        foreach ($settings['forms'] as $form => $formSettings) {
+            if ($form == 'default') {
+                continue;
+            }
+
+            // Explicit inheritance from default form
+            if (empty($formSettings['inherits'])) {
+                $settings['forms'][$form]['inherits'] = 'default';
+            }
+        }
+
+        // Save changes
+        update_option('settings', json_encode($settings));
+        update_option('version', '0.11.3');
+    }
+
     // Add new updates above this line
 
     update_option('version', $pluginVersion);

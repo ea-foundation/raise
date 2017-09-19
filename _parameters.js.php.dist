@@ -129,7 +129,8 @@
                     "en": "It worked!"
                 }
             },
-            "campaign": 1
+            "campaign": 1,
+            "inherits": "default"
         }
     }
 }

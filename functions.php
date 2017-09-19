@@ -9,6 +9,7 @@
  */
 function eas_load_settings($form)
 {
+    // Checked if loaded already
     if (isset($GLOBALS['easForms'][$form])) {
         return $GLOBALS['easForms'][$form];
     }
@@ -36,34 +37,52 @@ function eas_load_settings($form)
     }
 
     // Load organization in current language
-    $easOrganization = !empty($easSettings['organization']) ? (eas_get_localized_value($easSettings['organization']) ?: '') : '';
+    $organization = !empty($easSettings['organization']) ? (eas_get_localized_value($easSettings['organization']) ?: '') : '';
 
-    // Load settings of default form, if any
-    if ($form == 'default' && !isset($easSettings['forms']['default'])) {
-        throw new \Exception("No settings found for form 'default'. See Settings > Donation Plugin");
+    // Load form recursively
+    $flattenedFormSettings = eas_rec_load_settings($form, $easSettings['forms']);
+
+    // Remove inherits property
+    unset($flattenedFormSettings['inherits']);
+
+    // Add flattend form settings to GLOBALS
+    $GLOBALS['easOrganization'] = $organization;
+    $GLOBALS['easForms']        = array($form => $flattenedFormSettings);
+
+    return $flattenedFormSettings;
+}
+
+/**
+ * Internal: Resolve form inheritance
+ *
+ * @param string $form
+ * @param array $formSettings
+ * @param array $childForms To avoid circular inheritance
+ * @return array
+ * @throws \Exception
+ */
+function eas_rec_load_settings($form, $formSettings, $childForms = array())
+{
+    if (in_array($form, $childForms)) {
+        throw new \Exception("Circular form definition. See Settings > Donation Plugin");
     }
-    $flattenedDefaultSettings = array();
-    if (isset($easSettings['forms']['default'])) {
-        eas_flatten_settings($easSettings['forms']['default'], $flattenedDefaultSettings);
-    }
-    $easForms = array('default' => $flattenedDefaultSettings);
 
-    // Get custom form settings
-    if ($form != 'default') {
-        if (isset($easSettings['forms'][$form])) {
-            $flattenedExtraSettings = array();
-            eas_flatten_settings($easSettings['forms'][$form], $flattenedExtraSettings);
-            $easForms[$form] = array_merge($easForms['default'], $flattenedExtraSettings);
-        } else {
-            throw new \Exception("No settings found for form '$form'. See Settings > Donation Plugin");
-        }
+    if (!isset($formSettings[$form])) {
+        throw new \Exception("No settings found for form '$form'. See Settings > Donation Plugin");
     }
 
-    // Add easForms to GLOBALS
-    $GLOBALS['easOrganization'] = $easOrganization;
-    $GLOBALS['easForms']        = $easForms;
+    // Flatten current form
+    $flattenedSettings = array();
+    eas_flatten_settings($formSettings[$form], $flattenedSettings);
 
-    return $easForms[$form];
+    if (!($parentForm = eas_get($formSettings[$form]['inherits']))) {
+        return $flattenedSettings;
+    }
+
+    // Recurse and merge
+    $childForms[]            = $form;
+    $flattenedParentSettings = eas_rec_load_settings($parentForm, $formSettings, $childForms);
+    return array_merge($flattenedParentSettings, $flattenedSettings);
 }
 
 /**
@@ -2415,6 +2434,9 @@ function eas_get_tax_deduction_settings_by_donation(array $donation)
                 }
             }
         }
+
+        // Monlinguify settings
+        $settings = eas_monolinguify($settings);
 
         // Get %bank_account_formatted% and insert reference number (if present)
         $form         = eas_get($donation['form'], '');
