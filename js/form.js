@@ -882,9 +882,9 @@ function loadStripeHandler()
     lockLastStep(true);
 
     // Check all possible settings
-    var hasCountrySetting  = checkNestedArray(stripeSettings, userCountry.toLowerCase(), easMode);
-    var hasCurrencySetting = checkNestedArray(stripeSettings, selectedCurrency.toLowerCase(), easMode);
-    var hasDefaultSetting  = checkNestedArray(stripeSettings, 'default', easMode);
+    var hasCountrySetting  = userCountry.toLowerCase() in stripeSettings;
+    var hasCurrencySetting = selectedCurrency.toLowerCase() in stripeSettings;
+    var hasDefaultSetting  = 'default' in stripeSettings;
     
     // Check if there are settings for a country where the chosen currency is used.
     // This is only relevant if the donor does not need a donation receipt (always related 
@@ -894,7 +894,7 @@ function loadStripeHandler()
     if (!countryCompulsory && !taxReceiptNeeded && !hasCurrencySetting) {
         var countries = getCountriesByCurrency(selectedCurrency);
         for (var i = 0; i < countries.length; i++) {
-            if (checkNestedArray(stripeSettings, countries[i].toLowerCase(), easMode)) {
+            if (countries[i].toLowerCase() in stripeSettings) {
                 hasCountryOfCurrencySetting = true;
                 countryOfCurrency = countries[i];
                 break;
@@ -904,16 +904,16 @@ function loadStripeHandler()
 
     if (hasCountrySetting && (taxReceiptNeeded || countryCompulsory)) {
         // Use country specific key
-        var newStripeKey = stripeSettings[userCountry.toLowerCase()][easMode];
+        var newStripeKey = stripeSettings[userCountry.toLowerCase()];
     } else if (hasCurrencySetting) {
         // Use currency specific key
-        var newStripeKey = stripeSettings[selectedCurrency.toLowerCase()][easMode];
+        var newStripeKey = stripeSettings[selectedCurrency.toLowerCase()];
     } else if (hasCountryOfCurrencySetting) {
         // Use key of a country where the chosen currency is used
-        var newStripeKey = stripeSettings[countryOfCurrency.toLowerCase()][easMode];
+        var newStripeKey = stripeSettings[countryOfCurrency.toLowerCase()];
     } else if (hasDefaultSetting) {
         // Use default key
-        var newStripeKey = stripeSettings['default'][easMode];
+        var newStripeKey = stripeSettings['default'];
     } else {
         throw new Error('No Stripe settings found');
     }

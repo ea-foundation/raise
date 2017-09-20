@@ -185,6 +185,22 @@ function eas_update_settings()
         update_option('version', '0.11.3');
     }
 
+    /**
+     * Date:   2017-09-21
+     * Author: Naoki Peter
+     */
+    if (version_compare($settingsVersion, '0.12.0', '<')) {
+        if (isset($settings['forms']['default']['payment']['provider']) &&
+            !isset($settings['forms']['default']['payment']['provider']['banktransfer'])) {
+            // Bank transfer option has to be explicit now
+            $settings['forms']['default']['payment']['provider']['banktransfer'] = [];
+        }
+
+        // Save changes
+        update_option('settings', json_encode($settings));
+        update_option('version', '0.12.0');
+    }
+
     // Add new updates above this line
 
     update_option('version', $pluginVersion);

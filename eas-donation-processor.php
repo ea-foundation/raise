@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * GitHub Plugin URI: ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.11.3
+ * Version: 0.12.0
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
@@ -30,13 +30,25 @@ require_once "form.php";
 // Add short code for donation form
 add_shortcode('donationForm','eas_get_donation_form');
 
-// Start session (needed for PayPal)
-add_action('init', 'eas_start_session', 1);
+// Start session (needed for most payment providers)
+add_action('wp_loaded', 'eas_start_session');
 function eas_start_session()
 {
-    if (!session_id()) {
+    if (defined('EAS_PHPUNIT_RUN')) {
+        // Disable session for tests
+        return;
+    }
+
+    $status = session_status();
+
+    if (PHP_SESSION_DISABLED === $status) {
+        return;
+    }
+
+    if (PHP_SESSION_NONE === $status) {
         session_start();
     }
+
     if (!preg_match('/admin-ajax\.php/', $_SERVER['REQUEST_URI'])) {
         $_SESSION['eas-plugin-url'] = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
     }

@@ -47,6 +47,15 @@ Go to your Plugins screen and click Activate.
 2. Go to Settings > Github Updater and open the **Install Plugin** tab.
 3. Enter https://github.com/ea-foundation/eas-donation-processor and the Github access token and click **Install Plugin**.
 
+## Tests
+
+Requires `phpunit`
+
+```
+bash bin/install-wp-tests.sh wordpress_test <mysql_user> <mysql_pass> <mysql_host> latest
+phpunit
+```
+
 ## Documentation
 https://goo.gl/vYKzYG
 
@@ -59,6 +68,7 @@ https://goo.gl/vYKzYG
 * [gocardless/gocardless-pro-php](https://github.com/gocardless/gocardless-pro-php) - GoCardless SDK
 * [bitpay/php-client](https://github.com/bitpay/php-client) - BitPay SDK
 * [twigphp/Twig](https://github.com/twigphp/twig) - Template Engine (used for formatting confirmation emails)
+* [josdejong/jsoneditor](https://github.com/josdejong/jsoneditor) - Editor for options page
 
 ## License
 

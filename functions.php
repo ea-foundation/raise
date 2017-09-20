@@ -1,6 +1,73 @@
 <?php if (!defined('ABSPATH')) exit;
 
 /**
+ * Initialize form and return form settings
+ *
+ * @param string $form Form name
+ * @param string $mode sandbox/live
+ * @return array
+ */
+function eas_init_donation_form($form, $mode)
+{
+    // Update settings
+    eas_update_settings();
+
+    // Load settings
+    $formSettings = eas_load_settings($form);
+
+    // Load logo
+    $logo = get_option('logo', plugin_dir_url(__FILE__) . 'images/logo.png');
+    
+    // Make amount patterns
+    $amountPatterns      = array();
+    $currencies          = eas_get($formSettings['amount']['currency'], array());
+    foreach ($currencies as $currency => $currencySettings) {
+        $amountPatterns[strtoupper($currency)] = eas_get($currencySettings['pattern'], '%amount%');
+    }
+
+    // Get enabled payment providers
+    $enabledProviders = eas_enabled_payment_providers($formSettings, $mode);
+
+    // Get Stripe public keys
+    $stripeKeys = in_array('stripe', $enabledProviders) ? eas_get_stripe_public_keys($formSettings, $mode) : array();
+
+    // Get tax deduction labels
+    $taxDeductionLabels = eas_load_tax_deduction_settings($form);
+
+    // Get bank accounts and localize their labels
+    $bankAccounts = array_map('eas_localize_array_keys', eas_get($formSettings['payment']['provider']['banktransfer']['accounts'], array()));
+
+    // Localize script
+    wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
+        'logo'                  => $logo,
+        'ajax_endpoint'         => admin_url('admin-ajax.php'),
+        'amount_patterns'       => $amountPatterns,
+        'stripe_public_keys'    => $stripeKeys,
+        'tax_deduction_labels'  => $taxDeductionLabels,
+        'bank_accounts'         => $bankAccounts,
+        'organization'          => $GLOBALS['easOrganization'],
+        'currency2country'      => $GLOBALS['currency2country'],
+        'donate_button_once'    => __("Donate %currency-amount%", "eas-donation-processor"),
+        'donate_button_monthly' => __("Donate %currency-amount% per month", "eas-donation-processor"),
+        'donation'              => __("Donation", "eas-donation-processor"),
+    ));
+
+    // Enqueue previously registered scripts and styles (to prevent them loading on every page load)
+    wp_enqueue_script('donation-plugin-bootstrapjs');
+    wp_enqueue_script('donation-plugin-jqueryformjs');
+    if (in_array('stripe', $enabledProviders)) {
+        wp_enqueue_script('donation-plugin-stripe');
+    }
+    if (in_array('paypal', $enabledProviders)) {
+        wp_enqueue_script('donation-plugin-paypal');
+    }
+    wp_enqueue_script('donation-plugin-form');
+    wp_enqueue_script('donation-combobox');
+
+    return $formSettings;
+}
+
+/**
  * Load form settings
  *
  * @param string $form Form name
@@ -18,19 +85,11 @@ function eas_load_settings($form)
     $easSettings = json_decode(get_option('settings'), true);
 
     // Check if config plugin is around
-    $globalSettings = array();
+    $externalSettings = array();
     if (function_exists('eas_donation_processor_config')) {
-        if ($globalSettings = eas_donation_processor_config()) {
-            // Merge organization node
-            if (empty($easSettings['organization'])) {
-                $easSettings['organization'] = eas_get($globalSettings['organization'], "");
-            }
-
-            // Merge forms node
-            $easSettings['forms'] = array_merge(
-                eas_get($globalSettings['forms'], []),
-                eas_get($easSettings['forms'], [])
-            );
+        if ($externalSettings = eas_donation_processor_config()) {
+            // Merge
+            $easSettings = eas_array_replace_recursive($externalSettings, $easSettings);
         } else {
             throw new \Exception("Syntax error in config plugin JSON");
         }
@@ -39,50 +98,179 @@ function eas_load_settings($form)
     // Load organization in current language
     $organization = !empty($easSettings['organization']) ? (eas_get_localized_value($easSettings['organization']) ?: '') : '';
 
-    // Load form recursively
-    $flattenedFormSettings = eas_rec_load_settings($form, $easSettings['forms']);
+    // Resolve form inheritance
+    $formSettings = eas_rec_load_settings($form, $easSettings['forms']);
 
     // Remove inherits property
-    unset($flattenedFormSettings['inherits']);
+    unset($formSettings['inherits']);
 
-    // Add flattend form settings to GLOBALS
+    // Add organization and form settings to GLOBALS
     $GLOBALS['easOrganization'] = $organization;
-    $GLOBALS['easForms']        = array($form => $flattenedFormSettings);
+    $GLOBALS['easForms']        = array($form => $formSettings);
 
-    return $flattenedFormSettings;
+    return $formSettings;
 }
 
 /**
  * Internal: Resolve form inheritance
  *
  * @param string $form
- * @param array $formSettings
+ * @param array $formsSettings
  * @param array $childForms To avoid circular inheritance
  * @return array
  * @throws \Exception
  */
-function eas_rec_load_settings($form, $formSettings, $childForms = array())
+function eas_rec_load_settings($form, $formsSettings, $childForms = array())
 {
     if (in_array($form, $childForms)) {
         throw new \Exception("Circular form definition. See Settings > Donation Plugin");
     }
 
-    if (!isset($formSettings[$form])) {
+    if (!isset($formsSettings[$form])) {
         throw new \Exception("No settings found for form '$form'. See Settings > Donation Plugin");
     }
 
-    // Flatten current form
-    $flattenedSettings = array();
-    eas_flatten_settings($formSettings[$form], $flattenedSettings);
-
-    if (!($parentForm = eas_get($formSettings[$form]['inherits']))) {
-        return $flattenedSettings;
+    if (!($parentForm = eas_get($formsSettings[$form]['inherits']))) {
+        return $formsSettings[$form];
     }
 
     // Recurse and merge
-    $childForms[]            = $form;
-    $flattenedParentSettings = eas_rec_load_settings($parentForm, $formSettings, $childForms);
-    return array_merge($flattenedParentSettings, $flattenedSettings);
+    $childForms[]       = $form;
+    $parentFormSettings = eas_rec_load_settings($parentForm, $formsSettings, $childForms);
+    return eas_array_replace_recursive($parentFormSettings, $formsSettings[$form]);
+}
+
+/**
+ * Return list of enabled providers
+ *
+ * @param array  $formSettings
+ * @param string $mode
+ * @return array
+ */
+function eas_enabled_payment_providers($formSettings, $mode)
+{
+    // Get provider settings
+    $providerSettings = eas_get($formSettings['payment']['provider'], array());
+
+    // Extract default settings (always needed)
+    $providers = array_keys(array_filter($providerSettings, function ($settings, $provider) use ($mode) {
+        return strpos($provider, '_') === false &&
+               is_array($settings) &&
+               eas_payment_provider_settings_complete($provider, eas_get($settings[$mode], array()));
+    }, ARRAY_FILTER_USE_BOTH));
+
+    return $providers;
+}
+
+/**
+ * Are properties complete?
+ *
+ * @param string $provider
+ * @param array $properties
+ * @param bool
+ */
+function eas_payment_provider_settings_complete($provider, array $properties)
+{
+    $requiredProperties = eas_get_payment_provider_properties($provider);
+    return array_reduce($requiredProperties, function ($carry, $item) use ($properties) {
+        return $carry && !empty($properties[$item]);
+    }, true);
+}
+
+/**
+ * Print paymnet provider HTML
+ *
+ * @param array  $formSettings
+ * @param string $mode
+ * @return string
+ */
+function eas_print_payment_providers($formSettings, $mode)
+{
+    // Get enabled providers
+    $providers = eas_enabled_payment_providers($formSettings, $mode);
+    $checked   = true;
+    $result    = '';
+    foreach ($providers as $provider) {
+        switch ($provider) {
+            case 'stripe':
+                $value  = 'Stripe';
+                $text   = '<span class="payment-method-name sr-only">' . __('credit card', 'eas-donation-processor') . '</span>';
+                $images = array(
+                    array(
+                        'path' => plugins_url('images/visa.png', __FILE__),
+                        'alt'  => 'Visa',
+                    ),
+                    array(
+                        'path' => plugins_url('images/mastercard.png', __FILE__),
+                        'alt'  => 'Mastercard',
+                    ),
+                    array(
+                        'path' => plugins_url('images/americanexpress.png', __FILE__),
+                        'alt'  => 'American Express',
+                    ),
+                );
+                break;
+            case 'paypal':
+                $value  = 'PayPal';
+                $text   = '<span class="payment-method-name sr-only">PayPal</span>';
+                $images = array(
+                    array(
+                        'path' => plugins_url('images/paypal.png', __FILE__),
+                        'alt'  => 'PayPal',
+                    ),
+                );
+                break;
+            case 'bitpay':
+                $value  = 'BitPay';
+                $text   = '<span class="payment-method-name sr-only">Bitcoin</span>';
+                $images = array(
+                    array(
+                        'path'  => plugins_url('images/bitcoin.png', __FILE__),
+                        'alt'   => 'Bitcoin',
+                        'width' => 23,
+                    ),
+                );
+                break;
+            case 'skrill':
+                $value  = 'Skrill';
+                $text   = '<span class="payment-method-name sr-only">Skrill</span>';
+                $images = array(
+                    array(
+                        'path'  => plugins_url('images/skrill.png', __FILE__),
+                        'alt'   => 'Skrill',
+                    ),
+                );
+                break;
+            case 'gocardless':
+                $value  = 'GoCardless';
+                $text   = '<a href="#" onClick="jQuery(\'#payment-gocardless\').click(); return false" data-toggle="tooltip" data-container="body" data-placement="top" title="' . __('Available for Eurozone, UK, and Sweden', 'eas-donation-processor') . '" style="text-decoration: none; color: inherit;"><span class="payment-method-name">' . __('direct debit', 'eas-donation-processor') . '</span></a>';
+                $images = array();
+                break;
+            case 'banktransfer':
+                $value  = 'Bank Transfer';
+                $text   = '<span class="payment-method-name">' . __('bank transfer', 'eas-donation-processor') . '</span>';
+                $images = array();
+                break;
+            default:
+                // Do nothing
+        }
+
+        // Print radio box
+        $id          = str_replace(' ', '', strtolower($value));
+        $checkedAttr = $checked ? 'checked' : '';
+        $checked     = false;
+        $result .= '<label for="payment-' . $id . '" class="radio-inline">';
+        $result .= '<input type="radio" name="payment" value="' . $value . '" id="payment-' . $id . '" ' . $checkedAttr . '> ';
+        foreach ($images as $image) {
+            $width  = eas_get($image['width'], 38);
+            $height = eas_get($image['height'], 23);
+            $result .= '<img src="' . $image['path'] . '" alt="' . $image['alt'] . '" width="' . $width . '" height="' . $height . '"> ';
+        }
+        $result .= $text;
+        $result .= '</label>' . "\n";
+    }
+
+    return $result;
 }
 
 /**
@@ -247,24 +435,23 @@ function eas_handle_stripe_payment($donation, $token, $publicKey)
 {
     // Create the charge on Stripe's servers - this will charge the user's card
     try {
-        // Find the secret key that goes with the public key (note: settings array is flat)
+        // Get Stripe settings
         $formSettings = eas_load_settings($donation['form']);
-        $secretKey    = '';
-        foreach ($formSettings as $key => $value) {
-            if ($value === $publicKey) {
-                $secretKeyKey = preg_replace('#public_key$#', 'secret_key', $key);
-                $secretKey    = $formSettings[$secretKeyKey];
-                break;
-            }
-        }
+        $settings     = eas_get_best_payment_provider_settings(
+            $formSettings,
+            'stripe',
+            $donation['mode'],
+            $donation['tax_receipt'],
+            $donation['currency'],
+            eas_get($donation['country'])
+        );
 
-        // Make sure we have the settings
-        if (empty($secretKey)) {
-            throw new \Exception("No form settings found for key $publicKey");
+        if ($settings['public_key'] != $publicKey) {
+            throw new \Exception("Key mismatch");
         }
 
         // Load secret key
-        \Stripe\Stripe::setApiKey($secretKey);
+        \Stripe\Stripe::setApiKey($settings['secret_key']);
 
         // Make customer
         $customer = \Stripe\Customer::create(array(
@@ -415,8 +602,8 @@ function eas_trigger_logging_webhooks($donation)
 
     // Trigger hooks for Zapier
     $formSettings = eas_load_settings($form);
-    if (isset($formSettings["webhook.logging.$mode"])) {
-        $hooks = eas_csv_to_array($formSettings["webhook.logging.$mode"]);
+    if (isset($formSettings['webhook']['logging'][$mode])) {
+        $hooks = eas_csv_to_array($formSettings['webhook']['logging'][$mode]);
         foreach ($hooks as $hook) {
             //TODO The array construct here is HookPress legacy. Remove in next major release.
             eas_send_webhook($hook, array('donation' => $donation));
@@ -463,7 +650,7 @@ function eas_trigger_mailinglist_webhooks($donation)
 
     // Trigger hooks for Zapier
     $formSettings = eas_load_settings($form);
-    if (isset($formSettings["webhook.mailing_list.$mode"])) {
+    if (isset($formSettings['webhook']['mailing_list'][$mode])) {
         // Get subscription data
         $subscription = array(
             'form'     => $donation['form'],
@@ -474,7 +661,7 @@ function eas_trigger_mailinglist_webhooks($donation)
         );
 
         // Iterate over hooks
-        $hooks = eas_csv_to_array($formSettings["webhook.mailing_list.$mode"]);
+        $hooks = eas_csv_to_array($formSettings['webhook']['mailing_list'][$mode]);
         foreach ($hooks as $hook) {
             //TODO The array construct here is HookPress legacy. Remove in next major release.
             eas_send_webhook($hook, array('subscription' => $subscription));
@@ -521,10 +708,14 @@ function eas_get_gocardless_client($form, $mode, $taxReceiptNeeded, $currency, $
 {
     // Get access token
     $formSettings = eas_load_settings($form);
-    if (empty($formSettings["payment.provider.gocardless.$mode.access_token"])) {
-        die("Error: No access token defined for $form (payment.provider.gocardless.$mode.access_token)");
-    }
-    $settings = eas_get_best_payment_provider_settings("gocardless", $form, $mode, $taxReceiptNeeded, $currency, $country);
+    $settings     = eas_get_best_payment_provider_settings(
+        $formSettings,
+        "gocardless",
+        $mode,
+        $taxReceiptNeeded,
+        $currency,
+        $country
+    );
 
     return new \GoCardlessPro\Client([
         'access_token' => $settings['access_token'],
@@ -535,17 +726,18 @@ function eas_get_gocardless_client($form, $mode, $taxReceiptNeeded, $currency, $
 /**
  * Get best payment settings for the donor
  *
- * @param string provider
- * @param string $form
+ * @param array  $formSettings
+ * @param string $provider
  * @param string $mode
  * @param bool   $taxReceiptNeeded
  * @param string $currency
  * @param string $country
  * @return array
+ * @throws \Exception
  */
 function eas_get_best_payment_provider_settings(
+    $formSettings,
     $provider,
-    $form,
     $mode,
     $taxReceiptNeeded,
     $currency,
@@ -556,48 +748,34 @@ function eas_get_best_payment_provider_settings(
     $currency = strtolower($currency);
     $country  = strtolower($country);
 
-    // Get provider properties
-    $properties = eas_get_payment_provider_properties($provider);
-    if (empty($properties)) {
-        throw new \Exception('Unsupported provider');
-    }
-
     // Extract settings of the form we're talking about
-    $formSettings      = eas_load_settings($form);
-    $countryCompulsory = eas_get($formSettings['payment.extra_fields.country'], false);
+    $countryCompulsory = eas_get($formSettings['payment']['extra_fields']['country'], false);
 
     // Check all possible settings
-    $hasCountrySetting  = true;
-    $hasCurrencySetting = true;
-    $hasDefaultSetting  = true;
-    foreach ($properties as $property) {
-        $hasCountrySetting  = $hasCountrySetting  && isset($formSettings["payment.provider.{$provider}_$country.$mode.$property"]);
-        $hasCurrencySetting = $hasCurrencySetting && isset($formSettings["payment.provider.{$provider}_$currency.$mode.$property"]);
-        $hasDefaultSetting  = $hasDefaultSetting  && isset($formSettings["payment.provider.$provider.$mode.$property"]);
+    $providers = $formSettings['payment']['provider'];
+    if (empty($providers[$provider][$mode])) {
+        throw new \Exception("No default settings found for $provider in $mode mode");
     }
+    $hasCountrySetting  = eas_payment_provider_settings_complete($provider, eas_get($providers[$provider . '_' . $country][$mode], array()));
+    $hasCurrencySetting = eas_payment_provider_settings_complete($provider, eas_get($providers[$provider . '_' . $currency][$mode], array()));
+    $hasDefaultSetting  = eas_payment_provider_settings_complete($provider, eas_get($providers[$provider][$mode], array()));
 
     // Check if there are settings for a country where the chosen currency is used.
     // This is only relevant if the donor does not need a donation receipt (always related
     // to specific country) and if there are no currency specific settings
     $hasCountryOfCurrencySetting = false;
-    $firstProperty               = $properties[0];
     $countryOfCurrency           = '';
     if (!$countryCompulsory && !$taxReceiptNeeded && !$hasCurrencySetting) {
         $countries = array_map('strtolower', eas_get_countries_by_currency($currency));
-        foreach ($countries as $country) {
-            if (isset($formSettings["payment.provider.{$provider}_$country.$mode.$firstProperty"])) {
+        foreach ($countries as $coc) {
+            if (isset($providers[$provider . '_' . $coc][$mode])) {
                 // Make sure we have all the properties
-                $hasCountryOfCurrencySetting = true;
-                foreach ($properties as $property) {
-                    $hasCountryOfCurrencySetting = $hasCountryOfCurrencySetting && isset($formSettings["payment.provider.{$provider}_$country.$mode.$firstProperty"]);
-                }
+                $hasCountryOfCurrencySetting = eas_payment_provider_settings_complete($provider, eas_get($providers[$provider . '_' . $coc][$mode], array()));
 
                 // If so, stop
                 if ($hasCountryOfCurrencySetting) {
-                    $countryOfCurrency = $country;
+                    $countryOfCurrency = $coc;
                     break;
-                } else {
-                    $hasCountryOfCurrencySetting = false;
                 }
             }
         }
@@ -605,37 +783,22 @@ function eas_get_best_payment_provider_settings(
 
     if ($hasCountrySetting && ($taxReceiptNeeded || $countryCompulsory)) {
         // Use country specific settings
-        return eas_remove_prefix($formSettings, $properties, "payment.provider.{$provider}_$country.$mode.");
+        return $providers[$provider . '_' . $country][$mode];
     } else if ($hasCurrencySetting) {
         // Use currency specific settings
-        return eas_remove_prefix($formSettings, $properties, "payment.provider.{$provider}_$currency.$mode.");
+        return $providers[$provider . '_' . $currency][$mode];
     } else if ($hasCountryOfCurrencySetting) {
         // Use settings of a country where the chosen currency is used
-        return eas_remove_prefix($formSettings, $properties, "payment.provider.{$provider}_$countryOfCurrency.$mode.");
+        return $providers[$provider . '_' . $countryOfCurrency][$mode];
     } else if ($hasDefaultSetting) {
         // Use default settings
-        return eas_remove_prefix($formSettings, $properties, "payment.provider.$provider.$mode.");
+        return $providers[$provider][$mode];
     } else {
-        throw new \Exception('No settings found');
-    }
-}
+        $requiredProperties = eas_get_payment_provider_properties($provider);
+        $advice             = $requiredProperties ? " Required properties: " . implode(', ', $requiredProperties) : "";
 
-/**
- * Get setting properties without prefix
- *
- * @param array  $settings
- * @param array  $properties
- * @param string $prefix
- * @return array
- */
-function eas_remove_prefix(array $settings, array $properties, $prefix)
-{
-    $result = array();
-    foreach ($properties as $property) {
-        $result[$property] = $settings[$prefix . $property];
+        throw new \Exception("No valid settings found for $provider." . $advice);
     }
-
-    return $result;
 }
 
 /**
@@ -830,10 +993,15 @@ function eas_get_bitpay_key_ids($pairingCode)
 function eas_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $currency, $country)
 {
     // Get BitPay pairing code
-    $settings = eas_get_best_payment_provider_settings("bitpay", $form, $mode, $taxReceipt, $currency, $country);
-    if (empty($settings['pairing_code'])) {
-        throw new \Exception('No pairing code set');
-    }
+    $formSettings = eas_load_settings($form);
+    $settings     = eas_get_best_payment_provider_settings(
+        $formSettings,
+        "bitpay",
+        $mode,
+        $taxReceipt,
+        $currency,
+        $country
+    );
     $pairingCode = $settings['pairing_code'];
 
     // Get key IDs
@@ -970,18 +1138,15 @@ function eas_prepare_skrill_donation(array $post)
 function eas_get_skrill_url($reqId, $post)
 {
     // Get best Skrill account settings
-    $settings = eas_get_best_payment_provider_settings(
+    $formSettings = eas_load_settings($post['form']);
+    $settings     = eas_get_best_payment_provider_settings(
+        $formSettings,
         "skrill",
-        $post['form'],
         $post['mode'],
         eas_get($post['tax_receipt'], false),
         $post['currency'],
         $post['country']
     );
-
-    if (empty($settings['merchant_account'])) {
-        die('Error: No Skrill settings found for this form!');
-    }
 
     // Prepare parameter array
     $params = array(
@@ -1503,12 +1668,12 @@ function eas_save_donation_log_post(array $donation)
 {
     // Check if max defined
     $formSettings = eas_load_settings($donation['form']);
-    if (empty($formSettings["log.max"])) {
+    if (empty($formSettings['log']['max'])) {
         // Logs disabled
         return;
     }
 
-    $logMax    = (int) $formSettings["log.max"];
+    $logMax    = (int) $formSettings['log']['max'];
     $form      = $donation['form'];
     $name      = $donation['name'];
     $currency  = $donation['currency'];
@@ -1580,7 +1745,7 @@ function eas_save_matching_challenge_donation_post(array $donation)
         return;
     }
 
-    $matchingCampaign = $formSettings["campaign"];
+    $matchingCampaign = $formSettings['campaign'];
 
     // Save donation as a custom post
     $newPost = array(
@@ -1643,11 +1808,11 @@ function eas_send_notification_email(array $donation)
 
     // Return if admin email not set
     $formSettings = eas_load_settings($form);
-    if (empty($formSettings['finish.notification_email'])) {
+    if (empty($formSettings['finish']['notification_email'])) {
         return;
     }
 
-    $emails = $formSettings['finish.notification_email'];
+    $emails = $formSettings['finish']['notification_email'];
 
     // Run email filters if array
     if (is_array($emails)) {
@@ -1707,9 +1872,9 @@ function eas_send_confirmation_email(array $donation)
     $formSettings = eas_load_settings($form);
 
     // Only send email if we have settings (might not be the case if we're dealing with script kiddies)
-    if (isset($formSettings['finish.email'])) {
+    if (isset($formSettings['finish']['email'])) {
         $language      = eas_get($donation['language']);
-        $emailSettings = eas_get_localized_value($formSettings['finish.email'], $language);
+        $emailSettings = eas_get_localized_value($formSettings['finish']['email'], $language);
 
         // Add tax dedcution labels to donation
         $donation += eas_get_tax_deduction_settings_by_donation($donation);
@@ -1746,47 +1911,6 @@ function eas_send_confirmation_email(array $donation)
         remove_filter('wp_mail_from', 'eas_get_email_address', EAS_PRIORITY);
         remove_filter('wp_mail_from_name', 'eas_get_email_sender', EAS_PRIORITY);
         remove_filter('wp_mail_content_type', 'eas_get_email_content_type', EAS_PRIORITY);
-    }
-}
-
-
-/**
- * Auxiliary function for recursively falttening the settings array.
- * The flattening does NOT affect numeric arrays and the following 
- * properties:
- * - amount.currency
- * - payment.purpose
- * - payment.labels
- * - finish.success_message
- * - finish.email
- * - finish.notification_email
- *
- * @param array  $settings  Option array from WordPress
- * @param array  $result    Falttened result array
- * @param string $parentKey Parent node path
- */
-function eas_flatten_settings($settings, &$result, $parentKey = '')
-{
-    // Return scalar values, numeric arrays and special values
-    if (!is_array($settings)
-        || !eas_has_string_keys($settings)
-        // IMPORTANT: Add parameters here that should be overridden completely in non-default forms
-        || preg_match('/payment\.purpose$/', $parentKey)
-        || preg_match('/payment\.provider\.banktransfer\.accounts$/', $parentKey)
-        || preg_match('/payment\.labels$/', $parentKey)
-        || preg_match('/amount\.currency$/', $parentKey)
-        || preg_match('/finish\.success_message$/', $parentKey)
-        || preg_match('/finish\.email$/', $parentKey)
-        || preg_match('/finish\.notification_email$/', $parentKey)
-    ) {
-        $result[$parentKey] = $settings;
-        return;
-    }
-
-    // Do recursion on rest
-    foreach ($settings as $key => $item) {
-        $flattenedKey = !empty($parentKey) ? $parentKey . '.' . $key : $key;
-        eas_flatten_settings($item, $result, $flattenedKey);
     }
 }
 
@@ -2186,45 +2310,32 @@ function eas_get_countries_by_currency($currency)
  *     'usd'     => ['sandbox' => 'usd_sandbox_key', 'live' => 'usd_live_key']
  * ]
  *
- * @param array $form Settings array of the form
+ * @param array $formSettings
+ * @param string $mode sandbox/live
  * @return array
  */
-function eas_get_stripe_public_keys(array $form)
+function eas_get_stripe_public_keys(array $formSettings, $mode)
 {
-    $formStripeKeys = array();
+    // Get all enabled Stripe accounts with a public key for the given mode
+    $stripeAccounts = array_filter(
+        eas_get($formSettings['payment']['provider'], array()),
+        function ($val, $key) use ($mode) {
+            return preg_match('#^stripe#', $key) && !empty($val[$mode]['public_key']) && !empty($val[$mode]['secret_key']);
+        },
+        ARRAY_FILTER_USE_BOTH
+    );
 
-    // Load Stripe sandbox/live default public keys
-    $defaultStripeKeys = array();
-    if (isset($form['payment.provider.stripe.sandbox.public_key'])) {
-        $defaultStripeKeys['sandbox'] = $form['payment.provider.stripe.sandbox.public_key'];
-    }
-    if (isset($form['payment.provider.stripe.live.public_key'])) {
-        $defaultStripeKeys['live'] = $form['payment.provider.stripe.live.public_key'];
-    }
-    if (count($defaultStripeKeys) > 0) {
-        $formStripeKeys['default'] = $defaultStripeKeys;
-    }
+    // Get rid of `stripe_` and rename `stripe` to `default`
+    $keys = array_map(function($key) {
+        return $key == 'stripe' ? 'default' : substr($key, 7);
+    }, array_keys($stripeAccounts));
 
-    // Load Stripe non-default settings (per country or per currency)
-    $nonDefaultStripeKeys = array_map(function($key, $value) {
-        if (preg_match('#^payment\.provider\.stripe_([^\.]+)\.(sandbox|live)\.public_key$#', $key, $matches)) {
-            return array(
-                'domain' => $matches[1], // e.g. ch, de, eur, usd, etc.
-                'mode'   => $matches[2], // live or sandbox
-                'key'    => $value,      // the Stripe public key
-            );
-        } else {
-            return array();
-        }
-    }, array_keys($form), array_values($form));
+    // Only leave public key
+    $vals = array_map(function($val) use ($mode) {
+        return $val[$mode]['public_key'];
+    }, array_values($stripeAccounts));
 
-    // Get rid of empty entries and then save everything to $formStripeKeys
-    $nonDefaultStripeKeys = array_filter($nonDefaultStripeKeys, 'count');
-    foreach ($nonDefaultStripeKeys as $val) {
-        $formStripeKeys[$val['domain']][$val['mode']] = $val['key'];
-    }
-
-    return $formStripeKeys;
+    return array_combine($keys, $vals);
 }
 
 /**
@@ -2319,7 +2430,7 @@ function eas_get_twig($form, $language = null)
 
     // Get settings
     $formSettings      = eas_load_settings($form);
-    $confirmationEmail = eas_get_localized_value($formSettings['finish.email'], $language);
+    $confirmationEmail = eas_get_localized_value($formSettings['finish']['email'], $language);
     $isHtml            = eas_get($confirmationEmail['html'], false);
     $twigSettings      = array(
         'finish.email.subject'        => $confirmationEmail['subject'],
@@ -2394,7 +2505,7 @@ function eas_serve_tax_deduction_settings()
         $formSettings = eas_load_settings($form);
         $response     = new WP_REST_Response(array(
             'success'       => true,
-            'tax_deduction' => $formSettings['payment.labels']['tax_deduction'],
+            'tax_deduction' => $formSettings['payment']['labels']['tax_deduction'],
         ));
         $response->header('Access-Control-Allow-Origin', '*');
 
@@ -2442,7 +2553,7 @@ function eas_get_tax_deduction_settings_by_donation(array $donation)
         $form         = eas_get($donation['form'], '');
         $formSettings = eas_load_settings($form);
         if ($donation['type'] == 'Bank Transfer' &&
-            $account = eas_localize_array_keys(eas_get($formSettings['payment.provider.banktransfer.accounts'][$donation['account']], array()))
+            $account = eas_localize_array_keys(eas_get($formSettings['payment']['provider']['banktransfer']['accounts'][$donation['account']], array()))
         ) {
             // Insert %reference_number%
             if ($reference = eas_get($donation['reference'])) {
@@ -2470,7 +2581,7 @@ function eas_load_tax_deduction_settings($form)
 {
     // Get local settings
     $formSettings         = eas_load_settings($form);
-    $taxDeductionSettings = eas_get($formSettings['payment.labels']['tax_deduction'], array());
+    $taxDeductionSettings = eas_get($formSettings['payment']['labels']['tax_deduction'], array());
 
     // Load remote settings if necessary
     if ('consume' == get_option('tax-deduction-expose') && $remoteUrl = get_option('tax-deduction-remote-url')) {
@@ -2501,7 +2612,7 @@ function eas_load_tax_deduction_settings($form)
         }
 
         // Merge remote and local settings. Local settings override remote settings.
-        $taxDeductionSettings = array_merge($remoteSettings, $taxDeductionSettings);
+        $taxDeductionSettings = array_replace_recursive($remoteSettings, $taxDeductionSettings);
     }
 
     return $taxDeductionSettings ? eas_monolinguify($taxDeductionSettings, 3) : null;
@@ -2539,8 +2650,8 @@ function eas_get_banktransfer_reference($form, $prefix = '', $length = 8, $block
 
         // Check if reference number prefix is defined
         if (
-            ($predefinedPrefix = eas_get($formSettings['payment.reference_number_prefix.' . $prefix])) ||
-            ($predefinedPrefix = eas_get($formSettings['payment.reference_number_prefix.default']))
+            ($predefinedPrefix = eas_get($formSettings['payment']['reference_number_prefix'][$prefix])) ||
+            ($predefinedPrefix = eas_get($formSettings['payment']['reference_number_prefix']['default']))
         ) {
             $prefix = $predefinedPrefix;
         }
@@ -2565,10 +2676,15 @@ function eas_get_banktransfer_reference($form, $prefix = '', $length = 8, $block
 function eas_get_paypal_api_context($form, $mode, $taxReceipt, $currency, $country)
 {
     // Get best settings
-    $settings = eas_get_best_payment_provider_settings("paypal", $form, $mode, $taxReceipt, $currency, $country);
-    if (empty($settings['client_id']) || empty($settings['client_secret'])) {
-        throw new \Exception('One of the following is not set: client_id, client_secret');
-    }
+    $formSettings = eas_load_settings($form);
+    $settings     = eas_get_best_payment_provider_settings(
+        $formSettings,
+        "paypal",
+        $mode,
+        $taxReceipt,
+        $currency,
+        $country
+    );
 
     $apiContext = new \PayPal\Rest\ApiContext(
         new \PayPal\Auth\OAuthTokenCredential(
@@ -2619,8 +2735,48 @@ function eas_do_post_donation_actions($donation)
     eas_send_emails($cleanDonation);
 }
 
+/**
+ * Merge settings recursively (except numeric arrays)
+ *
+ * @param array $array
+ * @param array $array1
+ * @return array
+ */
+function eas_array_replace_recursive($array, $array1)
+{
+    $recurse = function($array, $array1) use (&$recurse)
+    {
+        foreach ($array1 as $key => $value)
+        {
+            // Create new key in $array, if it is empty or not an array
+            if (!isset($array[$key]) || (isset($array[$key]) && !is_array($array[$key]))) {
+                $array[$key] = array();
+            }
 
+            // Overwrite the value in the base array
+            if (is_array($value) && eas_has_string_keys($value)) {
+                $value = $recurse($array[$key], $value);
+            }
+            $array[$key] = $value;
+        }
 
+        return $array;
+    };
+
+    // Handle the arguments, merge one by one
+    $args  = func_get_args();
+    $array = $args[0];
+    if (!is_array($array)) {
+        return $array;
+    }
+    for ($i = 1; $i < count($args); $i++) {
+        if (is_array($args[$i])) {
+            $array = $recurse($array, $args[$i]);
+        }
+    }
+
+    return $array;
+  }
 
 
 
