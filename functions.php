@@ -1885,7 +1885,7 @@ function eas_send_confirmation_email(array $donation)
         $text    = $twig->render('finish.email.text', $donation);
 
         // Repalce %bank_account_formatted% in success_text with macro
-        if (!empty($donation['bank_account'])) {
+        if (!empty($donation['bank_account']) && strpos($text, '%bank_account_formatted%') !== false) {
             $bankAccount = eas_get($emailSettings['html'], false) ? $twig->render('bank_account_formatted_html', $donation)
                                                                   : $twig->render('bank_account_formatted_text', $donation);
             $text = str_replace('%bank_account_formatted%', $bankAccount, $text);
