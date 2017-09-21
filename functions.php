@@ -2426,7 +2426,19 @@ function eas_get_twig($form, $language = null)
     }
 
     // Load macros
-    $macros = "{% import _self as eas %}" . file_get_contents(plugins_url('eas-donation-processor/email_macros.html'));
+    $macros = <<<'EOD'
+{% macro dump(array, mode) %}
+{% if mode == 'html' %}
+    {% for key, val in array if array is defined %}
+        <strong>{{ key }}</strong>: {{ val }}<br>
+    {% endfor %}
+{% else %}
+{% for key, val in array if array is defined %}{{ key }}: {{ val }}
+{% endfor %}
+{% endif %}
+{% endmacro %}
+{% import _self as eas %}
+EOD;
 
     // Get settings
     $formSettings      = eas_load_settings($form);
