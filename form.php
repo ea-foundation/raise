@@ -65,6 +65,14 @@ function eas_get_donation_form($atts, $content = null)
 <!-- Start Bootstrap scope -->
 <div class="btstrp">
 
+<?php if ($mode == 'sandbox'): ?>
+<div class="progress">
+  <div class="progress-bar progress-bar-warning progress-bar-striped" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+    <span>sandbox</span>
+  </div>
+</div>
+<?php endif; ?>
+
 <!-- Donation form -->
 <form action="<?php echo admin_url('admin-ajax.php') ?>" method="post" id="donationForm" class="form-horizontal">
 
@@ -266,7 +274,9 @@ function eas_get_donation_form($atts, $content = null)
                         } else {
                             // Label of first option (selected by default)
                             $purposeValues      = array_values($purposes);
-                            $purposeButtonLabel = reset($purposeValues);
+                            $purposeButtonLabel = array_reduce($purposeValues, function ($carry, $item) {
+                                return $carry ?: eas_get($item, '');
+                            }, '');
                             $checked            = 'checked';
                         }
 
@@ -293,7 +303,7 @@ function eas_get_donation_form($atts, $content = null)
                                 <?php
                                     foreach ($purposes as $value => $labels) {
                                         // Ignore empty values
-                                        if (empty($value)) {
+                                        if (empty($value) || empty($labels)) {
                                             continue;
                                         }
 

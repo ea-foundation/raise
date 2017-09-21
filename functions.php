@@ -2426,7 +2426,7 @@ function eas_get_twig($form, $language = null)
     }
 
     // Load macros
-    $macros = file_get_contents(plugins_url('eas-donation-processor/email_macros.html'));
+    $macros = "{% import _self as eas %}" . file_get_contents(plugins_url('eas-donation-processor/email_macros.html'));
 
     // Get settings
     $formSettings      = eas_load_settings($form);
@@ -2435,8 +2435,8 @@ function eas_get_twig($form, $language = null)
     $twigSettings      = array(
         'finish.email.subject'        => $confirmationEmail['subject'],
         'finish.email.text'           => $macros . ($isHtml ? nl2br($confirmationEmail['text']) : $confirmationEmail['text']),
-        'bank_account_formatted_html' => $macros . "{{ _self.dump(bank_account, 'html') }}",
-        'bank_account_formatted_text' => $macros . "{{ _self.dump(bank_account, 'text') }}",
+        'bank_account_formatted_html' => $macros . "{{ eas.dump(bank_account, 'html') }}",
+        'bank_account_formatted_text' => $macros . "{{ eas.dump(bank_account, 'text') }}",
     );
 
     // Instantiate twig
