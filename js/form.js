@@ -1146,7 +1146,7 @@ function updateTaxDeductionLabels()
     if ('receipt_text' in result) {
         taxReceipt.parent().parent().parent().parent().show();
         result.receipt_text = replaceTaxDeductionPlaceholders(result.receipt_text, userCountry, paymentMethodName, purposeName);
-        jQuery('span#tax-receipt-text').text(result.receipt_text);
+        jQuery('span#tax-receipt-text').html(result.receipt_text);
     } else {
         // Hide checkbox
         taxReceipt.prop('checked', false);
