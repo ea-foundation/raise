@@ -1,5 +1,34 @@
 <?php if (!defined('ABSPATH')) exit;
 
+const EAS_WEBHOOK_KEYS = [
+    'account',
+    'address',
+    'amount',
+    'anonymous',
+    'city',
+    'comment',
+    'country',
+    'country_code',
+    'currency',
+    'email',
+    'form',
+    'frequency',
+    'language',
+    'mailinglist',
+    'mode',
+    'name',
+    'purpose',
+    'reference',
+    'tax_receipt',
+    'time',
+    'type',
+    'url',
+    'vendor_customer_id',
+    'vendor_subscription_id',
+    'vendor_transaction_id',
+    'zip',
+];
+
 /**
  * Initialize form and return form settings
  *
@@ -634,7 +663,12 @@ function eas_clean_up_donation_data(array $donation)
         $donation['country']      = eas_get_english_name_by_country_code($donation['country']);
     }
 
-    return array_filter($donation);
+    // Set all empty fields to empty string
+    $values = array_map(function ($key) use ($donation) {
+        return eas_get($donation[$key], '');
+    }, EAS_WEBHOOK_KEYS);
+
+    return array_combine(EAS_WEBHOOK_KEYS, $values);
 }
 
 /**
