@@ -1962,9 +1962,10 @@ function eas_has_string_keys(array $array) {
  * Get user country from freegeoip.net, e.g. as ['code' => 'CH', 'name' => 'Switzerland']
  *
  * @param string $userIp
+ * @param array  $default
  * @return array
  */
-function eas_get_user_country($userIp = null)
+function eas_get_user_country($userIp = null, array $default = array())
 {
     if (!$userIp) {
         $userIp = $_SERVER['REMOTE_ADDR'];
@@ -1989,10 +1990,39 @@ function eas_get_user_country($userIp = null)
                 'name' => $response['country_name'],
             );
         } else {
-            return array();
+            return $default;
         }
     } catch (\Exception $ex) {
-        return array();
+        return $default;
+    }
+}
+
+/**
+ * Get initial country for form
+ *
+ * @param  array $formSettings
+ * @return array
+ */
+function eas_get_initial_country(array $formSettings)
+{
+    $initialCountry = eas_get($formSettings['payment']['country']['initial'], 'geoip');
+
+    if (empty($initialCountry) || $initialCountry == 'geoip') {
+        // Do GeoIP call
+        $fallbackCode = eas_get($formSettings['payment']['country']['fallback'], '');
+        $fallbackName = eas_get($GLOBALS['code2country'][$fallbackCode]);
+        $fallback     = !empty($fallbackName) ? array(
+            'code' => $fallbackCode,
+            'name' => $fallbackName,
+        ) : array();
+
+        return eas_get_user_country(null, $fallback);
+    } else {
+        // Return predefined country
+        return isset($GLOBALS['code2country'][$initialCountry]) ? array(
+            'code' => $initialCountry,
+            'name' => $GLOBALS['code2country'][$initialCountry],
+        ) : array();
     }
 }
 
@@ -2462,13 +2492,15 @@ function eas_get_twig($form, $language = null)
     // Load macros
     $macros = <<<'EOD'
 {% macro dump(array, mode) %}
+{% if array|length %}
+{% set lastKey   = array|keys|last %}
+{% set lastValue = array|last %}
 {% if mode == 'html' %}
-    {% for key, val in array if array is defined %}
+    {% for key, val in array|slice[:-1] %}
         <strong>{{ key }}</strong>: {{ val }}<br>
     {% endfor %}
-{% else %}
-{% for key, val in array if array is defined %}{{ key }}: {{ val }}
-{% endfor %}
+    <strong>{{ lastKey }}</strong>: {{ lastValue }}
+{% else %}{% for key, val in array[:-1] %}{{ key }}: {{ val ~ "\n"}}{% endfor %}{{ lastKey }}: {{ lastValue }}{% endif %}
 {% endif %}
 {% endmacro %}
 {% import _self as eas %}

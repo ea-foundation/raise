@@ -27,11 +27,11 @@ function eas_get_donation_form($atts, $content = null)
         //throw new \Exception('foo');
     } catch (\Exception $ex) {
 ?>
-<div class="alert alert-danger" role="alert">
-    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-    <span class="sr-only">Error:</span>
-    <?= $ex->getMessage() ?>
-</div>
+    <div class="alert alert-danger" role="alert">
+        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+        <span class="sr-only">Error:</span>
+        <?= $ex->getMessage() ?>
+    </div>
 <?php
         return;
     }
@@ -41,7 +41,7 @@ function eas_get_donation_form($atts, $content = null)
     $language = reset($segments);
 
     // Get user country using freegeoip.net
-    $userCountry                = eas_get_user_country();
+    $userCountry                = eas_get_initial_country($formSettings);
     $userCountryCode            = eas_get($userCountry['code']);
     $userCurrency               = eas_get_user_currency($userCountryCode);
     $currencies                 = eas_get($formSettings['amount']['currency'], array());

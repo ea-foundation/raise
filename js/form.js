@@ -1,24 +1,26 @@
 /**
  * Settings
  */
-var easMode                 = easDonationConfig.mode;
-var userCountry             = easDonationConfig.userCountry;
-var selectedCurrency        = easDonationConfig.selectedCurrency;
-var countryCompulsory       = easDonationConfig.countryCompulsory;
-var currencies              = wordpress_vars.amount_patterns;
-var stripeHandlers          = null;
-var totalItems              = 0;
-var taxReceiptNeeded        = false;
-var slideTransitionInAction = false;
-var otherAmountPlaceholder  = null;
-var currentStripeKey        = '';
-var frequency               = 'once';
-var monthlySupport          = ['payment-stripe', 'payment-paypal', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
-var goCardlessSupport       = ['EUR', 'GBP', 'SEK'];
-var easPopup                = null;
-var gcPollTimer             = null;
-var taxDeductionSuccessText = null;
-var taxDeductionDisabled    = true;
+var easMode                    = easDonationConfig.mode;
+var userCountry                = easDonationConfig.userCountry;
+var selectedCurrency           = easDonationConfig.selectedCurrency;
+var countryCompulsory          = easDonationConfig.countryCompulsory;
+var currencies                 = wordpress_vars.amount_patterns;
+var stripeHandlers             = null;
+var totalItems                 = 0;
+var taxReceiptNeeded           = false;
+var slideTransitionInAction    = false;
+var otherAmountPlaceholder     = null;
+var currentStripeKey           = '';
+var frequency                  = 'once';
+var monthlySupport             = ['payment-stripe', 'payment-paypal', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
+var goCardlessSupport          = ['EUR', 'GBP', 'SEK'];
+var easPopup                   = null;
+var gcPollTimer                = null;
+var taxDeductionSuccessText    = null;
+var taxDeductionDisabled       = true;
+var interactionEventDispatched = false;
+var checkoutEventDispatched    = false;
 
 
 // Preload Stripe image
@@ -190,31 +192,52 @@ jQuery(document).ready(function($) {
         // Post data and quit on last page
         if (currentItem >= (totalItems - 1)) {
             // Process form
+            var provider = null;
             switch ($('input[name=payment]:checked', '#wizard').attr('id')) {
                 case 'payment-stripe':
+                    provider = 'stripe';
                     handleStripeDonation();
                     break;
                 case 'payment-paypal':
+                    provider = 'paypal';
                     handlePayPalDonation();
                     break;
                 case 'payment-gocardless':
+                    provider = 'gocardless';
                     handlePopupDonation('GoCardless');
                     break;
                 case 'payment-bitpay':
+                    provider = 'bitpay';
                     handlePopupDonation('BitPay');
                     break;
                 case 'payment-skrill':
+                    provider = 'skrill';
                     handleIFrameDonation('Skrill');
                     break;
                 case 'payment-banktransfer':
+                    provider = 'banktransfer';
                     handleBankTransferDonation();
                     break;
                 default:
                     // Exit
             }
 
+            // Dispatch eas_initiated_donation event
+            if (!checkoutEventDispatched) {
+                var ev = new CustomEvent('eas_initiated_donation', { detail: provider });
+                window.dispatchEvent(ev);
+                checkoutEventDispatched = true;
+            }
+
             // Done, wait for callback functions
             return false;
+        }
+
+        // Dispatch eas_interacted_with_donation_form event
+        if (!interactionEventDispatched) {
+            var ev = new CustomEvent('eas_interacted_with_donation_form');
+            window.dispatchEvent(ev);
+            interactionEventDispatched = true;
         }
 
         // If we're not at the end, do the following
@@ -862,6 +885,10 @@ function showConfirmation(paymentProvider)
     
     // Move to confirmation page after 1 second
     setTimeout(carouselNext, 1000);
+
+    // Dispatch eas_completed_donation event
+    var ev = new CustomEvent('eas_completed_donation', { detail: paymentProvider });
+    window.dispatchEvent(ev);
 
     // Update fundraiser widgets if present on the same page
     if (typeof updateFundraiser === 'function') {
