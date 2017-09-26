@@ -177,7 +177,7 @@ function eas_get_donation_form($atts, $content = null)
                             <li class="col-xs-<?php echo  12 - ($buttonColSpan * $tabIndex % 12) ?>">
                                 <div class="input-group">
                                    <span class="input-group-addon"><?php echo trim(str_replace('%amount%', '', $preselectedCurrencyPattern)); ?></span>
-                                    <input type="text" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'eas-donation-processor') ?>" tabindex="<?php echo ++$tabIndexMonthly ?>">
+                                    <input type="number" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'eas-donation-processor') ?>" tabindex="<?php echo ++$tabIndexMonthly ?>">
                                     <label for="amount-other" class="sr-only"><?php _e('Other', 'eas-donation-processor') ?></label>
                                 </div>
                             </li>

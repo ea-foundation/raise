@@ -76,7 +76,7 @@ ul#amounts span.input-group-addon {
     border-bottom-left-radius: 6px;
 }
 
-ul#amounts input[type=text] {
+ul#amounts input[type=number] {
     text-overflow: ellipsis;
     display: inline-block;
     height: 46px;
@@ -99,7 +99,7 @@ ul#amounts span.input-group-addon.active {
     border-right: 0;
 }
 
-ul#amounts input[type=text].active {
+ul#amounts input[type=number].active {
     background-color: <?= $backgroundColorActive ?>;
     border-color: <?= $borderColorActive ?>;
     color: <?= $textColorActive ?>;
@@ -107,16 +107,16 @@ ul#amounts input[type=text].active {
 
 /* Amount other placeholder color */
 
-ul#amounts input[type=text]::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+ul#amounts input[type=number]::-webkit-input-placeholder { /* Chrome/Opera/Safari */
     color: <?= $textColor ?>;
 }
-ul#amounts input[type=text]::-moz-placeholder { /* Firefox 19+ */
+ul#amounts input[type=number]::-moz-placeholder { /* Firefox 19+ */
     color: <?= $textColor ?>;
 }
-ul#amounts input[type=text]:-ms-input-placeholder { /* IE 10+ */
+ul#amounts input[type=number]:-ms-input-placeholder { /* IE 10+ */
     color: <?= $textColor ?>;
 }
-ul#amounts input[type=text]:-moz-placeholder { /* Firefox 18+ */
+ul#amounts input[type=number]:-moz-placeholder { /* Firefox 18+ */
     color: <?= $textColor ?>;
 }
 
