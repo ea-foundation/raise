@@ -665,6 +665,11 @@ function eas_clean_up_donation_data(array $donation)
         $donation['country']      = eas_get_english_name_by_country_code($donation['country']);
     }
 
+    // Add referrer from query string if present
+    $parts = parse_url(eas_get($donation['url']));
+    parse_str(eas_get($parts['query'], ''), $query);
+    $donation['referrer'] = eas_get($query['referrer']);
+
     // Set all empty fields to empty string
     $values = array_map(function ($key) use ($donation) {
         return eas_get($donation[$key], '');
