@@ -230,7 +230,14 @@ jQuery(function($) {
 
             // Dispatch eas_initiated_donation event
             if (!checkoutEventDispatched) {
-                var ev = new CustomEvent('eas_initiated_donation', { detail: provider });
+                var ev = new CustomEvent('eas_initiated_donation', { detail: {
+                    form: jQuery('#eas-form-name').val(),
+                    currency: getDonationCurrencyIsoCode(),
+                    amuont: getDonationAmount(),
+                    type: provider,
+                    purpose: jQuery('input[name=purpose]:checked', '#wizard').val(),
+                    account: jQuery('#eas-form-account').val()
+                }});
                 window.dispatchEvent(ev);
                 checkoutEventDispatched = true;
             }
@@ -241,7 +248,11 @@ jQuery(function($) {
 
         // Dispatch eas_interacted_with_donation_form event
         if (!interactionEventDispatched) {
-            var ev = new CustomEvent('eas_interacted_with_donation_form');
+            var ev = new CustomEvent('eas_interacted_with_donation_form', { detail: {
+                form: jQuery('#eas-form-name').val(),
+                currency: getDonationCurrencyIsoCode(),
+                amuont: getDonationAmount()
+            }});
             window.dispatchEvent(ev);
             interactionEventDispatched = true;
         }
@@ -394,7 +405,7 @@ jQuery(function($) {
 
         // Automatically go to next slide
         enableConfirmButton(0);
-        $('button.confirm:first').click();
+        setTimeout(function() { $('button.confirm:first').click() }, 10);
     });
 
     // Currency stuff
@@ -893,7 +904,14 @@ function showConfirmation(paymentProvider)
     setTimeout(carouselNext, 1000);
 
     // Dispatch eas_completed_donation event
-    var ev = new CustomEvent('eas_completed_donation', { detail: paymentProvider });
+    var ev = new CustomEvent('eas_completed_donation', { detail: {
+        form: jQuery('#eas-form-name').val(),
+        currency: getDonationCurrencyIsoCode(),
+        amuont: getDonationAmount(),
+        type: paymentProvider,
+        purpose: jQuery('input[name=purpose]:checked', '#wizard').val(),
+        account: jQuery('#eas-form-account').val()
+    }});
     window.dispatchEvent(ev);
 
     // Update fundraiser widgets if present on the same page
