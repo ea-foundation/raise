@@ -19,6 +19,7 @@ const EAS_WEBHOOK_KEYS = [
     'name',
     'purpose',
     'reference',
+    'referrer',
     'tax_receipt',
     'time',
     'type',
@@ -79,6 +80,7 @@ function eas_init_donation_form($form, $mode)
         'donate_button_once'    => __("Donate %currency-amount%", "eas-donation-processor"),
         'donate_button_monthly' => __("Donate %currency-amount% per month", "eas-donation-processor"),
         'donation'              => __("Donation", "eas-donation-processor"),
+        'cookie_warning'        => __("Please enable cookies before you proceed with your donation.", "eas-donation-processor"),
     ));
 
     // Enqueue previously registered scripts and styles (to prevent them loading on every page load)

@@ -42,9 +42,15 @@ if (!Object.keys) {
 }
 
 /**
- * Form setup
+ * Setup form when DOM ready
  */
-jQuery(document).ready(function($) {
+jQuery(function($) {
+    // Make sure cookies are enabled
+    if (!navigator.cookieEnabled) {
+        $('<div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span><span class="sr-only">Error:</span> ' + wordpress_vars.cookie_warning + '</div>')
+            .insertBefore(".btstrp");
+    }
+
     // Stripe setup
     loadStripeHandler();
 
@@ -477,7 +483,7 @@ jQuery(document).ready(function($) {
         // Reload Stripe settings
         loadStripeHandler();
     });
-}); // End jQuery(document).ready()
+}); // End jQuery(function($) {})
 
 /**
  * PayPal checkout.js
