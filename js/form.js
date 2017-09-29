@@ -1171,11 +1171,11 @@ function updateTaxDeductionLabels()
     var result         = {};
 
     // Find best labels, more specific settings override more general settings
-    for (var cc of countryCodes) {
-        for (var pm of paymentMethods) {
-            for (var p of purposes) {
-                if (checkNestedArray(labels, cc, pm, p)) {
-                    jQuery.extend(result, labels[cc][pm][p]);
+    for (var i = 0; i < countryCodes.length; i++) {
+        for (var j = 0; j < paymentMethods.length; j++) {
+            for (var k = 0; k < purposes.length; k++) {
+                if (checkNestedArray(labels, countryCodes[i], paymentMethods[j], purposes[k])) {
+                    jQuery.extend(result, labels[countryCodes[i]][paymentMethods[j]][purposes[k]]);
                 }
             }
         }
