@@ -289,7 +289,7 @@ function eas_get_donation_form($atts, $content = null)
                         if (count($purposes) == 1):
                             $purposeKeys = array_keys($purposes);
                             $firstKey    = reset($purposeKeys);
-                            echo '<input type="hidden" name="purpose" value="' . $firstKey . '">';
+                            echo '<input type="radio" name="purpose" value="' . $firstKey . '" class="hidden" checked>';
                         else:
                 ?>
                     <div class="form-group required donor-info" id="donation-purpose">
