@@ -64,6 +64,17 @@ class EasDonationProcessorOptionsPage
         $defaultLogo       = plugin_dir_url(__FILE__) . 'images/logo.png';
         $logo              = get_option('logo', $defaultLogo);
         $version           = get_option('version');
+
+        // Load merged settings
+        $mergedSettings = array();
+        if (function_exists('eas_donation_processor_config')) {
+            if ($externalSettings = eas_donation_processor_config()) {
+                // Merge
+                $mergedSettings = eas_array_replace_recursive($externalSettings, $settings);
+            } else {
+                $mergedSettings = array("Error" => "Invalid JSON");
+            }
+        }
         
         // Button background color
         $buttonBackgroundColor       = get_option('button-color-background', $defaultColors['button-color-background']);
@@ -101,11 +112,19 @@ class EasDonationProcessorOptionsPage
             $unsavedSettingsMessage = '<p><strong>Configure settings and save.</strong></p>';
         }
         ?>
-        <div class="wrap">
+        <div id="eas-options" class="wrap">
             <h1>Donation Plugin</h1>
             <p>Version: <?php echo esc_html($version) ?></p>
             <?php echo $unsavedSettingsMessage ?>
-            <div id="jsoneditor" style="width: 100%; height: 400px;"></div>
+            <div id="tabs">
+                <?php if ($mergedSettings): ?>
+                    <ul><li><a href="#jsoneditor">Local settings</a></li><li><a href="#merged-settings">Merged settings</a></li></ul>
+                <?php endif; ?>
+                <div id="jsoneditor" style="height: 400px;"></div>
+                <?php if ($mergedSettings): ?>
+                    <div id="merged-settings" style="height: 400px; overflow: scroll; border: 1px solid #3883fa"></div>
+                <?php endif; ?>
+            </div>
             <form id="donation-setting-form" method="post" action="options.php">
                 <?php
                     settings_fields('eas-donation-settings-group');
@@ -280,6 +299,17 @@ class EasDonationProcessorOptionsPage
                 var options = {'modes': ['tree', 'code']};
                 var editor = new JSONEditor(container, options);
                 editor.set(<?php echo json_encode($settings) ?>);
+
+                <?php if ($mergedSettings): ?>
+                // Create merged settings
+                var mergedContainer = document.getElementById("merged-settings");
+                var mergedOptions = {'mode': 'view'};
+                var mergedEditor = new JSONEditor(mergedContainer, mergedOptions);
+                mergedEditor.set(<?php echo json_encode($mergedSettings) ?>);
+
+                // Make tabs if there are settings from the config plugin
+                jQuery("#tabs").tabs({ active: 0 });
+                <?php endif; ?>
 
                 // Stringify editor JSON and put it into hidden form field before submitting the form
                 jQuery('#donation-setting-form').submit(function() {

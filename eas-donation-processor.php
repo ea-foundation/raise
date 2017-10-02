@@ -4,19 +4,19 @@
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * GitHub Plugin URI: ea-foundation/eas-donation-processor
  * Description: Process donations
- * Version: 0.12.10
+ * Version: 0.12.11
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: proprietary
  */
 
-defined('ABSPATH') or die('No script kiddies please!');
+defined('ABSPATH') or exit;
 
 // Set priority constant for email filters
 define('EAS_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.33');
+define('EAS_ASSET_VERSION', '0.34');
 
 // Load other files
 require_once "vendor/autoload.php";
@@ -42,6 +42,7 @@ function eas_start_session()
     $status = session_status();
 
     if (PHP_SESSION_DISABLED === $status) {
+        echo "<pre>Error: EAS Donation Processor requires PHP Session to be enabled</pre>";
         return;
     }
 
@@ -91,12 +92,16 @@ function eas_json_settings_editor()
 {
     wp_register_script('donation-admin', plugins_url('eas-donation-processor/js/admin.js'), array(), EAS_ASSET_VERSION);
     wp_enqueue_script('donation-admin');
+    wp_register_script('donation-jquery-ui', plugins_url('eas-donation-processor/js/jquery-ui.min.js'), array(), EAS_ASSET_VERSION);
+    wp_enqueue_script('donation-jquery-ui');
     wp_register_script('donation-json-settings-editor', plugins_url('eas-donation-processor/js/jsoneditor.min.js'), array(), EAS_ASSET_VERSION);
     wp_enqueue_script('donation-json-settings-editor');
     wp_register_style('donation-json-settings-editor-css', plugins_url('eas-donation-processor/js/jsoneditor.min.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-json-settings-editor-css');
     wp_register_style('donation-admin-css', plugins_url('eas-donation-processor/css/admin.css'), array(), EAS_ASSET_VERSION);
     wp_enqueue_style('donation-admin-css');
+    wp_register_style('donation-jquery-ui-css', plugins_url('eas-donation-processor/css/jquery-ui.min.css'), array(), EAS_ASSET_VERSION);
+    wp_enqueue_style('donation-jquery-ui-css');
     wp_enqueue_media();
 }
 

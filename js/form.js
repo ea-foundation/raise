@@ -1222,6 +1222,15 @@ function updateTaxDeductionLabels()
         taxDeductionSuccessText = nl2br(replaceTaxDeductionPlaceholders(result.success_text, userCountry, paymentMethodName, purposeName, accountData));
         jQuery('div#shortcode-content').html(taxDeductionSuccessText);
     }
+
+    // Update provider_hover_text
+    var providerLabels = jQuery('#payment-method-providers > label').removeAttr('title');
+    if ('provider_hover_text' in result && typeof result.provider_hover_text === 'object') {
+        var titles = result.provider_hover_text;
+        for (var provider in titles) {
+            providerLabels.filter('[for=payment-' + provider + ']').prop('title', titles[provider]);
+        }
+    }
 }
 
 /**
