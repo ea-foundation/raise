@@ -120,9 +120,9 @@ class EasDonationProcessorOptionsPage
                 <?php if ($mergedSettings): ?>
                     <ul><li><a href="#jsoneditor">Local settings</a></li><li><a href="#merged-settings">Merged settings</a></li></ul>
                 <?php endif; ?>
-                <div id="jsoneditor" style="height: 400px;"></div>
+                <div id="jsoneditor"></div>
                 <?php if ($mergedSettings): ?>
-                    <div id="merged-settings" style="height: 400px; overflow: scroll; border: 1px solid #3883fa"></div>
+                    <div id="merged-settings"></div>
                 <?php endif; ?>
             </div>
             <form id="donation-setting-form" method="post" action="options.php">

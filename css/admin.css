@@ -65,3 +65,7 @@ textarea#tax-deduction-remote-settings {
 span#tax-deduction-notice {
     color: red;
 }
+
+div#tabs > div {
+    height: 400px;
+}
