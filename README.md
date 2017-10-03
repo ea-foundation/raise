@@ -1,5 +1,5 @@
-# EAS Donation Processor
-Donation-Plugin for WordPress, inspired by the donation widget on Barack Obama's support page
+# Raise
+The Free Donation Plugin for WordPress
 
 Main featuers:
 * Handle one-time donations from Stripe, PayPal, GoCardless (direct debit), BitPay (bitcoin), Skrill and bank transactions
@@ -20,8 +20,8 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-* PHP 5.6.3 or newer
-* WordPress 4.8 or newer
+* PHP 5.6.3 or greater
+* WordPress 4.8 or greater
 
 ### Installation
 
@@ -57,7 +57,8 @@ phpunit
 ```
 
 ## Documentation
-https://goo.gl/vYKzYG
+
+See doc/index.html
 
 ## Built With
 
@@ -72,4 +73,4 @@ https://goo.gl/vYKzYG
 
 ## License
 
-Proprietary
+GNU GPLv3

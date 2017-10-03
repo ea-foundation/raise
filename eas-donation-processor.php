@@ -3,11 +3,11 @@
  * Plugin Name: EAS Donation Processor
  * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
  * GitHub Plugin URI: ea-foundation/eas-donation-processor
- * Description: Process donations
+ * Description: The Free Donation Plugin for WordPress
  * Version: 0.12.11
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
- * License: proprietary
+ * License: GPLv3 or later
  */
 
 defined('ABSPATH') or exit;
