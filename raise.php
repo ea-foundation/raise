@@ -1,10 +1,10 @@
 <?php
 /**
- * Plugin Name: EAS Donation Processor
- * Plugin URI: https://github.com/ea-foundation/eas-donation-processor
- * GitHub Plugin URI: ea-foundation/eas-donation-processor
+ * Plugin Name: Raise
+ * Plugin URI: https://github.com/ea-foundation/raise
+ * GitHub Plugin URI: ea-foundation/raise
  * Description: The Free Donation Plugin for WordPress
- * Version: 0.12.11
+ * Version: 0.13.2
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: GPLv3 or later
@@ -13,10 +13,10 @@
 defined('ABSPATH') or exit;
 
 // Set priority constant for email filters
-define('EAS_PRIORITY', 12838790321);
+define('RAISE_PRIORITY', 12838790321);
 
 // Asset version
-define('EAS_ASSET_VERSION', '0.35');
+define('RAISE_ASSET_VERSION', '0.36');
 
 // Load other files
 require_once "vendor/autoload.php";
@@ -34,7 +34,7 @@ add_shortcode('donationForm','eas_get_donation_form');
 add_action('wp_loaded', 'eas_start_session');
 function eas_start_session()
 {
-    if (defined('EAS_PHPUNIT_RUN')) {
+    if (defined('RAISE_PHPUNIT_RUN')) {
         // Disable session for tests
         return;
     }
@@ -90,17 +90,15 @@ function eas_load_textdomain()
 add_action('admin_enqueue_scripts', 'eas_json_settings_editor');
 function eas_json_settings_editor()
 {
-    wp_register_script('donation-admin', plugins_url('eas-donation-processor/js/admin.js'), array(), EAS_ASSET_VERSION);
-    wp_enqueue_script('donation-admin');
-    wp_register_script('donation-jquery-ui', plugins_url('eas-donation-processor/js/jquery-ui.min.js'), array(), EAS_ASSET_VERSION);
+    wp_register_script('donation-jquery-ui', plugins_url('raise/js/jquery-ui.min.js'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_script('donation-jquery-ui');
-    wp_register_script('donation-json-settings-editor', plugins_url('eas-donation-processor/js/jsoneditor.min.js'), array(), EAS_ASSET_VERSION);
+    wp_register_script('donation-json-settings-editor', plugins_url('raise/js/jsoneditor.min.js'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_script('donation-json-settings-editor');
-    wp_register_style('donation-json-settings-editor-css', plugins_url('eas-donation-processor/js/jsoneditor.min.css'), array(), EAS_ASSET_VERSION);
+    wp_register_style('donation-json-settings-editor-css', plugins_url('raise/js/jsoneditor.min.css'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-json-settings-editor-css');
-    wp_register_style('donation-admin-css', plugins_url('eas-donation-processor/css/admin.css'), array(), EAS_ASSET_VERSION);
+    wp_register_style('donation-admin-css', plugins_url('raise/css/admin.css'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-admin-css');
-    wp_register_style('donation-jquery-ui-css', plugins_url('eas-donation-processor/css/jquery-ui.min.css'), array(), EAS_ASSET_VERSION);
+    wp_register_style('donation-jquery-ui-css', plugins_url('raise/css/jquery-ui.min.css'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-jquery-ui-css');
     wp_enqueue_media();
 }
@@ -113,13 +111,13 @@ function eas_register_donation_styles()
 {
     wp_register_style('bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
     wp_enqueue_style('bootstrap');
-    wp_register_style('donation-plugin-css', plugins_url('eas-donation-processor/css/form.css'), array(), EAS_ASSET_VERSION);
+    wp_register_style('donation-plugin-css', plugins_url('raise/css/form.css'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-plugin-css');
-    wp_register_style('donation-combobox-css', plugins_url('eas-donation-processor/css/bootstrap-combobox.css'), array(), EAS_ASSET_VERSION);
+    wp_register_style('donation-combobox-css', plugins_url('raise/css/bootstrap-combobox.css'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-combobox-css');
-    wp_register_style('donation-plugin-flags', plugins_url('eas-donation-processor/css/flags-few.css'), array(), EAS_ASSET_VERSION);
+    wp_register_style('donation-plugin-flags', plugins_url('raise/css/flags-few.css'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-plugin-flags');
-    wp_register_style('donation-button-css', plugins_url('eas-donation-processor/css/button.css.php'), array(), EAS_ASSET_VERSION);
+    wp_register_style('donation-button-css', plugins_url('raise/css/button.css.php'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-button-css');
 }
 
@@ -133,8 +131,8 @@ function eas_register_donation_scripts()
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/api/checkout.js?data-version-4'); // The query string is actually supposed to be a separate attribute without value, see below
-    wp_register_script('donation-combobox', plugins_url('eas-donation-processor/js/bootstrap-combobox.js'), array(), EAS_ASSET_VERSION);
-    wp_register_script('donation-plugin-form', plugins_url('eas-donation-processor/js/form.js'), array('jquery', 'donation-plugin-stripe'), EAS_ASSET_VERSION);
+    wp_register_script('donation-combobox', plugins_url('raise/js/bootstrap-combobox.js'), array(), RAISE_ASSET_VERSION);
+    wp_register_script('donation-plugin-form', plugins_url('raise/js/form.js'), array('jquery', 'donation-plugin-stripe'), RAISE_ASSET_VERSION);
 }
 
 // Register fundraiser post type
@@ -294,7 +292,7 @@ function eas_get_plugin_version() {
  * Register a tax deduction REST endpoint
  */
 add_action('rest_api_init', function() {
-    register_rest_route('eas-donation-processor/v1', '/tax-deduction/(?P<secret>\w+)', array(
+    register_rest_route('raise/v1', '/tax-deduction/(?P<secret>\w+)', array(
         'methods'  => 'GET',
         'callback' => 'eas_serve_tax_deduction_settings',
         'permission_callback' => function ($request) {

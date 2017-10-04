@@ -40,13 +40,13 @@ const EAS_WEBHOOK_KEYS = [
 function eas_init_donation_form($form, $mode)
 {
     // Update settings
-    eas_update_settings();
+    raise_update_settings();
 
     // Load settings
     $formSettings = eas_load_settings($form);
 
     // Load logo
-    $logo = get_option('logo', plugin_dir_url(__FILE__) . 'images/logo.png');
+    $logo = get_option('raise_logo', plugin_dir_url(__FILE__) . 'images/logo.png');
     
     // Make amount patterns
     $amountPatterns      = array();
@@ -113,7 +113,7 @@ function eas_load_settings($form)
     }
 
     // Load parameters
-    $easSettings = json_decode(get_option('settings'), true);
+    $easSettings = json_decode(get_option('raise_settings'), true);
 
     // Check if config plugin is around
     $externalSettings = array();
@@ -637,7 +637,7 @@ function eas_trigger_logging_webhooks($donation)
         $hooks = eas_csv_to_array($formSettings['webhook']['logging'][$mode]);
         foreach ($hooks as $hook) {
             //TODO The array construct here is HookPress legacy. Remove in next major release.
-            eas_send_webhook($hook, array('donation' => $donation));
+            eas_send_webhook($hook, $donation);
         }
     }
 }
@@ -704,8 +704,7 @@ function eas_trigger_mailinglist_webhooks($donation)
         // Iterate over hooks
         $hooks = eas_csv_to_array($formSettings['webhook']['mailing_list'][$mode]);
         foreach ($hooks as $hook) {
-            //TODO The array construct here is HookPress legacy. Remove in next major release.
-            eas_send_webhook($hook, array('subscription' => $subscription));
+            eas_send_webhook($hook, $subscription);
         }
     }
 }
@@ -725,7 +724,7 @@ function eas_send_webhook($url, array $params)
     }
 
     $version   = eas_get_plugin_version();
-    $userAgent = "EAS-Donation-Processor/{$version} (compatible; WordPress {$wp_version}; +https://ea-foundation.org/)";
+    $userAgent = "Raise/{$version} (compatible; WordPress {$wp_version}; +https://github.com/ea-foundation/raise)";
     $args      = array(
         'user-agent' => $userAgent,
         'body'       => $params,
@@ -1197,7 +1196,7 @@ function eas_get_skrill_url($reqId, $post)
         'currency'          => $post['currency'],
         'return_url'        => eas_get_ajax_endpoint() . '?action=skrill_log&req=' . $reqId,
         'return_url_target' => 3, // _self
-        'logo_url'          => preg_replace("/^http:/i", "https:", get_option('logo', plugin_dir_url(__FILE__) . 'images/logo.png')),
+        'logo_url'          => preg_replace("/^http:/i", "https:", get_option('raise_logo', plugin_dir_url(__FILE__) . 'images/logo.png')),
         'language'          => strtoupper($post['language']),
         'transaction_id'    => $reqId,
         'payment_methods'   => "WLT", // Skrill comes first
@@ -1941,17 +1940,17 @@ function eas_send_confirmation_email(array $donation)
         $GLOBALS['easEmailContentType'] = eas_get($emailSettings['html'], false) ? 'text/html' : 'text/plain';
 
         // Add email hooks
-        add_filter('wp_mail_from', 'eas_get_email_address', EAS_PRIORITY, 1);
-        add_filter('wp_mail_from_name', 'eas_get_email_sender', EAS_PRIORITY, 1);
-        add_filter('wp_mail_content_type', 'eas_get_email_content_type', EAS_PRIORITY, 1);
+        add_filter('wp_mail_from', 'eas_get_email_address', RAISE_PRIORITY, 1);
+        add_filter('wp_mail_from_name', 'eas_get_email_sender', RAISE_PRIORITY, 1);
+        add_filter('wp_mail_content_type', 'eas_get_email_content_type', RAISE_PRIORITY, 1);
 
         // Send email
         wp_mail($donation['email'], $subject, $text);
 
         // Remove email hooks
-        remove_filter('wp_mail_from', 'eas_get_email_address', EAS_PRIORITY);
-        remove_filter('wp_mail_from_name', 'eas_get_email_sender', EAS_PRIORITY);
-        remove_filter('wp_mail_content_type', 'eas_get_email_content_type', EAS_PRIORITY);
+        remove_filter('wp_mail_from', 'eas_get_email_address', RAISE_PRIORITY);
+        remove_filter('wp_mail_from_name', 'eas_get_email_sender', RAISE_PRIORITY);
+        remove_filter('wp_mail_content_type', 'eas_get_email_content_type', RAISE_PRIORITY);
     }
 }
 
@@ -2510,7 +2509,7 @@ function eas_get_twig($form, $language = null)
 {% else %}{% for key, val in array[:-1] %}{{ key }}: {{ val ~ "\n"}}{% endfor %}{{ lastKey }}: {{ lastValue }}{% endif %}
 {% endif %}
 {% endmacro %}
-{% import _self as eas %}
+{% import _self as raise %}
 EOD;
 
     // Get settings
@@ -2520,8 +2519,8 @@ EOD;
     $twigSettings      = array(
         'finish.email.subject'        => $confirmationEmail['subject'],
         'finish.email.text'           => $macros . ($isHtml ? nl2br($confirmationEmail['text']) : $confirmationEmail['text']),
-        'bank_account_formatted_html' => $macros . "{{ eas.dump(bank_account, 'html') }}",
-        'bank_account_formatted_text' => $macros . "{{ eas.dump(bank_account, 'text') }}",
+        'bank_account_formatted_html' => $macros . "{{ raise.dump(bank_account, 'html') }}",
+        'bank_account_formatted_text' => $macros . "{{ raise.dump(bank_account, 'text') }}",
     );
 
     // Instantiate twig
@@ -2669,23 +2668,23 @@ function eas_load_tax_deduction_settings($form)
     $taxDeductionSettings = eas_get($formSettings['payment']['labels']['tax_deduction'], array());
 
     // Load remote settings if necessary
-    if ('consume' == get_option('tax-deduction-expose') && $remoteUrl = get_option('tax-deduction-remote-url')) {
+    if ('consume' == get_option('raise_tax_deduction_expose') && $remoteUrl = get_option('raise_tax_deduction_remote_url')) {
         $now           = new \DateTime();
-        $lastRefreshed = new \DateTime(get_option('tax-deduction-last-refreshed', '1970-01-01'));
+        $lastRefreshed = new \DateTime(get_option('raise_tax_deduction_last_refreshed', '1970-01-01'));
         $timeInterval  = $lastRefreshed->diff($now);
-        $cacheTtl      = get_option('tax-deduction-cache-ttl', 0);
+        $cacheTtl      = get_option('raise_tax_deduction_cache_ttl', 0);
 
         try {
             // Get cached remote settings
-            $remoteSettings = json_decode(get_option('tax-deduction-remote-settings', array()), true);
+            $remoteSettings = json_decode(get_option('raise_tax_deduction_remote_settings', array()), true);
 
             if (!$remoteSettings || $timeInterval->days * 24 + $timeInterval->h > $cacheTtl) {
-                $remoteUrl     .= '?form=' . get_option('tax-deduction-remote-form-name', '');
+                $remoteUrl     .= '?form=' . get_option('raise_tax_deduction_remote_form_name', '');
                 $remoteContents = json_decode(file_get_contents($remoteUrl), true);
                 if ($remoteContents['success'] && is_array($remoteContents['tax_deduction'])) {
                     // Save new settings
-                    update_option('tax-deduction-remote-settings', json_encode($remoteContents['tax_deduction'], JSON_PRETTY_PRINT));
-                    update_option('tax-deduction-last-refreshed', $now->format(\DateTime::ISO8601));
+                    update_option('raise_tax_deduction_remote_settings', json_encode($remoteContents['tax_deduction'], JSON_PRETTY_PRINT));
+                    update_option('raise_tax_deduction_last_refreshed', $now->format(\DateTime::ISO8601));
 
                     $remoteSettings = $remoteContents['tax_deduction'];
                 }

@@ -5,13 +5,17 @@
 /**
  * Update settings
  */
-function eas_update_settings()
+function raise_update_settings()
 {
     $pluginVersion = eas_get_plugin_version();
 
     // Get settings
-    $settings        = json_decode(get_option('settings'), true);
-    $settingsVersion = get_option('version');
+    if (!($settingsVersion = get_option('raise_version')) || !($settings = json_decode(get_option('raise_settings'), true))) {
+        // Backward compatibility
+        $settingsVersion = get_option('version');
+        $settings        = json_decode(get_option('settings'), true);
+    }
+    
     if (empty($settingsVersion)) {
         if (empty($settings)) {
             // Fresh install, version not set yet, do it now
@@ -20,7 +24,7 @@ function eas_update_settings()
             // Previous version didn't have version settings (< 0.1.24)
             $settingsVersion = '0.1.23';
         }
-        update_option('version', $settingsVersion);
+        update_option('raise_version', $settingsVersion);
     }
 
     if ($pluginVersion == $settingsVersion || empty($settings)) {
@@ -42,8 +46,8 @@ function eas_update_settings()
         }
 
         // Save changes
-        update_option('settings', json_encode($settings));
-        update_option('version', '0.1.24');
+        update_option('raise_settings', json_encode($settings));
+        update_option('raise_version', '0.1.24');
     }
 
     /**
@@ -90,9 +94,9 @@ function eas_update_settings()
             }
 
             // Save changes
-            update_option('settings', json_encode($settings));
+            update_option('raise_settings', json_encode($settings));
         }
-        update_option('version', '0.1.29');
+        update_option('raise_version', '0.1.29');
     }
 
     /**
@@ -117,8 +121,8 @@ function eas_update_settings()
         );
 
         // Save changes
-        update_option('settings', json_encode($settings));
-        update_option('version', '0.3.2');
+        update_option('raise_settings', json_encode($settings));
+        update_option('raise_version', '0.3.2');
     }
 
     /**
@@ -146,8 +150,8 @@ function eas_update_settings()
         }
 
         // Save changes
-        update_option('settings', json_encode($settings));
-        update_option('version', '0.5.0');
+        update_option('raise_settings', json_encode($settings));
+        update_option('raise_version', '0.5.0');
     }
 
     /**
@@ -161,7 +165,7 @@ function eas_update_settings()
             update_option('widget-color-text-active', $backgroundColor);
         }
 
-        update_option('version', '0.5.1');
+        update_option('raise_version', '0.5.1');
     }
 
     /**
@@ -181,8 +185,8 @@ function eas_update_settings()
         }
 
         // Save changes
-        update_option('settings', json_encode($settings));
-        update_option('version', '0.11.3');
+        update_option('raise_settings', json_encode($settings));
+        update_option('raise_version', '0.11.3');
     }
 
     /**
@@ -197,11 +201,46 @@ function eas_update_settings()
         }
 
         // Save changes
-        update_option('settings', json_encode($settings));
-        update_option('version', '0.12.0');
+        update_option('raise_settings', json_encode($settings));
+        update_option('raise_version', '0.12.0');
+    }
+
+    /**
+     * Date:   2017-10-04
+     * Author: Naoki Peter
+     */
+    if (version_compare($settingsVersion, '0.13.2', '<')) {
+        // Move settings
+        update_option('raise_logo', get_option('logo'));
+        update_option('raise_button_color_background', get_option('button-color-background'));
+        update_option('raise_button_color_background_hover', get_option('button-color-background-hover'));
+        update_option('raise_button_color_background_active', get_option('button-color-background-active'));
+        update_option('raise_button_color_border', get_option('button-color-border'));
+        update_option('raise_button_color_border_hover', get_option('button-color-border-hover'));
+        update_option('raise_button_color_border_active', get_option('button-color-border-active'));
+        update_option('raise_button_color_text', get_option('button-color-text'));
+        update_option('raise_button_color_text_hover', get_option('button-color-text-hover'));
+        update_option('raise_button_color_text_active', get_option('button-color-text-active'));
+        update_option('raise_widget_color_text_active', get_option('widget-color-text-active'));
+        update_option('raise_confirm_button_color_background', get_option('confirm-button-color-background'));
+        update_option('raise_confirm_button_color_background_hover', get_option('confirm-button-color-background-hover'));
+        update_option('raise_confirm_button_color_border', get_option('confirm-button-color-border'));
+        update_option('raise_confirm_button_color_border_hover', get_option('confirm-button-color-border-hover'));
+        update_option('raise_confirm_button_color_text', get_option('confirm-button-color-text'));
+        update_option('raise_confirm_button_color_text_hover', get_option('confirm-button-color-text-hover'));
+        update_option('raise_tax_deduction_expose', get_option('tax-deduction-expose'));
+        update_option('raise_tax_deduction_secret', get_option('tax-deduction-secret'));
+        update_option('raise_tax_deduction_cache_ttl', get_option('tax-deduction-cache-ttl'));
+        update_option('raise_tax_deduction_last_refreshed', get_option('tax-deduction-last-refreshed'));
+        update_option('raise_tax_deduction_remote_url', get_option('tax-deduction-remote-url'));
+        update_option('raise_tax_deduction_remote_form_name', get_option('tax-deduction-remote-form-name'));
+        update_option('raise_tax_deduction_remote_settings', get_option('tax-deduction-remote-settings'));
+
+        update_option('raise_settings', json_encode($settings));
+        update_option('raise_version', '0.13.2');
     }
 
     // Add new updates above this line
 
-    update_option('version', $pluginVersion);
+    update_option('raise_version', $pluginVersion);
 }

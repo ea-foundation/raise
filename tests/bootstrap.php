@@ -2,9 +2,9 @@
 /**
  * PHPUnit bootstrap file
  *
- * @package Eas_Donation_Processor
+ * @package Raise
  */
-const EAS_PHPUNIT_RUN = true;
+const RAISE_PHPUNIT_RUN = true;
 
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
 if ( ! $_tests_dir ) {
@@ -18,7 +18,7 @@ require_once $_tests_dir . '/includes/functions.php';
  * Manually load the plugin being tested.
  */
 function _manually_load_plugin() {
-	require dirname( dirname( __FILE__ ) ) . '/eas-donation-processor.php';
+	require dirname( dirname( __FILE__ ) ) . '/raise.php';
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 

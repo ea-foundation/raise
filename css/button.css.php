@@ -3,30 +3,30 @@
     include_once("../../../../wp-load.php");
 
     // Button background color
-    $backgroundColor       = get_option('button-color-background', '#0078c1');
-    $backgroundColorHover  = get_option('button-color-background-hover', '#1297c9');
-    $backgroundColorActive = get_option('button-color-background-active', '#5cb85c');
+    $backgroundColor       = get_option('raise_button_color_background', '#0078c1');
+    $backgroundColorHover  = get_option('raise_button_color_background_hover', '#1297c9');
+    $backgroundColorActive = get_option('raise_button_color_background_active', '#5cb85c');
 
     // Button border color
-    $borderColor       = get_option('button-color-border', '#0088bb');
-    $borderColorHover  = get_option('button-color-border-hover', '#1190c0');
-    $borderColorActive = get_option('button-color-border-active', '#4cae4c');
+    $borderColor       = get_option('raise_button_color_border', '#0088bb');
+    $borderColorHover  = get_option('raise_button_color_border_hover', '#1190c0');
+    $borderColorActive = get_option('raise_button_color_border_active', '#4cae4c');
 
     // Button text color
-    $textColor         = get_option('button-color-text', '#ffffff');
-    $textColorHover    = get_option('button-color-text-hover', '#ffffff');
-    $textColorActive   = get_option('button-color-text-active', '#ffffff');
+    $textColor         = get_option('raise_button_color_text', '#ffffff');
+    $textColorHover    = get_option('raise_button_color_text_hover', '#ffffff');
+    $textColorActive   = get_option('raise_button_color_text_active', '#ffffff');
 
     // Widget text color
-    $widgetColorActive   = get_option('widget-color-text-active', '#0078c1');
+    $widgetColorActive   = get_option('raise_widget_color_text_active', '#0078c1');
 
     // Confirm button color
-    $confirmBackgroundColor      = get_option('confirm-button-color-background', '#5cb85c');
-    $confirmBackgroundColorHover = get_option('confirm-button-color-background-hover', '#449d44');
-    $confirmBorderColor          = get_option('confirm-button-color-border', '#4cae4c');
-    $confirmBorderColorHover     = get_option('confirm-button-color-border-hover', '#398439');
-    $confirmTextColor            = get_option('confirm-button-color-text', '#ffffff');
-    $confirmTextColorHover       = get_option('confirm-button-color-text-hover', '#ffffff');
+    $confirmBackgroundColor      = get_option('raise_confirm_button_color_background', '#5cb85c');
+    $confirmBackgroundColorHover = get_option('raise_confirm_button_color_background_hover', '#449d44');
+    $confirmBorderColor          = get_option('raise_confirm_button_color_border', '#4cae4c');
+    $confirmBorderColorHover     = get_option('raise_confirm_button_color_border_hover', '#398439');
+    $confirmTextColor            = get_option('raise_confirm_button_color_text', '#ffffff');
+    $confirmTextColorHover       = get_option('raise_confirm_button_color_text_hover', '#ffffff');
 ?>
 ul#amounts label {
     background-color: <?= $backgroundColor ?>;

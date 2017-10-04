@@ -1,6 +1,6 @@
 <?php if (!defined('ABSPATH')) exit;
 
-class EasDonationProcessorOptionsPage
+class RaiseOptionsPage
 {
     /**
      * Holds the values to be used in the fields callbacks
@@ -23,10 +23,10 @@ class EasDonationProcessorOptionsPage
     {
         // This page will be under "Settings"
         add_options_page(
-            'EAS Donation Processor', 
+            'Raise', 
             'Donation Plugin', 
             'manage_options', 
-            'eas-donation-settings',
+            'raise-donation-settings',
             array($this, 'create_admin_page')
         );
     }
@@ -37,33 +37,33 @@ class EasDonationProcessorOptionsPage
     public function create_admin_page()
     {
         // Update settings if necessary
-        eas_update_settings();
+        raise_update_settings();
 
         // Default colors
         $defaultColors = array(
-            'button-color-background'               => '#0078c1',
-            'button-color-background-hover'         => '#1297c9',
-            'button-color-background-active'        => '#5cb85c',
-            'button-color-border'                   => '#0088bb',
-            'button-color-border-hover'             => '#1190c0',
-            'button-color-border-active'            => '#4cae4c',
-            'button-color-text'                     => '#ffffff',
-            'button-color-text-hover'               => '#ffffff',
-            'button-color-text-active'              => '#ffffff',
-            'widget-color-text-active'              => '#0078c1',
-            'confirm-button-color-background'       => '#5cb85c',
-            'confirm-button-color-background-hover' => '#449d44',
-            'confirm-button-color-border'           => '#4cae4c',
-            'confirm-button-color-border-hover'     => '#398439',
-            'confirm-button-color-text'             => '#ffffff',
-            'confirm-button-color-text-hover'       => '#ffffff',
+            'button_color_background'               => '#0078c1',
+            'button_color_background_hover'         => '#1297c9',
+            'button_color_background_active'        => '#5cb85c',
+            'button_color_border'                   => '#0088bb',
+            'button_color_border_hover'             => '#1190c0',
+            'button_color_border_active'            => '#4cae4c',
+            'button_color_text'                     => '#ffffff',
+            'button_color_text_hover'               => '#ffffff',
+            'button_color_text_active'              => '#ffffff',
+            'widget_color_text_active'              => '#0078c1',
+            'confirm_button_color_background'       => '#5cb85c',
+            'confirm_button_color_background_hover' => '#449d44',
+            'confirm_button_color_border'           => '#4cae4c',
+            'confirm_button_color_border_hover'     => '#398439',
+            'confirm_button_color_text'             => '#ffffff',
+            'confirm_button_color_text_hover'       => '#ffffff',
         );
 
         // Load settings
-        $settings          = json_decode(get_option('settings'), true);
+        $settings          = json_decode(get_option('raise_settings'), true);
         $defaultLogo       = plugin_dir_url(__FILE__) . 'images/logo.png';
-        $logo              = get_option('logo', $defaultLogo);
-        $version           = get_option('version');
+        $logo              = get_option('raise_logo', $defaultLogo);
+        $version           = get_option('raise_version');
 
         // Load merged settings
         $mergedSettings = array();
@@ -77,30 +77,30 @@ class EasDonationProcessorOptionsPage
         }
         
         // Button background color
-        $buttonBackgroundColor       = get_option('button-color-background', $defaultColors['button-color-background']);
-        $buttonBackgroundColorHover  = get_option('button-color-background-hover', $defaultColors['button-color-background-hover']);
-        $buttonBackgroundColorActive = get_option('button-color-background-active', $defaultColors['button-color-background-active']);
+        $buttonBackgroundColor       = get_option('raise_button_color_background', $defaultColors['button_color_background']);
+        $buttonBackgroundColorHover  = get_option('raise_button_color_background_hover', $defaultColors['button_color_background_hover']);
+        $buttonBackgroundColorActive = get_option('raise_button_color_background_active', $defaultColors['button_color_background_active']);
 
         // Button border color
-        $buttonBorderColor       = get_option('button-color-border', $defaultColors['button-color-border']);
-        $buttonBorderColorHover  = get_option('button-color-border-hover', $defaultColors['button-color-border-hover']);
-        $buttonBorderColorActive = get_option('button-color-border-active', $defaultColors['button-color-border-active']);
+        $buttonBorderColor       = get_option('raise_button_color_border', $defaultColors['button_color_border']);
+        $buttonBorderColorHover  = get_option('raise_button_color_border_hover', $defaultColors['button_color_border_hover']);
+        $buttonBorderColorActive = get_option('raise_button_color_border_active', $defaultColors['button_color_border_active']);
 
         // Button text color
-        $buttonTextColor       = get_option('button-color-text', $defaultColors['button-color-text']);
-        $buttonTextColorHover  = get_option('button-color-text-hover', $defaultColors['button-color-text-hover']);
-        $buttonTextColorActive = get_option('button-color-text-active', $defaultColors['button-color-text-active']);
+        $buttonTextColor       = get_option('raise_button_color_text', $defaultColors['button_color_text']);
+        $buttonTextColorHover  = get_option('raise_button_color_text_hover', $defaultColors['button_color_text_hover']);
+        $buttonTextColorActive = get_option('raise_button_color_text_active', $defaultColors['button_color_text_active']);
 
         // Widget text color
-        $widgetTextColorActive  = get_option('widget-color-text-active', $defaultColors['widget-color-text-active']);
+        $widgetTextColorActive  = get_option('raise_widget_color_text_active', $defaultColors['widget_color_text_active']);
 
         // Confirm button colors
-        $confirmButtonBackgroundColor      = get_option('confirm-button-color-background', $defaultColors['confirm-button-color-background']);
-        $confirmButtonBackgroundColorHover = get_option('confirm-button-color-background-hover', $defaultColors['confirm-button-color-background-hover']);
-        $confirmButtonBorderColor          = get_option('confirm-button-color-border', $defaultColors['confirm-button-color-border']);
-        $confirmButtonBorderColorHover     = get_option('confirm-button-color-border-hover', $defaultColors['confirm-button-color-border-hover']);
-        $confirmButtonTextColor            = get_option('confirm-button-color-text', $defaultColors['confirm-button-color-text']);
-        $confirmButtonTextColorHover       = get_option('confirm-button-color-text-hover', $defaultColors['confirm-button-color-text-hover']);
+        $confirmButtonBackgroundColor      = get_option('raise_confirm_button_color_background', $defaultColors['confirm_button_color_background']);
+        $confirmButtonBackgroundColorHover = get_option('raise_confirm_button_color_background_hover', $defaultColors['confirm_button_color_background_hover']);
+        $confirmButtonBorderColor          = get_option('raise_confirm_button_color_border', $defaultColors['confirm_button_color_border']);
+        $confirmButtonBorderColorHover     = get_option('raise_confirm_button_color_border_hover', $defaultColors['confirm_button_color_border_hover']);
+        $confirmButtonTextColor            = get_option('raise_confirm_button_color_text', $defaultColors['confirm_button_color_text']);
+        $confirmButtonTextColorHover       = get_option('raise_confirm_button_color_text_hover', $defaultColors['confirm_button_color_text_hover']);
         
         $unsavedSettingsMessage = '';
         if (empty($settings) || count($settings) <= 1) {
@@ -125,57 +125,57 @@ class EasDonationProcessorOptionsPage
                     <div id="merged-settings"></div>
                 <?php endif; ?>
             </div>
-            <form id="donation-setting-form" method="post" action="options.php">
+            <form id="donation_setting_form" method="post" action="options.php">
                 <?php
-                    settings_fields('eas-donation-settings-group');
-                    do_settings_sections('eas-donation-settings-group');
+                    settings_fields('raise-donation-settings-group');
+                    do_settings_sections('raise-donation-settings-group');
                 ?>
-                <input type="hidden" name="settings" value="">
-                <input type="hidden" name="logo" value="<?php echo $logo ?>">
+                <input type="hidden" name="raise_settings" value="">
+                <input type="hidden" name="raise_logo" value="<?php echo $logo ?>">
                 <h2>Button colors</h2>
                 <div class="color-selection">
                     <p style="font-weight: bold">Regular</p>
                     <div>
-                        <label for="button-color-background">Background:</label>
-                        <input type="color" id="button-color-background" name="button-color-background" value="<?= $buttonBackgroundColor ?>">
+                        <label for="button_color_background">Background:</label>
+                        <input type="color" id="button_color_background" name="raise_button_color_background" value="<?= $buttonBackgroundColor ?>">
                     </div>
                     <div>
-                        <label for="button-color-border">Border:</label>
-                        <input type="color" id="button-color-border" name="button-color-border" value="<?= $buttonBorderColor ?>">
+                        <label for="button_color_border">Border:</label>
+                        <input type="color" id="button_color_border" name="raise_button_color_border" value="<?= $buttonBorderColor ?>">
                     </div>
                     <div>
-                        <label for="button-color-text">Text:</label>
-                        <input type="color" id="button-color-text" name="button-color-text" value="<?= $buttonTextColor ?>">
+                        <label for="button_color_text">Text:</label>
+                        <input type="color" id="button_color_text" name="raise_button_color_text" value="<?= $buttonTextColor ?>">
                     </div>
                 </div>
                 <div class="color-selection">
                     <p style="font-weight: bold">On hover (mouse-over)</p>
                     <div>
-                        <label for="button-color-background-hover">Background:</label>
-                        <input type="color" id="button-color-background-hover" name="button-color-background-hover" value="<?= $buttonBackgroundColorHover ?>">
+                        <label for="button_color_background_hover">Background:</label>
+                        <input type="color" id="button_color_background_hover" name="raise_button_color_background_hover" value="<?= $buttonBackgroundColorHover ?>">
                     </div>
                     <div>
-                        <label for="button-color-border-hover">Border:</label>
-                        <input type="color" id="button-color-border-hover" name="button-color-border-hover" value="<?= $buttonBorderColorHover ?>">
+                        <label for="button_color_border_hover">Border:</label>
+                        <input type="color" id="button_color_border_hover" name="raise_button_color_border_hover" value="<?= $buttonBorderColorHover ?>">
                     </div>
                     <div>
-                        <label for="button-color-text-hover">Text:</label>
-                        <input type="color" id="button-color-text-hover" name="button-color-text-hover" value="<?= $buttonTextColorHover ?>">
+                        <label for="button_color_text_hover">Text:</label>
+                        <input type="color" id="button_color_text_hover" name="raise_button_color_text_hover" value="<?= $buttonTextColorHover ?>">
                     </div>
                 </div>
                 <div class="color-selection">
                     <p style="font-weight: bold">On active (selected)</p>
                     <div>
-                        <label for="button-color-background-active">Background:</label>
-                        <input type="color" id="button-color-background-active" name="button-color-background-active" value="<?= $buttonBackgroundColorActive ?>">
+                        <label for="button_color_background_active">Background:</label>
+                        <input type="color" id="button_color_background_active" name="raise_button_color_background_active" value="<?= $buttonBackgroundColorActive ?>">
                     </div>
                     <div>
-                        <label for="button-color-border-active">Border:</label>
-                        <input type="color" id="button-color-border-active" name="button-color-border-active" value="<?= $buttonBorderColorActive ?>">
+                        <label for="button_color_border_active">Border:</label>
+                        <input type="color" id="button_color_border_active" name="raise_button_color_border_active" value="<?= $buttonBorderColorActive ?>">
                     </div>
                     <div>
-                        <label for="button-color-text-active">Text:</label>
-                        <input type="color" id="button-color-text-active" name="button-color-text-active" value="<?= $buttonTextColorActive ?>">
+                        <label for="button_color_text_active">Text:</label>
+                        <input type="color" id="button_color_text_active" name="raise_button_color_text_active" value="<?= $buttonTextColorActive ?>">
                     </div>
                 </div>
 
@@ -183,8 +183,8 @@ class EasDonationProcessorOptionsPage
                 <div class="color-selection">
                     <p style="font-weight: bold">Frequency and progress bar</p>
                     <div>
-                        <label for="widget-color-text-active">Active text:</label>
-                        <input type="color" id="widget-color-text-active" name="widget-color-text-active" value="<?= $widgetTextColorActive ?>">
+                        <label for="widget_color_text_active">Active text:</label>
+                        <input type="color" id="widget_color_text_active" name="raise_widget_color_text_active" value="<?= $widgetTextColorActive ?>">
                     </div>
                 </div>
 
@@ -193,31 +193,31 @@ class EasDonationProcessorOptionsPage
                     <div class="color-selection">
                         <p style="font-weight: bold">Regular</p>
                         <div>
-                            <label for="confirm-button-color-background">Background:</label>
-                            <input type="color" id="confirm-button-color-background" name="confirm-button-color-background" value="<?= $confirmButtonBackgroundColor ?>">
+                            <label for="confirm_button_color_background">Background:</label>
+                            <input type="color" id="confirm_button_color_background" name="raise_confirm_button_color_background" value="<?= $confirmButtonBackgroundColor ?>">
                         </div>
                         <div>
-                            <label for="confirm-button-color-border">Border:</label>
-                            <input type="color" id="confirm-button-color-border" name="confirm-button-color-border" value="<?= $confirmButtonBorderColor ?>">
+                            <label for="confirm_button_color_border">Border:</label>
+                            <input type="color" id="confirm_button_color_border" name="raise_confirm_button_color_border" value="<?= $confirmButtonBorderColor ?>">
                         </div>
                         <div>
-                            <label for="confirm-button-color-text">Text:</label>
-                            <input type="color" id="confirm-button-color-text" name="confirm-button-color-text" value="<?= $confirmButtonTextColor ?>">
+                            <label for="confirm_button_color_text">Text:</label>
+                            <input type="color" id="confirm_button_color_text" name="raise_confirm_button_color_text" value="<?= $confirmButtonTextColor ?>">
                         </div>
                     </div>
                     <div class="color-selection">
                         <p style="font-weight: bold">On hover (mouse-over)</p>
                         <div>
-                            <label for="confirm-button-color-background-hover">Background:</label>
-                            <input type="color" id="confirm-button-color-background-hover" name="confirm-button-color-background-hover" value="<?= $confirmButtonBackgroundColorHover ?>">
+                            <label for="confirm_button_color_background_hover">Background:</label>
+                            <input type="color" id="confirm_button_color_background_hover" name="raise_confirm_button_color_background_hover" value="<?= $confirmButtonBackgroundColorHover ?>">
                         </div>
                         <div>
-                            <label for="confirm-button-color-border-hover">Border:</label>
-                            <input type="color" id="confirm-button-color-border-hover" name="confirm-button-color-border-hover" value="<?= $confirmButtonBorderColorHover ?>">
+                            <label for="confirm_button_color_border_hover">Border:</label>
+                            <input type="color" id="confirm_button_color_border_hover" name="raise_confirm_button_color_border_hover" value="<?= $confirmButtonBorderColorHover ?>">
                         </div>
                         <div>
-                            <label for="confirm-button-color-text-hover">Text:</label>
-                            <input type="color" id="confirm-button-color-text-hover" name="confirm-button-color-text-hover" value="<?= $confirmButtonTextColorHover ?>">
+                            <label for="confirm_button_color_text_hover">Text:</label>
+                            <input type="color" id="confirm_button_color_text_hover" name="raise_confirm_button_color_text_hover" value="<?= $confirmButtonTextColorHover ?>">
                         </div>
                     </div>
                 </div>
@@ -241,47 +241,47 @@ class EasDonationProcessorOptionsPage
 
                 <div id="advanced-settings" class="hidden">
                     <?php
-                        $taxDeductionExpose = get_option('tax-deduction-expose', 'disabled');
+                        $taxDeductionExpose = get_option('raise_tax_deduction_expose', 'disabled');
                     ?>
                     <h2>Tax deduction label sharing</h2>
-                    <select name="tax-deduction-expose">
+                    <select name="raise_tax_deduction_expose">
                         <option value="disabled" <?= $taxDeductionExpose == 'disabled' ? 'selected' : '' ?>>Disabled</option>
                         <option value="expose"   <?= $taxDeductionExpose == 'expose'   ? 'selected' : '' ?>>Expose</option>
                         <option value="consume"  <?= $taxDeductionExpose == 'consume'  ? 'selected' : '' ?>>Consume</option>
                     </select>
-                    <div id="tax-deduction-expose-settings" class="<?= $taxDeductionExpose == 'expose' ? '' : 'hidden' ?>">
+                    <div id="tax_deduction_expose_settings" class="<?= $taxDeductionExpose == 'expose' ? '' : 'hidden' ?>">
                         <div>
-                            <label for="tax-deduction-secret">Secret:</label>
-                            <input id="tax-deduction-secret" type="text" name="tax-deduction-secret" value="<?= get_option('tax-deduction-secret', '') ?>">
+                            <label for="tax_deduction_secret">Secret:</label>
+                            <input id="tax_deduction_secret" type="text" name="raise_tax_deduction_secret" value="<?= get_option('raise_tax_deduction_secret', '') ?>">
                         </div>
                         <div>
-                            <label for="tax-deduction-url">URL:</label>
-                            <input id="tax-deduction-url" type="text" value="<?= site_url('/wp-json/eas-donation-processor/v1/tax-deduction/' . get_option('tax-deduction-secret', '')) ?>" readonly>
+                            <label for="tax_deduction_url">URL:</label>
+                            <input id="tax_deduction_url" type="text" value="<?= site_url('/wp-json/raise/v1/tax-deduction/' . get_option('raise_tax_deduction_secret', '')) ?>" readonly>
                         </div>
                     </div>
-                    <div id="tax-deduction-consume-settings" class="<?= $taxDeductionExpose == 'consume' ? '' : 'hidden' ?>">
+                    <div id="tax_deduction_consume_settings" class="<?= $taxDeductionExpose == 'consume' ? '' : 'hidden' ?>">
                         <div>
-                            <label for="tax-deduction-remote-url">Remote URL:</label>
-                            <input id="tax-deduction-remote-url" type="text" name="tax-deduction-remote-url" value="<?= get_option('tax-deduction-remote-url', '') ?>">
+                            <label for="tax_deduction_remote_url">Remote URL:</label>
+                            <input id="tax_deduction_remote_url" type="text" name="raise_tax_deduction_remote_url" value="<?= get_option('raise_tax_deduction_remote_url', '') ?>">
                         </div>
                         <div>
-                            <label for="tax-deduction-remote-form-name">Form name:</label>
-                            <input id="tax-deduction-remote-form-name" type="text" name="tax-deduction-remote-form-name" value="<?= get_option('tax-deduction-remote-form-name', 'default') ?>">
+                            <label for="tax_deduction_remote_form_name">Form name:</label>
+                            <input id="tax_deduction_remote_form_name" type="text" name="raise_tax_deduction_remote_form_name" value="<?= get_option('raise_tax_deduction_remote_form_name', 'default') ?>">
                         </div>
                         <div>
-                            <label for="tax-deduction-cache-ttl">Cache TTL:</label>
-                            <input id="tax-deduction-cache-ttl" type="number" name="tax-deduction-cache-ttl" min="1" value="<?= get_option('tax-deduction-cache-ttl', '72') ?>"> hours
+                            <label for="tax_deduction_cache_ttl">Cache TTL:</label>
+                            <input id="tax_deduction_cache_ttl" type="number" name="raise_tax_deduction_cache_ttl" min="1" value="<?= get_option('raise_tax_deduction_cache_ttl', '72') ?>"> hours
                         </div>
                         <div>
-                            <label for="tax-deduction-remote-settings">Remote settings:</label>
-                            <textarea id="tax-deduction-remote-settings" name="tax-deduction-remote-settings" rows="8" readonly><?= get_option('tax-deduction-remote-settings', '') ?></textarea>
+                            <label for="tax_deduction_remote_settings">Remote settings:</label>
+                            <textarea id="tax_deduction_remote_settings" name="raise_tax_deduction_remote_settings" rows="8" readonly><?= get_option('raise_tax_deduction_remote_settings', '') ?></textarea>
                         </div>
                         <div class="donation-settings-block">
                             <button type="button" class="button reload-tax-deduction">Refresh remote settings</button>
                             <div style="display: inline-block; width: auto">
-                                <label for="tax-deduction-last-refreshed" style="width: 100px; vertical-align: middle; margin-left: 20px;">Last refreshed:</label>
-                                <input id="tax-deduction-last-refreshed" placeholder="-" type="text" name="tax-deduction-last-refreshed" style="border: 0; box-shadow: none; width: 210px; vertical-align: middle" value="<?= get_option('tax-deduction-last-refreshed', '') ?>" readonly>
-                                <span id="tax-deduction-notice"></span>
+                                <label for="tax_deduction_last_refreshed" style="width: 100px; vertical-align: middle; margin-left: 20px;">Last refreshed:</label>
+                                <input id="tax_deduction_last_refreshed" placeholder="-" type="text" name="raise_tax_deduction_last_refreshed" style="border: 0; box-shadow: none; width: 210px; vertical-align: middle" value="<?= get_option('raise_tax_deduction_last_refreshed', '') ?>" readonly>
+                                <span id="tax_deduction_notice"></span>
                             </div>
                         </div>
                     </div>
@@ -312,7 +312,7 @@ class EasDonationProcessorOptionsPage
                 <?php endif; ?>
 
                 // Stringify editor JSON and put it into hidden form field before submitting the form
-                jQuery('#donation-setting-form').submit(function() {
+                jQuery('#donation_setting_form').submit(function() {
                     // Sringify JSON and save it
                     try {
                         eval('(' + JSON.stringify(editor.get()) + ')');
@@ -322,14 +322,14 @@ class EasDonationProcessorOptionsPage
                     }
 
                     var json = JSON.stringify(editor.get());
-                    jQuery("input[name=settings]").val(json);
+                    jQuery("input[name=raise_settings]").val(json);
                 });
 
                 // Reset stripe logo
                 jQuery('.reset-stripe-logo').click(function() {
-                    var defaultLogo = 'https://dev.ea-stiftung.org/wp-content/plugins/eas-donation-processor/images/logo.png';
+                    var defaultLogo = '<?= $defaultLogo ?>';
                     jQuery('.stripe-logo').css('backgroundImage', "url('" + defaultLogo + "'");
-                    jQuery('input[name=logo]').val(defaultLogo);
+                    jQuery('input[name=raise_logo]').val(defaultLogo);
                 });
 
                 // Reset button colors
@@ -350,15 +350,15 @@ class EasDonationProcessorOptionsPage
                 });
 
                 // Toggle visibility tax deduction settings
-                jQuery('select[name=tax-deduction-expose]').change(function() {
+                jQuery('select[name=raise_tax_deduction_expose]').change(function() {
                     switch (jQuery(this).val()) {
                         case 'expose':
-                            jQuery(this).siblings('div#tax-deduction-expose-settings').show();
-                            jQuery(this).siblings('div#tax-deduction-consume-settings').hide();
+                            jQuery(this).siblings('div#tax_deduction_expose_settings').show();
+                            jQuery(this).siblings('div#tax_deduction_consume_settings').hide();
                             break;
                         case 'consume':
-                            jQuery(this).siblings('div#tax-deduction-expose-settings').hide();
-                            jQuery(this).siblings('div#tax-deduction-consume-settings').show();
+                            jQuery(this).siblings('div#tax_deduction_expose_settings').hide();
+                            jQuery(this).siblings('div#tax_deduction_consume_settings').show();
                             break;
                         default:
                             jQuery(this).siblings('div').hide();
@@ -366,22 +366,22 @@ class EasDonationProcessorOptionsPage
                 });
 
                 // Update exposed URL
-                jQuery('input#tax-deduction-secret').keyup(function() {
-                    jQuery('input#tax-deduction-url').val("<?= site_url('/wp-json/eas-donation-processor/v1/tax-deduction/') ?>" + encodeURI(jQuery(this).val()));
+                jQuery('input#tax_deduction_secret').keyup(function() {
+                    jQuery('input#tax_deduction_url').val("<?= site_url('/wp-json/raise/v1/tax-deduction/') ?>" + encodeURI(jQuery(this).val()));
                 });
 
                 // Reload remote settings
                 jQuery('button.reload-tax-deduction').click(function() {
                     var urlRegExp = /https?:\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
-                    var remoteUrl = jQuery('input#tax-deduction-remote-url').val() + '?form=' + encodeURI(jQuery('input#tax-deduction-remote-form-name').val());
+                    var remoteUrl = jQuery('input#tax_deduction_remote_url').val() + '?form=' + encodeURI(jQuery('input#tax_deduction_remote_form_name').val());
                     if (urlRegExp.test(remoteUrl)) {
                         jQuery.get(remoteUrl).done(function (response) {
                             if (response.success) {
-                                jQuery('textarea#tax-deduction-remote-settings').text(JSON.stringify(response.tax_deduction, null, 4));
+                                jQuery('textarea#tax_deduction_remote_settings').text(JSON.stringify(response.tax_deduction, null, 4));
                                 var m = new Date();
                                 var dateString = m.getUTCFullYear() + "-" + ("0" + (m.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + m.getUTCDate()).slice(-2) + "T" + ("0" + m.getUTCHours()).slice(-2) + ":" + ("0" + m.getUTCMinutes()).slice(-2) + ":" + ("0" + m.getUTCSeconds()).slice(-2) + '+0000';
-                                jQuery('input#tax-deduction-last-refreshed').val(dateString);
-                                jQuery('#tax-deduction-notice').text('(not saved yet)');
+                                jQuery('input#tax_deduction_last_refreshed').val(dateString);
+                                jQuery('#tax_deduction_notice').text('(not saved yet)');
                             } else {
                                 alert('Reload failed: ' + data);
                             }
@@ -400,40 +400,40 @@ class EasDonationProcessorOptionsPage
      */
     public function page_init()
     {        
-        register_setting('eas-donation-settings-group', 'settings');
-        register_setting('eas-donation-settings-group', 'logo');
+        register_setting('raise-donation-settings-group', 'raise_settings');
+        register_setting('raise-donation-settings-group', 'raise_logo');
 
-        register_setting('eas-donation-settings-group', 'button-color-background');
-        register_setting('eas-donation-settings-group', 'button-color-background-hover');
-        register_setting('eas-donation-settings-group', 'button-color-background-active');
+        register_setting('raise-donation-settings-group', 'raise_button_color_background');
+        register_setting('raise-donation-settings-group', 'raise_button_color_background_hover');
+        register_setting('raise-donation-settings-group', 'raise_button_color_background_active');
 
-        register_setting('eas-donation-settings-group', 'button-color-border');
-        register_setting('eas-donation-settings-group', 'button-color-border-hover');
-        register_setting('eas-donation-settings-group', 'button-color-border-active');
+        register_setting('raise-donation-settings-group', 'raise_button_color_border');
+        register_setting('raise-donation-settings-group', 'raise_button_color_border_hover');
+        register_setting('raise-donation-settings-group', 'raise_button_color_border_active');
 
-        register_setting('eas-donation-settings-group', 'button-color-text');
-        register_setting('eas-donation-settings-group', 'button-color-text-hover');
-        register_setting('eas-donation-settings-group', 'button-color-text-active');
+        register_setting('raise-donation-settings-group', 'raise_button_color_text');
+        register_setting('raise-donation-settings-group', 'raise_button_color_text_hover');
+        register_setting('raise-donation-settings-group', 'raise_button_color_text_active');
 
-        register_setting('eas-donation-settings-group', 'widget-color-text-active');
+        register_setting('raise-donation-settings-group', 'raise_widget_color_text_active');
 
-        register_setting('eas-donation-settings-group', 'confirm-button-color-background');
-        register_setting('eas-donation-settings-group', 'confirm-button-color-background-hover');
-        register_setting('eas-donation-settings-group', 'confirm-button-color-border');
-        register_setting('eas-donation-settings-group', 'confirm-button-color-border-hover');
-        register_setting('eas-donation-settings-group', 'confirm-button-color-text');
-        register_setting('eas-donation-settings-group', 'confirm-button-color-text-hover');
+        register_setting('raise-donation-settings-group', 'raise_confirm_button_color_background');
+        register_setting('raise-donation-settings-group', 'raise_confirm_button_color_background_hover');
+        register_setting('raise-donation-settings-group', 'raise_confirm_button_color_border');
+        register_setting('raise-donation-settings-group', 'raise_confirm_button_color_border_hover');
+        register_setting('raise-donation-settings-group', 'raise_confirm_button_color_text');
+        register_setting('raise-donation-settings-group', 'raise_confirm_button_color_text_hover');
 
-        register_setting('eas-donation-settings-group', 'tax-deduction-expose');
-        register_setting('eas-donation-settings-group', 'tax-deduction-secret');
-        register_setting('eas-donation-settings-group', 'tax-deduction-cache-ttl');
-        register_setting('eas-donation-settings-group', 'tax-deduction-last-refreshed');
-        register_setting('eas-donation-settings-group', 'tax-deduction-remote-url');
-        register_setting('eas-donation-settings-group', 'tax-deduction-remote-form-name');
-        register_setting('eas-donation-settings-group', 'tax-deduction-remote-settings');
+        register_setting('raise-donation-settings-group', 'raise_tax_deduction_expose');
+        register_setting('raise-donation-settings-group', 'raise_tax_deduction_secret');
+        register_setting('raise-donation-settings-group', 'raise_tax_deduction_cache_ttl');
+        register_setting('raise-donation-settings-group', 'raise_tax_deduction_last_refreshed');
+        register_setting('raise-donation-settings-group', 'raise_tax_deduction_remote_url');
+        register_setting('raise-donation-settings-group', 'raise_tax_deduction_remote_form_name');
+        register_setting('raise-donation-settings-group', 'raise_tax_deduction_remote_settings');
     }
 }
 
 if (is_admin()) {
-    $my_settings_page = new EasDonationProcessorOptionsPage();
+    $my_settings_page = new RaiseOptionsPage();
 }

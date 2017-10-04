@@ -39,30 +39,30 @@ a.advanced-settings-expander {
     cursor: pointer;
 }
 
-select[name=tax-deduction-expose] {
+select[name=tax_deduction_expose] {
     margin-bottom: 12px;
 }
 
-div#tax-deduction-expose-settings label,
-div#tax-deduction-consume-settings label {
+div#tax_deduction_expose_settings label,
+div#tax_deduction_consume_settings label {
     vertical-align: top;
     display: inline-block;
     width: 90px;
 }
 
-input#tax-deduction-url, input#tax-deduction-remote-url {
+input#tax_deduction_url, input#tax_deduction_remote_url {
     width: 80%;
 }
 
-input#tax-deduction-cache-ttl {
+input#tax_deduction_cache_ttl {
     width: 50px;
 }
 
-textarea#tax-deduction-remote-settings {
+textarea#tax_deduction_remote_settings {
     width: 80%;
 }
 
-span#tax-deduction-notice {
+span#tax_deduction_notice {
     color: red;
 }
 
