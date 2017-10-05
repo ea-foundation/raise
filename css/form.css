@@ -436,9 +436,15 @@ div.raise-popup-modal .modal-body p {
     font-size: initial;
 }
 
-div.raise-iframe-modal .modal-body {
-    /*background: url(../images/loader.gif) center center no-repeat;*/
-    height: 600px;
+div.eas-iframe-modal .modal-body {
+    max-height: 760px;
+    height: 85vh;
+}
+
+@media (max-width: 767px) {
+    div.eas-iframe-modal .modal-body {
+        height: 79vh;
+    }
 }
 
 div.raise-modal .modal-body iframe {
