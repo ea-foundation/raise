@@ -426,22 +426,22 @@ ul#frequency li:not(:last-child) {
     margin-right: 20px;
 }
 
-div.eas-popup-modal .modal-body {
+div.raise-popup-modal .modal-body {
     text-align: center;
     padding: 40px 20px;
 }
 
-div.eas-popup-modal .modal-body p {
+div.raise-popup-modal .modal-body p {
     text-align: left;
     font-size: initial;
 }
 
-div.eas-iframe-modal .modal-body {
+div.raise-iframe-modal .modal-body {
     /*background: url(../images/loader.gif) center center no-repeat;*/
     height: 600px;
 }
 
-div.eas-modal .modal-body iframe {
+div.raise-modal .modal-body iframe {
     border: 0;
     width: 100%;
     height: 100%;

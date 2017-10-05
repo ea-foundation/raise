@@ -21,13 +21,13 @@ $GLOBALS['SkrillApiEndpoint'] = 'https://pay.skrill.com';
 /**
  * Supported bank account labels (listed here for automatic detection by Poedit)
  */
-__("Beneficiary", "eas-donation-processor");
-__("IBAN", "eas-donation-processor");
-__("BIC/SWIFT", "eas-donation-processor");
-__("Sort code", "eas-donation-processor");
-__("Routing number", "eas-donation-processor");
-__("Bank", "eas-donation-processor");
-__("Purpose", "eas-donation-processor");
+__("Beneficiary", "raise");
+__("IBAN", "raise");
+__("BIC/SWIFT", "raise");
+__("Sort code", "raise");
+__("Routing number", "raise");
+__("Bank", "raise");
+__("Purpose", "raise");
 
 /**
  * Currency/country mapping

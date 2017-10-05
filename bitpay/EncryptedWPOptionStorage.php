@@ -1,5 +1,5 @@
 <?php
-namespace EAS\Bitpay;
+namespace Raise\Bitpay;
 
 use \Bitpay\Storage\StorageInterface;
 

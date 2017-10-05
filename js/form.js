@@ -1,10 +1,10 @@
 /**
  * Settings
  */
-var easMode                    = easDonationConfig.mode;
-var userCountry                = easDonationConfig.userCountry;
-var selectedCurrency           = easDonationConfig.selectedCurrency;
-var countryCompulsory          = easDonationConfig.countryCompulsory;
+var raiseMode                  = raiseDonationConfig.mode;
+var userCountry                = raiseDonationConfig.userCountry;
+var selectedCurrency           = raiseDonationConfig.selectedCurrency;
+var countryCompulsory          = raiseDonationConfig.countryCompulsory;
 var currencies                 = wordpress_vars.amount_patterns;
 var stripeHandlers             = null;
 var totalItems                 = 0;
@@ -15,7 +15,7 @@ var currentStripeKey           = '';
 var frequency                  = 'once';
 var monthlySupport             = ['payment-stripe', 'payment-paypal', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
 var goCardlessSupport          = ['EUR', 'GBP', 'SEK'];
-var easPopup                   = null;
+var raisePopup                   = null;
 var gcPollTimer                = null;
 var taxDeductionSuccessText    = null;
 var taxDeductionDisabled       = true;
@@ -105,25 +105,25 @@ jQuery(function($) {
         event.preventDefault();
     });
 
-    // Unlock form when EAS popup modal is hidden
-    $("div.eas-modal").on('hide.bs.modal', function () {
+    // Unlock form when Raise popup modal is hidden
+    $("div.raise-modal").on('hide.bs.modal', function () {
         // No need to unlock form if donation complete
         if (jQuery('button.confirm:last span.glyphicon-ok', '#wizard').length == 0) {
             lockLastStep(false);
         }
 
         // Close popup (if still open)
-        if ($(this).hasClass('eas-popup-modal') && easPopup && !easPopup.closed) {
-            easPopup.close();
+        if ($(this).hasClass('raise-popup-modal') && raisePopup && !raisePopup.closed) {
+            raisePopup.close();
         }
     });
 
-    // Lock form when EAS popup modal is shown and reset modal contents
-    $("div.eas-modal").on('show.bs.modal', function () {
+    // Lock form when Raise popup modal is shown and reset modal contents
+    $("div.raise-modal").on('show.bs.modal', function () {
         // Reset modal
-        if ($(this).hasClass('eas-popup-modal')) {
-            $(this).find('.modal-body .eas_popup_closed').removeClass('hidden');
-            $(this).find('.modal-body .eas_popup_open').addClass('hidden');
+        if ($(this).hasClass('raise-popup-modal')) {
+            $(this).find('.modal-body .raise_popup_closed').removeClass('hidden');
+            $(this).find('.modal-body .raise_popup_open').addClass('hidden');
         }
     });
 
@@ -142,7 +142,7 @@ jQuery(function($) {
             var inputs = $('div.item.active :input', '#wizard').not('#donor-email-confirm');
 
             // Remove errors
-            inputs.siblings('span.eas-error').remove();
+            inputs.siblings('span.raise-error').remove();
             inputs.parent().parent().removeClass('has-error');
 
             // Get all required fields inside the page, except honey pot (#donor-email-confirm)
@@ -179,11 +179,11 @@ jQuery(function($) {
                     // Don't add X icon to combobox. It looks bad
                     if ($(this).attr('type') != 'hidden' && $(this).attr('id') != 'donor-country-auto') {
                         if ($(this).attr('id') != 'donor-country') {
-                            $(this).parent().append('<span class="eas-error glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>');
+                            $(this).parent().append('<span class="raise-error glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>');
                         }
                         $(this).parent().parent().addClass('has-error');
                         $(this).attr('aria-describedby', 'inputError2Status' + index)
-                        $(this).parent().append('<span id="inputError2Status' + index + '" class="eas-error sr-only">(error)</span>');
+                        $(this).parent().append('<span id="inputError2Status' + index + '" class="raise-error sr-only">(error)</span>');
                     }
                 });
 
@@ -199,7 +199,7 @@ jQuery(function($) {
         if (currentItem >= (totalItems - 1)) {
             // Process form
             var provider = null;
-            switch ($('input[name=payment]:checked', '#wizard').attr('id')) {
+            switch ($('input[name=payment_provider]:checked', '#wizard').attr('id')) {
                 case 'payment-stripe':
                     provider = 'stripe';
                     handleStripeDonation();
@@ -228,15 +228,15 @@ jQuery(function($) {
                     // Exit
             }
 
-            // Dispatch eas_initiated_donation event
+            // Dispatch raise_initiated_donation event
             if (!checkoutEventDispatched) {
-                var ev = new CustomEvent('eas_initiated_donation', { detail: {
-                    form: jQuery('#eas-form-name').val(),
+                var ev = new CustomEvent('raise_initiated_donation', { detail: {
+                    form: jQuery('#raise-form-name').val(),
                     currency: getDonationCurrencyIsoCode(),
                     amuont: getDonationAmount(),
                     type: provider,
                     purpose: jQuery('input[name=purpose]:checked', '#wizard').val(),
-                    account: jQuery('#eas-form-account').val()
+                    account: jQuery('#raise-form-account').val()
                 }});
                 window.dispatchEvent(ev);
                 checkoutEventDispatched = true;
@@ -246,10 +246,10 @@ jQuery(function($) {
             return false;
         }
 
-        // Dispatch eas_interacted_with_donation_form event
+        // Dispatch raise_interacted_with_donation_form event
         if (!interactionEventDispatched) {
-            var ev = new CustomEvent('eas_interacted_with_donation_form', { detail: {
-                form: jQuery('#eas-form-name').val(),
+            var ev = new CustomEvent('raise_interacted_with_donation_form', { detail: {
+                form: jQuery('#raise-form-name').val(),
                 currency: getDonationCurrencyIsoCode(),
                 amuont: getDonationAmount()
             }});
@@ -392,7 +392,7 @@ jQuery(function($) {
 
         // Handle other input
         var otherInput = $('input#amount-other');
-        otherInput.siblings('span.eas-error').remove();
+        otherInput.siblings('span.raise-error').remove();
         otherInput
             .val('')
             .removeClass('active')
@@ -440,7 +440,7 @@ jQuery(function($) {
         reloadPaymentProvidersForCurrentCurrency();
     });
 
-    $('div#payment-method-providers input[type=radio][name=payment]').change(function() {
+    $('div#payment-method-providers input[type=radio][name=payment_provider]').change(function() {
         // Update tax deduction labels
         updateTaxDeductionLabels();
     });
@@ -501,7 +501,7 @@ jQuery(function($) {
  */
 if (typeof paypal !== 'undefined') {
     paypal.Button.render({
-        env: easMode == 'sandbox' ? 'sandbox' : 'production',
+        env: raiseMode == 'sandbox' ? 'sandbox' : 'production',
         commit: true,
         style: {
             label: 'checkout',  // checkout | credit | pay
@@ -648,7 +648,7 @@ function getDonationCurrencyIsoCode()
 function handleStripeDonation()
 {
     // Change action input
-    jQuery('form#donationForm input[name=action]').val('eas_donate');
+    jQuery('form#donationForm input[name=action]').val('raise_donate');
 
     // Open handler
     stripeHandler.open({
@@ -666,7 +666,7 @@ function handlePopupDonation(provider)
     showSpinnerOnLastButton();
 
     // Change action input
-    jQuery('form#donationForm input[name=action]').val('eas_redirect');
+    jQuery('form#donationForm input[name=action]').val('raise_redirect');
 
     // Get sign up URL
     jQuery('form#donationForm').ajaxSubmit({
@@ -683,15 +683,15 @@ function handlePopupDonation(provider)
                     .unbind()
                     .click(function() {
                         // Open popup
-                        openEasPopup(response['url'], provider);
+                        openRaisePopup(response['url'], provider);
 
                         // Show "continue donation in secure" message on modal
-                        jQuery('#' + provider + 'Modal .modal-body .eas_popup_closed').addClass('hidden');
-                        jQuery('#' + provider + 'Modal .modal-body .eas_popup_open').removeClass('hidden');
+                        jQuery('#' + provider + 'Modal .modal-body .raise_popup_closed').addClass('hidden');
+                        jQuery('#' + provider + 'Modal .modal-body .raise_popup_open').removeClass('hidden');
 
                         // Start poll timer
                         gcPollTimer = window.setInterval(function() {
-                            if (easPopup.closed) {
+                            if (raisePopup.closed) {
                                 window.clearInterval(gcPollTimer);
                                 jQuery('#' + provider + 'Modal').modal('hide');
                             }
@@ -724,7 +724,7 @@ function handleIFrameDonation(provider)
     showSpinnerOnLastButton();
 
     // Change action input
-    jQuery('form#donationForm input[name=action]').val('eas_redirect');
+    jQuery('form#donationForm input[name=action]').val('raise_redirect');
 
     // Get sign up URL
     jQuery('form#donationForm').ajaxSubmit({
@@ -761,12 +761,12 @@ function handleIFrameDonation(provider)
 
 function hideModal()
 {
-    jQuery('.eas-modal').modal('hide');
+    jQuery('.raise-modal').modal('hide');
 }
 
-function openEasPopup(url, title)
+function openRaisePopup(url, title)
 {
-    easPopup = popupCenter(url, title, 420, 560);
+    raisePopup = popupCenter(url, title, 420, 560);
     return false;
 }
 
@@ -796,7 +796,7 @@ function handleBankTransferDonation()
     showSpinnerOnLastButton();
 
     // Change action input
-    jQuery('form#donationForm input[name=action]').val('eas_donate');
+    jQuery('form#donationForm input[name=action]').val('raise_donate');
 
     // Clear confirmation email (honey pot)
     jQuery('#donor-email-confirm').val('');
@@ -837,7 +837,7 @@ function handleBankTransferDonation()
 function handlePayPalDonation()
 {
     // Change action input
-    jQuery('form#donationForm input[name=action]').val('eas_redirect');
+    jQuery('form#donationForm input[name=action]').val('raise_redirect');
 
     // Open modal
     jQuery('#PayPalModal').modal('show');
@@ -874,27 +874,27 @@ function lockLastStep(locked)
 function showConfirmation(paymentProvider)
 {
     // Hide all payment provider related divs on confirmation page except the ones from paymentProvider
-    jQuery('#payment-method-providers input[name=payment]').each(function(index) {
+    jQuery('#payment-method-providers input[name=payment_provider]').each(function(index) {
         var provider = jQuery(this).val().toLowerCase().replace(/\s/g, "");
         if (paymentProvider != provider) {
-            jQuery('#shortcode-content .eas-' + provider).hide();
+            jQuery('#shortcode-content .raise-' + provider).hide();
         }
     });
 
     // Hide all irrelevant country-specific info
-    var countryDivs = jQuery('#shortcode-content .eas-country');
+    var countryDivs = jQuery('#shortcode-content .raise-country');
     if (userCountry != '') {
         // Hide other countries
-        var userCountryCss = '.eas-country-' + userCountry.toLowerCase();
+        var userCountryCss = '.raise-country-' + userCountry.toLowerCase();
         countryDivs.not(userCountryCss).hide();
 
-        // Show eas-country-other if no divs specific for user country were found
+        // Show raise-country-other if no divs specific for user country were found
         if (countryDivs.filter(userCountryCss).length == 0) {
-            countryDivs.filter('.eas-country-other').show();
+            countryDivs.filter('.raise-country-other').show();
         }
     } else {
-        // Show eas-country-other
-        countryDivs.not('.eas-country-other').hide();
+        // Show raise-country-other
+        countryDivs.not('.raise-country-other').hide();
     }
 
     // Hide spinner
@@ -903,14 +903,14 @@ function showConfirmation(paymentProvider)
     // Move to confirmation page after 1 second
     setTimeout(carouselNext, 1000);
 
-    // Dispatch eas_completed_donation event
-    var ev = new CustomEvent('eas_completed_donation', { detail: {
-        form: jQuery('#eas-form-name').val(),
+    // Dispatch raise_completed_donation event
+    var ev = new CustomEvent('raise_completed_donation', { detail: {
+        form: jQuery('#raise-form-name').val(),
         currency: getDonationCurrencyIsoCode(),
         amuont: getDonationAmount(),
         type: paymentProvider,
         purpose: jQuery('input[name=purpose]:checked', '#wizard').val(),
-        account: jQuery('#eas-form-account').val()
+        account: jQuery('#raise-form-account').val()
     }});
     window.dispatchEvent(ev);
 
@@ -1147,7 +1147,7 @@ function updateTaxDeductionLabels()
         return;
     }
 
-    var paymentMethod = jQuery('input[name=payment]:checked', '#wizard');
+    var paymentMethod = jQuery('input[name=payment_provider]:checked', '#wizard');
     if (paymentMethod.length) {
         var paymentMethodId   = paymentMethod.attr('id').substr(8); // Strip `payment-` prefix
         var paymentMethodName = paymentMethod.parent().find('span.payment-method-name').text();
@@ -1207,14 +1207,14 @@ function updateTaxDeductionLabels()
     // Update account
     var accountData = {};
     if ('account' in result) {
-        jQuery('#eas-form-account').val(result.account);
+        jQuery('#raise-form-account').val(result.account);
 
         // Add account data
         if (result.account in wordpress_vars.bank_accounts && typeof wordpress_vars.bank_accounts[result.account] === 'object') {
             accountData = wordpress_vars.bank_accounts[result.account];
         }
     } else {
-        jQuery('#eas-form-account').val('');
+        jQuery('#raise-form-account').val('');
     }
 
     // Update success text with nl2br

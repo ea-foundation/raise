@@ -7,23 +7,20 @@
  * @param string $content Page contents for donation confirmation step
  * @return string HTML form contents
  */
-function eas_get_donation_form($atts, $content = null)
+function raise_get_donation_form($atts, $content = null)
 {
-    // Extract shortcode attributes (name becomes $name, etc.)
+    // Extract shortcode attributes (name becomes $form, etc.)
     extract(shortcode_atts(array(
-        'name' => 'default', // $name
+        'form' => 'default', // $form
         'live' => 'true',    // $live
     ), $atts));
-
-    // Use form instead of name to keep consistency
-    $form = $name;
 
     // Make sure we have a boolean
     $live = ($live == 'false' || $live == 'no' || $live == '0') ? false : true;
     $mode = !$live ? 'sandbox' : 'live';
 
     try {
-        $formSettings = eas_init_donation_form($form, $mode);
+        $formSettings = raise_init_donation_form($form, $mode);
         //throw new \Exception('foo');
     } catch (\Exception $ex) {
 ?>
@@ -41,14 +38,14 @@ function eas_get_donation_form($atts, $content = null)
     $language = reset($segments);
 
     // Get user country using freegeoip.net
-    $userCountry                = eas_get_initial_country($formSettings);
-    $userCountryCode            = eas_get($userCountry['code']);
-    $userCurrency               = eas_get_user_currency($userCountryCode);
-    $currencies                 = eas_get($formSettings['amount']['currency'], array());
+    $userCountry                = raise_get_initial_country($formSettings);
+    $userCountryCode            = raise_get($userCountry['code']);
+    $userCurrency               = raise_get_user_currency($userCountryCode);
+    $currencies                 = raise_get($formSettings['amount']['currency'], array());
     $supportedCurrencyCodes     = array_map('strtoupper', array_keys($currencies));
     $preselectedCurrency        = $userCurrency && in_array($userCurrency, $supportedCurrencyCodes) ? $userCurrency : reset($supportedCurrencyCodes);
-    $preselectedCurrencyFlag    = eas_get($currencies[strtolower($preselectedCurrency)]['country_flag'], '');
-    $preselectedCurrencyPattern = eas_get($currencies[strtolower($preselectedCurrency)]['pattern'], '');
+    $preselectedCurrencyFlag    = raise_get($currencies[strtolower($preselectedCurrency)]['country_flag'], '');
+    $preselectedCurrencyPattern = raise_get($currencies[strtolower($preselectedCurrency)]['pattern'], '');
 
     // Handle redirection case after successful payment
     if (isset($_GET['success']) && $_GET['success'] == 'true') {
@@ -77,27 +74,27 @@ function eas_get_donation_form($atts, $content = null)
 <form action="<?php echo admin_url('admin-ajax.php') ?>" method="post" id="donationForm" class="form-horizontal">
 
 <script>
-    var easDonationConfig = {
+    var raiseDonationConfig = {
         mode:              "<?= $mode ?>",
         userCountry:       "<?= $userCountryCode ?>",
         selectedCurrency:  "<?= $preselectedCurrency ?>",
-        countryCompulsory: <?= eas_get($formSettings['payment']['extra_fields']['country'], false) ? 1 : 0 ?>
+        countryCompulsory: <?= raise_get($formSettings['payment']['extra_fields']['country'], false) ? 1 : 0 ?>
     }
 </script>
-<input type="hidden" name="action" value="eas_donate"> <!-- ajax key -->
-<input type="hidden" name="form" value="<?php echo $form ?>" id="eas-form-name">
-<input type="hidden" name="mode" value="<?php echo $mode ?>" id="eas-form-mode">
-<input type="hidden" name="language" value="<?php echo $language ?>" id="eas-form-language">
-<input type="hidden" name="account" value="" id="eas-form-account">
+<input type="hidden" name="action" value="raise_donate"> <!-- ajax key -->
+<input type="hidden" name="form" value="<?php echo $form ?>" id="raise-form-name">
+<input type="hidden" name="mode" value="<?php echo $mode ?>" id="raise-form-mode">
+<input type="hidden" name="language" value="<?php echo $language ?>" id="raise-form-language">
+<input type="hidden" name="account" value="" id="raise-form-account">
 
 <!-- Scrollable root element -->
 <div id="wizard">
     <!-- Progress bar -->
     <div id="progress" class="row">
         <ol>
-            <li class="col-xs-4<?php echo $checkoutCssClass ?>"><span>1</span> <?php _e('Amount', 'eas-donation-processor') ?></li>
-            <li class="col-xs-4"><span>2</span> <?php _e('Payment', 'eas-donation-processor') ?></li>
-            <li class="col-xs-4<?php echo $confirmationCssClass ?>"><span>3</span> <?php _e('Finish', 'eas-donation-processor') ?></li>
+            <li class="col-xs-4<?php echo $checkoutCssClass ?>"><span>1</span> <?php _e('Amount', 'raise') ?></li>
+            <li class="col-xs-4"><span>2</span> <?php _e('Payment', 'raise') ?></li>
+            <li class="col-xs-4<?php echo $confirmationCssClass ?>"><span>3</span> <?php _e('Finish', 'raise') ?></li>
         </ol>
     </div>
 
@@ -110,7 +107,7 @@ function eas_get_donation_form($atts, $content = null)
             <!-- Amount -->
             <div class="item<?php echo $checkoutCssClass ?>" id="amount-item">
                 <div class="sr-only">
-                  <h3><?php _e('My Donation', 'eas-donation-processor') ?></h3>
+                  <h3><?php _e('My Donation', 'raise') ?></h3>
                 </div>
                 <!-- Currency -->
                 <div class="<?php echo count($currencies) > 1 ? 'row' : 'hidden' ?>">
@@ -139,10 +136,10 @@ function eas_get_donation_form($atts, $content = null)
                     <ul id="frequency" class="col-xs-12">
                         <li>
                             <input type="radio" class="radio" name="frequency" value="once" id="frequency-once" checked>
-                            <label for="frequency-once" class="active"><?php _e('Give once', 'eas-donation-processor') ?></label>
+                            <label for="frequency-once" class="active"><?php _e('Give once', 'raise') ?></label>
                         </li><li>
                             <input type="radio" class="radio" name="frequency" value="monthly" id="frequency-monthly">
-                            <label for="frequency-monthly"><?php _e('Give monthly', 'eas-donation-processor') ?></label>
+                            <label for="frequency-monthly"><?php _e('Give monthly', 'raise') ?></label>
                         </li>
                     </ul>
                 </div>
@@ -151,10 +148,10 @@ function eas_get_donation_form($atts, $content = null)
                     <ul id="amounts" class="radio">
                         <?php
                             // Once buttons
-                            $cols          = min(12, eas_get($formSettings['amount']['columns'], 3));
+                            $cols          = min(12, raise_get($formSettings['amount']['columns'], 3));
                             $buttonColSpan = floor(12 / $cols);
                             $tabIndex      = 0;
-                            $amounts       = eas_get($formSettings['amount']['button'], array());
+                            $amounts       = raise_get($formSettings['amount']['button'], array());
                             foreach ($amounts as $amount) {
                                 echo '<li class="col-xs-' . $buttonColSpan . ' amount-once">';
                                 echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndex . '" id="amount-once-' . $amount . '">';
@@ -164,7 +161,7 @@ function eas_get_donation_form($atts, $content = null)
 
                             // Monthly buttons (if present)
                             $tabIndexMonthly = $tabIndex;
-                            $amountsMonthly  = eas_get($formSettings['amount']['button_monthly'], array());
+                            $amountsMonthly  = raise_get($formSettings['amount']['button_monthly'], array());
                             foreach ($amountsMonthly as $amount) {
                                 echo '<li class="col-xs-' . $buttonColSpan . ' amount-monthly hidden">';
                                 echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndexMonthly . '" id="amount-monthly-' . $amount . '" disabled>';
@@ -173,12 +170,12 @@ function eas_get_donation_form($atts, $content = null)
                             }
                         ?>
 
-                        <?php if (eas_get($formSettings['amount']['custom'], true)): ?>
+                        <?php if (raise_get($formSettings['amount']['custom'], true)): ?>
                             <li class="col-xs-<?php echo  12 - ($buttonColSpan * $tabIndex % 12) ?>">
                                 <div class="input-group">
                                    <span class="input-group-addon"><?php echo trim(str_replace('%amount%', '', $preselectedCurrencyPattern)); ?></span>
-                                    <input type="number" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'eas-donation-processor') ?>" tabindex="<?php echo ++$tabIndexMonthly ?>">
-                                    <label for="amount-other" class="sr-only"><?php _e('Other', 'eas-donation-processor') ?></label>
+                                    <input type="number" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'raise') ?>" tabindex="<?php echo ++$tabIndexMonthly ?>">
+                                    <label for="amount-other" class="sr-only"><?php _e('Other', 'raise') ?></label>
                                 </div>
                             </li>
                         <?php endif; ?>
@@ -186,7 +183,7 @@ function eas_get_donation_form($atts, $content = null)
                 </div>
                 <div class="buttons row">
                     <div class="col-sm-4 col-sm-offset-4">
-                        <button type="button" class="btn btn-lg confirm donation-continue" disabled="disabled"><?php _e('Next', 'eas-donation-processor') ?></button>
+                        <button type="button" class="btn btn-lg confirm donation-continue" disabled="disabled"><?php _e('Next', 'raise') ?></button>
                     </div>
                 </div>
             </div>
@@ -201,27 +198,27 @@ function eas_get_donation_form($atts, $content = null)
             <!-- Payment -->
             <div class="item" id="payment-method-item">
                 <div class="sr-only">
-                    <h3><?php _e('Choose a payment method', 'eas-donation-processor') ?></h3>
+                    <h3><?php _e('Choose a payment method', 'raise') ?></h3>
                 </div>
                 <div class="form-group payment-info" id="payment-method-providers">
-                    <?= eas_print_payment_providers($formSettings, $mode); ?>
+                    <?= raise_print_payment_providers($formSettings, $mode); ?>
                 </div>
 
                 <!-- Name -->
                 <div class="form-group required donor-info">
-                    <label for="donor-name" class="col-sm-3 control-label"><?php _e('Name', 'eas-donation-processor') ?></label>
+                    <label for="donor-name" class="col-sm-3 control-label"><?php _e('Name', 'raise') ?></label>
                     <div class="col-sm-9">
                         <input type="text" class="form-control text" name="name" id="donor-name" placeholder="">
                     </div>
                 </div>
 
                 <!-- Donate anonymously (matching campaigns) -->
-                <?php if (!empty($formSettings['campaign']) && eas_get($formSettings['payment']['extra_fields']['anonymous'], false)): ?>
+                <?php if (!empty($formSettings['campaign']) && raise_get($formSettings['payment']['extra_fields']['anonymous'], false)): ?>
                 <div class="form-group donor-info" style="margin-top: -17px">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="anonymous" id="donor-anonymous" value="1"> <?php _e('Don\'t publish my name', 'eas-donation-processor') ?>
+                                <input type="checkbox" name="anonymous" id="donor-anonymous" value="1"> <?php _e('Don\'t publish my name', 'raise') ?>
                             </label>
                         </div>
                     </div>
@@ -230,7 +227,7 @@ function eas_get_donation_form($atts, $content = null)
 
                 <!-- Email -->
                 <div class="form-group required donor-info">
-                    <label for="donor-email" class="col-sm-3 control-label"><?php _e('Email', 'eas-donation-processor') ?></label>
+                    <label for="donor-email" class="col-sm-3 control-label"><?php _e('Email', 'raise') ?></label>
                     <div class="col-sm-9">
                         <input type="email" class="form-control text" name="email" id="donor-email" placeholder="">
                     </div>
@@ -238,21 +235,21 @@ function eas_get_donation_form($atts, $content = null)
 
                 <!-- Anti-spam email (only used for bank transfer, reset on submit) -->
                 <div id="email-confirm-group" class="form-group required donor-info">
-                    <label for="donor-email-confirm" class="col-sm-3 control-label"><?php _e('Email', 'eas-donation-processor') ?></label>
+                    <label for="donor-email-confirm" class="col-sm-3 control-label"><?php _e('Email', 'raise') ?></label>
                     <div class="col-sm-9">
                         <input type="email" class="form-control text" name="email-confirm" id="donor-email-confirm" value="">
                     </div>
                 </div>
 
                 <!-- Country (if necessary for tax deduction) -->
-                <?php if (eas_get($formSettings['payment']['extra_fields']['country'], false)): ?>
+                <?php if (raise_get($formSettings['payment']['extra_fields']['country'], false)): ?>
                 <div class="form-group required donor-info">
-                    <label for="donor-country" class="col-sm-3 control-label"><?php _e('Country', 'eas-donation-processor') ?></label>
+                    <label for="donor-country" class="col-sm-3 control-label"><?php _e('Country', 'raise') ?></label>
                     <div class="col-sm-9">
                         <select class="combobox form-control" name="country" id="donor-country">
                             <option></option>
                             <?php
-                                $countries = eas_get_sorted_country_list();
+                                $countries = raise_get_sorted_country_list();
                                 foreach ($countries as $code => $country) {
                                     $checked = $userCountryCode == $code ? 'selected' : '';
                                     echo '<option value="' . $code . '" '  . $checked . '>' . $country[0] . '</option>';
@@ -265,7 +262,7 @@ function eas_get_donation_form($atts, $content = null)
 
                 <!-- Purpose -->
                 <?php
-                    if ($purposes = eas_get($formSettings['payment']['purpose'])):
+                    if ($purposes = raise_get($formSettings['payment']['purpose'])):
                         // Check if there's an empty option
                         if (array_key_exists('', $purposes)) {
                             // Label of empty item ("Choose your purpose"), not selectable
@@ -275,14 +272,14 @@ function eas_get_donation_form($atts, $content = null)
                             // Label of first option (selected by default)
                             $purposeValues      = array_values($purposes);
                             $purposeButtonLabel = array_reduce($purposeValues, function ($carry, $item) {
-                                return $carry ?: eas_get($item, '');
+                                return $carry ?: raise_get($item, '');
                             }, '');
                             $checked            = 'checked';
                         }
 
                         // Localize label
                         if (is_array($purposeButtonLabel)) {
-                            $purposeButtonLabel = eas_get_localized_value($purposeButtonLabel);
+                            $purposeButtonLabel = raise_get_localized_value($purposeButtonLabel);
                         }
 
                         // Don't print dropdown when only one purpose
@@ -293,7 +290,7 @@ function eas_get_donation_form($atts, $content = null)
                         else:
                 ?>
                     <div class="form-group required donor-info" id="donation-purpose">
-                        <label for="donor-purpose" class="col-sm-3 control-label"><?php echo eas_get_localized_value(eas_get($formSettings['payment']['labels']['purpose'], __('Purpose', 'eas-donation-processor'))) ?></label>
+                        <label for="donor-purpose" class="col-sm-3 control-label"><?php echo raise_get_localized_value(raise_get($formSettings['payment']['labels']['purpose'], __('Purpose', 'raise'))) ?></label>
                         <div class="col-sm-9">
                             <button type="button" id="donor-purpose" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span id="selected-purpose"><?php echo $purposeButtonLabel ?></span>
@@ -309,7 +306,7 @@ function eas_get_donation_form($atts, $content = null)
 
                                         // Check if there are language settings
                                         if (is_array($labels)) {
-                                            $label = eas_get_localized_value($labels);
+                                            $label = raise_get_localized_value($labels);
                                         } else {
                                             $label = $labels;
                                         }
@@ -323,9 +320,9 @@ function eas_get_donation_form($atts, $content = null)
                 <?php endif; endif; ?>
 
                 <!-- Comment -->
-                <?php if (eas_get($formSettings['payment']['extra_fields']['comment'], false)): ?>
+                <?php if (raise_get($formSettings['payment']['extra_fields']['comment'], false)): ?>
                     <div class="form-group donor-info">
-                        <label for="donor-comment" class="col-sm-3 control-label"><?php _e('Public comment', 'eas-donation-processor') ?> (<?php _e('optional', 'eas-donation-processor') ?>)</label>
+                        <label for="donor-comment" class="col-sm-3 control-label"><?php _e('Public comment', 'raise') ?> (<?php _e('optional', 'raise') ?>)</label>
                         <div class="col-sm-9">
                             <textarea class="form-control" rows="3" name="comment" id="donor-comment"></textarea>
                         </div>
@@ -341,9 +338,9 @@ function eas_get_donation_form($atts, $content = null)
                                     <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1" checked>
                                     <?php
                                         if (!empty($formSettings['payment']['labels']['mailing_list'])) {
-                                            echo esc_html(eas_get_localized_value($formSettings['payment']['labels']['mailing_list']));
+                                            echo esc_html(raise_get_localized_value($formSettings['payment']['labels']['mailing_list']));
                                         } else {
-                                            _e('Subscribe me to newsletter', 'eas-donation-processor');
+                                            _e('Subscribe me to newsletter', 'raise');
                                         }
                                     ?>
                                 </label>
@@ -361,9 +358,9 @@ function eas_get_donation_form($atts, $content = null)
                                 <span id="tax-receipt-text">
                                 <?php
                                     if (!empty($formSettings['payment']['labels']['tax_receipt'])) {
-                                        echo esc_html(eas_get_localized_value($formSettings['payment']['labels']['tax_receipt']));
+                                        echo esc_html(raise_get_localized_value($formSettings['payment']['labels']['tax_receipt']));
                                     } else {
-                                        _e('I need a tax receipt', 'eas-donation-processor');
+                                        _e('I need a tax receipt', 'raise');
                                     }
                                 ?>
                                 </span>
@@ -375,21 +372,21 @@ function eas_get_donation_form($atts, $content = null)
                 <!-- Donor extra info start -->
                 <div id="donor-extra-info">
                     <div class="form-group donor-info optionally-required">
-                        <label for="donor-address" class="col-sm-3 control-label"><?php _e('Address', 'eas-donation-processor') ?></label>
+                        <label for="donor-address" class="col-sm-3 control-label"><?php _e('Address', 'raise') ?></label>
                         <div class="col-sm-9">
                             <input type="text" class="form-control text" name="address" id="donor-address" placeholder="">
                         </div>
                     </div>
 
                     <div class="form-group donor-info optionally-required">
-                        <label for="donor-zip" class="col-sm-3 control-label"><?php _e('Zip code', 'eas-donation-processor') ?></label>
+                        <label for="donor-zip" class="col-sm-3 control-label"><?php _e('Zip code', 'raise') ?></label>
                         <div class="col-sm-9">
                             <input type="text" class="form-control text" name="zip" id="donor-zip" placeholder="">
                         </div>
                     </div>
 
                     <div class="form-group donor-info optionally-required">
-                        <label for="donor-city" class="col-sm-3 control-label"><?php _e('City', 'eas-donation-processor') ?></label>
+                        <label for="donor-city" class="col-sm-3 control-label"><?php _e('City', 'raise') ?></label>
                         <div class="col-sm-9">
                             <input type="text" class="form-control text" name="city" id="donor-city" placeholder="">
                         </div>
@@ -397,12 +394,12 @@ function eas_get_donation_form($atts, $content = null)
 
                     <?php if (empty($formSettings['payment']['extra_fields']['country']) || !$formSettings['payment']['extra_fields']['country']): ?>
                     <div class="form-group donor-info optionally-required">
-                        <label for="donor-country" class="col-sm-3 control-label"><?php _e('Country', 'eas-donation-processor') ?></label>
+                        <label for="donor-country" class="col-sm-3 control-label"><?php _e('Country', 'raise') ?></label>
                         <div class="col-sm-9">
                             <select class="combobox form-control" name="country" id="donor-country">
                                 <option></option>
                                 <?php
-                                    $countries = eas_get_sorted_country_list();
+                                    $countries = raise_get_sorted_country_list();
                                     foreach ($countries as $code => $country) {
                                         $checked = $userCountryCode == $code ? 'selected' : '';
                                         echo '<option value="' . $code . '" '  . $checked . '>' . $country[0] . '</option>';
@@ -417,14 +414,14 @@ function eas_get_donation_form($atts, $content = null)
 
                 <div class="buttons row">
                     <div class="col-sm-6 col-sm-push-3">
-                        <button type="submit" class="btn btn-lg confirm donation-continue" id="donation-submit"><?php _e('Next', 'eas-donation-processor') ?></button>
+                        <button type="submit" class="btn btn-lg confirm donation-continue" id="donation-submit"><?php _e('Next', 'raise') ?></button>
                     </div>
                     <div class="col-xs-4 col-sm-3 col-sm-pull-6" style="text-align: left">
-                        <button type="button" class="btn btn-link unconfirm" id="donation-go-back"><?php _e('Back', 'eas-donation-processor') ?></button>
+                        <button type="button" class="btn btn-link unconfirm" id="donation-go-back"><?php _e('Back', 'raise') ?></button>
                     </div>
                     <div class="col-xs-8 col-sm-12" id="secure-transaction">
                         <p class="text-success">
-                            <span class="glyphicon glyphicon-lock" aria-hidden="true"></span><span class="glyphicon glyphicon-ok glyphicon-overlay" aria-hidden="true"></span> <?php _e('Secure', 'eas-donation-processor') ?>
+                            <span class="glyphicon glyphicon-lock" aria-hidden="true"></span><span class="glyphicon glyphicon-ok glyphicon-overlay" aria-hidden="true"></span> <?php _e('Secure', 'raise') ?>
                         </p>
                     </div>
                 </div>
@@ -440,7 +437,7 @@ function eas_get_donation_form($atts, $content = null)
                         <img src="<?php echo plugins_url('images/ok.png', __FILE__) ?>" alt="Donation complete">
                     </div>
                     <div class="response-text">
-                        <strong><span id="success-text"><?php echo esc_html(eas_get_localized_value($formSettings['finish']['success_message'])) ?></span></strong>
+                        <strong><span id="success-text"><?php echo esc_html(raise_get_localized_value($formSettings['finish']['success_message'])) ?></span></strong>
                     </div>
                 </div>
                 <div id="shortcode-content">
@@ -456,10 +453,10 @@ function eas_get_donation_form($atts, $content = null)
 </form>
 
 <?php 
-    $enabledProviders = eas_enabled_payment_providers($formSettings, $mode);
+    $enabledProviders = raise_enabled_payment_providers($formSettings, $mode);
     if (in_array('paypal', $enabledProviders)): ?>
     <!-- PayPal modal -->
-    <div id="PayPalModal" class="modal eas-modal eas-popup-modal fade" role="dialog" data-backdrop="static">
+    <div id="PayPalModal" class="modal raise-modal raise-popup-modal fade" role="dialog" data-backdrop="static">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
@@ -475,7 +472,7 @@ function eas_get_donation_form($atts, $content = null)
 
 <?php if (in_array('gocardless', $enabledProviders)): ?>
     <!-- GoCardless modal -->
-    <div id="GoCardlessModal" class="modal eas-modal eas-popup-modal fade" role="dialog" data-backdrop="static">
+    <div id="GoCardlessModal" class="modal raise-modal raise-popup-modal fade" role="dialog" data-backdrop="static">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
@@ -483,12 +480,12 @@ function eas_get_donation_form($atts, $content = null)
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="eas_popup_open hidden">
-                        <p><?php _e("Please continue the donation in the secure window that you've already opened.", "eas-donation-processor") ?></p>
-                        <button class="btn btn-primary" onclick="easPopup.focus()">OK</button>
+                    <div class="raise_popup_open hidden">
+                        <p><?php _e("Please continue the donation in the secure window that you've already opened.", "raise") ?></p>
+                        <button class="btn btn-primary" onclick="raisePopup.focus()">OK</button>
                     </div>
-                    <div class="eas_popup_closed">
-                        <button id="GoCardlessPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Set up Direct Debit", "eas-donation-processor") ?></button>
+                    <div class="raise_popup_closed">
+                        <button id="GoCardlessPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Set up Direct Debit", "raise") ?></button>
                     </div>
                 </div>
             </div>
@@ -498,7 +495,7 @@ function eas_get_donation_form($atts, $content = null)
 
 <?php if (in_array('bitpay', $enabledProviders)): ?>
     <!-- Bitpay modal -->
-    <div id="BitPayModal" class="modal eas-modal eas-popup-modal fade" role="dialog" data-backdrop="static">
+    <div id="BitPayModal" class="modal raise-modal raise-popup-modal fade" role="dialog" data-backdrop="static">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
@@ -506,12 +503,12 @@ function eas_get_donation_form($atts, $content = null)
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="eas_popup_open hidden">
-                        <p><?php _e("Please continue the donation in the secure window that you've already opened.", "eas-donation-processor") ?></p>
-                        <button class="btn btn-primary" onclick="easPopup.focus()">OK</button>
+                    <div class="raise_popup_open hidden">
+                        <p><?php _e("Please continue the donation in the secure window that you've already opened.", "raise") ?></p>
+                        <button class="btn btn-primary" onclick="raisePopup.focus()">OK</button>
                     </div>
-                    <div class="eas_popup_closed">
-                        <button id="BitPayPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Pay by Bitcoin", "eas-donation-processor") ?></button>
+                    <div class="raise_popup_closed">
+                        <button id="BitPayPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Pay by Bitcoin", "raise") ?></button>
                     </div>
                 </div>
             </div>
@@ -521,7 +518,7 @@ function eas_get_donation_form($atts, $content = null)
 
 <?php if (in_array('skrill', $enabledProviders)): ?>
     <!-- Skrill modal -->
-    <div id="SkrillModal" class="modal eas-modal eas-iframe-modal fade" role="dialog" data-backdrop="static">
+    <div id="SkrillModal" class="modal raise-modal raise-iframe-modal fade" role="dialog" data-backdrop="static">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -533,7 +530,7 @@ function eas_get_donation_form($atts, $content = null)
     </div>
 <?php endif; ?>
 
-<div id="drawer"><?php _e('Please fill out all required fields correctly.', 'eas-donation-processor') ?></div>
+<div id="drawer"><?php _e('Please fill out all required fields correctly.', 'raise') ?></div>
 
 </div>
 <!-- End Bootstrap scope -->

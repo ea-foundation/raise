@@ -67,10 +67,10 @@ class RaiseOptionsPage
 
         // Load merged settings
         $mergedSettings = array();
-        if (function_exists('eas_donation_processor_config')) {
-            if ($externalSettings = eas_donation_processor_config()) {
+        if (function_exists('raise_config')) {
+            if ($externalSettings = raise_config()) {
                 // Merge
-                $mergedSettings = eas_array_replace_recursive($externalSettings, $settings);
+                $mergedSettings = raise_array_replace_recursive($externalSettings, $settings);
             } else {
                 $mergedSettings = array("Error" => "Invalid JSON");
             }
@@ -112,8 +112,8 @@ class RaiseOptionsPage
             $unsavedSettingsMessage = '<p><strong>Configure settings and save.</strong></p>';
         }
         ?>
-        <div id="eas-options" class="wrap">
-            <h1>Donation Plugin</h1>
+        <div id="raise-options" class="wrap">
+            <h1>Raise - Donation Plugin</h1>
             <p>Version: <?php echo esc_html($version) ?></p>
             <?php echo $unsavedSettingsMessage ?>
             <div id="tabs">
@@ -310,6 +310,38 @@ class RaiseOptionsPage
                 // Make tabs if there are settings from the config plugin
                 jQuery("#tabs").tabs({ active: 0 });
                 <?php endif; ?>
+
+                var customUploader;
+                var logo   = jQuery('.stripe-logo');
+                var target = jQuery('.wrap input[name="raise_logo"]');
+
+                logo.click(function(e) {
+                    e.preventDefault();
+                    //If the uploader object has already been created, reopen the dialog
+                    if (customUploader) {
+                        customUploader.open();
+                        return;
+                    }
+
+                    //Extend the wp.media object
+                    customUploader = wp.media.frames.file_frame = wp.media({
+                        title: 'Choose Image',
+                        button: {
+                            text: 'Choose Image'
+                        },
+                        multiple: false
+                    });
+
+                    //When a file is selected, grab the URL and set it as the text field's value
+                    customUploader.on('select', function() {
+                        attachment = customUploader.state().get('selection').first().toJSON();
+                        target.val(attachment.url);
+                        logo.css('backgroundImage', "url('" + attachment.url + "')");
+                    });
+
+                    //Open the uploader dialog
+                    customUploader.open();
+                });
 
                 // Stringify editor JSON and put it into hidden form field before submitting the form
                 jQuery('#donation_setting_form').submit(function() {

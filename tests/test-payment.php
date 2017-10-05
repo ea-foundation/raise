@@ -2,7 +2,7 @@
 /**
  * Class SampleTest
  *
- * @package Eas_Donation_Processor
+ * @package Raise
  */
 
 /**
@@ -15,7 +15,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_stripe_nl_eur_coutry_compulsory_receipt_needed()
     {
         $formSettings = $this->getFormSettings();
-        $settings     = eas_get_best_payment_provider_settings(
+        $settings     = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -36,7 +36,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_stripe_de_eur_coutry_compulsory_receipt_needed()
     {
         $formSettings = $this->getFormSettings();
-        $settings     = eas_get_best_payment_provider_settings(
+        $settings     = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -57,7 +57,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_stripe_gb_gbp_coutry_compulsory_receipt_needed()
     {
         $formSettings = $this->getFormSettings();
-        $settings     = eas_get_best_payment_provider_settings(
+        $settings     = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -78,7 +78,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_stripe_nl_eur_coutry_compulsory_receipt_not_needed()
     {
         $formSettings = $this->getFormSettings();
-        $settings     = eas_get_best_payment_provider_settings(
+        $settings     = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -99,7 +99,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_stripe_de_eur_coutry_compulsory_receipt_not_needed()
     {
         $formSettings = $this->getFormSettings();
-        $settings     = eas_get_best_payment_provider_settings(
+        $settings     = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -120,7 +120,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_stripe_gb_gbp_coutry_compulsory_receipt_not_needed()
     {
         $formSettings = $this->getFormSettings();
-        $settings     = eas_get_best_payment_provider_settings(
+        $settings     = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -142,7 +142,7 @@ class PaymentTest extends WP_UnitTestCase {
     {
         $formSettings = $this->getFormSettings();
         $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = eas_get_best_payment_provider_settings(
+        $settings = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -164,7 +164,7 @@ class PaymentTest extends WP_UnitTestCase {
     {
         $formSettings = $this->getFormSettings();
         $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = eas_get_best_payment_provider_settings(
+        $settings = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -186,7 +186,7 @@ class PaymentTest extends WP_UnitTestCase {
     {
         $formSettings = $this->getFormSettings();
         $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = eas_get_best_payment_provider_settings(
+        $settings = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -208,7 +208,7 @@ class PaymentTest extends WP_UnitTestCase {
     {
         $formSettings = $this->getFormSettings();
         $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = eas_get_best_payment_provider_settings(
+        $settings = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -230,7 +230,7 @@ class PaymentTest extends WP_UnitTestCase {
     {
         $formSettings = $this->getFormSettings();
         $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = eas_get_best_payment_provider_settings(
+        $settings = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -252,7 +252,7 @@ class PaymentTest extends WP_UnitTestCase {
     {
         $formSettings = $this->getFormSettings();
         $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = eas_get_best_payment_provider_settings(
+        $settings = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -274,7 +274,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_fake_provider()
     {
         $formSettings = $this->getFormSettings();
-        $settings     = eas_get_best_payment_provider_settings(
+        $settings     = raise_get_best_payment_provider_settings(
             $formSettings,
             'foobar',
             'live',
@@ -292,7 +292,7 @@ class PaymentTest extends WP_UnitTestCase {
     {
         $formSettings = $this->getFormSettings();
         unset($formSettings['payment']['provider']['stripe']['live']['secret_key']);
-        $settings = eas_get_best_payment_provider_settings(
+        $settings = raise_get_best_payment_provider_settings(
             $formSettings,
             'stripe',
             'live',
@@ -313,7 +313,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_paypal_settings()
     {
         $formSettings = $this->getFormSettings();
-        $this->assertTrue(eas_payment_provider_settings_complete(
+        $this->assertTrue(raise_payment_provider_settings_complete(
             'paypal',
             $formSettings['payment']['provider']['paypal']['live']
         ));
@@ -325,7 +325,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_gocardless_settings()
     {
         $formSettings = $this->getFormSettings();
-        $this->assertTrue(eas_payment_provider_settings_complete(
+        $this->assertTrue(raise_payment_provider_settings_complete(
             'gocardless',
             $formSettings['payment']['provider']['gocardless']['live']
         ));
@@ -337,7 +337,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_bitpay_settings()
     {
         $formSettings = $this->getFormSettings();
-        $this->assertTrue(eas_payment_provider_settings_complete(
+        $this->assertTrue(raise_payment_provider_settings_complete(
             'bitpay',
             $formSettings['payment']['provider']['bitpay']['live']
         ));
@@ -349,7 +349,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_skrill_settings()
     {
         $formSettings = $this->getFormSettings();
-        $this->assertTrue(eas_payment_provider_settings_complete(
+        $this->assertTrue(raise_payment_provider_settings_complete(
             'skrill',
             $formSettings['payment']['provider']['skrill']['live']
         ));
@@ -360,7 +360,7 @@ class PaymentTest extends WP_UnitTestCase {
      */
     function test_banktransfer_settings()
     {
-        $this->assertTrue(eas_payment_provider_settings_complete('banktransfer', array()));
+        $this->assertTrue(raise_payment_provider_settings_complete('banktransfer', array()));
     }
 
     /**
@@ -369,7 +369,7 @@ class PaymentTest extends WP_UnitTestCase {
     function test_payment_providers()
     {
         $formSettings = $this->getFormSettings();
-        $providers    = eas_enabled_payment_providers($formSettings, 'live');
+        $providers    = raise_enabled_payment_providers($formSettings, 'live');
 
         $this->assertArraySubset($providers, [
             'stripe',
@@ -390,7 +390,7 @@ class PaymentTest extends WP_UnitTestCase {
         $formSettings['payment']['provider'] = array_map(function ($val) {
             return null;
         }, $formSettings['payment']['provider']);
-        $providers = eas_enabled_payment_providers($formSettings, 'live');
+        $providers = raise_enabled_payment_providers($formSettings, 'live');
 
         $this->assertEmpty($providers);
     }

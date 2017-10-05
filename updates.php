@@ -7,11 +7,14 @@
  */
 function raise_update_settings()
 {
-    $pluginVersion = eas_get_plugin_version();
+    $pluginVersion = raise_get_plugin_version();
 
     // Get settings
-    if (!($settingsVersion = get_option('raise_version')) || !($settings = json_decode(get_option('raise_settings'), true))) {
-        // Backward compatibility
+    $settingsVersion = get_option('raise_version');
+    $settings        = json_decode(get_option('raise_settings'), true);
+
+    // Backward compatibility
+    if (!$settingsVersion || !$settings) {
         $settingsVersion = get_option('version');
         $settings        = json_decode(get_option('settings'), true);
     }
@@ -238,6 +241,33 @@ function raise_update_settings()
 
         update_option('raise_settings', json_encode($settings));
         update_option('raise_version', '0.13.2');
+    }
+
+    /**
+     * Date:   2017-10-05
+     * Author: Naoki Peter
+     */
+    if (version_compare($settingsVersion, '0.13.4', '<')) {
+        // Move BitPay options
+        foreach (array_keys($settings['forms']) as $form) {
+            $providers = raise_get($settings['forms'][$form]['payment']['provider'], array());
+            foreach ($providers as $provider => $providerSettings) {
+                if (strpos($provider, 'bitpay') === false) {
+                    continue;
+                }
+                $modes = array('sandbox', 'live');
+                foreach ($modes as $mode) {
+                    $code = raise_get($providerSettings[$mode]['pairing_code']);
+                    if (!empty($code)) {
+                        update_option('raise_bitpay_private_key_' . $code, get_option('bitpay-private-key-' . $code));
+                        update_option('raise_bitpay_public_key_' . $code, get_option('bitpay-public-key-' . $code));
+                        update_option('raise_bitpay_token_' . $code, get_option('bitpay-token-' . $code));
+                    }
+                }
+            }
+        }
+
+        update_option('raise_version', '0.13.4');
     }
 
     // Add new updates above this line
