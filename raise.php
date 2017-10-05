@@ -251,34 +251,3 @@ function raise_get_plugin_version() {
 
     return $GLOBALS['raisePluginVersion'];
 }
-
-/**
- * Register a tax deduction REST endpoint
- */
-add_action('rest_api_init', function() {
-    register_rest_route('raise/v1', '/tax-deduction/(?P<secret>\w+)', array(
-        'methods'  => 'GET',
-        'callback' => 'raise_serve_tax_deduction_settings',
-        'permission_callback' => function ($request) {
-            // Check expose status
-            if ('expose' != get_option('tax-deduction-expose')) {
-                return new WP_Error('rest_forbidden', 'Tax deduction sharing is disabled', array('status' => 403));
-            }
-
-            // Check secret
-            if ($request['secret'] != get_option('tax-deduction-secret')) {
-                return new WP_Error('rest_bad_request', 'Invalid secret', array('status' => 400));
-            }
-
-            // Check form exists
-            try {
-                $form = raise_get($_GET['form'], '');
-                raise_load_settings($form);
-            } catch (\Exception $ex) {
-                return new WP_Error('rest_not_found', $ex->getMessage(), array('status' => 404));
-            }
-
-            return true;
-        }
-    ));
-});

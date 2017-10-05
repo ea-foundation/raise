@@ -239,58 +239,6 @@ class RaiseOptionsPage
                     <?php endif; ?>
                 </p>
 
-                <div id="advanced-settings" class="hidden">
-                    <?php
-                        $taxDeductionExpose = get_option('raise_tax_deduction_expose', 'disabled');
-                    ?>
-                    <h2>Tax deduction label sharing</h2>
-                    <select name="raise_tax_deduction_expose">
-                        <option value="disabled" <?= $taxDeductionExpose == 'disabled' ? 'selected' : '' ?>>Disabled</option>
-                        <option value="expose"   <?= $taxDeductionExpose == 'expose'   ? 'selected' : '' ?>>Expose</option>
-                        <option value="consume"  <?= $taxDeductionExpose == 'consume'  ? 'selected' : '' ?>>Consume</option>
-                    </select>
-                    <div id="tax_deduction_expose_settings" class="<?= $taxDeductionExpose == 'expose' ? '' : 'hidden' ?>">
-                        <div>
-                            <label for="tax_deduction_secret">Secret:</label>
-                            <input id="tax_deduction_secret" type="text" name="raise_tax_deduction_secret" value="<?= get_option('raise_tax_deduction_secret', '') ?>">
-                        </div>
-                        <div>
-                            <label for="tax_deduction_url">URL:</label>
-                            <input id="tax_deduction_url" type="text" value="<?= site_url('/wp-json/raise/v1/tax-deduction/' . get_option('raise_tax_deduction_secret', '')) ?>" readonly>
-                        </div>
-                    </div>
-                    <div id="tax_deduction_consume_settings" class="<?= $taxDeductionExpose == 'consume' ? '' : 'hidden' ?>">
-                        <div>
-                            <label for="tax_deduction_remote_url">Remote URL:</label>
-                            <input id="tax_deduction_remote_url" type="text" name="raise_tax_deduction_remote_url" value="<?= get_option('raise_tax_deduction_remote_url', '') ?>">
-                        </div>
-                        <div>
-                            <label for="tax_deduction_remote_form_name">Form name:</label>
-                            <input id="tax_deduction_remote_form_name" type="text" name="raise_tax_deduction_remote_form_name" value="<?= get_option('raise_tax_deduction_remote_form_name', 'default') ?>">
-                        </div>
-                        <div>
-                            <label for="tax_deduction_cache_ttl">Cache TTL:</label>
-                            <input id="tax_deduction_cache_ttl" type="number" name="raise_tax_deduction_cache_ttl" min="1" value="<?= get_option('raise_tax_deduction_cache_ttl', '72') ?>"> hours
-                        </div>
-                        <div>
-                            <label for="tax_deduction_remote_settings">Remote settings:</label>
-                            <textarea id="tax_deduction_remote_settings" name="raise_tax_deduction_remote_settings" rows="8" readonly><?= get_option('raise_tax_deduction_remote_settings', '') ?></textarea>
-                        </div>
-                        <div class="donation-settings-block">
-                            <button type="button" class="button reload-tax-deduction">Refresh remote settings</button>
-                            <div style="display: inline-block; width: auto">
-                                <label for="tax_deduction_last_refreshed" style="width: 100px; vertical-align: middle; margin-left: 20px;">Last refreshed:</label>
-                                <input id="tax_deduction_last_refreshed" placeholder="-" type="text" name="raise_tax_deduction_last_refreshed" style="border: 0; box-shadow: none; width: 210px; vertical-align: middle" value="<?= get_option('raise_tax_deduction_last_refreshed', '') ?>" readonly>
-                                <span id="tax_deduction_notice"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="donation-settings-block">
-                    <a data-expander-target="advanced-settings" class="advanced-settings-expander">Show advanced settings</a>
-                </div>
-
                 <?php submit_button() ?>
             </form>
             <script>
@@ -379,48 +327,6 @@ class RaiseOptionsPage
 
                     jQuery(this).text(linkLabel);
                     advancedColorSettings.toggle();
-                });
-
-                // Toggle visibility tax deduction settings
-                jQuery('select[name=raise_tax_deduction_expose]').change(function() {
-                    switch (jQuery(this).val()) {
-                        case 'expose':
-                            jQuery(this).siblings('div#tax_deduction_expose_settings').show();
-                            jQuery(this).siblings('div#tax_deduction_consume_settings').hide();
-                            break;
-                        case 'consume':
-                            jQuery(this).siblings('div#tax_deduction_expose_settings').hide();
-                            jQuery(this).siblings('div#tax_deduction_consume_settings').show();
-                            break;
-                        default:
-                            jQuery(this).siblings('div').hide();
-                    }
-                });
-
-                // Update exposed URL
-                jQuery('input#tax_deduction_secret').keyup(function() {
-                    jQuery('input#tax_deduction_url').val("<?= site_url('/wp-json/raise/v1/tax-deduction/') ?>" + encodeURI(jQuery(this).val()));
-                });
-
-                // Reload remote settings
-                jQuery('button.reload-tax-deduction').click(function() {
-                    var urlRegExp = /https?:\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
-                    var remoteUrl = jQuery('input#tax_deduction_remote_url').val() + '?form=' + encodeURI(jQuery('input#tax_deduction_remote_form_name').val());
-                    if (urlRegExp.test(remoteUrl)) {
-                        jQuery.get(remoteUrl).done(function (response) {
-                            if (response.success) {
-                                jQuery('textarea#tax_deduction_remote_settings').text(JSON.stringify(response.tax_deduction, null, 4));
-                                var m = new Date();
-                                var dateString = m.getUTCFullYear() + "-" + ("0" + (m.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + m.getUTCDate()).slice(-2) + "T" + ("0" + m.getUTCHours()).slice(-2) + ":" + ("0" + m.getUTCMinutes()).slice(-2) + ":" + ("0" + m.getUTCSeconds()).slice(-2) + '+0000';
-                                jQuery('input#tax_deduction_last_refreshed').val(dateString);
-                                jQuery('#tax_deduction_notice').text('(not saved yet)');
-                            } else {
-                                alert('Reload failed: ' + data);
-                            }
-                        });
-                    } else {
-                        alert("Error: Fill in remote URL");
-                    }
                 });
             </script>
         </div>

@@ -2555,38 +2555,10 @@ function raise_monolinguify(array $labels, $depth = 0)
 }
 
 /**
- * AJAX call for serving tax deduction settings to an *external* instance
- *
- * @return WP_REST_Response
- * @see raise_load_tax_deduction_settings
- * @see raise_get_tax_deduction_settings_by_donation
- */
-function raise_serve_tax_deduction_settings()
-{
-    try {
-        $form         = raise_get($_GET['form'], '');
-        $formSettings = raise_load_settings($form);
-        $response     = new WP_REST_Response(array(
-            'success'       => true,
-            'tax_deduction' => $formSettings['payment']['labels']['tax_deduction'],
-        ));
-        $response->header('Access-Control-Allow-Origin', '*');
-
-        return $response;
-    } catch (\Exception $e) {
-        return new WP_REST_Response(array(
-            'success' => false,
-            'message' => $e->getMessage(),
-        ));
-    }
-}
-
-/**
  * Load tax deduction settings for donation
  *
  * @param array $donation
  * @return array
- * @see raise_serve_tax_deduction_settings
  * @see raise_load_tax_deduction_settings
  */
 function raise_get_tax_deduction_settings_by_donation(array $donation)
@@ -2637,46 +2609,13 @@ function raise_get_tax_deduction_settings_by_donation(array $donation)
  *
  * @param string $form Form name
  * @return array|null
- * @see raise_serve_tax_deduction_settings
  * @see raise_get_tax_deduction_settings_by_donation
  */
 function raise_load_tax_deduction_settings($form)
 {
     // Get local settings
     $formSettings         = raise_load_settings($form);
-    $taxDeductionSettings = raise_get($formSettings['payment']['labels']['tax_deduction'], array());
-
-    // Load remote settings if necessary
-    if ('consume' == get_option('raise_tax_deduction_expose') && $remoteUrl = get_option('raise_tax_deduction_remote_url')) {
-        $now           = new \DateTime();
-        $lastRefreshed = new \DateTime(get_option('raise_tax_deduction_last_refreshed', '1970-01-01'));
-        $timeInterval  = $lastRefreshed->diff($now);
-        $cacheTtl      = get_option('raise_tax_deduction_cache_ttl', 0);
-
-        try {
-            // Get cached remote settings
-            $remoteSettings = json_decode(get_option('raise_tax_deduction_remote_settings', array()), true);
-
-            if (!$remoteSettings || $timeInterval->days * 24 + $timeInterval->h > $cacheTtl) {
-                $remoteUrl     .= '?form=' . get_option('raise_tax_deduction_remote_form_name', '');
-                $remoteContents = json_decode(file_get_contents($remoteUrl), true);
-                if ($remoteContents['success'] && is_array($remoteContents['tax_deduction'])) {
-                    // Save new settings
-                    update_option('raise_tax_deduction_remote_settings', json_encode($remoteContents['tax_deduction'], JSON_PRETTY_PRINT));
-                    update_option('raise_tax_deduction_last_refreshed', $now->format(\DateTime::ISO8601));
-
-                    $remoteSettings = $remoteContents['tax_deduction'];
-                }
-            }
-        } catch (\Exception $e) {
-            // Serve old settings
-            throw new \Exception($e->getMessage());
-            $remoteSettings = is_array($remoteSettings) ? $remoteSettings : array();
-        }
-
-        // Merge remote and local settings. Local settings override remote settings.
-        $taxDeductionSettings = array_replace_recursive($remoteSettings, $taxDeductionSettings);
-    }
+    $taxDeductionSettings = raise_get($formSettings['payment']['labels']['tax_deduction'], []);
 
     return $taxDeductionSettings ? raise_monolinguify($taxDeductionSettings, 3) : null;
 }

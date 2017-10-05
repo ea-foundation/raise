@@ -1,6 +1,7 @@
 = 0.13.4: October 5, 2017 =
-* NEW: Removed donation[]/subscription[] array structure from webhook payload
-* NEW: Renamed shortcode argument `name` to `form`
-* NEW: Renamed `type` to `payment_provider` (update webhooks and email Twig settings)
-* NEW: Renamed CSS classes on confirmation page from `eas-*` to `raise-*`
 * NEW: Automatically enqueue scoped version of Bootstrap if necessary
+* TWEAKED: Removed donation[]/subscription[] array structure from webhook payload
+* TWEAKED: Renamed shortcode argument `name` to `form`
+* TWEAKED: Renamed `type` to `payment_provider` (update webhooks and email Twig settings)
+* TWEAKED: Renamed CSS classes on confirmation page from `eas-*` to `raise-*`
+* TWEAKED: Removed tax_deduction sharing feature

@@ -231,13 +231,6 @@ function raise_update_settings()
         update_option('raise_confirm_button_color_border_hover', get_option('confirm-button-color-border-hover'));
         update_option('raise_confirm_button_color_text', get_option('confirm-button-color-text'));
         update_option('raise_confirm_button_color_text_hover', get_option('confirm-button-color-text-hover'));
-        update_option('raise_tax_deduction_expose', get_option('tax-deduction-expose'));
-        update_option('raise_tax_deduction_secret', get_option('tax-deduction-secret'));
-        update_option('raise_tax_deduction_cache_ttl', get_option('tax-deduction-cache-ttl'));
-        update_option('raise_tax_deduction_last_refreshed', get_option('tax-deduction-last-refreshed'));
-        update_option('raise_tax_deduction_remote_url', get_option('tax-deduction-remote-url'));
-        update_option('raise_tax_deduction_remote_form_name', get_option('tax-deduction-remote-form-name'));
-        update_option('raise_tax_deduction_remote_settings', get_option('tax-deduction-remote-settings'));
 
         update_option('raise_settings', json_encode($settings));
         update_option('raise_version', '0.13.2');
