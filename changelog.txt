@@ -5,3 +5,4 @@
 * TWEAKED: Renamed `type` to `payment_provider` (update webhooks and email Twig settings)
 * TWEAKED: Renamed CSS classes on confirmation page from `eas-*` to `raise-*`
 * TWEAKED: Removed tax_deduction sharing feature
+* TWEAKED: Replaced default Stripe/Skrill image with EA bulb
