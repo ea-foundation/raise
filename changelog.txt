@@ -3,3 +3,4 @@
 * NEW: Renamed shortcode argument `name` to `form`
 * NEW: Renamed `type` to `payment_provider` (update webhooks and email Twig settings)
 * NEW: Renamed CSS classes on confirmation page from `eas-*` to `raise-*`
+* NEW: Automatically enqueue scoped version of Bootstrap if necessary

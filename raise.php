@@ -104,35 +104,45 @@ function raise_json_settings_editor()
 }
 
 /*
- * Additional Styles 
+ * Add styles and scripts
  */
 add_action('wp_enqueue_scripts', 'raise_register_donation_styles');
 function raise_register_donation_styles()
 {
-    wp_register_style('bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css');
-    wp_enqueue_style('bootstrap');
-    wp_register_style('donation-plugin-css', plugins_url('raise/css/form.css'), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-plugin-css');
-    wp_register_style('donation-combobox-css', plugins_url('raise/css/bootstrap-combobox.css'), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-combobox-css');
+    // Register bootstrap and bootstrap combobox
+    wp_register_style('bootstrap-scoped', plugins_url('raise/css/scoped-bootstrap.min.css'), array(), RAISE_ASSET_VERSION);
+    wp_register_style('donation-combobox', plugins_url('raise/css/bootstrap-combobox.css'), array(), RAISE_ASSET_VERSION);
+
+    // Register and enqueue all styles except bootstrap
+    wp_register_style('donation-plugin', plugins_url('raise/css/form.css'), array(), RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-plugin');
     wp_register_style('donation-plugin-flags', plugins_url('raise/css/flags-few.css'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-plugin-flags');
-    wp_register_style('donation-button-css', plugins_url('raise/css/button.css.php'), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-button-css');
-}
+    wp_register_style('donation-button', plugins_url('raise/css/button.css.php'), array(), RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-button');
 
-/*
- * Additional Scripts  
- */
-add_action('wp_enqueue_scripts', 'raise_register_donation_scripts');
-function raise_register_donation_scripts()
-{
+    // Register scripts (enqueue later)
     wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', array('jquery'));
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/api/checkout.js?data-version-4'); // The query string is actually supposed to be a separate attribute without value, see below
     wp_register_script('donation-combobox', plugins_url('raise/js/bootstrap-combobox.js'), array(), RAISE_ASSET_VERSION);
     wp_register_script('donation-plugin-form', plugins_url('raise/js/form.js'), array('jquery', 'donation-plugin-stripe'), RAISE_ASSET_VERSION);
+}
+
+/*
+ * Enqueue bootstrap if necessary 
+ */
+add_action('wp_print_styles', 'raise_enqueue_bootstrap');
+function raise_enqueue_bootstrap()
+{
+    // Check if we need to enqueue bootstrap
+    if (!wp_style_is('bootstrap')) {
+        wp_enqueue_style('bootstrap-scoped');
+    }
+
+    // Enqueue bootstrap combobox
+    wp_enqueue_style('donation-combobox');
 }
 
 // Register fundraiser post type if fundraiser plugin is installed
