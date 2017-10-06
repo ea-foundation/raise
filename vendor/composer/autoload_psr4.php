@@ -9,6 +9,7 @@ return array(
     'Twig\\' => array($vendorDir . '/twig/twig/src'),
     'Symfony\\Component\\Filesystem\\' => array($vendorDir . '/symfony/filesystem'),
     'Stripe\\' => array($vendorDir . '/stripe/stripe-php/lib'),
+    'ReCaptcha\\' => array($vendorDir . '/google/recaptcha/src/ReCaptcha'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),
     'GuzzleHttp\\Psr7\\' => array($vendorDir . '/guzzlehttp/psr7/src'),
     'GuzzleHttp\\Promise\\' => array($vendorDir . '/guzzlehttp/promises/src'),

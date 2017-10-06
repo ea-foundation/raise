@@ -22,6 +22,10 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
             'Symfony\\Component\\Filesystem\\' => 29,
             'Stripe\\' => 7,
         ),
+        'R' => 
+        array (
+            'ReCaptcha\\' => 10,
+        ),
         'P' => 
         array (
             'Psr\\Http\\Message\\' => 17,
@@ -47,6 +51,10 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
         'Stripe\\' => 
         array (
             0 => __DIR__ . '/..' . '/stripe/stripe-php/lib',
+        ),
+        'ReCaptcha\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/google/recaptcha/src/ReCaptcha',
         ),
         'Psr\\Http\\Message\\' => 
         array (

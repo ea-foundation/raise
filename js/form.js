@@ -259,7 +259,7 @@ jQuery(function($) {
 
         // If we're not at the end, do the following
         if (currentItem == (totalItems - 2)) {
-            // On penultimate page  load tax deduction labels
+            // On penultimate page load tax deduction labels
             updateTaxDeductionLabels();
 
             // ... and replace "confirm" with "donate X CHF"
@@ -267,6 +267,21 @@ jQuery(function($) {
         } else {
             // Otherwise go to next slide
             carouselNext();
+        }
+    });
+
+    // Expand Recaptcha banner
+    $('div.g-recaptcha-overlay', '#wizard').click(function() {
+        if($(this).hasClass('expanded')) {
+            $(this)
+                .removeClass('expanded')
+                .css('left', '0')
+                .siblings().animate({ width: 70 }, 200);
+        } else { 
+            $(this)
+                .addClass('expanded')
+                .css('left', '186px')
+                .siblings().animate({ width: 256 }, 200);
         }
     });
 
@@ -801,6 +816,17 @@ function handleBankTransferDonation()
     // Clear confirmation email (honey pot)
     jQuery('#donor-email-confirm').val('');
 
+    if (jQuery('div.g-recaptcha', '#wizard').length) {
+        // Get captcha, then send form
+        grecaptcha.execute();
+    } else {
+        // Send form
+        sendBanktransferDonation();
+    }
+}
+
+function sendBanktransferDonation()
+{
     // Send form
     jQuery('form#donationForm').ajaxSubmit({
         success: function(responseText, statusText, xhr, form) {

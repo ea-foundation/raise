@@ -420,11 +420,20 @@ function raise_get_donation_form($atts, $content = null)
                         <button type="button" class="btn btn-link unconfirm" id="donation-go-back"><?php _e('Back', 'raise') ?></button>
                     </div>
                     <div class="col-xs-8 col-sm-12" id="secure-transaction">
-                        <p class="text-success">
-                            <span class="glyphicon glyphicon-lock" aria-hidden="true"></span><span class="glyphicon glyphicon-ok glyphicon-overlay" aria-hidden="true"></span> <?php _e('Secure', 'raise') ?>
-                        </p>
+                        <span class="glyphicon glyphicon-lock" aria-hidden="true"></span><span class="glyphicon glyphicon-ok glyphicon-overlay" aria-hidden="true"></span> <?php _e('Secure', 'raise') ?>
                     </div>
                 </div>
+                <?php if ($siteKey = raise_get($formSettings['payment']['recaptcha']['site_key'])): ?>
+                <div class="row relative">
+                    <div id='recaptcha' class="g-recaptcha"
+                      data-sitekey="<?= $siteKey ?>"
+                      data-callback="sendBanktransferDonation"
+                      data-size="invisible"
+                      data-badge="inline"></div>
+                    <div class="g-recaptcha-overlay" title="reCAPTCHA"></div>
+                </div>
+                <script src="//www.google.com/recaptcha/api.js" async defer></script>
+                <?php endif; ?>
             </div>
 
 

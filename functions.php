@@ -330,27 +330,28 @@ function raise_get_donation_from_post()
     }
 
     return array(
-        'form'             => $post['form'],
-        'mode'             => $post['mode'],
-        'url'              => $_SERVER['HTTP_REFERER'],
-        'language'         => $post['language'],
-        'time'             => date('c'),
-        'currency'         => $post['currency'],
-        'amount'           => $post['amount'],
-        'frequency'        => $post['frequency'],
-        'payment_provider' => $post['payment_provider'],
-        'email'            => $post['email'],
-        'name'             => $post['name'],
-        'purpose'          => raise_get($post['purpose'], ''),
-        'address'          => raise_get($post['address'], ''),
-        'zip'              => raise_get($post['zip'], ''),
-        'city'             => raise_get($post['city'], ''),
-        'country'          => raise_get($post['country'], ''),
-        'comment'          => raise_get($post['comment'], ''),
-        'account'          => raise_get($post['account'], ''),
-        'anonymous'        => (bool) raise_get($post['anonymous'], false),
-        'mailinglist'      => (bool) raise_get($post['mailinglist'], false),
-        'tax_receipt'      => (bool) raise_get($post['tax_receipt'], false),
+        'form'                 => $post['form'],
+        'mode'                 => $post['mode'],
+        'url'                  => $_SERVER['HTTP_REFERER'],
+        'language'             => $post['language'],
+        'time'                 => date('c'),
+        'currency'             => $post['currency'],
+        'amount'               => $post['amount'],
+        'frequency'            => $post['frequency'],
+        'payment_provider'     => $post['payment_provider'],
+        'email'                => $post['email'],
+        'name'                 => $post['name'],
+        'purpose'              => raise_get($post['purpose'], ''),
+        'address'              => raise_get($post['address'], ''),
+        'zip'                  => raise_get($post['zip'], ''),
+        'city'                 => raise_get($post['city'], ''),
+        'country'              => raise_get($post['country'], ''),
+        'comment'              => raise_get($post['comment'], ''),
+        'account'              => raise_get($post['account'], ''),
+        'g-recaptcha-response' => raise_get($post['g-recaptcha-response'], ''),
+        'anonymous'            => (bool) raise_get($post['anonymous'], false),
+        'mailinglist'          => (bool) raise_get($post['mailinglist'], false),
+        'tax_receipt'          => (bool) raise_get($post['tax_receipt'], false),
     );
 }
 
@@ -425,6 +426,18 @@ function raise_process_donation()
         } else if ($donation['payment_provider'] == "Bank Transfer") {
             // Check honey pot (confirm email)
             raise_check_honey_pot($_POST);
+
+            // Check reCAPTCHA
+            $formSettings = raise_load_settings($donation['form']);
+            $secret       = raise_get($formSettings['payment']['recaptcha']['secret_key']);
+            if (!empty($secret)) {
+                $recaptcha          = new \ReCaptcha\ReCaptcha($secret);
+                $gRecaptchaResponse = $donation['g-recaptcha-response'];
+                $resp               = $recaptcha->verify($gRecaptchaResponse, $_SERVER['REMOTE_ADDR']);
+                if (!$resp->isSuccess()) {
+                    throw new \Exception('Invalid reCAPTCHA');
+                }
+            }
 
             // Handle payment
             $reference = raise_handle_banktransfer_payment($donation);
@@ -631,10 +644,6 @@ function raise_trigger_logging_webhooks($donation)
  */
 function raise_clean_up_donation_data(array $donation)
 {
-    // Unset reqId and bank_account_formatted (not needed)
-    unset($donation['reqId']);
-    unset($donation['bank_account_formatted']);
-
     // Transform boolean values to yes/no string
     $donation = array_map(function($val) {
         return is_bool($val) ? ($val ? 'yes' : 'no') : $val;

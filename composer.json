@@ -4,6 +4,7 @@
         "gocardless/gocardless-pro": "^0.9.4",
         "bitpay/php-client": "^2.2",
         "twig/twig": "~1.0",
-        "paypal/rest-api-sdk-php": "*"
+        "paypal/rest-api-sdk-php": "*",
+        "google/recaptcha": "~1.1"
     }
 }

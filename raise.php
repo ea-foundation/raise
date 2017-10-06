@@ -16,7 +16,7 @@ defined('ABSPATH') or exit;
 define('RAISE_PRIORITY', 12838790321);
 
 // Asset version
-define('RAISE_ASSET_VERSION', '0.39');
+define('RAISE_ASSET_VERSION', '0.40');
 
 // Load other files
 require_once "vendor/autoload.php";
