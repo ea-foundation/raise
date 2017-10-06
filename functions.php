@@ -2801,13 +2801,19 @@ function raise_array_replace_recursive($array, $array1)
 
 /**
  * Find smallest country flag sprite with all `country_flag` 
- * instances in settings
+ * instances in settings with brute force search
  *
  * @return string|null `most`, `some`, `few` or null (if less than 2 flags)
  */
 function raise_get_best_flag_sprite()
 {
     $settings = get_option('raise_settings');
+
+    // Check external settings as well
+    if (function_exists('raise_config')) {
+        $settings .= json_encode(raise_config());
+    }
+
     preg_match_all('/"country_flag":"(\w\w)"/', $settings, $matches);
     $matches = raise_get($matches[1], []);
 
