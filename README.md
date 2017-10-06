@@ -1,6 +1,8 @@
 # Raise
 The Free Donation Plugin for WordPress
 
+![Screenshot of Raise - The Free Donation Plugin for WordPress](/images/screenshot.png?raw=true)
+
 Main featuers:
 * Handle one-time donations from Stripe, PayPal, GoCardless (direct debit), BitPay (bitcoin), Skrill and bank transactions
 * Handle recurring donations from Stripe, PayPal, GoCardless, Skrill and bank transactions
