@@ -1,6 +1,7 @@
 = 0.13.5: October 6, 2017 =
 * TWEAKED: Removed support for `%name%` in emails
 * TWEAKED: Made valid HTML email template
+* IMPROVED: Made country flag sprite adaptive to currency settings
 
 = 0.13.4: October 5, 2017 =
 * NEW: Automatically enqueue scoped version of Bootstrap if necessary
