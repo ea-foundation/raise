@@ -1910,9 +1910,6 @@ function raise_send_confirmation_email(array $donation)
             $text = str_replace('%bank_account_formatted%', $bankAccount, $text);
         }
 
-        // Handle legacy name variable in email text
-        $text = str_replace('%name%', $donation['name'], $text);
-
         // The filters below need to access the email settings
         $GLOBALS['raiseEmailSender']      = raise_get($emailSettings['sender']);
         $GLOBALS['raiseEmailAddress']     = raise_get($emailSettings['address']);
@@ -2495,9 +2492,31 @@ EOD;
     $formSettings      = raise_load_settings($form);
     $confirmationEmail = raise_get_localized_value($formSettings['finish']['email'], $language);
     $isHtml            = raise_get($confirmationEmail['html'], false);
+
+    // Prepare email text
+    if ($isHtml) {
+        $emailText = <<<'EOD'
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Donation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body>
+EOD;
+        $emailText .= $macros . nl2br($confirmationEmail['text']);
+        $emailText .= <<<'EOD'
+</body>
+</html>
+EOD;
+    } else {
+        $emailText = $macros . $confirmationEmail['text'];
+    }
+
     $twigSettings      = array(
         'finish.email.subject'        => $confirmationEmail['subject'],
-        'finish.email.text'           => $macros . ($isHtml ? nl2br($confirmationEmail['text']) : $confirmationEmail['text']),
+        'finish.email.text'           => $emailText,
         'bank_account_formatted_html' => $macros . "{{ raise.dump(bank_account, 'html') }}",
         'bank_account_formatted_text' => $macros . "{{ raise.dump(bank_account, 'text') }}",
     );

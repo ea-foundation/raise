@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/raise
  * GitHub Plugin URI: ea-foundation/raise
  * Description: The Free Donation Plugin for WordPress
- * Version: 0.13.4
+ * Version: 0.13.5
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: GPLv3 or later
