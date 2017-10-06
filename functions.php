@@ -2799,8 +2799,41 @@ function raise_array_replace_recursive($array, $array1)
     return $array;
   }
 
+/**
+ * Find smallest country flag sprite with all `country_flag` 
+ * instances in settings
+ *
+ * @return string|null `most`, `some`, `few` or null (if less than 2 flags)
+ */
+function raise_get_best_flag_sprite()
+{
+    $settings = get_option('raise_settings');
+    preg_match_all('/"country_flag":"(\w\w)"/', $settings, $matches);
+    $matches = raise_get($matches[1], []);
 
+    if (count($matches) <= 1) {
+        // Flags won't be shown to user since there's no choice
+        return null;
+    }
 
+    // Find best sprite (default = `most`)
+    $flagSprite         = 'most';
+    $smallerFlagSprites = [
+        'few'  => ['eu', 'ch', 'gb', 'us'],
+        'some' => ['au', 'br', 'ca', 'ch', 'cl', 'cn', 'cz', 'dk', 'eu', 'gb', 'hk', 'hu', 'id', 'il', 'in', 'jp', 'kr', 'mx', 'my', 'no', 'nz', 'ph', 'pk', 'pl', 'ru', 'se', 'sg', 'th', 'tr', 'tw', 'us', 'za'],
+    ];
 
+    foreach ($smallerFlagSprites as $sprite => $flags) {
+        $allFlagsCovered = array_reduce($matches, function ($carry, $item) use ($flags) {
+            return $carry && in_array($item, $flags);
+        }, true);
 
+        if ($allFlagsCovered) {
+            // We've found a smaller sprite
+            $flagSprite = $sprite;
+            break;
+        }
+    }
 
+    return $flagSprite;
+}

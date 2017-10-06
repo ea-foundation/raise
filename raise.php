@@ -113,11 +113,15 @@ function raise_register_donation_styles()
     wp_register_style('bootstrap-scoped', plugins_url('raise/css/scoped-bootstrap.min.css'), array(), RAISE_ASSET_VERSION);
     wp_register_style('donation-combobox', plugins_url('raise/css/bootstrap-combobox.css'), array(), RAISE_ASSET_VERSION);
 
-    // Register and enqueue all styles except bootstrap
+    // Enqueue country flag sprites if necessary
+    if ($flagSprite = raise_get_best_flag_sprite()) {
+        wp_register_style('donation-plugin-flags', plugins_url('raise/css/flags-' . $flagSprite . '.css'), array(), RAISE_ASSET_VERSION);
+        wp_enqueue_style('donation-plugin-flags');
+    }
+
+    // Enqueue all other styles
     wp_register_style('donation-plugin', plugins_url('raise/css/form.css'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-plugin');
-    wp_register_style('donation-plugin-flags', plugins_url('raise/css/flags-few.css'), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-plugin-flags');
     wp_register_style('donation-button', plugins_url('raise/css/button.css.php'), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-button');
 
