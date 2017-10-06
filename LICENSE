@@ -18,11 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 This program incorporates work covered by the following copyright and
 permission notices:
 
-* stripe-php (https://github.com/stripe/stripe-php), gocardless-pro-php (https://github.com/gocardless/gocardless-pro-php/), and php-bitpay-client (https://github.com/bitpay/php-bitpay-client) are licensed under the MIT License.
+* stripe-php (https://github.com/stripe/stripe-php), gocardless-pro-php (https://github.com/gocardless/gocardless-pro-php/), php-bitpay-client (https://github.com/bitpay/php-bitpay-client) and Bootstrap (https://github.com/twbs/bootstrap/tree/v3-dev) are licensed under the MIT License.
 
     Copyright (c) 2010-2015 Stripe
     Copyright (c) 2014 GoCardless
     Copyright (c) 2015 BitPay
+    Copyright (c) 2011-2016 Twitter, Inc.
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal

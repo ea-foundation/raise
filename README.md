@@ -71,6 +71,9 @@ See doc/index.html
 * [gocardless/gocardless-pro-php](https://github.com/gocardless/gocardless-pro-php) - GoCardless SDK
 * [bitpay/php-client](https://github.com/bitpay/php-client) - BitPay SDK
 * [twigphp/Twig](https://github.com/twigphp/twig) - Template Engine (used for formatting confirmation emails)
+* [google/recaptcha](https://github.com/google/recaptcha) - reCAPTCHA PHP client library
+* [twbs/bootstrap](https://github.com/twbs/bootstrap/tree/v3-dev) - Bootstrap
+* [danielfarrell/bootstrap-combobox](https://github.com/danielfarrell/bootstrap-combobox) - Combobox plugin for Bootstrap
 * [josdejong/jsoneditor](https://github.com/josdejong/jsoneditor) - Editor for options page
 
 ## License
