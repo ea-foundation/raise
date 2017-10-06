@@ -524,6 +524,7 @@ if (typeof paypal !== 'undefined') {
             shape: 'pill',      // pill | rect
             color: 'blue'       // gold | blue | silver
         },
+        // payment() is called when the button is clicked
         payment: function() {
             // Close modal
             jQuery('#PayPalModal').modal('hide');
@@ -553,6 +554,7 @@ if (typeof paypal !== 'undefined') {
                 });
             });
         },
+        // onAuthorize() is called when the buyer approves the payment
         onAuthorize: function(data) {
             // Show spinner on form
             showSpinnerOnLastButton();

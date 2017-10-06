@@ -866,8 +866,8 @@ function raise_prepare_gocardless_donation(array $post)
 {
     try {
         // Make GoCardless redirect flow
-        $returnUrl    = raise_get_ajax_endpoint() . '?action=gocardless_debit';
         $reqId        = uniqid(); // Secret request ID. Needed to prevent replay attack
+        $returnUrl    = raise_get_ajax_endpoint() . '?action=gocardless_debit&req=' . $reqId;
         $monthly      = $post['frequency'] == 'monthly' ? ", " . __("monthly", "raise") : "";
         $client       = raise_get_gocardless_client(
             $post['form'],
@@ -913,8 +913,8 @@ function raise_process_gocardless_donation()
         // Get donation from session
         $donation = raise_get_donation_from_session();
 
-        // Reset request ID to prevent replay attacks
-        raise_reset_request_id();
+        // Verify session and purge reqId from session
+        raise_verify_session();
 
         // Get client
         $form       = $donation['form'];
@@ -1333,7 +1333,7 @@ function raise_reset_request_id()
 function raise_process_skrill_log()
 {
     try {
-        // Make sure it's the same user session
+        // Verify session and purge reqId
         raise_verify_session();
 
         // Get donation from session
@@ -1360,7 +1360,7 @@ function raise_process_skrill_log()
 function raise_process_bitpay_log()
 {
     try {
-        // Make sure it's the same user session
+        // Verify session and purge reqId
         raise_verify_session();
 
         // Get donation from session

@@ -6,7 +6,8 @@ The Free Donation Plugin for WordPress
 Main featuers:
 * Handle one-time donations from Stripe, PayPal, GoCardless (direct debit), BitPay (bitcoin), Skrill and bank transactions
 * Handle recurring donations from Stripe, PayPal, GoCardless, Skrill and bank transactions
-* Configure several form instances (property inheritance support)
+* Configure colors, amounts, number of columns, etc.
+* Define different form instances based on template (property inheritance)
 * Assign donations to different accounts depending on currency or donor country
 * Sandbox API support for Stripe, PayPal, GoCardless, BitPay and Skrill
 * Send confirmation emails (Twig support) and notification emails
