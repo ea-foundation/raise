@@ -1,6 +1,8 @@
 # EAS Donation Processor
 Donation-Plugin for WordPress, inspired by the donation widget on Barack Obama's support page
 
+![Screenshot of Raise - The Free Donation Plugin for WordPress](/images/screenshot.png?raw=true)
+
 Main featuers:
 * Handle one-time donations from Stripe, PayPal, GoCardless (direct debit), BitPay (bitcoin), Skrill and bank transactions
 * Handle recurring donations from Stripe, PayPal, GoCardless, Skrill and bank transactions
