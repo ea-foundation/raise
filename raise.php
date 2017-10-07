@@ -28,7 +28,7 @@ require_once "updates.php";
 require_once "form.php";
 
 // Add short code for donation form
-add_shortcode('donationForm','raise_get_donation_form');
+add_shortcode('raise_form','raise_form');
 
 // Start session (needed for most payment providers)
 add_action('wp_loaded', 'raise_start_session');

@@ -7,7 +7,7 @@
  * @param string $content Page contents for donation confirmation step
  * @return string HTML form contents
  */
-function raise_get_donation_form($atts, $content = null)
+function raise_form($atts, $content = null)
 {
     // Extract shortcode attributes (name becomes $form, etc.)
     extract(shortcode_atts(array(
