@@ -1,6 +1,8 @@
 # Raise
 
-Donation plugin for Wordpress. Supports [confirmation](#confirmation-email) and [notification](#notification-emails) mails, [webhooks](#webhooks), a newsletter checkbox, a [tax deductibility checkbox](#tax-deduction), multiple purposes, custom colors, multiple [form inheritance](#inheritance), sandbox mode, [centralized settings](#dedicated-plugin) and [i18n/translations](#translations). Accept donations via [Stripe](#stripe), [PayPal](#paypal), [GoCardless](#gocardless), [BitPay](#bitpay), [Skrill](#skrill) or [bank transfers](#bank-transfers).
+Donation plugin for Wordpress. Supports confirmation and notification-emails, webhooks, a newsletter checkbox, a tax deductibility checkbox, multiple purposes, custom colors, Javascript events, multiple form inheritance, sandbox mode, centralized settings and translations. 
+
+Accept donations via [Stripe](#stripe), [PayPal](#paypal), [GoCardless](#gocardless), [BitPay](#bitpay), [Skrill](#skrill) or [bank transfers](#bank-transfer).
 
 ![Screenshot of Raise - The Free Donation Plugin for WordPress](/images/screenshot.png?raw=true)
 
@@ -13,15 +15,15 @@ For a manual installation, download this repository and follow the instructions 
 
 To receive updates, install [Github Updater](https://github.com/afragen/github-updater).
 
-To embed the form in a page use the shortcode `[raise_form form="<form_name>" live="<true or false"][/raise_form]`.
+To embed the form in a page, use the shortcode `[raise_form form="<form_name>" live="<true or false"][/raise_form]`.
 
-If the `live` parameter is set to `false`, the plugin will use sandbox settings for each payment provider.
+If the `live` parameter is set to `false`, the plugin will use the sandbox settings for each payment provider.
 
 
 ## Configuration
 Configuration is done in JSON. The plugin comes with a visual JSON editor.
 
-Intially, the default settings are loaded from `_parameters.js.php.dist`. Once a modified version is saved, the plugin fetches settings from the database.
+Initially, the default settings are loaded from `_parameters.js.php.dist`. Once a modified version is saved, the plugin fetches settings from the database.
 
 ### Full example
 
@@ -200,7 +202,7 @@ Each payment method except bank transfer object is further nested into `live` an
 ### Bank transfer
 Consists of an identifier and a list of key-value pairs which will be displayed on the confirmation page. The identifier is also used for the `account` property in `tax_deduction` and sent in the payload.
 
-Each key will be printed in bold and translated if a [translation](#i18n) is found. Currently translated: "Bank", "Beneficiary", "BIC/SWIFT", "IBAN", "Purpose", "Reference number", "Sort code".
+Each key will be printed in bold and translated if a [translation](#translations) is found. Currently translated: "Bank", "Beneficiary", "BIC/SWIFT", "IBAN", "Purpose", "Reference number", "Sort code".
 
 Supports the `%reference_number%` placeholder.
 
@@ -216,7 +218,8 @@ Supports the `%reference_number%` placeholder.
 
 ![Bank transfer flow](/doc/images/bank_flow.png?raw=true)
 
-### Reference numbers
+
+#### Reference numbers
 To match bank transfers with registrations, you can declare a reference number prefix per purpose. This will get joined with a random 10-letter string and becomes available as the `%reference_number%` placeholder, e.g. "ORG-6FD5-7H91".
 
 ```json
@@ -238,12 +241,13 @@ To match bank transfers with registrations, you can declare a reference number p
 ### Stripe
 Requires `secret_key` and `public_key`. The organisation logo used in the checkout modal can be configured on the settings page.
 
-Webhook data:
+Additional webhook data:
 - `vendor_transaction_id`: Charge ID
 - `vendor_subscription:id`: Subscription ID
 - `vendor_customer_id`: Customer ID
 
 ![Stripe flow](/doc/images/stripe_flow.png?raw=true)
+
 
 
 ### PayPal
@@ -252,15 +256,17 @@ Requires `client_id` and `client_secret`. Generate credentials on PayPal Dashboa
 ![PayPal flow](/doc/images/paypal_flow.png?raw=true)
 
 
+
 ### GoCardless
 Requires `access_token` (read-write access). Generate sandbox credentials [here](https://manage-sandbox.gocardless.com/signup).
 
 GoCardless is currently only available in the Eurozone, UK, and Sweden. Beware of [maximum amounts](https://gocardless.com/faq/merchants/).
 
-Webhook data:
+Additional webhook data:
 - `vendor_customer_id`: Customer ID
 
 ![GoCardless flow](/doc/images/gocardless_flow.png?raw=true)
+
 
 
 ### BitPay
@@ -268,16 +274,18 @@ Requires `pairing_code`. Get a sandbox account [here](https://test.bitpay.com/ge
 
 Does not support recurring donations. BitPay donations are registered only if the donor clicks continue in the BitPay modal.
 
-Webhook data:
+Additional webhook data:
 - `vendor_transaction_id`: Invoice ID
 
 ![Bitpay flow](/doc/images/bitpay_flow.png?raw=true)
 
 
 ### Skrill
-Requires `merchant_account`. Sandbox account: "demoqcoflexible@sun-fish.com"
+Requires `merchant_account`. Sandbox account: demoqcoflexible@sun-fish.com
 
 ![Skrill flow](/doc/images/skrill_flow.png?raw=true)
+ 
+
 
 
 ## Tax deduction
@@ -287,6 +295,26 @@ Can be used to define tax deductibility rules based on country, payment method a
 - Level 2: payment method
 - Level 3: purpose key
 - Level 4: actual rule object
+
+```json
+"tax_deduction": {
+  "default": {
+    "default": {
+      "default": {
+        "deductible": true,
+        "receipt_text": "Your donation is tax-deductible in %country%.",
+        "success_text": "You will receive a tax receipt early next year."
+      }
+    },
+    "paypal": {
+      "SpecialPurpose": {
+        "deductible": false,
+        "receipt_text": "Unfortunately we cannot offer tax deductibility for donations to SpecialPurpose issued via PayPal."
+      }
+    }
+  }
+}
+```
 
 More explicit settings will overwrite general ones in this order:
 
@@ -313,22 +341,6 @@ Supports placeholders: `%country%`, `%payment_method%`, `%purpose%`, `%reference
 
 
 ## Confirmation email
-Keys are lowercase 2-letter language codes.
-- `sender` defaults to `wp_mail` default sender.
-- `address` defaults to `wp_mail` default sender
-- `subject` supports variables via Twig
-- `html` will send the email as `text/html` if true, else `text/plain`
-- `text` supports variables via Twig
-
-See the [Twig documentation](https://twig.symfony.com/) for placeholders. Available variables: form, mode, url, language, time, currency, amount, frequency, type, email, name, purpose, address, zip, city, country (in English), comment, success_text, receipt_text, deductible
-
-If an `account` is referenced in `tax_deduction`, the `bank_account` variable can be dumped using the `raise.dump` macro.
-
-```
-{{ raise.dump(bank_account, 'html') }} // use 'text' if email is sent as text
-```
-
-Full example:
 
 ```json
 "email": {
@@ -342,10 +354,25 @@ Full example:
 }
 ```
 
+Keys are lowercase 2-letter language codes.
+- `sender` defaults to `wp_mail` default sender.
+- `address` defaults to `wp_mail` default sender
+- `subject` supports variables via Twig
+- `html` will send the email as `text/html` if true, else `text/plain`
+- `text` supports variables via Twig
+
+See the [Twig documentation](https://twig.symfony.com/) for placeholders. Available variables: `form`, `mode`, `url`, `language`, `time`, `currency`, `amount`, `frequency`, `type`, `email`, `name`, `purpose`, `address`, `zip`, `city`, `country` (in English), `comment`, `success_text`, `receipt_text`, `deductible`
+
+If an `account` is referenced in `tax_deduction`, the `bank_account` variable can be dumped using the `raise.dump` macro.
+
+```
+{{ raise.dump(bank_account, 'html') }} // use 'text' if email is sent as text
+```
+
 :warning: The email object cannot be overridden partially.
 
 
-## Notifications emails
+## Notification emails
 Send a notification email whenever a donation was completed. Can be a comma-separated list of email addresses or an object with sending rules:
 
 ```json
@@ -355,12 +382,12 @@ Send a notification email whenever a donation was completed. Can be a comma-sepa
       "type": "Bank Transfer",
       "country_code": "us"
     },
-    "new-donation@example.org": {} # empty objects always pass
+    "new-donation@example.org": {}
   }
 }
 ```
 
-All keys sent in webhooks can be used as rule conditions. If at least one condition does not match, the notification email is skipped.
+All keys sent in webhooks can be used as rule conditions. If at least one condition does not match, the notification email is skipped. An empty object will always pass.
 
 :warning: The notification email object cannot be overridden partially.
 
@@ -368,13 +395,13 @@ All keys sent in webhooks can be used as rule conditions. If at least one condit
 ## Webhooks
 Array of webhook URLs. There are currently two options, `logging` and `mailing_list`, the latter of which will only get triggered when the subscribe checkbox was ticked. Upon successful donation a JSON object will be sent to each webhook, containing these parameters for `logging`:
 
-form, url, mode (sandbox/live), language (ISO-639-1), time, currency, amount, type (payment provider), email, frequency, purpose, name, address, zip, city, country (in English), country_code (ISO 3166-1 alpha-2, e.g. US), comment, anonymous (yes/no), tax_receipt (yes/no), mailinglist (yes/no), account, reference, referrer, vendor_transaction_id, vendor_subscription_id, vendor_customer_id
+`form`, `url`, `mode` (sandbox/live), `language` (ISO-639-1), `time`, `currency`, `amount`, `type` (payment provider), `email`, `frequency`, `purpose`, `name`, `address`, `zip`, `city`, `country` (in English), `country_code` (ISO 3166-1 alpha-2, `e`.g. US), `comment`, `anonymous` (yes/no), `tax_receipt` (yes/no), `mailinglist` (yes/no), `account`, `reference`, `referrer`, `vendor_transaction_id`, `vendor_subscription_id`, `vendor_customer_id`
 
 And these for `mailing_list`:
-subscription[email], subscription[name], subscription[language]
+`subscription[email]`, `subscription[name]`, `subscription[language]`
 
 ## Events
-The following events are dispatched on the window object. Each event is thrown only once per page impression.
+The following events will get dispatched to the window object. Each event is thrown only once per page impression.
 
 - `raise_interacted_with_donation_form`: The user has reached the second slide. The detail property of the event has the following keys: `form`, `amount`, `currency`.
 - `raise_initiated_donation`: The user has clicked on the donate button on the second slide. The detail property of the event has the following keys: `form`, `amount`, `currency`, `type` (payment method), `purpose`, `account`
