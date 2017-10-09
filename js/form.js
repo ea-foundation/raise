@@ -234,7 +234,7 @@ jQuery(function($) {
                     form: jQuery('#raise-form-name').val(),
                     currency: getDonationCurrencyIsoCode(),
                     amuont: getDonationAmount(),
-                    type: provider,
+                    payment_provider: provider,
                     purpose: jQuery('input[name=purpose]:checked', '#wizard').val(),
                     account: jQuery('#raise-form-account').val()
                 }});
@@ -944,7 +944,7 @@ function showConfirmation(paymentProvider)
         form: jQuery('#raise-form-name').val(),
         currency: getDonationCurrencyIsoCode(),
         amuont: getDonationAmount(),
-        type: paymentProvider,
+        payment_provider: paymentProvider,
         purpose: jQuery('input[name=purpose]:checked', '#wizard').val(),
         account: jQuery('#raise-form-account').val()
     }});
