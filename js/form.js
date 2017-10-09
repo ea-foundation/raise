@@ -727,8 +727,12 @@ function handlePopupDonation(provider)
         },
         error: function(responseText) {
             // Should only happen on internal server error
-            var message = 'error' in response ? response['error'] : responseText;
-            alert(message);
+            try {
+                var response = JSON.parse(responseText);
+                alert(response.error);
+            } catch (err) {
+                alert(responseText);
+            }
         }
     });
 
@@ -768,8 +772,12 @@ function handleIFrameDonation(provider)
         },
         error: function(responseText) {
             // Should only happen on internal server error
-            var message = 'error' in response ? response['error'] : responseText;
-            alert(message);
+            try {
+                var response = JSON.parse(responseText);
+                alert(response.error);
+            } catch (err) {
+                alert(responseText);
+            }
         }
     });
 
