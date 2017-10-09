@@ -15,7 +15,7 @@ For a manual installation, download this repository and follow the instructions 
 
 To receive updates, install [Github Updater](https://github.com/afragen/github-updater).
 
-To embed the form in a page, use the shortcode `[raise_form form="<form_name>" live="<true or false"][/raise_form]`.
+To embed the form in a page, use the shortcode `[raise_form form="<form_name>" live="<true or false>"][/raise_form]`.
 
 If the `live` parameter is set to `false`, the plugin will use the sandbox settings for each payment provider.
 
@@ -47,7 +47,7 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
         ],
         "custom": true,
         "columns": 3,  # use 1,2,3,4,6,12 for optiomal display
-        "currency": {  # required; cannot be overridden partially
+        "currency": {
           "eur": {
             "pattern": "%amount% €",
             "country_flag": "eu"
@@ -335,8 +335,6 @@ The rule object can contain the following parameters:
 - `account`: Account used to populate `account` in the webhook payload and select the appropriate bank details from [bank accounts](#bank-transfer).
 - `provider_hover_text`: Object with language properties (e.g. "en"). The values are objects with payment provider properties (e.g. "stripe"). The values are strings that are inserted into the title property of the corresponding payment provider labels.
 
-Non-default label settings can not be overridden partially.
-
 Supports placeholders: `%country%`, `%payment_method%`, `%purpose%`, `%reference_number%`, `%bank_transfer_formatted%`
 
 
@@ -361,15 +359,13 @@ Keys are lowercase 2-letter language codes.
 - `html` will send the email as `text/html` if true, else `text/plain`
 - `text` supports variables via Twig
 
-See the [Twig documentation](https://twig.symfony.com/) for placeholders. Available variables: `form`, `mode`, `url`, `language`, `time`, `currency`, `amount`, `frequency`, `type`, `email`, `name`, `purpose`, `address`, `zip`, `city`, `country` (in English), `comment`, `success_text`, `receipt_text`, `deductible`
+See the [Twig documentation](https://twig.symfony.com/) for placeholders. Available variables: `form`, `mode`, `url`, `language`, `time`, `currency`, `amount`, `frequency`, `payment_provider`, `email`, `name`, `purpose`, `address`, `zip`, `city`, `country` (in English), `comment`, `success_text`, `receipt_text`, `deductible`
 
 If an `account` is referenced in `tax_deduction`, the `bank_account` variable can be dumped using the `raise.dump` macro.
 
 ```
 {{ raise.dump(bank_account, 'html') }} // use 'text' if email is sent as text
 ```
-
-:warning: The email object cannot be overridden partially.
 
 
 ## Notification emails
@@ -389,23 +385,21 @@ Send a notification email whenever a donation was completed. Can be a comma-sepa
 
 All keys sent in webhooks can be used as rule conditions. If at least one condition does not match, the notification email is skipped. An empty object will always pass.
 
-:warning: The notification email object cannot be overridden partially.
-
 
 ## Webhooks
 Array of webhook URLs. There are currently two options, `logging` and `mailing_list`, the latter of which will only get triggered when the subscribe checkbox was ticked. Upon successful donation a JSON object will be sent to each webhook, containing these parameters for `logging`:
 
-`form`, `url`, `mode` (sandbox/live), `language` (ISO-639-1), `time`, `currency`, `amount`, `type` (payment provider), `email`, `frequency`, `purpose`, `name`, `address`, `zip`, `city`, `country` (in English), `country_code` (ISO 3166-1 alpha-2, `e`.g. US), `comment`, `anonymous` (yes/no), `tax_receipt` (yes/no), `mailinglist` (yes/no), `account`, `reference`, `referrer`, `vendor_transaction_id`, `vendor_subscription_id`, `vendor_customer_id`
+`form`, `url`, `mode` (sandbox/live), `language` (ISO-639-1), `time`, `currency`, `amount`, `payment_provider`, `email`, `frequency`, `purpose`, `name`, `address`, `zip`, `city`, `country` (in English), `country_code` (ISO 3166-1 alpha-2, e.g. `US`), `comment`, `anonymous` (yes/no), `tax_receipt` (yes/no), `mailinglist` (yes/no), `account`, `reference`, `referrer`, `vendor_transaction_id`, `vendor_subscription_id`, `vendor_customer_id`
 
 And these for `mailing_list`:
-`subscription[email]`, `subscription[name]`, `subscription[language]`
+`form`, `mode`, `email`, `name`, `language`
 
 ## Events
 The following events will get dispatched to the window object. Each event is thrown only once per page impression.
 
 - `raise_interacted_with_donation_form`: The user has reached the second slide. The detail property of the event has the following keys: `form`, `amount`, `currency`.
-- `raise_initiated_donation`: The user has clicked on the donate button on the second slide. The detail property of the event has the following keys: `form`, `amount`, `currency`, `type` (payment method), `purpose`, `account`
-- `raise_completed_donation`: The user has completed a donation. Note that the payment provider may differ from the one in raise_initiated_donation if the user has aborted a previous checkout process with a different payment provider. The detail property of the event has the following keys: `form`, `amount`, `currency`, `type`, `purpose`, `account`.
+- `raise_initiated_donation`: The user has clicked on the donate button on the second slide. The detail property of the event has the following keys: `form`, `amount`, `currency`, `payment_provider`, `purpose`, `account`
+- `raise_completed_donation`: The user has completed a donation. Note that the payment provider may differ from the one in raise_initiated_donation if the user has aborted a previous checkout process with a different payment provider. The detail property of the event has the following keys: `form`, `amount`, `currency`, `payment_provider`, `purpose`, `account`.
 
 
 ## Translations
