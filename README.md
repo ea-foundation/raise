@@ -60,7 +60,7 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
       },
       "payment": {
         "purpose": {
-            "my_org": "My organisation"
+            "my_org": "My organisation"  # If first element has an empty key, no purpose is selected by default
         },
         "<a href="#payment-methods">provider</a>": {
           "stripe": {
@@ -94,7 +94,7 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "comment": false. # add comment textarea
         },
         "country": {
-          "initial": "geoip",  # Initial value for country dropdown
+          "initial": "geoip",  # Initial value for country dropdown, e.g. "us"
           "fallback": null  # Fallback value if GeoIP is not available, e.g. "us"
         },
         "recaptcha": {
@@ -103,7 +103,8 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
         },
         "labels": {
           "purpose": "Purpose",
-          "mailing_list": "Subscribe to updates",
+          "mailing_list": "Subscribe to newsletter",
+          "tax_receipt": "I need a tax receipt",  # not necessary if tax deduction labels are set
           "<a href="#tax-deduction">tax_deduction</a>": {
             "default": {
               "default": {
@@ -291,9 +292,9 @@ Requires `merchant_account`. Sandbox account: demoqcoflexible@sun-fish.com
 ## Tax deduction
 Can be used to define tax deductibility rules based on country, payment method and purpose. Each level can and should have a `default` value. 
 
-- Level 1: lowercase 2-letter country code
-- Level 2: payment method
-- Level 3: purpose key
+- Level 1: lowercase 2-letter country code (`us`, `gb`, `de`, `fr`, etc. or `default`)
+- Level 2: payment method (`stripe`, `paypal`, `gocardless`, `bitpay`, `skrill`, `banktransfer` or `default`)
+- Level 3: purpose key (keys from `forms > my_form > payment > purpose` like `my_org` or `default`)
 - Level 4: actual rule object
 
 ```json
