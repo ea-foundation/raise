@@ -63,7 +63,7 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
             "my_org": "My organisation"
         },
         "<a href="#payment-methods">provider</a>": {
-          "stripe_ch": {
+          "stripe": {
             "live": {
               "secret_key": "sk_live_mykey",
               "public_key": "pk_live_mykey"
@@ -191,9 +191,9 @@ EOD
 
 
 ## Payment methods
-Each payment key except bank transfer can be written as `{method}`, `{method}_{xx_country code}` and `{method}_{xxx_currency_code)`. The plugin will select the appropriate key according to this logic:
+Each payment key except bank transfer can be written as `{method}` (= default, always required), `{method}_{xx_country code}` and `{method}_{xxx_currency_code)`. The plugin will select the appropriate key according to this logic:
 
-- If the donor does not need a tax receipt AND country field is not compulsory: currency-specific, country-specific, default
+- If the donor does not need a tax receipt AND country field is not compulsory: currency-specific, country-specific (any country with same currency), default
 
 - If the donor needs a tax receipt OR country field is compulsory: country-specific, currency-specific, default
 
