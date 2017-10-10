@@ -87,7 +87,7 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "purpose1": "ORG",
           "default": "XRG"
         },
-        "<a href="#integration-with-fundraising-plugin">campaign</a>": 145,
+        "<a href="#integration-with-fundraising-plugin">fundraiser</a>": 145,
         "extra_fields": {
           "country": false,  # move country dropdown up to required fields
           "anonymous": false,  # add anonynmous checkbox
@@ -434,14 +434,14 @@ If set, the plugin will save the specified number of donations as a custom post 
 ```
 
 ## Integration with fundraising plugin
-To reference the post ID of a [fundraiser](https://github.com/ea-foundation/matching-campaigns), set the campaign option. The fundraiser ID can be found in the URL, e.g. `https://example.org/wp-admin/post.php?post=<fundraiser_id>&action=edit`.
+To reference the post ID of a [fundraiser](https://github.com/ea-foundation/matching-campaigns), set the fundraiser option. The fundraiser ID can be found in the URL, e.g. `https://example.org/wp-admin/post.php?post=<fundraiser_id>&action=edit`.
 
 ```json
 {
   "forms": {
     "my_form": {
       "payment": {
-        "campaign": 159
+        "fundraiser": 159
       },
     }
   }
