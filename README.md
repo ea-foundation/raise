@@ -1,6 +1,6 @@
 # Raise
 
-Donation plugin for Wordpress. Supports confirmation and notification-emails, webhooks, a newsletter checkbox, a tax deductibility checkbox, multiple purposes, custom colors, Javascript events, multiple form inheritance, sandbox mode, centralized settings and translations. 
+Free donation plugin for Wordpress. Supports confirmation and notification-emails, webhooks, a newsletter checkbox, a tax deductibility checkbox, multiple purposes, custom colors, Javascript events, multiple form inheritance, sandbox mode, centralized settings and translations. 
 
 Accept donations via [Stripe](#stripe), [PayPal](#paypal), [GoCardless](#gocardless), [BitPay](#bitpay), [Skrill](#skrill) or [bank transfers](#bank-transfer).
 
@@ -84,7 +84,7 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           }
         },
         "<a href="#reference-numbers">reference_number_prefix</a>": {
-          "purpose1": "ORG",
+          "my_org": "ORG",
           "default": "XRG"
         },
         "<a href="#integration-with-fundraising-plugin">fundraiser</a>": 145,
@@ -141,11 +141,21 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
       },
       "<a href="#webhooks">webhook</a>": {
         "logging": {
+          "sandbox": [
+            "https://example.org/my-sandbox-logging-webhook/"
+          ],
           "live": [
-            "https://example.org/my-webhook/"
+            "https://example.org/my-logging-webhook/"
           ]
         },
-        "mailing_list": {}
+        "mailing_list": {
+          "sandbox": [
+            "https://example.org/my-sandbox-mailinglist-webhook/"
+          ],
+          "live": [
+            "https://example.org/my-mailinglist-webhook/"
+          ]
+        }
       }
     }
   }
@@ -158,6 +168,7 @@ Each form can specify a parent form from which to inherit settings. To unset opt
 
 Example: `forms > my_form > inherits: "default"`
 
+:warning: Arrays (such as `forms > my_form > webhook > logging > live`) are treated as literals. Inherited elements aren't merged.
 
 ### Dedicated plugin
 If the plugin is used on several sites, it can be convenient to specify one or several distributed parent forms. Local settings can inherit from these forms. To take advantage of this feature, create a new Wordpress plugin with the function `raise_donation_processor_config`.
