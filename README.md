@@ -426,6 +426,8 @@ Each key containing a string displayed to the user can also be specified as an o
 }
 ```
 
+If the key for the language of the website is missing, the first language is used as a fallback (`en` in this case).
+
 Use [Poedit](https://poedit.net/) or a similar tool to translate or modify the `.pot` and `.po` files that come with this plugin.
 
 ## Logging
