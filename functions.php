@@ -1753,7 +1753,7 @@ function raise_save_custom_posts(array $donation)
 }
 
 /**
- * Save matching challenge donation (custom post) if a matching challenge campaign is linked to the form
+ * Save fundraiser donation (custom post) if a fundraiser is linked to the form
  *
  * @param array $donation
  */
@@ -1768,17 +1768,17 @@ function raise_save_matching_challenge_donation_post(array $donation)
 
     $formSettings = raise_load_settings($form);
 
-    if (empty($formSettings['campaign'])) {
-        // No fundraiser campaign set
+    if (empty($formSettings['fundraiser'])) {
+        // No fundraiser fundraiser set
         return;
     }
 
-    $matchingCampaign = $formSettings['campaign'];
+    $fundraiserId = $formSettings['fundraiser'];
 
     // Save donation as a custom post
     $newPost = array(
-        "post_title"  => "$name contributed $currency $amount ($frequency) to fundraiser campaign (ID = $matchingCampaign)",
-        "post_type"   => "raise_donation",
+        "post_title"  => "$name contributed $currency $amount ($frequency) to fundraiser (ID = $fundraiserId)",
+        "post_type"   => "raise_fundraiser_don",
         "post_status" => "private",
     );
     $postId = wp_insert_post($newPost);
@@ -1788,7 +1788,7 @@ function raise_save_matching_challenge_donation_post(array $donation)
     add_post_meta($postId, 'currency', $currency);
     add_post_meta($postId, 'amount', preg_replace('#\.00$#', '', $amount));
     add_post_meta($postId, 'frequency', $frequency);
-    add_post_meta($postId, 'campaign', $matchingCampaign);
+    add_post_meta($postId, 'fundraiser', $fundraiserId);
     add_post_meta($postId, 'comment', $comment);
 }
 

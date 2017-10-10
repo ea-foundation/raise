@@ -263,6 +263,74 @@ function raise_update_settings()
         update_option('raise_version', '0.13.4');
     }
 
+    /**
+     * Date:   2017-10-10
+     * Author: Naoki Peter
+     */
+    if (version_compare($settingsVersion, '0.13.9', '<')) {
+        // Migrate `eas_donation_log` to `raise_donation_log`
+        $logQuery = 'numberposts=-1&post_status=any&post_type=eas_donation_log&order=ASC';
+        $oldLogs = get_posts($logQuery);
+        foreach ($oldLogs as $oldLog) {
+            $newLog = array(
+                "post_title"  => $oldLog->post_title,
+                "post_type"   => "raise_donation_log",
+                "post_status" => "private",
+            );
+            $newLogId = wp_insert_post($newLog);
+
+            // Add custom fields
+            foreach (get_post_meta($oldLog->ID) as $key => $value) {
+                if (!in_array($key, ['_edit_lock', '_edit_last'])) {
+                    add_post_meta($newLogId, $key, $value[0]);
+                }
+            }
+        }
+
+        // Migrate `eas_fundraiser` and `eas_donation` to `raise_fundraiser` and `raise_fundraiser_don`
+        $fundraiserQuery = 'numberposts=-1&post_status=any&post_type=eas_fundraiser&order=ASC';
+        $oldFundraisers = get_posts($fundraiserQuery);
+        foreach ($oldFundraisers as $oldFundraiser) {
+            $newFundraiser = array(
+                "post_title"  => $oldFundraiser->post_title,
+                "post_type"   => "raise_fundraiser",
+                "post_status" => "private",
+            );
+            $newFundraiserId = wp_insert_post($newFundraiser);
+
+            // Add custom fields
+            foreach (get_post_meta($oldFundraiser->ID) as $key => $value) {
+                if (!in_array($key, ['_edit_lock', '_edit_last'])) {
+                    add_post_meta($newFundraiserId, $key, $value[0]);
+                }
+            }
+
+            // Migrate fundraiser donations
+            $donationQuery = 'numberposts=-1&post_status=any&post_type=eas_donation&order=ASC&meta_key=campaign&meta_value=' . $oldFundraiser->ID;
+            $oldDonations = get_posts($donationQuery);
+            foreach ($oldDonations as $oldDonation) {
+                $newDonation = array(
+                    "post_title"  => $oldDonation->post_title,
+                    "post_type"   => "raise_fundraiser_don",
+                    "post_status" => "private",
+                );
+                $newDonationId = wp_insert_post($newDonation);
+
+                // Add custom fields
+                foreach (get_post_meta($oldDonation->ID) as $key => $value) {
+                    if (!in_array($key, ['_edit_lock', '_edit_last', 'campaign'])) {
+                        add_post_meta($newDonationId, $key, $value[0]);
+                    }
+                }
+
+                // Add fundraiser ID
+                add_post_meta($newDonationId, 'fundraiser', $newFundraiserId);
+            }
+        }
+
+        update_option('raise_version', '0.13.9');
+    }
+
     // Add new updates above this line
 
     update_option('raise_version', $pluginVersion);

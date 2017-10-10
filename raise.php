@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/raise
  * GitHub Plugin URI: ea-foundation/raise
  * Description: The Free Donation Plugin for WordPress
- * Version: 0.13.5
+ * Version: 0.13.9
  * Author: Naoki Peter
  * Author URI: http://0x1.ch
  * License: GPLv3 or later
@@ -147,50 +147,6 @@ function raise_enqueue_bootstrap()
 
     // Enqueue bootstrap combobox
     wp_enqueue_style('donation-combobox');
-}
-
-// Register fundraiser post type if fundraiser plugin is installed
-add_action('init', 'raise_create_fundraiser_post_type');
-function raise_create_fundraiser_post_type()
-{
-    if (function_exists('campaign_header')) {
-        register_post_type('raise_fundraiser', array(
-            'labels' => array(
-                'name'          => __("Fundraisers", "raise"),
-                'singular_name' => __("Fundraiser", "raise"),
-                'add_new_item'  => __("Add New Fundraiser", "raise"),
-                'edit_item'     => __("Edit Fundraiser", "raise"),
-                'new_item'      => __("New Fundraiser", "raise"),
-            ),
-            'supports'            => array('title', 'author'),
-            'public'              => true,
-            'has_archive'         => true,
-            'menu_icon'           => 'dashicons-lightbulb',
-            'exclude_from_search' => 'true',
-        ));
-    }
-}
-
-// Register fundraiser donation post type if fundraiser plugin is installed
-add_action('init', 'raise_create_fundraiser_doantion_post_type');
-function raise_create_fundraiser_doantion_post_type()
-{
-    if (function_exists('campaign_header')) {
-        register_post_type('raise_donation', array(
-            'labels' => array(
-                'name'          => __('Fundraiser Donations', 'raise'),
-                'singular_name' => __('Fundraiser Donation', 'raise'),
-                'add_new_item'  => __('Add New Donation', 'raise'),
-                'edit_item'     => __('Edit Donation', 'raise'),
-                'new_item'      => __('New Donation', 'raise'),
-            ),
-            'supports'            => array('title', 'custom-fields'),
-            'public'              => true,
-            'has_archive'         => true,
-            'menu_icon'           => 'dashicons-heart',
-            'exclude_from_search' => 'true',
-        ));
-    }
 }
 
 // Register donation log post type
