@@ -27,8 +27,12 @@ require_once "functions.php";
 require_once "updates.php";
 require_once "form.php";
 
-// Add short code for donation form
+// Add shortcode for donation form
 add_shortcode('raise_form','raise_form');
+
+// Add legacy shortcode for donation form
+//TODO Remove in next major release
+add_shortcode('donationForm','raise_form');
 
 // Start session (needed for most payment providers)
 add_action('wp_loaded', 'raise_start_session');
