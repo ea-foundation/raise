@@ -1,3 +1,7 @@
+= 0.13.10: October 11, 2017 =
+* TWEAKED: Changed `finish > email > en > sender` to `finish > email > sender > en`
+* TWEAKED: Reintroduced donation[]/subscription[] array structure to webhook payload
+
 = 0.13.9: October 10, 2017 =
 * TWEAKED: Added fundraiser data migration to update.php
 * TWEAKED: Moved fundraiser post types to fundraiser plugin

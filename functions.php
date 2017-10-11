@@ -631,7 +631,8 @@ function raise_trigger_logging_webhooks($donation)
     if (isset($formSettings['webhook']['logging'][$mode])) {
         $hooks = raise_csv_to_array($formSettings['webhook']['logging'][$mode]);
         foreach ($hooks as $hook) {
-            raise_send_webhook($hook, $donation);
+            //TODO Remove extra array layer around $donation in next major release
+            raise_send_webhook($hook, ['donation' => $donation]);
         }
     }
 }
@@ -694,7 +695,8 @@ function raise_trigger_mailinglist_webhooks($donation)
         // Iterate over hooks
         $hooks = raise_csv_to_array($formSettings['webhook']['mailing_list'][$mode]);
         foreach ($hooks as $hook) {
-            raise_send_webhook($hook, $subscription);
+            //TODO Remove extra array layer around $subscription in next major release
+            raise_send_webhook($hook, ['subscription' => $subscription]);
         }
     }
 }
