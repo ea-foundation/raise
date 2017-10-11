@@ -401,10 +401,10 @@ All keys sent in webhooks can be used as rule conditions. If at least one condit
 ## Webhooks
 Array of webhook URLs. There are currently two options, `logging` and `mailing_list`, the latter of which will only get triggered when the subscribe checkbox was ticked. Upon successful donation a JSON object will be sent to each webhook, containing these parameters for `logging`:
 
-`form`, `url`, `mode` (sandbox/live), `language` (ISO-639-1), `time`, `currency`, `amount`, `payment_provider`, `email`, `frequency`, `purpose`, `name`, `address`, `zip`, `city`, `country` (in English), `country_code` (ISO 3166-1 alpha-2, e.g. `US`), `comment`, `anonymous` (yes/no), `tax_receipt` (yes/no), `mailinglist` (yes/no), `account`, `reference`, `referrer`, `vendor_transaction_id`, `vendor_subscription_id`, `vendor_customer_id`
+`donation[form]`, `donation[url]`, `donation[mode]` (sandbox/live), `donation[language]` (ISO-639-1), `donation[time]`, `donation[currency]`, `donation[amount]`, `donation[payment_provider]`, `donation[email]`, `donation[frequency]`, `donation[purpose]`, `donation[name]`, `donation[address]`, `donation[zip]`, `donation[city]`, `donation[country]` (in English), `donation[country_code]` (ISO 3166-1 alpha-2, e.g. `US`), `donation[comment]`, `donation[anonymous]` (yes/no), `donation[tax_receipt]` (yes/no), `donation[mailinglist]` (yes/no), `donation[account]`, `donation[reference]`, `donation[referrer]`, `donation[vendor_transaction_id]`, `donation[vendor_subscription_id]`, `donation[vendor_customer_id]`
 
 And these for `mailing_list`:
-`form`, `mode`, `email`, `name`, `language`
+`subscription[form]`, `subscription[mode]`, `subscription[email]`, `subscription[name]`, `subscription[language]`
 
 ## Events
 The following events will get dispatched to the window object. Each event is thrown only once per page impression.

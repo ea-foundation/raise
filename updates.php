@@ -353,11 +353,11 @@ function raise_update_settings()
                 } else {
                     $newEmail = array();
                     foreach ($emails as $lang => $email) {
-                        $newEmail['sender'][$lang]  = raise_get($email['sender'], '');
-                        $newEmail['address'][$lang] = raise_get($email['address'], '');
-                        $newEmail['subject'][$lang] = raise_get($email['subject'], '');
-                        $newEmail['text'][$lang]    = raise_get($email['text'], '');
-                        $newEmail['html'][$lang]    = raise_get($email['html'], false);
+                        foreach (['sender', 'address', 'subject', 'text', 'html'] as $key) {
+                            if (isset($email[$key])) {
+                                $newEmail[$key][$lang]  = $email[$key];
+                            }
+                        }
                     }
                 }
 
