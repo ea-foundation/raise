@@ -1901,28 +1901,33 @@ function raise_send_confirmation_email(array $donation)
 
     // Only send email if we have settings (might not be the case if we're dealing with script kiddies)
     if (isset($formSettings['finish']['email'])) {
+        $emailSettings = $formSettings['finish']['email'];
         $language      = raise_get($donation['language']);
-        $emailSettings = raise_get_localized_value($formSettings['finish']['email'], $language);
+        $sender        = raise_get_localized_value($emailSettings['sender'], $language);
+        $address       = raise_get_localized_value($emailSettings['address'], $language);
+        $subject       = raise_get_localized_value($emailSettings['subject'], $language);
+        $text          = raise_get_localized_value($emailSettings['text'], $language);
+        $html          = raise_get_localized_value(raise_get($emailSettings['html'], false), $language);
 
         // Add tax dedcution labels to donation
         $donation += raise_get_tax_deduction_settings_by_donation($donation);
 
         // Get email subject and text and pass it through twig
-        $twig    = raise_get_twig($form, $language);
+        $twig    = raise_get_twig($text, $subject, $html);
         $subject = $twig->render('finish.email.subject', $donation);
         $text    = $twig->render('finish.email.text', $donation);
 
         // Repalce %bank_account_formatted% in success_text with macro
         if (!empty($donation['bank_account']) && strpos($text, '%bank_account_formatted%') !== false) {
-            $bankAccount = raise_get($emailSettings['html'], false) ? $twig->render('bank_account_formatted_html', $donation)
-                                                                  : $twig->render('bank_account_formatted_text', $donation);
+            $bankAccount = $html ? $twig->render('bank_account_formatted_html', $donation)
+                                 : $twig->render('bank_account_formatted_text', $donation);
             $text = str_replace('%bank_account_formatted%', $bankAccount, $text);
         }
 
         // The filters below need to access the email settings
-        $GLOBALS['raiseEmailSender']      = raise_get($emailSettings['sender']);
-        $GLOBALS['raiseEmailAddress']     = raise_get($emailSettings['address']);
-        $GLOBALS['raiseEmailContentType'] = raise_get($emailSettings['html'], false) ? 'text/html' : 'text/plain';
+        $GLOBALS['raiseEmailSender']      = $sender;
+        $GLOBALS['raiseEmailAddress']     = $address;
+        $GLOBALS['raiseEmailContentType'] = $html ? 'text/html' : 'text/plain';
 
         // Add email hooks
         add_filter('wp_mail_from', 'raise_get_email_address', RAISE_PRIORITY, 1);
@@ -2394,29 +2399,29 @@ function raise_get_stripe_public_keys(array $formSettings, $mode)
 }
 
 /**
- * Get best localized value for settings that can be either a string
+ * Get best localized value for settings that can be either a literal
  * or an array with a value per locale
  *
- * @param string|array $setting
- * @param string       $language en|de|...
- * @return string|array|null
+ * @param mixed   $setting
+ * @param string  $language en|de|...
+ * @return mixed|null
  */
 function raise_get_localized_value($setting, $language = null)
 {
-    if (is_string($setting)) {
+    if (!is_array($setting)) {
         return $setting;
     }
 
-    if (is_array($setting) && count($setting) > 0) {
-        // Chosse the best translation
+    if (count($setting) > 0) {
+        // Choose the best translation
         if (empty($language)) {
             $segments = explode('_', get_locale(), 2);
             $language = reset($segments);
         }
         return raise_get($setting[$language], reset($setting));
-    } else {
-        return null;
     }
+
+    return null;
 }
 
 /**
@@ -2470,11 +2475,12 @@ function raise_check_honey_pot($post)
 /**
  * Get twig singleton for form emails
  *
- * @param string $form     Form name
- * @param string $language de|en|...
+ * @param string $text    Email text
+ * @param string $subject Email subject
+ * @param bool   $html    Is email HTML?
  * @return Twig_Environment
  */
-function raise_get_twig($form, $language = null)
+function raise_get_twig($text, $subject, $html)
 {
     if (isset($GLOBALS['raise-twig'])) {
         return $GLOBALS['raise-twig'];
@@ -2497,13 +2503,8 @@ function raise_get_twig($form, $language = null)
 {% import _self as raise %}
 EOD;
 
-    // Get settings
-    $formSettings      = raise_load_settings($form);
-    $confirmationEmail = raise_get_localized_value($formSettings['finish']['email'], $language);
-    $isHtml            = raise_get($confirmationEmail['html'], false);
-
     // Prepare email text
-    if ($isHtml) {
+    if ($html) {
         $emailText = <<<'EOD'
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -2514,17 +2515,17 @@ EOD;
 </head>
 <body>
 EOD;
-        $emailText .= $macros . nl2br($confirmationEmail['text']);
+        $emailText .= $macros . nl2br($text);
         $emailText .= <<<'EOD'
 </body>
 </html>
 EOD;
     } else {
-        $emailText = $macros . $confirmationEmail['text'];
+        $emailText = $macros . $text;
     }
 
     $twigSettings      = array(
-        'finish.email.subject'        => $confirmationEmail['subject'],
+        'finish.email.subject'        => $subject,
         'finish.email.text'           => $emailText,
         'bank_account_formatted_html' => $macros . "{{ raise.dump(bank_account, 'html') }}",
         'bank_account_formatted_text' => $macros . "{{ raise.dump(bank_account, 'text') }}",
@@ -2533,7 +2534,7 @@ EOD;
     // Instantiate twig
     $loader = new Twig_Loader_Array($twigSettings);
     $twig   = new Twig_Environment($loader, array(
-        'autoescape' => $isHtml ? 'html' : false,
+        'autoescape' => $html ? 'html' : false,
     ));
 
     // Save twig globally

@@ -331,6 +331,44 @@ function raise_update_settings()
         update_option('raise_version', '0.13.9');
     }
 
+    /**
+     * Date:   2017-10-11
+     * Author: Naoki Peter
+     */
+    if (version_compare($settingsVersion, '0.13.10', '<')) {
+        // Change `finish > email` language structure
+        foreach (array_keys($settings['forms']) as $form) {
+            $emails = raise_get($settings['forms'][$form]['finish']['email'], array());
+            if ($emails) {
+                if (count($emails) == 1 || isset($emails['sender']))  {
+                    // Only one language
+                    $email = isset($emails['sender']) ? $emails : reset($emails);
+                    $newEmail = array(
+                        'sender'  => raise_get($email['sender'], ''),
+                        'address' => raise_get($email['address'], ''),
+                        'subject' => raise_get($email['subject'], ''),
+                        'text'    => raise_get($email['text'], ''),
+                        'html'    => raise_get($email['sender'], false),
+                    );
+                } else {
+                    $newEmail = array();
+                    foreach ($emails as $lang => $email) {
+                        $newEmail['sender'][$lang]  = raise_get($email['sender'], '');
+                        $newEmail['address'][$lang] = raise_get($email['address'], '');
+                        $newEmail['subject'][$lang] = raise_get($email['subject'], '');
+                        $newEmail['text'][$lang]    = raise_get($email['text'], '');
+                        $newEmail['html'][$lang]    = raise_get($email['html'], false);
+                    }
+                }
+
+                $settings['forms'][$form]['finish']['email'] = $newEmail;
+            }
+        }
+
+        update_option('raise_settings', json_encode($settings));
+        update_option('raise_version', '0.13.10');
+    }
+
     // Add new updates above this line
 
     update_option('raise_version', $pluginVersion);

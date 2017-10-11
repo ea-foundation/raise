@@ -368,10 +368,10 @@ Keys are lowercase 2-letter language codes.
 - `sender` defaults to `wp_mail` default sender.
 - `address` defaults to `wp_mail` default sender
 - `subject` supports variables via Twig
-- `html` will send the email as `text/html` if true, else `text/plain`
+- `html` will send the email as `text/html` if true, else `text/plain` (Note: In `html` mode new lines (`\n`) are converted to `<br>` tags at runtime.)
 - `text` supports variables via Twig
 
-See the [Twig documentation](https://twig.symfony.com/) for placeholders. Available variables: `form`, `mode`, `url`, `language`, `time`, `currency`, `amount`, `frequency`, `payment_provider`, `email`, `name`, `purpose`, `address`, `zip`, `city`, `country` (in English), `comment`, `success_text`, `receipt_text`, `deductible`
+See the [Twig 1.x documentation](https://twig.symfony.com/doc/1.x/) for placeholders. Available variables: `form`, `mode`, `url`, `language`, `time`, `currency`, `amount`, `frequency`, `payment_provider`, `email`, `name`, `purpose`, `address`, `zip`, `city`, `country` (in English), `comment`, `success_text`, `receipt_text`, `deductible`
 
 If an `account` is referenced in `tax_deduction`, the `bank_account` variable can be dumped using the `raise.dump` macro.
 

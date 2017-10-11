@@ -71,20 +71,11 @@
                     "de": "Herzlichen Dank für Ihre Spende!"
                 },
                 "email": {
-                    "en": {
-                        "address": "",
-                        "sender": "",
-                        "subject": "Your donation",
-                        "text": "Hi there\n\nThank you very much for your donation.",
-                        "html": false
-                    },
-                    "de": {
-                        "address": "",
-                        "sender": "",
-                        "subject": "Ihre Spende",
-                        "text": "Guten Tag\n\nHerzlichen Dank für Ihre Spende.",
-                        "html": false
-                    }
+                    "address": "",
+                    "sender": "",
+                    "subject": "Your donation",
+                    "text": "Hi there\n\nThank you very much for your donation.",
+                    "html": false
                 }
             },
             "webhook" : {
