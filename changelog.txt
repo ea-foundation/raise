@@ -1,4 +1,5 @@
 = 0.13.10: October 11, 2017 =
+* IMPROVED: Merged settings resolve form inheritance
 * TWEAKED: Changed `finish > email > en > sender` to `finish > email > sender > en`
 * TWEAKED: Reintroduced donation[]/subscription[] array structure to webhook payload
 * TWEAKED: Reintroduced support for the old shortcode `donationForm`

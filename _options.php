@@ -60,13 +60,12 @@ class RaiseOptionsPage
         );
 
         // Load settings
-        $settings          = json_decode(get_option('raise_settings'), true);
-        $defaultLogo       = plugin_dir_url(__FILE__) . 'images/logo.png';
-        $logo              = get_option('raise_logo', $defaultLogo);
-        $version           = get_option('raise_version');
+        $settings     = json_decode(get_option('raise_settings'), true);
+        $defaultLogo  = plugin_dir_url(__FILE__) . 'images/logo.png';
+        $logo         = get_option('raise_logo', $defaultLogo);
+        $version      = get_option('raise_version');
 
         // Load merged settings
-        $mergedSettings = array();
         if (function_exists('raise_config')) {
             if ($externalSettings = raise_config()) {
                 // Merge
@@ -74,6 +73,19 @@ class RaiseOptionsPage
             } else {
                 $mergedSettings = array("Error" => "Invalid JSON");
             }
+        } else {
+            $mergedSettings = $settings;
+        }
+
+        // Resolve inheritance
+        if (isset($mergedSettings['forms']) && is_array($mergedSettings['forms'])) {
+            $forms     = $mergedSettings['forms'];
+            $formNames = array_keys($forms);
+            $mergedSettings['forms'] = array_map(function($formName) use ($forms) {
+                $mergedForm = raise_rec_load_settings($formName, $forms);
+                unset($mergedForm['inherits']);
+                return $mergedForm;
+            }, array_combine($formNames, $formNames));
         }
         
         // Button background color
@@ -117,13 +129,9 @@ class RaiseOptionsPage
             <p>Version: <?php echo esc_html($version) ?></p>
             <?php echo $unsavedSettingsMessage ?>
             <div id="tabs">
-                <?php if ($mergedSettings): ?>
-                    <ul><li><a href="#jsoneditor">Local settings</a></li><li><a href="#merged-settings">Merged settings</a></li></ul>
-                <?php endif; ?>
+                <ul><li><a href="#jsoneditor">Local settings</a></li><li><a href="#merged-settings">Merged settings</a></li></ul>
                 <div id="jsoneditor"></div>
-                <?php if ($mergedSettings): ?>
-                    <div id="merged-settings"></div>
-                <?php endif; ?>
+                <div id="merged-settings"></div>
             </div>
             <form id="donation_setting_form" method="post" action="options.php">
                 <?php
@@ -248,7 +256,6 @@ class RaiseOptionsPage
                 var editor = new JSONEditor(container, options);
                 editor.set(<?php echo json_encode($settings) ?>);
 
-                <?php if ($mergedSettings): ?>
                 // Create merged settings
                 var mergedContainer = document.getElementById("merged-settings");
                 var mergedOptions = {'mode': 'view'};
@@ -257,7 +264,6 @@ class RaiseOptionsPage
 
                 // Make tabs if there are settings from the config plugin
                 jQuery("#tabs").tabs({ active: 0 });
-                <?php endif; ?>
 
                 var customUploader;
                 var logo   = jQuery('.stripe-logo');
