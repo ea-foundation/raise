@@ -1,3 +1,6 @@
+= 1.0.4 October 11, 2017 =
+* TWEAKED: raise_loaded_donation_form event on page load
+
 = 1.0.3: October 11, 2017 =
 * TWEAKED: Increased locale hook priority from 10 to RAISE_PRIORITY
 

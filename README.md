@@ -419,6 +419,7 @@ And these for `mailing_list`:
 ## Events
 The following events will get dispatched to the window object. Each event is thrown only once per page impression.
 
+- `raise_loaded_donation_form`: The user has visited the page of the donation form. The detail property of the event has the following keys: `form`.
 - `raise_interacted_with_donation_form`: The user has reached the second slide. The detail property of the event has the following keys: `form`, `amount`, `currency`.
 - `raise_initiated_donation`: The user has clicked on the donate button on the second slide. The detail property of the event has the following keys: `form`, `amount`, `currency`, `payment_provider`, `purpose`, `account`
 - `raise_completed_donation`: The user has completed a donation. Note that the payment provider may differ from the one in raise_initiated_donation if the user has aborted a previous checkout process with a different payment provider. The detail property of the event has the following keys: `form`, `amount`, `currency`, `payment_provider`, `purpose`, `account`.

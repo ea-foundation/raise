@@ -51,6 +51,12 @@ jQuery(function($) {
             .insertBefore(".btstrp");
     }
 
+    // Dispatch raise_loaded_donation_form event
+    var ev = new CustomEvent('raise_loaded_donation_form', { detail: {
+        form: $('#raise-form-name').val()
+    }});
+    window.dispatchEvent(ev);
+
     // Stripe setup
     loadStripeHandler();
 
