@@ -1,5 +1,8 @@
 = 1.0.2: October 11, 2017 =
 * TWEAKED: Changed settings label from `Donation Plugin` to `Raise`
+* FIXED: Skrill window body display problem
+* FIXED: Bug in finish email migration routine (updates.php)
+* FIXED: Mixed up locale bug when sending asynchronous POST calls on multi-domain sites
 
 = 1.0.1: October 11, 2017 =
 * TWEAKED: Reintroduced `type` in logging webhook (equal to `payment_provider`)

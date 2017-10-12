@@ -334,7 +334,7 @@ function raise_get_donation_from_post()
         'form'                 => $post['form'],
         'mode'                 => $post['mode'],
         'url'                  => $_SERVER['HTTP_REFERER'],
-        'language'             => $post['language'],
+        'language'             => substr($post['locale'], 0, 2),
         'time'                 => date('c'),
         'currency'             => $post['currency'],
         'amount'               => $post['amount'],
@@ -372,6 +372,9 @@ function raise_prepare_redirect()
             $post['amount'] = $post['amount_other'];
         }
         unset($post['amount_other']);
+
+        // Set language
+        $post['language'] = substr($post['locale'], 0, 2);
 
         // Output
         switch ($post['payment_provider']) {
@@ -2421,8 +2424,7 @@ function raise_get_localized_value($setting, $language = null)
     if (count($setting) > 0) {
         // Choose the best translation
         if (empty($language)) {
-            $segments = explode('_', get_locale(), 2);
-            $language = reset($segments);
+            $language = substr(get_locale(), 0, 2);
         }
         return raise_get($setting[$language], reset($setting));
     }
@@ -2566,22 +2568,23 @@ function raise_send_emails(array $donation)
 /**
  * Monoloinguify language labels on level
  *
- * @param array $labels
- * @param int   $depth
+ * @param array  $labels
+ * @param int    $depth
+ * @param string $language
  * @return array
  */
-function raise_monolinguify(array $labels, $depth = 0)
+function raise_monolinguify(array $labels, $depth = 0, $language = null)
 {
     if (!$depth--) {
         foreach (array_keys($labels) as $key) {
             if (is_array($labels[$key])) {
-                $labels[$key] = raise_get_localized_value($labels[$key]);
+                $labels[$key] = raise_get_localized_value($labels[$key], $language);
             }
         }
     } else {
         foreach (array_keys($labels) as $key) {
             if (is_array($labels[$key])) {
-                $labels[$key] = raise_monolinguify($labels[$key], $depth);
+                $labels[$key] = raise_monolinguify($labels[$key], $depth, $language);
             }
         }
     }
@@ -2600,7 +2603,8 @@ function raise_get_tax_deduction_settings_by_donation(array $donation)
 {
     $settings = array();
 
-    if ($taxDeductionSettings = raise_load_tax_deduction_settings($donation['form'])) {
+    $taxDeductionSettings = raise_load_tax_deduction_settings($donation['form'], $donation['language']);
+    if ($taxDeductionSettings) {
         $countries = !empty($donation['country']) ? ['default', strtolower($donation['country'])]                    : ['default'];
         $types     = !empty($donation['payment_provider'])    ? ['default', str_replace(" ", "", strtolower($donation['payment_provider']))] : ['default']; // Payment provider
         $purposes  = !empty($donation['purpose']) ? ['default', $donation['purpose']]                                : ['default'];
@@ -2616,20 +2620,16 @@ function raise_get_tax_deduction_settings_by_donation(array $donation)
             }
         }
 
-        // Monlinguify settings
-        $settings = raise_monolinguify($settings);
-
         // Get %bank_account_formatted% and insert reference number (if present)
         $form         = raise_get($donation['form'], '');
         $formSettings = raise_load_settings($form);
-        if ($donation['payment_provider'] == 'Bank Transfer' &&
-            $account = raise_localize_array_keys(raise_get($formSettings['payment']['provider']['banktransfer']['accounts'][$donation['account']], array()))
-        ) {
+        $account      = raise_get($formSettings['payment']['provider']['banktransfer']['accounts'][raise_get($donation['account'], '')], array());
+        if ($donation['payment_provider'] == 'Bank Transfer' && $account) {
             // Insert %reference_number%
             if ($reference = raise_get($donation['reference'])) {
                 $settings['bank_account'] = array_map(function ($val) use ($reference) {
                     return str_replace('%reference_number%', $reference, $val);
-                }, $account);
+                }, raise_localize_array_keys($account));
             } else {
                 $settings['bank_account'] = $account;
             }
@@ -2642,17 +2642,18 @@ function raise_get_tax_deduction_settings_by_donation(array $donation)
 /**
  * Load tax deduction settings
  *
- * @param string $form Form name
+ * @param string $form     Form name
+ * @param string $language Language
  * @return array|null
  * @see raise_get_tax_deduction_settings_by_donation
  */
-function raise_load_tax_deduction_settings($form)
+function raise_load_tax_deduction_settings($form, $language = null)
 {
     // Get local settings
     $formSettings         = raise_load_settings($form);
     $taxDeductionSettings = raise_get($formSettings['payment']['labels']['tax_deduction'], []);
 
-    return $taxDeductionSettings ? raise_monolinguify($taxDeductionSettings, 3) : null;
+    return $taxDeductionSettings ? raise_monolinguify($taxDeductionSettings, 3, $language) : null;
 }
 
 /**

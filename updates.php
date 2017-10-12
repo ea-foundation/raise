@@ -348,7 +348,7 @@ function raise_update_settings()
                         'address' => raise_get($email['address'], ''),
                         'subject' => raise_get($email['subject'], ''),
                         'text'    => raise_get($email['text'], ''),
-                        'html'    => raise_get($email['sender'], false),
+                        'html'    => raise_get($email['html'], false),
                     );
                 } else {
                     $newEmail = array();

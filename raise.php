@@ -15,7 +15,7 @@ defined('ABSPATH') or exit;
 define('RAISE_PRIORITY', 12838790321);
 
 // Asset version
-define('RAISE_ASSET_VERSION', '0.40');
+define('RAISE_ASSET_VERSION', '0.41');
 
 // Load other files
 require_once "vendor/autoload.php";
@@ -180,6 +180,15 @@ function raise_plugin_add_settings_link($links)
     $settings_link = '<a href="options-general.php?page=raise-donation-settings">' . __('Settings') . '</a>';
     array_push($links, $settings_link);
     return $links;
+}
+
+// Redefine locale for asynchronous POST calls on multi-domain sites
+add_filter('locale', 'raise_redefine_locale', 10);
+function raise_redefine_locale($locale) {
+    if (isset($_POST['locale'])) {
+        $locale = $_POST['locale'];
+    }
+    return $locale;
 }
 
 // Set attribute data-version-4 for PayPal Checkout.js

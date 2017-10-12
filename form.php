@@ -37,10 +37,6 @@ function raise_form($atts, $content = null)
         return;
     }
 
-    // Get language
-    $segments = explode('_', get_locale(), 2);
-    $language = reset($segments);
-
     // Get user country using freegeoip.net
     $userCountry                = raise_get_initial_country($formSettings);
     $userCountryCode            = raise_get($userCountry['code']);
@@ -86,10 +82,10 @@ function raise_form($atts, $content = null)
     }
 </script>
 <input type="hidden" name="action" value="raise_donate"> <!-- ajax key -->
-<input type="hidden" name="form" value="<?php echo $form ?>" id="raise-form-name">
-<input type="hidden" name="mode" value="<?php echo $mode ?>" id="raise-form-mode">
-<input type="hidden" name="language" value="<?php echo $language ?>" id="raise-form-language">
+<input type="hidden" name="form" value="<?= $form ?>" id="raise-form-name">
+<input type="hidden" name="mode" value="<?= $mode ?>" id="raise-form-mode">
 <input type="hidden" name="account" value="" id="raise-form-account">
+<input type="hidden" name="locale" value="<?= get_locale() ?>">
 
 <!-- Scrollable root element -->
 <div id="wizard">

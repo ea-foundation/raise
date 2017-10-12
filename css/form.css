@@ -436,13 +436,13 @@ div.raise-popup-modal .modal-body p {
     font-size: initial;
 }
 
-div.eas-iframe-modal .modal-body {
+div.raise-iframe-modal .modal-body {
     max-height: 760px;
     height: 85vh;
 }
 
 @media (max-width: 767px) {
-    div.eas-iframe-modal .modal-body {
+    div.raise-iframe-modal .modal-body {
         height: 79vh;
     }
 }
