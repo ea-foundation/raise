@@ -15,7 +15,7 @@ For a manual installation, download this repository and follow the instructions 
 
 To receive updates, install [Github Updater](https://github.com/afragen/github-updater).
 
-To embed the form in a page, use the shortcode `[raise_form form="<form_name>" live="<true or false>"][/raise_form]`.
+To embed the form in a page, use the shortcode `[raise_form form="<form_name>" live="<true or false>"]`.
 
 If the `live` parameter is set to `false`, the plugin will use the sandbox settings for each payment provider.
 
