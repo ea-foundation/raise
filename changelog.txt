@@ -1,3 +1,6 @@
+= 1.0.2: October 11, 2017 =
+* TWEAKED: Changed settings label from `Donation Plugin` to `Raise`
+
 = 1.0.1: October 11, 2017 =
 * TWEAKED: Reintroduced `type` in logging webhook (equal to `payment_provider`)
 

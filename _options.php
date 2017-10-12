@@ -24,7 +24,7 @@ class RaiseOptionsPage
         // This page will be under "Settings"
         add_options_page(
             'Raise', 
-            'Donation Plugin', 
+            'Raise', 
             'manage_options', 
             'raise-donation-settings',
             array($this, 'create_admin_page')

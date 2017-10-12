@@ -1752,7 +1752,7 @@ function raise_save_donation_log_post(array $donation)
 function raise_save_custom_posts(array $donation)
 {
     // Fundraiser donation post (if it's the case)
-    raise_save_matching_challenge_donation_post($donation);
+    raise_save_fundraiser_donation_post($donation);
 
     // Donation log post (if enabled)
     raise_save_donation_log_post($donation);
@@ -1763,7 +1763,7 @@ function raise_save_custom_posts(array $donation)
  *
  * @param array $donation
  */
-function raise_save_matching_challenge_donation_post(array $donation)
+function raise_save_fundraiser_donation_post(array $donation)
 {
     $form      = $donation['form'];
     $name      = $donation['anonymous'] == 'yes' ? 'Anonymous' : $donation['name'];
