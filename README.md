@@ -122,13 +122,20 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
       "finish": {
         "success_message": "Many thanks for your donation!",  # not necessary if tax deduction labels are set
         "<a href="#confirmation-email">email</a>": {
-          "en": {
-            "sender": "Effective Altruism Foundation",
-            "address": "anne.wissemann@ea-foundation.org",
-            "subject": "Thank you for your donation",
-            "text": "Dear {{name}} ...",
-            "html": true
-          }
+          "sender": {
+            "en": "Effective Altruism Foundation",
+            "de": "Stiftung für Effektiven Altruismus"
+          },
+          "address": "anne.wissemann@ea-foundation.org",
+          "subject": {
+            "en": "Thank you for your donation",
+            "de": "Vielen Dank für Ihre Spende"
+          },
+          "text": {
+            "en": "Dear {{ name }} ...",
+            "de": "Liebe/r {{ name }} ..."
+          },
+          "html": true
         },
         "<a href="#notification-emails">notification_email</a>": {
           "notify-me@example.org": {
@@ -345,7 +352,7 @@ The rule object can contain the following parameters:
 - `receipt_text`: Text to show next to the checkbox
 - `success_text`: Text to show upon confirmation in step 3
 - `account`: Account used to populate `account` in the webhook payload and select the appropriate bank details from [bank accounts](#bank-transfer).
-- `provider_hover_text`: Object with language properties (e.g. "en"). The values are objects with payment provider properties (e.g. "stripe"). The values are strings that are inserted into the title property of the corresponding payment provider labels.
+- `provider_hover_text`: Object with language properties (e.g. "en") if you have several languages. The values are objects with payment provider properties (e.g. "stripe"). The values are strings that are inserted into the title property of the corresponding payment provider labels.
 
 Supports placeholders: `%country%`, `%payment_method%`, `%purpose%`, `%reference_number%`, `%bank_transfer_formatted%`
 
