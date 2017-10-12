@@ -6,7 +6,6 @@
  * Description: The Free Donation Plugin for WordPress
  * Version: 1.0.0
  * Author: Naoki Peter
- * Author URI: http://0x1.ch
  * License: GPLv3 or later
  */
 
