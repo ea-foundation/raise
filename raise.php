@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/raise
  * GitHub Plugin URI: ea-foundation/raise
  * Description: The Free Donation Plugin for WordPress
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Naoki Peter
  * License: GPLv3 or later
  */
@@ -183,7 +183,7 @@ function raise_plugin_add_settings_link($links)
 }
 
 // Redefine locale for asynchronous POST calls on multi-domain sites
-add_filter('locale', 'raise_redefine_locale', 10);
+add_filter('locale', 'raise_redefine_locale', RAISE_PRIORITY);
 function raise_redefine_locale($locale) {
     if (isset($_POST['locale'])) {
         $locale = $_POST['locale'];
