@@ -22,6 +22,7 @@ const RAISE_WEBHOOK_KEYS = [
     'referrer',
     'tax_receipt',
     'time',
+    'type', //TODO Legacy. Remove in next major release.
     'payment_provider',
     'url',
     'vendor_customer_id',
@@ -660,6 +661,9 @@ function raise_clean_up_donation_data(array $donation)
     $parts = parse_url(raise_get($donation['url']));
     parse_str(raise_get($parts['query'], ''), $query);
     $donation['referrer'] = raise_get($query['referrer']);
+
+    //TODO Legacy property. Remove in next major release.
+    $donation['type'] = raise_get($donation['payment_provider'], '');
 
     // Set all empty fields to empty string
     $values = array_map(function ($key) use ($donation) {

@@ -1,3 +1,9 @@
+= 1.0.1: October 11, 2017 =
+* TWEAKED: Reintroduced `type` in logging webhook (equal to `payment_provider`)
+
+= 1.0.0: October 11, 2017 =
+* TWEAKED: Renamed repo to raise
+
 = 0.13.10: October 11, 2017 =
 * IMPROVED: Merged settings resolve form inheritance
 * TWEAKED: Changed `finish > email > en > sender` to `finish > email > sender > en`
