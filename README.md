@@ -106,14 +106,17 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "mailing_list": "Subscribe to newsletter",
           "tax_receipt": "I need a tax receipt",  # not necessary if tax deduction labels are set
           "<a href="#tax-deduction">tax_deduction</a>": {
-            "default": {
-              "default": {
-                "default": {
+            "default": { # country
+              "default": { # payment provider
+                "default": { # purpose
                   "account": "DE",
                   "deductible": false,
                   "receipt_text": "We currently do not offer tax deductibility for %country%.",
                   "success_text": ""
                 }
+              },
+              "banktransfer": {
+                "success_text": "You can now make your transfer using the bank details below.\n\n%bank_account_formatted%"
               }
             }
           }
