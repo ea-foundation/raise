@@ -394,7 +394,7 @@ Send a notification email whenever a donation was completed. Can be a comma-sepa
 {
   "notification_email": {
     "partner-charity@example.org": {
-      "type": "Bank Transfer",
+      "payment_provider": "Bank Transfer", # Stripe, PayPal, GoCardless, Skrill, BitPay
       "country_code": "us"
     },
     "new-donation@example.org": {}
