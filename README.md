@@ -364,13 +364,11 @@ Supports placeholders: `%country%`, `%payment_method%`, `%purpose%`, `%reference
 
 ```json
 "email": {
-  "en": {
-    "sender": "My organisation",
-    "address": "my.org@example.org",
-    "subject": "Thank you for your donation",
-    "text": "Dear {{name}},\n\nNew line.",
-    "html": true
-  }
+  "sender": "My organisation",
+  "address": "my.org@example.org",
+  "subject": "Thank you for your donation",
+  "text": "Dear {{ name }},\n\nNew line.",
+  "html": true
 }
 ```
 
@@ -397,7 +395,7 @@ Send a notification email whenever a donation was completed. Can be a comma-sepa
 {
   "notification_email": {
     "partner-charity@example.org": {
-      "payment_provider": "Bank Transfer", # Stripe, PayPal, GoCardless, Skrill, BitPay
+      "payment_provider": "Bank Transfer",
       "country_code": "us"
     },
     "new-donation@example.org": {}
@@ -406,6 +404,8 @@ Send a notification email whenever a donation was completed. Can be a comma-sepa
 ```
 
 All keys sent in webhooks can be used as rule conditions. If at least one condition does not match, the notification email is skipped. An empty object will always pass.
+
+Note: The possible `payment_provider` values are `Stripe`, `PayPal`, `GoCardless`, `Skrill`, `BitPay` and `Bank Transfer`
 
 
 ## Webhooks
