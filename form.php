@@ -263,24 +263,25 @@ function raise_form($atts, $content = null)
                 <!-- Purpose -->
                 <?php
                     if ($purposes = raise_get($formSettings['payment']['purpose'])):
-                        // Check if there's an empty option
-                        if (array_key_exists('', $purposes)) {
+                        // Localize labels
+                        $purposes = raise_monolinguify($purposes);
+
+                        // Check if selected purpose is deeplinked
+                        if (isset($_GET['purpose']) && isset($purposes[$_GET['purpose']])) {
+                            $purposeButtonLabel = $purposes[$_GET['purpose']];
+                            $checked            = $_GET['purpose'];
+                        } elseif (isset($purposes[''])) {
                             // Label of empty item ("Choose your purpose"), not selectable
                             $purposeButtonLabel = $purposes[''];
-                            $checked            = '';
+                            $checked            = ''; // none
                         } else {
                             // Label of first option (selected by default)
-                            $purposeValues      = array_values($purposes);
-                            $purposeButtonLabel = array_reduce($purposeValues, function ($carry, $item) {
-                                return $carry ?: raise_get($item, '');
-                            }, '');
-                            $checked            = 'checked';
+                            $purposeButtonLabel = reset($purposes);
+                            $checked            = key($purposes);
                         }
 
-                        // Localize label
-                        if (is_array($purposeButtonLabel)) {
-                            $purposeButtonLabel = raise_get_localized_value($purposeButtonLabel);
-                        }
+                        // Unset empty purpose value
+                        unset($purposes['']);
 
                         // Don't print dropdown when only one purpose
                         if (count($purposes) == 1):
@@ -298,20 +299,9 @@ function raise_form($atts, $content = null)
                             </button>
                             <ul class="dropdown-menu scrollable-menu">
                                 <?php
-                                    foreach ($purposes as $value => $labels) {
-                                        // Ignore empty values
-                                        if (empty($value) || empty($labels)) {
-                                            continue;
-                                        }
-
-                                        // Check if there are language settings
-                                        if (is_array($labels)) {
-                                            $label = raise_get_localized_value($labels);
-                                        } else {
-                                            $label = $labels;
-                                        }
-                                        echo '<li><label for="purpose-' . strtolower($value) . '"><input type="radio" id="purpose-' . strtolower($value) . '" name="purpose" value="' . $value . '" class="hidden" '  . $checked . '>' . $label . '</label></li>';
-                                        $checked = '';
+                                    foreach ($purposes as $value => $label) {
+                                        $attr = $value == $checked ? ' checked' : '';
+                                        echo '<li><label for="purpose-' . strtolower($value) . '"><input type="radio" id="purpose-' . strtolower($value) . '" name="purpose" value="' . $value . '" class="hidden"'  . $attr . '>' . $label . '</label></li>';
                                     }
                                 ?>
                             </ul>
