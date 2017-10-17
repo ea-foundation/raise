@@ -1,3 +1,6 @@
+= 1.0.6 October 17, 2017 =
+* FIXED: jQuery bug in event
+
 = 1.0.5 October 17, 2017 =
 * TWEAKED: Moved dispatch of raise_loaded_donation_form event to separate function
 * FIXED: Fixed typo `amuont` for `amount` in event detail

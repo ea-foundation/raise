@@ -1322,7 +1322,7 @@ function nl2br(str, isXhtml)
 function raiseTriggerFormLoadedEvent()
 {
     var ev = new CustomEvent('raise_loaded_donation_form', { detail: {
-        form: $('#raise-form-name').val()
+        form: document.getElementById("raise-form-name").value
     }});
     window.dispatchEvent(ev);
 }
