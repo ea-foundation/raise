@@ -1,3 +1,6 @@
+= 1.0.7 October 17, 2017 =
+* FIXED: Disabled negative numbers in other amount field
+
 = 1.0.6 October 17, 2017 =
 * FIXED: jQuery bug in event
 
