@@ -1,3 +1,7 @@
+= 1.0.5 October 17, 2017 =
+* TWEAKED: Moved dispatch of raise_loaded_donation_form event to separate function
+* FIXED: Fixed typo `amuont` for `amount` in event detail
+
 = 1.0.4 October 11, 2017 =
 * TWEAKED: raise_loaded_donation_form event on page load
 
