@@ -6,6 +6,7 @@ var userCountry                = raiseDonationConfig.userCountry;
 var selectedCurrency           = raiseDonationConfig.selectedCurrency;
 var countryCompulsory          = raiseDonationConfig.countryCompulsory;
 var currencies                 = wordpress_vars.amount_patterns;
+var currencyMinimums           = wordpress_vars.amount_minimums;
 var stripeHandlers             = null;
 var totalItems                 = 0;
 var taxReceiptNeeded           = false;
@@ -15,7 +16,7 @@ var currentStripeKey           = '';
 var frequency                  = 'once';
 var monthlySupport             = ['payment-stripe', 'payment-paypal', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
 var goCardlessSupport          = ['EUR', 'GBP', 'SEK'];
-var raisePopup                   = null;
+var raisePopup                 = null;
 var gcPollTimer                = null;
 var taxDeductionSuccessText    = null;
 var taxDeductionDisabled       = true;
@@ -151,15 +152,34 @@ jQuery(function($) {
             // Get all required fields inside the page, except honey pot (#donor-email-confirm)
             var reqInputs = $('div.item.active .required :input:not(:radio):not(:button)', '#wizard').not('#donor-email-confirm');
             // ... which are empty or invalid
-            var empty = reqInputs.filter(function() {
+            var errors  = {};
+            var empty   = reqInputs.filter(function() {
                 return $(this).val().replace(/\s*/g, '') == '';
             });
 
             // Check invalid input
             var invalid = inputs.filter(function() {
-                return ($(this).attr('id') == 'amount-other' && $(this).val() && isNaN($(this).val())) ||
-                       ($(this).attr('type') == 'email' && !isValidEmail($(this).val().trim()))
+                if ($(this).attr('id') == 'amount-other' && $(this).val() && $(this).val() < currencyMinimums[selectedCurrency]) {
+                    errors['amount-other'] = wordpress_vars.error_messages['below_minimum_amount'];
+                    return true;
+                }
+
+                if ($(this).attr('id') == 'donor-email' && !isValidEmail($(this).val().trim())) {
+                    errors['donor-email'] = wordpress_vars.error_messages['invalid_email'];
+                    return true;
+                }
+
+                return false;
             });
+
+            // Check amount < minimum from misconfiguration
+            if (!$('#amount-other', '#wizard').val()) {
+                var amount = getDonationAmount();
+                if (amount < currencyMinimums[selectedCurrency]) {
+                    errors['amount'] = wordpress_vars.error_messages['below_minimum_amount'];
+                    invalid.push('amount');
+                }
+            }
 
             // Unchecked radio groups (bootstrap drop downs). Add button instead.
             var emptyRadios = $('div.item.active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
@@ -169,12 +189,10 @@ jQuery(function($) {
 
             // If there are empty fields, then
             if (empty.length + invalid.length) {
-                // slide down the drawer
-                drawer.slideDown(function()  {     
-                    // Colored flash effect
-                    drawer.css("backgroundColor", "#fff");
-                    //setTimeout(function() { drawer.css("backgroundColor", "#fff"); }, 1000);
-                });
+                // Slide down the drawer
+                drawer
+                    .text(getErrorMessage(errors))
+                    .slideDown();
 
                 // Add a error CSS for empty and invalid fields
                 empty = $.unique($.merge(empty, invalid));
@@ -451,6 +469,10 @@ jQuery(function($) {
         );
         $('ul#amounts span.input-group-addon').text($.trim(currencyString.replace('%amount%', '')));
 
+        // Set new lower bound to other amount field
+        var minAmount = currencyMinimums[selectedCurrency];
+        jQuery('input#amount-other', '#wizard').prop('min', minAmount);
+
         // Reload Stripe handler
         loadStripeHandler();
 
@@ -647,13 +669,8 @@ function getDonationAmount()
     if (amount) {
         return amount.replace('.00', '');
     } else {
-        amount = parseInt(jQuery('input#amount-other', '#wizard').val() * 100);
-        if (!isNaN(amount) && amount >= 100) {
-            amount = amount / 100;
-            return (amount % 1 == 0) ? amount : amount.toFixed(2);
-        } else {
-            return 1; // default donation
-        }
+        amount = parseInt(jQuery('input#amount-other', '#wizard').val() * 100) / 100;
+        return (amount % 1 == 0) ? amount : amount.toFixed(2);
     }
 }
 
@@ -1325,4 +1342,27 @@ function raiseTriggerFormLoadedEvent()
         form: document.getElementById("raise-form-name").value
     }});
     window.dispatchEvent(ev);
+}
+
+/**
+ * Show appropriate error message
+ */
+function getErrorMessage(errors) {
+    if ('amount' in errors) {
+        var minAmount      = currencyMinimums[selectedCurrency];
+        var currencyAmount = currencies[selectedCurrency].replace('%amount%', minAmount);
+        return errors['amount'].replace('%minimum_amount%', currencyAmount);
+    }
+
+    if ('amount-other' in errors) {
+        var minAmount      = currencyMinimums[selectedCurrency];
+        var currencyAmount = currencies[selectedCurrency].replace('%amount%', minAmount);
+        return errors['amount-other'].replace('%minimum_amount%', currencyAmount);
+    }
+
+    if ('donor-email' in errors) {
+        return errors['donor-email'];
+    }
+
+    return wordpress_vars.error_messages['missing_fields'];
 }

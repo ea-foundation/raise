@@ -1,5 +1,6 @@
 = 1.1.0: TBD =
 * NEW: Added deeplinking of purpose by means of query string parameter (?purpose=X)
+* NEW: Added property amount > currency > minimum
 
 = 1.0.7 October 17, 2017 =
 * FIXED: Disabled negative numbers in other amount field

@@ -50,10 +50,13 @@ function raise_init_donation_form($form, $mode)
     $logo = get_option('raise_logo', plugin_dir_url(__FILE__) . 'images/logo.png');
     
     // Make amount patterns
-    $amountPatterns      = array();
-    $currencies          = raise_get($formSettings['amount']['currency'], array());
+    $amountPatterns = array();
+    $amountMinimums = array();
+    $currencies        = raise_get($formSettings['amount']['currency'], array());
     foreach ($currencies as $currency => $currencySettings) {
-        $amountPatterns[strtoupper($currency)] = raise_get($currencySettings['pattern'], '%amount%');
+        $cur                  = strtoupper($currency);
+        $amountPatterns[$cur] = raise_get($currencySettings['pattern'], '%amount%');
+        $amountMinimums[$cur] = raise_get($currencySettings['minimum'], 1);
     }
 
     // Get enabled payment providers
@@ -73,6 +76,7 @@ function raise_init_donation_form($form, $mode)
         'logo'                  => $logo,
         'ajax_endpoint'         => admin_url('admin-ajax.php'),
         'amount_patterns'       => $amountPatterns,
+        'amount_minimums'       => $amountMinimums,
         'stripe_public_keys'    => $stripeKeys,
         'tax_deduction_labels'  => $taxDeductionLabels,
         'bank_accounts'         => $bankAccounts,
@@ -82,6 +86,11 @@ function raise_init_donation_form($form, $mode)
         'donate_button_monthly' => __("Donate %currency-amount% per month", "raise"),
         'donation'              => __("Donation", "raise"),
         'cookie_warning'        => __("Please enable cookies before you proceed with your donation.", "raise"),
+        'error_messages'        => [
+            'missing_fields'       => __('Please fill out all required fields.', 'raise'),
+            'invalid_email'        => __('Invalid email.', 'raise'),
+            'below_minimum_amount' => __('The minimum donation is %minimum_amount%.', 'raise'),
+        ],
     ));
 
     // Enqueue previously registered scripts and styles (to prevent them loading on every page load)

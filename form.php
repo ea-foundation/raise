@@ -38,14 +38,16 @@ function raise_form($atts, $content = null)
     }
 
     // Get user country using freegeoip.net
-    $userCountry                = raise_get_initial_country($formSettings);
-    $userCountryCode            = raise_get($userCountry['code']);
-    $userCurrency               = raise_get_user_currency($userCountryCode);
-    $currencies                 = raise_get($formSettings['amount']['currency'], array());
-    $supportedCurrencyCodes     = array_map('strtoupper', array_keys($currencies));
-    $preselectedCurrency        = $userCurrency && in_array($userCurrency, $supportedCurrencyCodes) ? $userCurrency : reset($supportedCurrencyCodes);
-    $preselectedCurrencyFlag    = raise_get($currencies[strtolower($preselectedCurrency)]['country_flag'], '');
-    $preselectedCurrencyPattern = raise_get($currencies[strtolower($preselectedCurrency)]['pattern'], '');
+    $userCountry                   = raise_get_initial_country($formSettings);
+    $userCountryCode               = raise_get($userCountry['code']);
+    $userCurrency                  = raise_get_user_currency($userCountryCode);
+    $currencies                    = raise_get($formSettings['amount']['currency'], array());
+    $supportedCurrencyCodes        = array_map('strtoupper', array_keys($currencies));
+    $preselectedCurrency           = $userCurrency && in_array($userCurrency, $supportedCurrencyCodes) ? $userCurrency : reset($supportedCurrencyCodes);
+    $lcCurrency                    = strtolower($preselectedCurrency);
+    $preselectedCurrencyFlag       = raise_get($currencies[$lcCurrency]['country_flag'], '');
+    $preselectedCurrencyPattern    = raise_get($currencies[$lcCurrency]['pattern'], '');
+    $preselectedCurrencyLowerBound = raise_get($currencies[$lcCurrency]['lower_bound'], 1);
 
     // Handle redirection case after successful payment
     if (isset($_GET['success']) && $_GET['success'] == 'true') {
@@ -174,7 +176,7 @@ function raise_form($atts, $content = null)
                             <li class="col-xs-<?php echo  12 - ($buttonColSpan * $tabIndex % 12) ?>">
                                 <div class="input-group">
                                    <span class="input-group-addon"><?php echo trim(str_replace('%amount%', '', $preselectedCurrencyPattern)); ?></span>
-                                    <input type="number" min="0" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'raise') ?>" tabindex="<?php echo ++$tabIndexMonthly ?>">
+                                    <input type="number" min="<?= $preselectedCurrencyLowerBound ?>" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'raise') ?>" tabindex="<?php echo ++$tabIndexMonthly ?>">
                                     <label for="amount-other" class="sr-only"><?php _e('Other', 'raise') ?></label>
                                 </div>
                             </li>
@@ -529,7 +531,7 @@ function raise_form($atts, $content = null)
     </div>
 <?php endif; ?>
 
-<div id="drawer"><?php _e('Please fill out all required fields correctly.', 'raise') ?></div>
+<div id="drawer"></div>
 
 </div>
 <!-- End Bootstrap scope -->

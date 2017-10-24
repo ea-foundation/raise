@@ -50,11 +50,13 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
         "currency": {
           "eur": {
             "pattern": "%amount% €",
-            "country_flag": "eu"
+            "country_flag": "eu",
+            "minimum": 4.5
           },
           "usd": {
-            "pattern": "USD %amount%",
-            "country_flag": "us"  # Replace css/flags-few.css with flags-some.css or flags-most.css if you need more flags than CH, EU, GB, US
+            "pattern": "$%amount%",
+            "country_flag": "us",
+            "minimum": 5
           }
         }
       },
