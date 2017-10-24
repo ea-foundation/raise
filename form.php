@@ -174,7 +174,7 @@ function raise_form($atts, $content = null)
                             <li class="col-xs-<?php echo  12 - ($buttonColSpan * $tabIndex % 12) ?>">
                                 <div class="input-group">
                                    <span class="input-group-addon"><?php echo trim(str_replace('%amount%', '', $preselectedCurrencyPattern)); ?></span>
-                                    <input type="number" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'raise') ?>" tabindex="<?php echo ++$tabIndexMonthly ?>">
+                                    <input type="number" min="0" class="form-control input-lg text" name="amount_other" id="amount-other" placeholder="<?php _e('Other', 'raise') ?>" tabindex="<?php echo ++$tabIndexMonthly ?>">
                                     <label for="amount-other" class="sr-only"><?php _e('Other', 'raise') ?></label>
                                 </div>
                             </li>

@@ -52,10 +52,7 @@ jQuery(function($) {
     }
 
     // Dispatch raise_loaded_donation_form event
-    var ev = new CustomEvent('raise_loaded_donation_form', { detail: {
-        form: $('#raise-form-name').val()
-    }});
-    window.dispatchEvent(ev);
+    raiseTriggerFormLoadedEvent();
 
     // Stripe setup
     loadStripeHandler();
@@ -239,7 +236,7 @@ jQuery(function($) {
                 var ev = new CustomEvent('raise_initiated_donation', { detail: {
                     form: jQuery('#raise-form-name').val(),
                     currency: getDonationCurrencyIsoCode(),
-                    amuont: getDonationAmount(),
+                    amount: getDonationAmount(),
                     payment_provider: provider,
                     purpose: jQuery('input[name=purpose]:checked', '#wizard').val(),
                     account: jQuery('#raise-form-account').val()
@@ -257,7 +254,7 @@ jQuery(function($) {
             var ev = new CustomEvent('raise_interacted_with_donation_form', { detail: {
                 form: jQuery('#raise-form-name').val(),
                 currency: getDonationCurrencyIsoCode(),
-                amuont: getDonationAmount()
+                amount: getDonationAmount()
             }});
             window.dispatchEvent(ev);
             interactionEventDispatched = true;
@@ -949,7 +946,7 @@ function showConfirmation(paymentProvider)
     var ev = new CustomEvent('raise_completed_donation', { detail: {
         form: jQuery('#raise-form-name').val(),
         currency: getDonationCurrencyIsoCode(),
-        amuont: getDonationAmount(),
+        amount: getDonationAmount(),
         payment_provider: paymentProvider,
         purpose: jQuery('input[name=purpose]:checked', '#wizard').val(),
         account: jQuery('#raise-form-account').val()
@@ -1309,7 +1306,8 @@ function replaceTaxDeductionPlaceholders(label, country, paymentMethod, purpose,
 /**
  * nl2br function from PHP
  */
-function nl2br(str, isXhtml) {
+function nl2br(str, isXhtml)
+{
     if (typeof str === 'undefined' || str === null) {
         return '';
     }
@@ -1318,7 +1316,13 @@ function nl2br(str, isXhtml) {
     return (str + '').replace(/(\r\n|\n\r|\r|\n)/g, breakTag + '$1');
 }
 
-
-
-
-
+/**
+ * Trigger form loaded event
+ */
+function raiseTriggerFormLoadedEvent()
+{
+    var ev = new CustomEvent('raise_loaded_donation_form', { detail: {
+        form: document.getElementById("raise-form-name").value
+    }});
+    window.dispatchEvent(ev);
+}
