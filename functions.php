@@ -10,10 +10,10 @@ const RAISE_WEBHOOK_KEYS = [
     'country',
     'country_code',
     'currency',
+    'deductible',
     'email',
     'form',
     'frequency',
-    'deductible', // donation is tax deductible
     'language',
     'mailinglist',
     'mode',
