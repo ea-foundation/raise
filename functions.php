@@ -13,6 +13,7 @@ const RAISE_WEBHOOK_KEYS = [
     'email',
     'form',
     'frequency',
+    'deductible', // donation is tax deductible
     'language',
     'mailinglist',
     'mode',
@@ -619,12 +620,15 @@ function raise_handle_banktransfer_payment(array $donation)
  */
 function raise_trigger_webhooks(array $donation)
 {
+    // Filter donation
+    $filteredDonation = raise_filter_webhook_payload($donation);
+
     // Logging
-    raise_trigger_logging_webhooks($donation);
+    raise_trigger_logging_webhooks($filteredDonation);
 
     // Mailing list
     if ($donation['mailinglist'] == 'yes') {
-        raise_trigger_mailinglist_webhooks($donation);
+        raise_trigger_mailinglist_webhooks($filteredDonation);
     }
 }
 
@@ -651,14 +655,15 @@ function raise_trigger_logging_webhooks($donation)
 }
 
 /**
- * Remove unncecessary field from webhook data
+ * Transform boolean values to yes/no strings, translate country code to English,
+ * add referrer from query string if present
  *
  * @param array $donation
  * @return array
  */
 function raise_clean_up_donation_data(array $donation)
 {
-    // Transform boolean values to yes/no string
+    // Transform boolean values to yes/no strings
     $donation = array_map(function($val) {
         return is_bool($val) ? ($val ? 'yes' : 'no') : $val;
     }, $donation);
@@ -677,6 +682,17 @@ function raise_clean_up_donation_data(array $donation)
     //TODO Legacy property. Remove in next major release.
     $donation['type'] = raise_get($donation['payment_provider'], '');
 
+    return $donation;
+}
+
+/**
+ * Remove unncecessary field from webhook data
+ *
+ * @param array $donation
+ * @return array
+ */
+function raise_filter_webhook_payload(array $donation)
+{
     // Set all empty fields to empty string
     $values = array_map(function ($key) use ($donation) {
         return raise_get($donation[$key], '');
@@ -1927,9 +1943,6 @@ function raise_send_confirmation_email(array $donation)
         $text          = raise_get_localized_value($emailSettings['text'], $language);
         $html          = raise_get_localized_value(raise_get($emailSettings['html'], false), $language);
 
-        // Add tax dedcution labels to donation
-        $donation += raise_get_tax_deduction_settings_by_donation($donation);
-
         // Get email subject and text and pass it through twig
         $twig    = raise_get_twig($text, $subject, $html);
         $subject = $twig->render('finish.email.subject', $donation);
@@ -2767,10 +2780,13 @@ function raise_localize_array_keys(array $array)
  *
  * @param array $donation
  */
-function raise_do_post_donation_actions($donation)
+function raise_do_post_donation_actions(array $donation)
 {
+    // Add tax dedcution labels to donation
+    $taxDonation = $donation + raise_get_tax_deduction_settings_by_donation($donation);
+
     // Clean up donation data
-    $cleanDonation = raise_clean_up_donation_data($donation);
+    $cleanDonation = raise_clean_up_donation_data($taxDonation);
 
     // Save custom posts (if enabled)
     raise_save_custom_posts($cleanDonation);

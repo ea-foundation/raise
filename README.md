@@ -1,6 +1,6 @@
 # Raise
 
-Free donation plugin for Wordpress. Supports confirmation and notification-emails, webhooks, a newsletter checkbox, a tax deductibility checkbox, multiple purposes, custom colors, Javascript events, multiple form inheritance, sandbox mode, centralized settings and translations. 
+Free donation plugin for Wordpress. Supports confirmation and notification-emails, webhooks, a newsletter checkbox, a tax deductibility checkbox, multiple purposes, custom colors, Javascript events, single form inheritance, sandbox mode, centralized settings and translations.
 
 Accept donations via [Stripe](#stripe), [PayPal](#paypal), [GoCardless](#gocardless), [BitPay](#bitpay), [Skrill](#skrill) or [bank transfers](#bank-transfer).
 
@@ -93,7 +93,7 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
         "extra_fields": {
           "country": false,  # move country dropdown up to required fields
           "anonymous": false,  # add anonynmous checkbox
-          "comment": false. # add comment textarea
+          "comment": false # add comment textarea
         },
         "country": {
           "initial": "geoip",  # Initial value for country dropdown, e.g. "us"
@@ -359,7 +359,7 @@ The rule object can contain the following parameters:
 - `account`: Account used to populate `account` in the webhook payload and select the appropriate bank details from [bank accounts](#bank-transfer).
 - `provider_hover_text`: Object with language properties (e.g. "en") if you have several languages. The values are objects with payment provider properties (e.g. "stripe"). The values are strings that are inserted into the title property of the corresponding payment provider labels.
 
-Supports placeholders: `%country%`, `%payment_method%`, `%purpose%`, `%reference_number%`, `%bank_transfer_formatted%`
+Supports placeholders: `%country%`, `%payment_method%`, `%purpose%`, `%reference_number%`, `%bank_account_formatted%`
 
 
 ## Confirmation email
@@ -388,6 +388,7 @@ If an `account` is referenced in `tax_deduction`, the `bank_account` variable ca
 ```
 {{ raise.dump(bank_account, 'html') }} // use 'text' if email is sent as text
 ```
+Internally, Raise uses `wp_mail` to send email. If you prefer sending email over SMTP, you can use a plugin like [WP Mail SMTP](https://wordpress.org/plugins/wp-mail-smtp/) or direct a [webhook](#webhooks) to an external service like [Zapier](https://zapier.com/zapbook/email/webhook/).
 
 
 ## Notification emails
@@ -413,7 +414,7 @@ Note: The possible `payment_provider` values are `Stripe`, `PayPal`, `GoCardless
 ## Webhooks
 Array of webhook URLs. There are currently two options, `logging` and `mailing_list`, the latter of which will only get triggered when the subscribe checkbox was ticked. Upon successful donation a JSON object will be sent to each webhook, containing these parameters for `logging`:
 
-`donation[form]`, `donation[url]`, `donation[mode]` (sandbox/live), `donation[language]` (ISO-639-1), `donation[time]`, `donation[currency]`, `donation[amount]`, `donation[payment_provider]`, `donation[type]` (deprecated, same as `payment_provider`), `donation[email]`, `donation[frequency]`, `donation[purpose]`, `donation[name]`, `donation[address]`, `donation[zip]`, `donation[city]`, `donation[country]` (in English), `donation[country_code]` (ISO 3166-1 alpha-2, e.g. `US`), `donation[comment]`, `donation[anonymous]` (yes/no), `donation[tax_receipt]` (yes/no), `donation[mailinglist]` (yes/no), `donation[account]`, `donation[reference]`, `donation[referrer]`, `donation[vendor_transaction_id]`, `donation[vendor_subscription_id]`, `donation[vendor_customer_id]`
+`donation[form]`, `donation[url]`, `donation[mode]` (sandbox/live), `donation[language]` (ISO-639-1), `donation[time]`, `donation[currency]`, `donation[amount]`, `donation[payment_provider]`, `donation[type]` (deprecated, same as `payment_provider`), `donation[email]`, `donation[frequency]`, `donation[purpose]`, `donation[name]`, `donation[address]`, `donation[zip]`, `donation[city]`, `donation[country]` (in English), `donation[country_code]` (ISO 3166-1 alpha-2, e.g. `US`), `donation[comment]`, `donation[anonymous]` (yes/no), `donation[tax_receipt]` (yes/no), `donation[deductible]` (yes/no), `donation[mailinglist]` (yes/no), `donation[account]`, `donation[reference]`, `donation[referrer]`, `donation[vendor_transaction_id]`, `donation[vendor_subscription_id]`, `donation[vendor_customer_id]`
 
 And these for `mailing_list`:
 `subscription[form]`, `subscription[mode]`, `subscription[email]`, `subscription[name]`, `subscription[language]`

@@ -25,7 +25,6 @@ function raise_form($atts, $content = null)
 
     try {
         $formSettings = raise_init_donation_form($form, $mode);
-        //throw new \Exception('foo');
     } catch (\Exception $ex) {
 ?>
     <div class="alert alert-danger" role="alert">
