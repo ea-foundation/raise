@@ -2032,18 +2032,18 @@ function raise_get_user_country($userIp = null, array $default = array())
  */
 function raise_get_initial_country(array $formSettings)
 {
-    $initialCountry = raise_get($formSettings['payment']['country']['initial'], 'geoip');
+    $initialCountry = strtoupper(raise_get($formSettings['payment']['country']['initial'], 'geoip'));
 
-    if (empty($initialCountry) || $initialCountry == 'geoip') {
+    if (empty($initialCountry) || $initialCountry == 'GEOIP') {
         // Do GeoIP call
-        $fallbackCode = raise_get($formSettings['payment']['country']['fallback'], '');
+        $fallbackCode = strtoupper(raise_get($formSettings['payment']['country']['fallback'], ''));
         $fallbackName = raise_get($GLOBALS['code2country'][$fallbackCode]);
         $fallback     = !empty($fallbackName) ? array(
             'code' => $fallbackCode,
             'name' => $fallbackName,
         ) : array();
 
-        return raise_get_user_country(null, $fallback);
+        return raise_get_user_country($_SERVER['REMOTE_ADDR'], $fallback);
     } else {
         // Return predefined country
         return isset($GLOBALS['code2country'][$initialCountry]) ? array(

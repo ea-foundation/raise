@@ -302,7 +302,7 @@ function raise_form($atts, $content = null)
                                 <?php
                                     foreach ($purposes as $value => $label) {
                                         $attr = $value == $checked ? ' checked' : '';
-                                        echo '<li><label for="purpose-' . strtolower($value) . '"><input type="radio" id="purpose-' . strtolower($value) . '" name="purpose" value="' . $value . '" class="hidden"'  . $attr . '>' . $label . '</label></li>';
+                                        echo '<li><label for="purpose-' . strtolower($value) . '"><input type="radio" id="purpose-' . strtolower($value) . '" name="purpose" value="' . $value . '" class="hidden"'  . $attr . '><span>' . $label . '</span></label></li>';
                                     }
                                 ?>
                             </ul>

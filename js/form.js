@@ -487,9 +487,7 @@ jQuery(function($) {
 
     // Purpose dropdown stuff
     $('#donation-purpose input[type=radio]').change(function() {
-        $('#selected-purpose').text($(this).parent().contents().filter(function() {
-            return this.nodeType == 3;
-        }).text());
+        $('#selected-purpose').text($(this).siblings('span').text());
 
         // Update tax deduction text
         updateTaxDeductionLabels();
