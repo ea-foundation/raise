@@ -1,6 +1,10 @@
 = 1.1.0: TBD =
 * NEW: Added deeplinking of purpose by means of query string parameter (?purpose=X)
 * NEW: Added property amount > currency > minimum
+* NEW: Added deductible to the webhook payload
+* IMPROVED: Made country codes in payment > country case-insensitive
+* FIXED: Disable page cache on pages containing the donation form
+* FIXED: Show anonymous checkbox when enabled
 
 = 1.0.7 October 17, 2017 =
 * FIXED: Disabled negative numbers in other amount field

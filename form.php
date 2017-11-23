@@ -9,6 +9,9 @@
  */
 function raise_form($atts, $content = null)
 {
+    // Disable caching
+    define('DONOTCACHEPAGE', true);
+
     // Extract shortcode attributes (name becomes $form, etc.)
     extract(shortcode_atts(array(
         'form' => '',        // $form
@@ -213,8 +216,8 @@ function raise_form($atts, $content = null)
                     </div>
                 </div>
 
-                <!-- Donate anonymously (matching campaigns) -->
-                <?php if (!empty($formSettings['campaign']) && raise_get($formSettings['payment']['extra_fields']['anonymous'], false)): ?>
+                <!-- Donate anonymously (for fundraisers only) -->
+                <?php if (!empty($formSettings['fundraiser']) && raise_get($formSettings['payment']['extra_fields']['anonymous'], false)): ?>
                 <div class="form-group donor-info" style="margin-top: -17px">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
