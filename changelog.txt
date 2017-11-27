@@ -1,3 +1,6 @@
+= 1.1.1: November 27, 2017 =
+* FIXED: Added defined() check for cache constant DONOTCACHEPAGE
+
 = 1.1.0: November 23, 2017 =
 * NEW: Added deeplinking of purpose by means of query string parameter (?purpose=X)
 * NEW: Added property amount > currency > minimum

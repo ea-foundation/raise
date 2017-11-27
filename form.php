@@ -10,7 +10,9 @@
 function raise_form($atts, $content = null)
 {
     // Disable caching
-    define('DONOTCACHEPAGE', true);
+    if (!defined('DONOTCACHEPAGE')) {
+        define('DONOTCACHEPAGE', true);
+    }
 
     // Extract shortcode attributes (name becomes $form, etc.)
     extract(shortcode_atts(array(
