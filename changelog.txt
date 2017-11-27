@@ -1,3 +1,6 @@
+= 1.2.0: TBD =
+* Added vendor_transaction_id for PayPal
+
 = 1.1.1: November 27, 2017 =
 * FIXED: Added defined() check for cache constant DONOTCACHEPAGE
 

@@ -1700,6 +1700,9 @@ function raise_execute_paypal_donation()
             $execution = new \PayPal\Api\PaymentExecution();
             $execution->setPayerId($_POST['payerID']);
             $payment->execute($execution, $apiContext);
+
+            // Add vendor transaction ID (remove PAY- prefix)
+            $donation['vendor_transaction_id'] = substr($paymentId, 4);
         } else if (!empty($_POST['token'])) {
             // Execute billing agreement (monthly)
             $agreement = new \PayPal\Api\Agreement();
