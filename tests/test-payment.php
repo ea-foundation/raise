@@ -308,6 +308,50 @@ class PaymentTest extends WP_UnitTestCase {
     }
 
     /**
+     * Test account argument
+     */
+    function test_stripe_with_explicit_account()
+    {
+        $formSettings = $this->getFormSettings();
+        $settings     = raise_get_best_payment_provider_settings(
+            $formSettings,
+            'stripe',
+            'live',
+            false,
+            'EUR',
+            'NL',
+            'CH'
+        );
+
+        $this->assertArraySubset($settings, [
+            "secret_key" => "stripe_ch_live_secret_key",
+            "public_key" => "stripe_ch_live_public_key",
+        ]);
+    }
+
+    /**
+     * Test fallback for non-existing account
+     */
+    function test_stripe_with_fake_account()
+    {
+        $formSettings = $this->getFormSettings();
+        $settings     = raise_get_best_payment_provider_settings(
+            $formSettings,
+            'stripe',
+            'live',
+            false,
+            'USD',
+            'BR',
+            'BR'
+        );
+
+        $this->assertArraySubset($settings, [
+            "secret_key" => "stripe_live_secret_key",
+            "public_key" => "stripe_live_public_key",
+        ]);
+    }
+
+    /**
      * Test compulsory paypal settings
      */
     function test_paypal_settings()

@@ -221,6 +221,8 @@ Each payment key except bank transfer can be written as `{method}` (= default, a
 
 - If the donor needs a tax receipt OR country field is compulsory: country-specific, currency-specific, default
 
+If you want to be more explicit, you can choose custom suffixes and reference them with the `account` property in `tax_deduction`. E.g. setting it to `foo` will use `{method}_foo` (or the `foo` account in `banktransfer > accounts` for bank transfers, see below).
+
 Each payment method except bank transfer object is further nested into `live` and `sandbox`.
 
 ### Bank transfer
@@ -356,7 +358,7 @@ The rule object can contain the following parameters:
 - `deductible` (boolean): If false, the tax deduction checkbox will be disabled
 - `receipt_text`: Text to show next to the checkbox
 - `success_text`: Text to show upon confirmation in step 3
-- `account`: Account used to populate `account` in the webhook payload and select the appropriate bank details from [bank accounts](#bank-transfer).
+- `account`: Account used to populate `account` in the webhook payload and select the appropriate bank details from [bank accounts](#bank-transfer). It can also be used to enforce one particular provider account. E.g. if the account is set to `FOO` and a donor chooses Stripe, the provider `stripe_foo` is used (see `forms > my_form > payment > provider`).
 - `provider_hover_text`: Object with language properties (e.g. "en") if you have several languages. The values are objects with payment provider properties (e.g. "stripe"). The values are strings that are inserted into the title property of the corresponding payment provider labels.
 
 Supports placeholders: `%country%`, `%payment_method%`, `%purpose%`, `%reference_number%`, `%bank_account_formatted%`

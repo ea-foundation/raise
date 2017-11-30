@@ -986,41 +986,47 @@ function loadStripeHandler()
     // Lock form
     lockLastStep(true);
 
-    // Check all possible settings
-    var hasCountrySetting  = userCountry.toLowerCase() in stripeSettings;
-    var hasCurrencySetting = selectedCurrency.toLowerCase() in stripeSettings;
-    var hasDefaultSetting  = 'default' in stripeSettings;
-    
-    // Check if there are settings for a country where the chosen currency is used.
-    // This is only relevant if the donor does not need a donation receipt (always related 
-    // to specific country) and if there are no currency specific settings
-    var hasCountryOfCurrencySetting = false;
-    var countryOfCurrency           = '';
-    if (!countryCompulsory && !taxReceiptNeeded && !hasCurrencySetting) {
-        var countries = getCountriesByCurrency(selectedCurrency);
-        for (var i = 0; i < countries.length; i++) {
-            if (countries[i].toLowerCase() in stripeSettings) {
-                hasCountryOfCurrencySetting = true;
-                countryOfCurrency = countries[i];
-                break;
+    // Get account and check if it exists
+    var account = jQuery('#raise-form-account').val();
+    if (account && account.toLowerCase() in stripeSettings) {
+        var newStripeKey = stripeSettings[account.toLowerCase()];
+    } else {
+        // Check all possible settings
+        var hasCountrySetting  = userCountry.toLowerCase() in stripeSettings;
+        var hasCurrencySetting = selectedCurrency.toLowerCase() in stripeSettings;
+        var hasDefaultSetting  = 'default' in stripeSettings;
+
+        // Check if there are settings for a country where the chosen currency is used.
+        // This is only relevant if the donor does not need a donation receipt (always related
+        // to specific country) and if there are no currency specific settings
+        var hasCountryOfCurrencySetting = false;
+        var countryOfCurrency           = '';
+        if (!countryCompulsory && !taxReceiptNeeded && !hasCurrencySetting) {
+            var countries = getCountriesByCurrency(selectedCurrency);
+            for (var i = 0; i < countries.length; i++) {
+                if (countries[i].toLowerCase() in stripeSettings) {
+                    hasCountryOfCurrencySetting = true;
+                    countryOfCurrency = countries[i];
+                    break;
+                }
             }
         }
-    }
 
-    if (hasCountrySetting && (taxReceiptNeeded || countryCompulsory)) {
-        // Use country specific key
-        var newStripeKey = stripeSettings[userCountry.toLowerCase()];
-    } else if (hasCurrencySetting) {
-        // Use currency specific key
-        var newStripeKey = stripeSettings[selectedCurrency.toLowerCase()];
-    } else if (hasCountryOfCurrencySetting) {
-        // Use key of a country where the chosen currency is used
-        var newStripeKey = stripeSettings[countryOfCurrency.toLowerCase()];
-    } else if (hasDefaultSetting) {
-        // Use default key
-        var newStripeKey = stripeSettings['default'];
-    } else {
-        throw new Error('No Stripe settings found');
+        if (hasCountrySetting && (taxReceiptNeeded || countryCompulsory)) {
+            // Use country specific key
+            var newStripeKey = stripeSettings[userCountry.toLowerCase()];
+        } else if (hasCurrencySetting) {
+            // Use currency specific key
+            var newStripeKey = stripeSettings[selectedCurrency.toLowerCase()];
+        } else if (hasCountryOfCurrencySetting) {
+            // Use key of a country where the chosen currency is used
+            var newStripeKey = stripeSettings[countryOfCurrency.toLowerCase()];
+        } else if (hasDefaultSetting) {
+            // Use default key
+            var newStripeKey = stripeSettings['default'];
+        } else {
+            throw new Error('No Stripe settings found');
+        }
     }
 
     // Check if the key changed

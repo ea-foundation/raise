@@ -1,5 +1,6 @@
 = 1.2.0: TBD =
 * Added vendor_transaction_id for PayPal
+* Added support for explicit account selection labels for all payment providers
 
 = 1.1.1: November 27, 2017 =
 * FIXED: Added defined() check for cache constant DONOTCACHEPAGE

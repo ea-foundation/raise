@@ -494,7 +494,8 @@ function raise_handle_stripe_payment($donation, $token, $publicKey)
             $donation['mode'],
             $donation['tax_receipt'],
             $donation['currency'],
-            raise_get($donation['country'])
+            raise_get($donation['country']),
+            raise_get($donation['account'])
         );
 
         if ($settings['public_key'] != $publicKey) {
@@ -766,9 +767,10 @@ function raise_send_webhook($url, array $params)
  * @param bool   $taxReceiptNeeded
  * @param string $currency
  * @param string $country
+ * @param string $account
  * @return \GoCardlessPro\Client
  */
-function raise_get_gocardless_client($form, $mode, $taxReceiptNeeded, $currency, $country)
+function raise_get_gocardless_client($form, $mode, $taxReceiptNeeded, $currency, $country, $account = null)
 {
     // Get access token
     $formSettings = raise_load_settings($form);
@@ -778,7 +780,8 @@ function raise_get_gocardless_client($form, $mode, $taxReceiptNeeded, $currency,
         $mode,
         $taxReceiptNeeded,
         $currency,
-        $country
+        $country,
+        $account
     );
 
     return new \GoCardlessPro\Client([
@@ -796,6 +799,7 @@ function raise_get_gocardless_client($form, $mode, $taxReceiptNeeded, $currency,
  * @param bool   $taxReceiptNeeded
  * @param string $currency
  * @param string $country
+ * @param string account
  * @return array
  * @throws \Exception
  */
@@ -805,8 +809,16 @@ function raise_get_best_payment_provider_settings(
     $mode,
     $taxReceiptNeeded,
     $currency,
-    $country
+    $country,
+    $account = null
 ) {
+    $providers = raise_get($formSettings['payment']['provider'], []);
+
+    // Try to find account if defined
+    if (!empty($account) && $settings = raise_get($providers[$provider . '_' . strtolower($account)][$mode])) {
+        return $settings;
+    }
+
     // Make things lowercase
     $provider = strtolower($provider);
     $currency = strtolower($currency);
@@ -816,7 +828,6 @@ function raise_get_best_payment_provider_settings(
     $countryCompulsory = raise_get($formSettings['payment']['extra_fields']['country'], false);
 
     // Check all possible settings
-    $providers = $formSettings['payment']['provider'];
     if (empty($providers[$provider][$mode])) {
         throw new \Exception("No default settings found for $provider in $mode mode");
     }
@@ -908,7 +919,8 @@ function raise_prepare_gocardless_donation(array $post)
             $post['mode'],
             raise_get($post['tax_receipt'], false),
             $post['currency'],
-            $post['country']
+            $post['country'],
+            raise_get($post['account'])
         );
         $redirectFlow = $client->redirectFlows()->create([
             "params" => [
@@ -956,8 +968,9 @@ function raise_process_gocardless_donation()
         $taxReceipt = $donation['tax_receipt'];
         $currency   = $donation['currency'];
         $country    = $donation['country'];
+        $account    = $donation['account'];
         $reqId      = $donation['reqId'];
-        $client     = raise_get_gocardless_client($form, $mode, $taxReceipt, $currency, $country);
+        $client     = raise_get_gocardless_client($form, $mode, $taxReceipt, $currency, $country, $account);
 
         if (!isset($_GET['redirect_flow_id']) || $_GET['redirect_flow_id'] != $_SESSION['raise-gocardless-flow-id']) {
             throw new \Exception('Invalid flow ID');
@@ -1052,9 +1065,10 @@ function raise_get_bitpay_key_ids($pairingCode)
  * @param bool   $taxReceipt
  * @param string $currency
  * @param string $country
+ * @param string $account
  * @return \Bitpay\Bitpay
  */
-function raise_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $currency, $country)
+function raise_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $currency, $country, $account = null)
 {
     // Get BitPay pairing code
     $formSettings = raise_load_settings($form);
@@ -1064,7 +1078,8 @@ function raise_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $curren
         $mode,
         $taxReceipt,
         $currency,
-        $country
+        $country,
+        $account
     );
     $pairingCode = $settings['pairing_code'];
 
@@ -1133,12 +1148,13 @@ function raise_generate_bitpay_token(\Bitpay\Bitpay $bitpay, $label = '')
  * @param bool   $taxReceipt
  * @param string $currency
  * @param string $country
+ * @param string $account
  * @return \Bitpay\Client\Client
  */
-function raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country)
+function raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country, $account = null)
 {
     // Get BitPay dependency injector
-    $bitpay = raise_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $currency, $country);
+    $bitpay = raise_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $currency, $country, $account);
 
     // Get BitPay pairing code as well as key/token IDs
     $pairingCode = $bitpay->getContainer()->getParameter('bitpay.key_storage_password');
@@ -1209,7 +1225,8 @@ function raise_get_skrill_url($reqId, $post)
         $post['mode'],
         raise_get($post['tax_receipt'], false),
         $post['currency'],
-        $post['country']
+        $post['country'],
+        raise_get($post['account'])
     );
 
     // Prepare parameter array
@@ -1282,7 +1299,7 @@ function raise_prepare_bitpay_donation(array $post)
         //$returnUrl       = raise_get_ajax_endpoint() . '?action=bitpay_confirm';
 
         // Get BitPay object and token
-        $client = raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country);
+        $client = raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country, raise_get($post['account']));
 
         // Make item
         $item = new \Bitpay\Item();
@@ -1541,7 +1558,8 @@ function raise_create_paypal_payment(array $post)
         $post['mode'],
         raise_get($post['tax_receipt'], false),
         $post['currency'],
-        $post['country']
+        $post['country'],
+        raise_get($post['account'])
     );
 
     return $payment->create($apiContext);
@@ -1585,7 +1603,8 @@ function raise_create_paypal_billing_agreement(array $post)
         $post['mode'],
         raise_get($post['tax_receipt'], false),
         $post['currency'],
-        $post['country']
+        $post['country'],
+        raise_get($post['account'])
     );
     $plan->setPaymentDefinitions(array($paymentDefinition))
         ->setMerchantPreferences($merchantPreferences)
@@ -1690,7 +1709,8 @@ function raise_execute_paypal_donation()
             $donation['mode'],
             $donation['tax_receipt'],
             $donation['currency'],
-            $donation['country']
+            $donation['country'],
+            $donation['account']
         );
 
         if (!empty($_POST['paymentID']) && !empty($_POST['payerID'])) {
@@ -2733,10 +2753,11 @@ function raise_get_banktransfer_reference($form, $prefix = '', $length = 8, $blo
  * @param bool   $taxReceipt
  * @param string $currency
  * @param string $country
+ * @param string $account
  * @return \PayPal\Rest\ApiContext
  * @throws \Exception
  */
-function raise_get_paypal_api_context($form, $mode, $taxReceipt, $currency, $country)
+function raise_get_paypal_api_context($form, $mode, $taxReceipt, $currency, $country, $account = null)
 {
     // Get best settings
     $formSettings = raise_load_settings($form);
@@ -2746,7 +2767,8 @@ function raise_get_paypal_api_context($form, $mode, $taxReceipt, $currency, $cou
         $mode,
         $taxReceipt,
         $currency,
-        $country
+        $country,
+        $account
     );
 
     $apiContext = new \PayPal\Rest\ApiContext(
