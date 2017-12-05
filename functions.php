@@ -74,20 +74,24 @@ function raise_init_donation_form($form, $mode)
 
     // Localize script
     wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
-        'logo'                  => $logo,
-        'ajax_endpoint'         => admin_url('admin-ajax.php'),
-        'amount_patterns'       => $amountPatterns,
-        'amount_minimums'       => $amountMinimums,
-        'stripe_public_keys'    => $stripeKeys,
-        'tax_deduction_labels'  => $taxDeductionLabels,
-        'bank_accounts'         => $bankAccounts,
-        'organization'          => $GLOBALS['raiseOrganization'],
-        'currency2country'      => $GLOBALS['currency2country'],
-        'donate_button_once'    => __("Donate %currency-amount%", "raise"),
-        'donate_button_monthly' => __("Donate %currency-amount% per month", "raise"),
-        'donation'              => __("Donation", "raise"),
-        'cookie_warning'        => __("Please enable cookies before you proceed with your donation.", "raise"),
-        'error_messages'        => [
+        'logo'                 => $logo,
+        'ajax_endpoint'        => admin_url('admin-ajax.php'),
+        'amount_patterns'      => $amountPatterns,
+        'amount_minimums'      => $amountMinimums,
+        'stripe_public_keys'   => $stripeKeys,
+        'tax_deduction_labels' => $taxDeductionLabels,
+        'bank_accounts'        => $bankAccounts,
+        'organization'         => $GLOBALS['raiseOrganization'],
+        'currency2country'     => $GLOBALS['currency2country'],
+        'labels'               => [
+            'yes'                   => __("yes", "raise"),
+            'no'                    => __("no", "raise"),
+            'donate_button_once'    => __("Donate %currency-amount%", "raise"),
+            'donate_button_monthly' => __("Donate %currency-amount% per month", "raise"),
+            'donation'              => __("Donation", "raise"),
+            'cookie_warning'        => __("Please enable cookies before you proceed with your donation.", "raise"),
+        ],
+        'error_messages'       => [
             'missing_fields'       => __('Please fill out all required fields.', 'raise'),
             'invalid_email'        => __('Invalid email.', 'raise'),
             'below_minimum_amount' => __('The minimum donation is %minimum_amount%.', 'raise'),
@@ -1971,7 +1975,7 @@ function raise_send_confirmation_email(array $donation)
         $subject = $twig->render('finish.email.subject', $donation);
         $text    = $twig->render('finish.email.text', $donation);
 
-        // Repalce %bank_account_formatted% in success_text with macro
+        // Repalce %bank_account_formatted% from success_text with macro
         if (!empty($donation['bank_account']) && strpos($text, '%bank_account_formatted%') !== false) {
             $bankAccount = $html ? $twig->render('bank_account_formatted_html', $donation)
                                  : $twig->render('bank_account_formatted_text', $donation);

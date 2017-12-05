@@ -361,7 +361,7 @@ The rule object can contain the following parameters:
 - `account`: Account used to populate `account` in the webhook payload and select the appropriate bank details from [bank accounts](#bank-transfer). It can also be used to enforce one particular provider account. E.g. if the account is set to `FOO` and a donor chooses Stripe, the provider `stripe_foo` is used (see `forms > my_form > payment > provider`).
 - `provider_hover_text`: Object with language properties (e.g. "en") if you have several languages. The values are objects with payment provider properties (e.g. "stripe"). The values are strings that are inserted into the title property of the corresponding payment provider labels.
 
-Supports placeholders: `%country%`, `%payment_method%`, `%purpose%`, `%reference_number%`, `%bank_account_formatted%`
+Supports placeholders: `%address%`, `%amount%`, `%bank_account_formatted%` (dumps bank account information referenced by the `acccount` parameter), `%city%`, `%country%`, `%currency%`, `%email%`, `%frequency%`, `%mailinglist%` (yes/no), `%name%`, `%payment_provider%`, `%reference_number%` (for bank transfers), `%tax_receipt%` (yes/no), `%zip%`
 
 
 ## Confirmation email

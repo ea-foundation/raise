@@ -1,27 +1,27 @@
 /**
  * Settings
  */
-var raiseMode                  = raiseDonationConfig.mode;
-var userCountry                = raiseDonationConfig.userCountry;
-var selectedCurrency           = raiseDonationConfig.selectedCurrency;
-var countryCompulsory          = raiseDonationConfig.countryCompulsory;
-var currencies                 = wordpress_vars.amount_patterns;
-var currencyMinimums           = wordpress_vars.amount_minimums;
-var stripeHandlers             = null;
-var totalItems                 = 0;
-var taxReceiptNeeded           = false;
-var slideTransitionInAction    = false;
-var otherAmountPlaceholder     = null;
-var currentStripeKey           = '';
-var frequency                  = 'once';
-var monthlySupport             = ['payment-stripe', 'payment-paypal', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
-var goCardlessSupport          = ['EUR', 'GBP', 'SEK'];
-var raisePopup                 = null;
-var gcPollTimer                = null;
-var taxDeductionSuccessText    = null;
-var taxDeductionDisabled       = true;
-var interactionEventDispatched = false;
-var checkoutEventDispatched    = false;
+var raiseMode                   = raiseDonationConfig.mode;
+var userCountry                 = raiseDonationConfig.userCountry;
+var selectedCurrency            = raiseDonationConfig.selectedCurrency;
+var countryCompulsory           = raiseDonationConfig.countryCompulsory;
+var currencies                  = wordpress_vars.amount_patterns;
+var currencyMinimums            = wordpress_vars.amount_minimums;
+var stripeHandlers              = null;
+var totalItems                  = 0;
+var taxReceiptNeeded            = false;
+var slideTransitionInAction     = false;
+var otherAmountPlaceholder      = null;
+var currentStripeKey            = '';
+var frequency                   = 'once';
+var monthlySupport              = ['payment-stripe', 'payment-paypal', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
+var goCardlessSupport           = ['EUR', 'GBP', 'SEK'];
+var raisePopup                  = null;
+var gcPollTimer                 = null;
+var bankTransferReferenceNumber = null;
+var taxDeductionDisabled        = true;
+var interactionEventDispatched  = false;
+var checkoutEventDispatched     = false;
 
 
 // Preload Stripe image
@@ -48,7 +48,7 @@ if (!Object.keys) {
 jQuery(function($) {
     // Make sure cookies are enabled
     if (!navigator.cookieEnabled) {
-        $('<div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span><span class="sr-only">Error:</span> ' + wordpress_vars.cookie_warning + '</div>')
+        $('<div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span><span class="sr-only">Error:</span> ' + wordpress_vars.labels.cookie_warning + '</div>')
             .insertBefore(".btstrp");
     }
 
@@ -633,27 +633,23 @@ function isValidEmail(email) {
     return regex.test(email);
 }
 
-function enableConfirmButton(n)
-{
+function enableConfirmButton(n) {
     jQuery('button.confirm:eq(' + n + ')').prop('disabled', false);
 }
 
-function disableConfirmButton(n)
-{
+function disableConfirmButton(n) {
     jQuery('button.confirm:eq(' + n + ')').prop('disabled', true);
 }
 
-function getLastButtonText()
-{
+function getLastButtonText() {
     var amount           = getDonationAmount();
     var currencyCode     = getDonationCurrencyIsoCode();
     var currencyAmount   = currencies[currencyCode].replace('%amount%', amount);
-    var buttonFinalText  = frequency == 'monthly' ? wordpress_vars.donate_button_monthly : wordpress_vars.donate_button_once;
+    var buttonFinalText  = frequency == 'monthly' ? wordpress_vars.labels.donate_button_monthly : wordpress_vars.labels.donate_button_once;
     return buttonFinalText.replace('%currency-amount%', currencyAmount);
 }
 
-function showLastItem(currentItem)
-{
+function showLastItem(currentItem) {
     // Change text of last confirm button
     jQuery('button.confirm:last', '#wizard').text(getLastButtonText());
 
@@ -661,8 +657,7 @@ function showLastItem(currentItem)
     carouselNext();
 }
 
-function getDonationAmount()
-{
+function getDonationAmount() {
     var amount = jQuery('input[name=amount]:radio:checked', '#wizard').val();
     if (amount) {
         return amount.replace('.00', '');
@@ -672,31 +667,28 @@ function getDonationAmount()
     }
 }
 
-function getDonationCurrencyIsoCode()
-{
+function getDonationCurrencyIsoCode() {
     return selectedCurrency;
 }
 
 /**
  * Handle Stripe donation
  */
-function handleStripeDonation()
-{
+function handleStripeDonation() {
     // Change action input
     jQuery('form#donationForm input[name=action]').val('raise_donate');
 
     // Open handler
     stripeHandler.open({
         name: wordpress_vars.organization,
-        description: wordpress_vars.donation,
+        description: wordpress_vars.labels.donation,
         amount: getDonationAmount() * 100,
         currency: getDonationCurrencyIsoCode(),
         email: getDonorInfo('email')
     });
 }
 
-function handlePopupDonation(provider)
-{
+function handlePopupDonation(provider) {
     // Show spinner right away
     showSpinnerOnLastButton();
 
@@ -757,8 +749,7 @@ function handlePopupDonation(provider)
     lockLastStep(true);
 }
 
-function handleIFrameDonation(provider)
-{
+function handleIFrameDonation(provider) {
     // Show spinner right away
     showSpinnerOnLastButton();
 
@@ -802,13 +793,11 @@ function handleIFrameDonation(provider)
     lockLastStep(true);
 }
 
-function hideModal()
-{
+function hideModal() {
     jQuery('.raise-modal').modal('hide');
 }
 
-function openRaisePopup(url, title)
-{
+function openRaisePopup(url, title) {
     raisePopup = popupCenter(url, title, 420, 560);
     return false;
 }
@@ -833,8 +822,7 @@ function popupCenter(url, title, w, h) {
     return newWindow;
 }
 
-function handleBankTransferDonation()
-{
+function handleBankTransferDonation() {
     // Show spinner
     showSpinnerOnLastButton();
 
@@ -853,8 +841,7 @@ function handleBankTransferDonation()
     }
 }
 
-function sendBanktransferDonation()
-{
+function sendBanktransferDonation() {
     // Send form
     jQuery('form#donationForm').ajaxSubmit({
         success: function(responseText, statusText, xhr, form) {
@@ -865,11 +852,8 @@ function sendBanktransferDonation()
                     throw new Error(message);
                 }
 
-                // Update tax deduction success text with reference
-                if (taxDeductionSuccessText) {
-                    taxDeductionSuccessText = taxDeductionSuccessText.replace('%reference_number%', response['reference']);
-                    jQuery('div#shortcode-content').html(taxDeductionSuccessText);
-                }
+                // Save reference for next update of success text (%reference_number%)
+                bankTransferReferenceNumber = response['reference'];
 
                 // Everything worked! Display short code content on confirmation page
                 // Change glyphicon from "spinner" to "OK" and go to confirmation page
@@ -888,8 +872,7 @@ function sendBanktransferDonation()
     lockLastStep(true);
 }
 
-function handlePayPalDonation()
-{
+function handlePayPalDonation() {
     // Change action input
     jQuery('form#donationForm input[name=action]').val('raise_redirect');
 
@@ -897,15 +880,13 @@ function handlePayPalDonation()
     jQuery('#PayPalModal').modal('show');
 }
 
-function showSpinnerOnLastButton()
-{
+function showSpinnerOnLastButton() {
     jQuery('button.confirm:last', '#wizard')
         .html('<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>')
         .removeClass('donation-continue');
 }
 
-function lockLastStep(locked)
-{
+function lockLastStep(locked) {
     jQuery('#donation-submit').prop('disabled', locked);
     jQuery('#donation-go-back').prop('disabled', locked);
     jQuery('div.donor-info input', '#payment-method-item').prop('disabled', locked);
@@ -925,11 +906,10 @@ function lockLastStep(locked)
     }
 }
 
-function showConfirmation(paymentProvider)
-{
+function showConfirmation(paymentProvider) {
     // Hide all payment provider related divs on confirmation page except the ones from paymentProvider
     jQuery('#payment-method-providers input[name=payment_provider]').each(function(index) {
-        var provider = jQuery(this).val().toLowerCase().replace(/\s/g, "");
+        var provider = jQuery(this).val().toLowerCase().replace(/\s+/g, "");
         if (paymentProvider != provider) {
             jQuery('#shortcode-content .raise-' + provider).hide();
         }
@@ -951,9 +931,16 @@ function showConfirmation(paymentProvider)
         countryDivs.not('.raise-country-other').hide();
     }
 
+    // Update tax deduction labels to make sure we have all form values in success_text
+    lockLastStep(false);
+    updateTaxDeductionLabels();
+    lockLastStep(true);
+
     // Hide spinner
-    jQuery('button.confirm:last', '#wizard').html('<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>');
-    
+    jQuery('button.confirm:last', '#wizard')
+        .removeClass('donation-continue')
+        .html('<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>');
+
     // Move to confirmation page after 1 second
     setTimeout(carouselNext, 1000);
 
@@ -974,8 +961,7 @@ function showConfirmation(paymentProvider)
     }
 }
 
-function loadStripeHandler()
-{
+function loadStripeHandler() {
     // Get best matching key
     var stripeSettings = wordpress_vars.stripe_public_keys;
     if (Object.keys(stripeSettings).length == 0) {
@@ -1085,8 +1071,7 @@ function loadStripeHandler()
     lockLastStep(false);
 }
 
-function carouselNext()
-{
+function carouselNext() {
     var nextItem = jQuery('#wizard div.active').index() + 1;
 
     if (nextItem  > totalItems) {
@@ -1101,8 +1086,7 @@ function carouselNext()
 }
 
 
-function carouselPrev()
-{
+function carouselPrev() {
     var prevItem = jQuery('#wizard div.active').index() - 1;
 
     if (prevItem  < 0) {
@@ -1116,8 +1100,7 @@ function carouselPrev()
     updateProgressBar(prevItem);
 }
 
-function updateProgressBar(currentItem)
-{
+function updateProgressBar(currentItem) {
     var listItems = jQuery("#progress li");
     listItems.removeClass("active completed");
     listItems.filter(function(index) { return index < currentItem }).addClass("completed");
@@ -1140,8 +1123,7 @@ function updateProgressBar(currentItem)
     }
 }
 
-function getDonorInfo(name)
-{
+function getDonorInfo(name) {
     return jQuery('input#donor-' + name).val();
 }
 
@@ -1166,8 +1148,7 @@ function checkNestedArray(obj /*, level1, level2, ... levelN*/) {
  *
  * E.g. "CHF" returns ["CH", "LI"]
  */
-function getCountriesByCurrency(currency)
-{
+function getCountriesByCurrency(currency) {
     var mapping = wordpress_vars.currency2country;
 
     if (currency in mapping) {
@@ -1180,8 +1161,7 @@ function getCountriesByCurrency(currency)
 /**
  * Show/hide payment providers
  */
-function reloadPaymentProvidersForCurrentCurrency()
-{
+function reloadPaymentProvidersForCurrentCurrency() {
     // GoCardless
     var gcLabel = jQuery('#payment-method-providers label[for=payment-gocardless]');
     if (goCardlessSupport.indexOf(selectedCurrency) == -1) {
@@ -1198,8 +1178,7 @@ function reloadPaymentProvidersForCurrentCurrency()
 /**
  * Get tax deduction labels (nested array: country > payment provider > purpose/charity)
  */
-function updateTaxDeductionLabels()
-{
+function updateTaxDeductionLabels() {
     var labels = wordpress_vars.tax_deduction_labels;
 
     // Only proceed if defined
@@ -1210,18 +1189,14 @@ function updateTaxDeductionLabels()
     var paymentMethod = jQuery('input[name=payment_provider]:checked', '#wizard');
     if (paymentMethod.length) {
         var paymentMethodId   = paymentMethod.attr('id').substr(8); // Strip `payment-` prefix
-        var paymentMethodName = paymentMethod.parent().find('span.payment-method-name').text();
     } else {
         var paymentMethodId   = null;
-        var paymentMethodName = null;
     }
     var purpose = jQuery('input[name=purpose]:checked', '#wizard');
     if (purpose.length) {
         var purposeId   = purpose.val();
-        var purposeName = purpose.parent().text();
     } else {
         var purposeId   = null;
-        var purposeName = null;
     }
 
     // Labels to check
@@ -1241,6 +1216,9 @@ function updateTaxDeductionLabels()
         }
     }
 
+    // Get all form contents
+    var formObj = getFormAsObject();
+
     // Update deductible
     var taxReceipt = jQuery('input#tax-receipt');
     if (result.hasOwnProperty('deductible')) {
@@ -1256,7 +1234,7 @@ function updateTaxDeductionLabels()
     // Update receipt text
     if ('receipt_text' in result) {
         taxReceipt.parent().parent().parent().parent().show();
-        result.receipt_text = replaceTaxDeductionPlaceholders(result.receipt_text, userCountry, paymentMethodName, purposeName);
+        result.receipt_text = replaceTaxDeductionPlaceholders(result.receipt_text, formObj);
         jQuery('span#tax-receipt-text').html(result.receipt_text);
     } else {
         // Hide checkbox
@@ -1279,7 +1257,7 @@ function updateTaxDeductionLabels()
 
     // Update success text with nl2br
     if ('success_text' in result) {
-        taxDeductionSuccessText = nl2br(replaceTaxDeductionPlaceholders(result.success_text, userCountry, paymentMethodName, purposeName, accountData));
+        var taxDeductionSuccessText = nl2br(replaceTaxDeductionPlaceholders(result.success_text, formObj, accountData));
         jQuery('div#shortcode-content').html(taxDeductionSuccessText);
     }
 
@@ -1296,23 +1274,7 @@ function updateTaxDeductionLabels()
 /**
  * Add placeholders
  */
-function replaceTaxDeductionPlaceholders(label, country, paymentMethod, purpose, accountData)
-{
-    // Replace %country%
-    if (!!country) {
-        label = label.replace('%country%', jQuery('select#donor-country option[value=' + country.toUpperCase() + ']').text());
-    }
-
-    // Replace %payment_method%
-    if (!!paymentMethod) {
-        label = label.replace('%payment_method%', paymentMethod);
-    }
-
-    // Replace %purpose%
-    if (!!purpose) {
-        label = label.replace('%purpose%', purpose);
-    }
-
+function replaceTaxDeductionPlaceholders(label, formObj, accountData) {
     // Replace %bank_account_formatted%
     if (!jQuery.isEmptyObject(accountData)) {
         var accountDataString = Object.keys(accountData).map(function(key, index) {
@@ -1321,14 +1283,64 @@ function replaceTaxDeductionPlaceholders(label, country, paymentMethod, purpose,
         label = label.replace('%bank_account_formatted%', accountDataString);
     }
 
+    Object.keys(formObj).forEach(function(key, index) {
+       var replace = '%' + key + '%';
+       var regex   = new RegExp(replace, "g");
+       label       = label.replace(regex, formObj[key]);
+    });
+
     return label;
+}
+
+function getFormAsObject() {
+    var formObj = {};
+    jQuery.each(jQuery('#donationForm').serializeArray(), function(_, kv) {
+        if (formObj.hasOwnProperty(kv.name)) {
+          formObj[kv.name] = jQuery.makeArray(formObj[kv.name]);
+          formObj[kv.name].push(kv.value);
+        } else {
+          formObj[kv.name] = kv.value;
+        }
+    });
+
+    // Delete internal values email-confirm (honey pot), action, form, mode, locale, account
+    delete formObj['email-confirm'];
+    delete formObj['action'];
+    delete formObj['form'];
+    delete formObj['mode'];
+    delete formObj['locale'];
+    delete formObj['account'];
+
+    // Merge amount and amount-other
+    if (!('amount' in formObj)) {
+        formObj.amount = formObj.amount_other;
+    }
+    delete formObj.amount_other;
+
+    // Add bank transfer reference number if present
+    formObj.reference_number = bankTransferReferenceNumber ? bankTransferReferenceNumber : '-';
+
+    // Localize values for frequency, payment_provider, country, purpose
+    formObj.frequency        = jQuery('input[name=frequency][value=' + formObj.frequency + ']').siblings('label').text();
+    formObj.payment_provider = jQuery('input[name=payment_provider][value=' + formObj.payment_provider.replace(' ', '\\ ') + ']').siblings('span').text();
+    if ('country' in formObj) {
+        formObj.country = jQuery('select#donor-country option[value=' + formObj.country.toUpperCase() + ']').text();
+    }
+    if ('purpose' in formObj) {
+        formObj.purpose = jQuery('input[name=purpose][value=' + formObj.purpose.replace(' ', '\\ ') + ']').siblings('span').text();
+    }
+
+    // Localize booleans
+    formObj.mailinglist = 'mailinglist' in formObj ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
+    formObj.tax_receipt = 'tax_receipt' in formObj ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
+
+    return formObj;
 }
 
 /**
  * nl2br function from PHP
  */
-function nl2br(str, isXhtml)
-{
+function nl2br(str, isXhtml) {
     if (typeof str === 'undefined' || str === null) {
         return '';
     }
@@ -1340,8 +1352,7 @@ function nl2br(str, isXhtml)
 /**
  * Trigger form loaded event
  */
-function raiseTriggerFormLoadedEvent()
-{
+function raiseTriggerFormLoadedEvent() {
     var ev = new CustomEvent('raise_loaded_donation_form', { detail: {
         form: document.getElementById("raise-form-name").value
     }});
