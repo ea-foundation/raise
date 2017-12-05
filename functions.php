@@ -21,6 +21,7 @@ const RAISE_WEBHOOK_KEYS = [
     'purpose',
     'reference',
     'referrer',
+    'success_text',
     'tax_receipt',
     'time',
     'type', //TODO Legacy. Remove in next major release.
@@ -363,6 +364,7 @@ function raise_get_donation_from_post()
         'country'              => raise_get($post['country'], ''),
         'comment'              => raise_get($post['comment'], ''),
         'account'              => raise_get($post['account'], ''),
+        'success_text'         => raise_get($post['success_text'], ''),
         'g-recaptcha-response' => raise_get($post['g-recaptcha-response'], ''),
         'anonymous'            => (bool) raise_get($post['anonymous'], false),
         'mailinglist'          => (bool) raise_get($post['mailinglist'], false),
@@ -611,6 +613,11 @@ function raise_handle_banktransfer_payment(array $donation)
     // Generate reference number and add to donation
     $reference             = raise_get_banktransfer_reference($donation['form'], raise_get($donation['purpose']));
     $donation['reference'] = $reference;
+
+    // Inject reference number into success_text
+    if (!empty($donation['success_text'])) {
+        $donation['success_text'] = str_replace('%reference_number%', $reference, $donation['success_text']);
+    }
 
     // Do post donation actions
     raise_do_post_donation_actions($donation);
@@ -1482,6 +1489,7 @@ function raise_get_donation_from_session()
         "mailinglist"      => $_SESSION['raise-mailinglist'],
         "comment"          => $_SESSION['raise-comment'],
         "account"          => $_SESSION['raise-account'],
+        "success_text"     => $_SESSION['raise-success-text'],
         "anonymous"        => $_SESSION['raise-anonymous'],
     );
 }
@@ -1509,15 +1517,16 @@ function raise_set_donation_data_to_session(array $post, $reqId = null)
     $_SESSION['raise-payment-provider'] = $post['payment_provider'];
 
     // Optional fields
-    $_SESSION['raise-purpose']     = raise_get($post['purpose'], '');
-    $_SESSION['raise-address']     = raise_get($post['address'], '');
-    $_SESSION['raise-zip']         = raise_get($post['zip'], '');
-    $_SESSION['raise-city']        = raise_get($post['city'], '');
-    $_SESSION['raise-comment']     = raise_get($post['comment'], '');
-    $_SESSION['raise-account']     = raise_get($post['account'], '');
-    $_SESSION['raise-tax-receipt'] = (bool) raise_get($post['tax_receipt'], false);
-    $_SESSION['raise-mailinglist'] = (bool) raise_get($post['mailinglist'], false);
-    $_SESSION['raise-anonymous']   = (bool) raise_get($post['anonymous'], false);
+    $_SESSION['raise-purpose']      = raise_get($post['purpose'], '');
+    $_SESSION['raise-address']      = raise_get($post['address'], '');
+    $_SESSION['raise-zip']          = raise_get($post['zip'], '');
+    $_SESSION['raise-city']         = raise_get($post['city'], '');
+    $_SESSION['raise-comment']      = raise_get($post['comment'], '');
+    $_SESSION['raise-account']      = raise_get($post['account'], '');
+    $_SESSION['raise-success-text'] = raise_get($post['success_text'], '');
+    $_SESSION['raise-tax-receipt']  = (bool) raise_get($post['tax_receipt'], false);
+    $_SESSION['raise-mailinglist']  = (bool) raise_get($post['mailinglist'], false);
+    $_SESSION['raise-anonymous']    = (bool) raise_get($post['anonymous'], false);
 }
 
 /**

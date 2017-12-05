@@ -2,6 +2,7 @@
 * Added vendor_transaction_id for PayPal
 * Added support for explicit account selection labels for all payment providers
 * success_text supports all values entered by the donor in step 1 and 2
+* Send success_text value in webhook
 
 = 1.1.1: November 27, 2017 =
 * FIXED: Added defined() check for cache constant DONOTCACHEPAGE

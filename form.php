@@ -91,6 +91,7 @@ function raise_form($atts, $content = null)
 <input type="hidden" name="form" value="<?= $form ?>" id="raise-form-name">
 <input type="hidden" name="mode" value="<?= $mode ?>" id="raise-form-mode">
 <input type="hidden" name="account" value="" id="raise-form-account">
+<input type="hidden" name="success_text" value="" id="raise-form-success-text">
 <input type="hidden" name="locale" value="<?= get_locale() ?>">
 
 <!-- Scrollable root element -->

@@ -18,7 +18,6 @@ var monthlySupport              = ['payment-stripe', 'payment-paypal', 'payment-
 var goCardlessSupport           = ['EUR', 'GBP', 'SEK'];
 var raisePopup                  = null;
 var gcPollTimer                 = null;
-var bankTransferReferenceNumber = null;
 var taxDeductionDisabled        = true;
 var interactionEventDispatched  = false;
 var checkoutEventDispatched     = false;
@@ -218,6 +217,9 @@ jQuery(function($) {
 
         // Post data and quit on last page
         if (currentItem >= (totalItems - 1)) {
+            // Load tax deduction labels to populate success_text
+            updateTaxDeductionLabels();
+
             // Process form
             var provider = null;
             switch ($('input[name=payment_provider]:checked', '#wizard').attr('id')) {
@@ -852,8 +854,10 @@ function sendBanktransferDonation() {
                     throw new Error(message);
                 }
 
-                // Save reference for next update of success text (%reference_number%)
-                bankTransferReferenceNumber = response['reference'];
+                // Inject reference number in the success text
+                jQuery('div#shortcode-content').html(
+                    jQuery('div#shortcode-content').html().replace(/%reference_number%/g, response['reference'])
+                );
 
                 // Everything worked! Display short code content on confirmation page
                 // Change glyphicon from "spinner" to "OK" and go to confirmation page
@@ -930,11 +934,6 @@ function showConfirmation(paymentProvider) {
         // Show raise-country-other
         countryDivs.not('.raise-country-other').hide();
     }
-
-    // Update tax deduction labels to make sure we have all form values in success_text
-    lockLastStep(false);
-    updateTaxDeductionLabels();
-    lockLastStep(true);
 
     // Hide spinner
     jQuery('button.confirm:last', '#wizard')
@@ -1259,6 +1258,7 @@ function updateTaxDeductionLabels() {
     if ('success_text' in result) {
         var taxDeductionSuccessText = nl2br(replaceTaxDeductionPlaceholders(result.success_text, formObj, accountData));
         jQuery('div#shortcode-content').html(taxDeductionSuccessText);
+        jQuery('input[name=success_text]').val(taxDeductionSuccessText);
     }
 
     // Update provider_hover_text
@@ -1316,9 +1316,6 @@ function getFormAsObject() {
         formObj.amount = formObj.amount_other;
     }
     delete formObj.amount_other;
-
-    // Add bank transfer reference number if present
-    formObj.reference_number = bankTransferReferenceNumber ? bankTransferReferenceNumber : '-';
 
     // Localize values for frequency, payment_provider, country, purpose
     formObj.frequency        = jQuery('input[name=frequency][value=' + formObj.frequency + ']').siblings('label').text();
