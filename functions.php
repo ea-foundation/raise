@@ -1835,6 +1835,7 @@ function raise_save_fundraiser_donation_post(array $donation)
     $amount    = $donation['amount'];
     $frequency = $donation['frequency'];
     $comment   = $donation['comment'];
+    $purpose   = raise_get($donation['purpose']);
 
     $formSettings = raise_load_settings($form);
 
@@ -1860,6 +1861,9 @@ function raise_save_fundraiser_donation_post(array $donation)
     add_post_meta($postId, 'frequency', $frequency);
     add_post_meta($postId, 'fundraiser', $fundraiserId);
     add_post_meta($postId, 'comment', $comment);
+    if (!empty($purpose)) {
+        add_post_meta($postId, 'purpose', $purpose);
+    }
 }
 
 /**
