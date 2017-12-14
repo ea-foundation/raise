@@ -1862,7 +1862,14 @@ function raise_save_fundraiser_donation_post(array $donation)
     add_post_meta($postId, 'fundraiser', $fundraiserId);
     add_post_meta($postId, 'comment', $comment);
     if (!empty($purpose)) {
-        add_post_meta($postId, 'purpose', $purpose);
+        // Find purpose labels
+        $label = raise_get($formSettings['payment']['purpose'][$purpose], '');
+        if (is_array($label)) {
+            $label = array_map('htmlentities', $label);
+            add_post_meta($postId, 'purpose', json_encode($label));
+        } else {
+            add_post_meta($postId, 'purpose', $purpose);
+        }
     }
 }
 
