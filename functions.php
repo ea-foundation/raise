@@ -170,11 +170,11 @@ function raise_load_settings($form)
 function raise_rec_load_settings($form, $formsSettings, $childForms = array())
 {
     if (in_array($form, $childForms)) {
-        throw new \Exception("Circular form definition. See Settings > Donation Plugin");
+        throw new \Exception("Circular form definition. See Settings > Raise");
     }
 
     if (!isset($formsSettings[$form])) {
-        throw new \Exception("No settings found for form '$form'. See Settings > Donation Plugin");
+        throw new \Exception("No settings found for form '$form'. See Settings > Raise");
     }
 
     if (!($parentForm = raise_get($formsSettings[$form]['inherits']))) {
