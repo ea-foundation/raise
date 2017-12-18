@@ -1,9 +1,9 @@
-= 1.2.0: TBD =
-* Added vendor_transaction_id for PayPal
-* Added support for explicit account selection labels for all payment providers
-* success_text supports all values entered by the donor in step 1 and 2
-* Send success_text value in webhook
-* Saves purpose labels in donation log as well (requires raise-fundraisers >=0.1.5)
+= 1.2.0: December 18, 2017 =
+* NEW: Added vendor_transaction_id for PayPal
+* NEW: Added support for explicit account selection labels for all payment providers
+* NEW: success_text supports all values entered by the donor in step 1 and 2
+* IMPROVED: Send success_text value in webhook
+* IMPROVED: Saves purpose labels in donation log as well (requires raise-fundraisers >=0.1.5)
 
 = 1.1.1: November 27, 2017 =
 * FIXED: Added defined() check for cache constant DONOTCACHEPAGE
