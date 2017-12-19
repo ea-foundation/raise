@@ -79,7 +79,7 @@ function raise_init_donation_form($form, $mode)
         'ajax_endpoint'        => admin_url('admin-ajax.php'),
         'amount_patterns'      => $amountPatterns,
         'amount_minimums'      => $amountMinimums,
-        'stripe_public_keys'   => $stripeKeys,
+        'stripe_public_keys'   => array_change_key_case($stripeKeys, CASE_LOWER),
         'tax_deduction_labels' => $taxDeductionLabels,
         'bank_accounts'        => $bankAccounts,
         'organization'         => $GLOBALS['raiseOrganization'],
@@ -824,6 +824,9 @@ function raise_get_best_payment_provider_settings(
     $account = null
 ) {
     $providers = raise_get($formSettings['payment']['provider'], []);
+
+    // Make keys lowercase
+    $providers = array_change_key_case($providers, CASE_LOWER);
 
     // Try to find account if defined
     if (!empty($account) && $settings = raise_get($providers[$provider . '_' . strtolower($account)][$mode])) {
