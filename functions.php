@@ -1796,12 +1796,13 @@ function raise_save_donation_log_post(array $donation)
 
     // Delete old post from queue
     $args = array(
-        'post_type'  => 'raise_donation_log',
-        'meta_key'   => 'form',
-        'meta_value' => $form,
-        'offset'     => $logMax,
-        'orderby'    => 'ID',
-        'order'      => 'DESC',
+        'post_type'   => 'raise_donation_log',
+        'post_status' => array('private'),
+        'meta_key'    => 'form',
+        'meta_value'  => $form,
+        'offset'      => $logMax,
+        'orderby'     => 'ID',
+        'order'       => 'DESC',
     );
     $query = new WP_Query($args);
     while ($query->have_posts()) {

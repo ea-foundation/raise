@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/raise
  * GitHub Plugin URI: ea-foundation/raise
  * Description: The Free Donation Plugin for WordPress
- * Version: 1.2.1
+ * Version: 1.2.2
  * Author: Naoki Peter
  * License: GPLv3 or later
  */
@@ -126,7 +126,7 @@ function raise_register_donation_styles()
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/api/checkout.js?data-version-4'); // The query string is actually supposed to be a separate attribute without value, see below
     wp_register_script('donation-combobox', plugins_url('js/bootstrap-combobox.js', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_register_script('donation-plugin-form', plugins_url('js/form.js', __FILE__), array('jquery', 'donation-plugin-stripe'), RAISE_ASSET_VERSION);
+    wp_register_script('donation-plugin-form', plugins_url('js/form.js', __FILE__), array('jquery'), RAISE_ASSET_VERSION);
 }
 
 /*
