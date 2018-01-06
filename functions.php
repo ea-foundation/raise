@@ -242,61 +242,32 @@ function raise_print_payment_providers($formSettings, $mode)
             case 'stripe':
                 $value  = 'Stripe';
                 $text   = '<span class="payment-method-name sr-only">' . __('credit card', 'raise') . '</span>';
-                $images = array(
-                    array(
-                        'path' => plugins_url('images/visa.png', __FILE__),
-                        'alt'  => 'Visa',
-                    ),
-                    array(
-                        'path' => plugins_url('images/mastercard.png', __FILE__),
-                        'alt'  => 'Mastercard',
-                    ),
-                    array(
-                        'path' => plugins_url('images/americanexpress.png', __FILE__),
-                        'alt'  => 'American Express',
-                    ),
-                );
+                $images = ['pp cc visa', 'pp cc mastercard', 'pp cc amex'];
                 break;
             case 'paypal':
                 $value  = 'PayPal';
                 $text   = '<span class="payment-method-name sr-only">PayPal</span>';
-                $images = array(
-                    array(
-                        'path' => plugins_url('images/paypal.png', __FILE__),
-                        'alt'  => 'PayPal',
-                    ),
-                );
+                $images = ['pp paypal'];
                 break;
             case 'bitpay':
                 $value  = 'BitPay';
                 $text   = '<span class="payment-method-name sr-only">Bitcoin</span>';
-                $images = array(
-                    array(
-                        'path'  => plugins_url('images/bitcoin.png', __FILE__),
-                        'alt'   => 'Bitcoin',
-                        'width' => 23,
-                    ),
-                );
+                $images = ['pp bitcoin'];
                 break;
             case 'skrill':
                 $value  = 'Skrill';
                 $text   = '<span class="payment-method-name sr-only">Skrill</span>';
-                $images = array(
-                    array(
-                        'path'  => plugins_url('images/skrill.png', __FILE__),
-                        'alt'   => 'Skrill',
-                    ),
-                );
+                $images = ['pp skrill'];
                 break;
             case 'gocardless':
                 $value  = 'GoCardless';
                 $text   = '<a href="#" onClick="jQuery(\'#payment-gocardless\').click(); return false" data-toggle="tooltip" data-container="body" data-placement="top" title="' . __('Available for Eurozone, UK, and Sweden', 'raise') . '" style="text-decoration: none; color: inherit;"><span class="payment-method-name">' . __('direct debit', 'raise') . '</span></a>';
-                $images = array();
+                $images = [];
                 break;
             case 'banktransfer':
                 $value  = 'Bank Transfer';
                 $text   = '<span class="payment-method-name">' . __('bank transfer', 'raise') . '</span>';
-                $images = array();
+                $images = [];
                 break;
             default:
                 // Do nothing
@@ -308,11 +279,9 @@ function raise_print_payment_providers($formSettings, $mode)
         $checked     = false;
         $result .= '<label for="payment-' . $id . '" class="radio-inline">';
         $result .= '<input type="radio" name="payment_provider" value="' . $value . '" id="payment-' . $id . '" ' . $checkedAttr . '> ';
-        foreach ($images as $image) {
-            $width  = raise_get($image['width'], 38);
-            $height = raise_get($image['height'], 23);
-            $result .= '<img src="' . $image['path'] . '" alt="' . $image['alt'] . '" width="' . $width . '" height="' . $height . '"> ';
-        }
+        $result .= '<div class="pp-images">' . implode('', array_map(function($val) {
+            return '<div class="' . $val . '"></div>';
+        }, $images)) . '</div>';
         $result .= $text;
         $result .= '</label>' . "\n";
     }

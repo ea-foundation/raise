@@ -189,6 +189,7 @@ div#payment-method-providers label:last-child {
 
 div#payment-method-providers input[type=radio] {
     margin-bottom: 0;
+    margin-left: -18px;
 }
 
 div#amount-item span.form-control-feedback {
@@ -218,6 +219,8 @@ div#amount-item span.form-control-feedback {
 }
 
 #wizard span.payment-method-name {
+    display: inline-block;
+    margin-left: 2px;
     text-transform: capitalize;
 }
 
@@ -315,9 +318,10 @@ div#donation-confirmation div.alert {
 }
 
 div#donation-confirmation div.response-icon {
-    padding-bottom: 15px;
-    margin: auto;
-    line-height: 1.1;
+    height: 100px;
+    margin-bottom: 15px;
+    background: url(../images/ok.svg) no-repeat center center;
+    background-size: 100px;
 }
 
 div#payment-method-item span.form-control-feedback {
@@ -532,4 +536,61 @@ input[type='number'] {
 
 #wizard .relative {
     position: relative;
+}
+
+.pp-images .pp {
+    display: inline-block;
+    width: 38px;
+    height: 23px;
+    float: left;
+    margin-left: 2px;
+}
+
+.pp-images .pp.cc {
+    background: url(../images/creditcard.svg) no-repeat;
+    background-size: 180px 23px;
+}
+
+.pp-images .cc.visa {
+    background-position: -12px 0;
+}
+
+.pp-images .cc.mastercard {
+    background-position: -51px 0;
+}
+
+.pp-images .cc.amex {
+    background-position: -91px 0;
+}
+
+.pp-images .pp.paypal {
+    background: url(../images/paypal.svg) no-repeat;
+    width: 37px;
+}
+
+.pp-images .pp.bitcoin {
+    background: url(../images/bitcoin.svg) no-repeat;
+    background-size: 23px;
+    width: 23px;
+}
+
+.pp-images .pp.skrill {
+    background: url(../images/skrill.svg) no-repeat 0 4px;
+    background-size: 38px;
+}
+
+#GoCardlessModal .pp.gocardless {
+    display: inline-block;
+    background: url(../images/gocardless.svg) no-repeat -7px -7px;
+    background-size: 137px 33px;
+    height: 16px;
+    width: 123px;
+}
+
+#BitPayModal .pp.bitpay {
+    display: inline-block;
+    background: url(../images/bitpay.svg) no-repeat -20px -8px;
+    background-size: 84px 32px;
+    height: 16px;
+    width: 45px;
 }

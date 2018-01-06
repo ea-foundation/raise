@@ -439,9 +439,7 @@ function raise_form($atts, $content = null)
             <!-- Confirmation -->
             <div class="item<?php echo $confirmationCssClass ?>" id="donation-confirmation">
                 <div class="alert alert-success">
-                    <div class="response-icon">
-                        <img src="<?php echo plugins_url('images/ok.png', __FILE__) ?>" alt="Donation complete">
-                    </div>
+                    <div class="response-icon"></div>
                     <div class="response-text">
                         <strong><span id="success-text"><?php echo esc_html(raise_get_localized_value($formSettings['finish']['success_message'])) ?></span></strong>
                     </div>
@@ -482,7 +480,7 @@ function raise_form($atts, $content = null)
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <img src="<?php echo plugins_url('images/gocardless.png', __FILE__) ?>" alt="GoCardless" height="16">
+                    <div class="pp gocardless"></div>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
@@ -505,7 +503,7 @@ function raise_form($atts, $content = null)
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <img src="<?php echo plugins_url('images/bitpay.png', __FILE__) ?>" alt="BitPay" height="16">
+                    <div class="pp bitpay"></div>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
