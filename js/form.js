@@ -64,7 +64,7 @@ jQuery(function($) {
     $('.dropdown-toggle').dropdown();
 
     // Initialize tooltips
-    $('[data-toggle="tooltip"]').tooltip({ container: 'body' }); 
+    $('[data-toggle="tooltip"]').tooltip();
 
     // Country combobox setup
     $('.combobox', '#wizard').combobox({

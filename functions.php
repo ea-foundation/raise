@@ -261,7 +261,7 @@ function raise_print_payment_providers($formSettings, $mode)
                 break;
             case 'gocardless':
                 $value  = 'GoCardless';
-                $text   = '<a href="#" onClick="jQuery(\'#payment-gocardless\').click(); return false" data-toggle="tooltip" data-container="body" data-placement="top" title="' . __('Available for Eurozone, UK, and Sweden', 'raise') . '" style="text-decoration: none; color: inherit;"><span class="payment-method-name">' . __('direct debit', 'raise') . '</span></a>';
+                $text   = '<span class="payment-method-name" data-toggle="tooltip" data-container="body" title="' . __('Available for Eurozone, UK, and Sweden', 'raise') . '">' . __('direct debit', 'raise') . '</span></a>';
                 $images = [];
                 break;
             case 'banktransfer':
