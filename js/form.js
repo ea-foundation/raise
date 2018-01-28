@@ -158,13 +158,15 @@ jQuery(function($) {
 
             // Check invalid input
             var invalid = inputs.filter(function() {
-                if ($(this).attr('id') == 'amount-other' && $(this).val() && $(this).val() < currencyMinimums[selectedCurrency]) {
-                    errors['amount-other'] = wordpress_vars.error_messages['below_minimum_amount'];
+                if ($(this).attr('id') == 'amount-other' && $(this).val() && $(this).val() < currencyMinimums[selectedCurrency][frequency]) {
+                    errors['amount'] = selectedCurrency in wordpress_vars.error_messages.below_minimum_amount_custom
+                      ? wordpress_vars.error_messages.below_minimum_amount_custom[selectedCurrency]
+                      : wordpress_vars.error_messages.below_minimum_amount;
                     return true;
                 }
 
                 if ($(this).attr('id') == 'donor-email' && !isValidEmail($(this).val().trim())) {
-                    errors['donor-email'] = wordpress_vars.error_messages['invalid_email'];
+                    errors['donor-email'] = wordpress_vars.error_messages.invalid_email;
                     return true;
                 }
 
@@ -174,8 +176,10 @@ jQuery(function($) {
             // Check amount < minimum from misconfiguration
             if (!$('#amount-other', '#wizard').val()) {
                 var amount = getDonationAmount();
-                if (amount < currencyMinimums[selectedCurrency]) {
-                    errors['amount'] = wordpress_vars.error_messages['below_minimum_amount'];
+                if (amount < currencyMinimums[selectedCurrency][frequency]) {
+                    errors['amount'] = selectedCurrency in wordpress_vars.error_messages.below_minimum_amount_custom
+                      ? wordpress_vars.error_messages.below_minimum_amount_custom[selectedCurrency]
+                      : wordpress_vars.error_messages.below_minimum_amount;
                     invalid.push('amount');
                 }
             }
@@ -472,7 +476,7 @@ jQuery(function($) {
         $('ul#amounts span.input-group-addon').text($.trim(currencyString.replace('%amount%', '')));
 
         // Set new lower bound to other amount field
-        var minAmount = currencyMinimums[selectedCurrency];
+        var minAmount = currencyMinimums[selectedCurrency][frequency];
         jQuery('input#amount-other', '#wizard').prop('min', minAmount);
 
         // Reload Stripe handler
@@ -1361,15 +1365,15 @@ function raiseTriggerFormLoadedEvent() {
  */
 function getErrorMessage(errors) {
     if ('amount' in errors) {
-        var minAmount      = currencyMinimums[selectedCurrency];
+        var minAmount      = currencyMinimums[selectedCurrency][frequency];
         var currencyAmount = currencies[selectedCurrency].replace('%amount%', minAmount);
-        return errors['amount'].replace('%minimum_amount%', currencyAmount);
+        return errors['amount'].replace(/%minimum_amount%/g, currencyAmount);
     }
 
     if ('amount-other' in errors) {
-        var minAmount      = currencyMinimums[selectedCurrency];
+        var minAmount      = currencyMinimums[selectedCurrency][frequency];
         var currencyAmount = currencies[selectedCurrency].replace('%amount%', minAmount);
-        return errors['amount-other'].replace('%minimum_amount%', currencyAmount);
+        return errors['amount-other'].replace(/%minimum_amount%/g, currencyAmount);
     }
 
     if ('donor-email' in errors) {

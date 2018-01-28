@@ -54,12 +54,24 @@ function raise_init_donation_form($form, $mode)
     // Make amount patterns
     $amountPatterns = array();
     $amountMinimums = array();
-    $currencies        = raise_get($formSettings['amount']['currency'], array());
+    $currencies     = raise_get($formSettings['amount']['currency'], array());
     foreach ($currencies as $currency => $currencySettings) {
         $cur                  = strtoupper($currency);
         $amountPatterns[$cur] = raise_get($currencySettings['pattern'], '%amount%');
-        $amountMinimums[$cur] = raise_get($currencySettings['minimum'], 1);
+        $minimum              = raise_get($currencySettings['minimum'], 1);
+        $amountMinimums[$cur] = array(
+            'once'    => $minimum,
+            'monthly' => raise_get($currencySettings['minimum_monthly'], $minimum),
+        );
     }
+
+    // Get array with custom below minimum amount error messages and upper-case currency keys
+    $belowMinimumAmountMessages = raise_monolinguify(array_filter(array_map(
+        function ($cur) {
+            return raise_get($cur['below_minimum_message']);
+        },
+        array_change_key_case(raise_get($formSettings['amount']['currency'], []), CASE_UPPER)
+    )));
 
     // Get enabled payment providers
     $enabledProviders = raise_enabled_payment_providers($formSettings, $mode);
@@ -93,9 +105,10 @@ function raise_init_donation_form($form, $mode)
             'cookie_warning'        => __("Please enable cookies before you proceed with your donation.", "raise"),
         ],
         'error_messages'       => [
-            'missing_fields'       => __('Please fill out all required fields.', 'raise'),
-            'invalid_email'        => __('Invalid email.', 'raise'),
-            'below_minimum_amount' => __('The minimum donation is %minimum_amount%.', 'raise'),
+            'missing_fields'              => __('Please fill out all required fields.', 'raise'),
+            'invalid_email'               => __('Invalid email.', 'raise'),
+            'below_minimum_amount'        => __('The minimum donation is %minimum_amount%.', 'raise'),
+            'below_minimum_amount_custom' => $belowMinimumAmountMessages,
         ],
     ));
 

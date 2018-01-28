@@ -56,7 +56,9 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "usd": {
             "pattern": "$%amount%",
             "country_flag": "us",
-            "minimum": 5
+            "minimum": 5,
+            "minimum_monthly": 3,
+            "below_minimum_message": "Please donate more than %minimum_amount%."
           }
         }
       },
