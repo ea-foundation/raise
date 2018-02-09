@@ -2,6 +2,64 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.2.18] - 2018-01-15
+### Fixed
+- Pushed actual code changes to GitHub from previous release
+
+
+## [2.2.17] - 2018-01-15
+### Fixed
+- Fixed decimal check for currencies without decimals (e.g. HUF)
+
+## [2.2.16] - 2017-12-12
+### Fixed
+- Fixed invoice time being set in milliseconds, whereas seconds are expected (Issue #256 and #257)
+- Removed deprecated factory methods from services.xml
+
+
+## [2.2.15] - 2017-11-28
+### Fixed
+- Fixed invoice time being set as numeric instead of datetime object
+
+### Removed
+- Removed support for mcrypt (#254)
+
+
+## [2.2.14] - 2017-09-27
+### Fixed
+- Fixed token check in get invoices method for public facade calls (#243)
+- Spell fixes (#233 and #233)
+- Fix some of the tests (#228)
+
+### Added
+- Added encrypt & decrypt functions to OpenSSL (#247)
+
+
+## [2.2.13] - 2017-05-12
+### Fixed
+- Updated VERSION and changelog
+- Clarified tutorial text
+
+
+## [2.2.12] - 2017-05-09
+### Added
+- Included IPN processor example in tutorials
+
+### Fixed
+- broken exception in Client.php
+
+
+## [2.2.11] - 2017-05-09
+### Added
+- Added refund addresses to getInvoice
+- Included extendedNotifications
+
+Included buyer notify field (when creating an invoice)
+### Fixed
+- Improved tutorial (https://github.com/bitpay/php-bitpay-client/tree/master/examples/tutorial)
+- Made fullNotifications=true default
+- Symfony v3 compatibility fixes
+- PHP 7 compatibility fixes
 
 ## [2.2.9] - 2017-02-21
 ### Fixed

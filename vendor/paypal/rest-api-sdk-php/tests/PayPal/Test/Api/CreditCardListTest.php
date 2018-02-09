@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\CreditCardList;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class CreditCardList
  *
  * @package PayPal\Test\Api
  */
-class CreditCardListTest extends \PHPUnit_Framework_TestCase
+class CreditCardListTest extends TestCase
 {
     /**
      * Gets Json String of Object CreditCardList
@@ -57,5 +58,4 @@ class CreditCardListTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getTotalItems(), 123);
         $this->assertEquals($obj->getTotalPages(), 123);
     }
-
 }

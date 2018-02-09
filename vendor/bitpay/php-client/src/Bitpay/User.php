@@ -62,6 +62,11 @@ class User implements UserInterface
     protected $agreedToTOSandPP;
 
     /**
+     * @var bool
+     */
+    protected $notify;
+
+    /**
      * @inheritdoc
      */
     public function getPhone()
@@ -272,12 +277,33 @@ class User implements UserInterface
 
         return $this;
     }
-
     /**
      * @return bool
      */
     public function getAgreedToTOSandPP()
     {
         return $this->agreedToTOSandPP;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getNotify()
+    {
+        return $this->notify;
+    }
+    
+    /**
+     * @param bool $boolvalue
+     *
+     * @return User
+     */
+    public function setNotify($boolvalue)
+    {
+        if (!empty($boolvalue)) {
+            $this->notify = $boolvalue;
+        }
+
+        return $this;
     }
 }

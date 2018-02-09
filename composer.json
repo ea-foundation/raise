@@ -5,6 +5,7 @@
         "bitpay/php-client": "^2.2",
         "twig/twig": "~1.0",
         "paypal/rest-api-sdk-php": "*",
-        "google/recaptcha": "~1.1"
+        "google/recaptcha": "~1.1",
+        "coinbase/coinbase": "^2.6"
     }
 }

@@ -3,12 +3,13 @@
 namespace PayPal\Test\Core;
 
 use PayPal\Core\PayPalHttpConfig;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Test class for PayPalHttpConfigTest.
  *
  */
-class PayPalHttpConfigTest extends \PHPUnit_Framework_TestCase
+class PayPalHttpConfigTest extends TestCase
 {
 
     protected $object;
@@ -24,7 +25,6 @@ class PayPalHttpConfigTest extends \PHPUnit_Framework_TestCase
      */
     protected function setUp()
     {
-
     }
 
     /**
@@ -135,5 +135,3 @@ class PayPalHttpConfigTest extends \PHPUnit_Framework_TestCase
         $o->setHttpProxy('invalid string');
     }
 }
-
-?>

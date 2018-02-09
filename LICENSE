@@ -35,12 +35,7 @@ permission notices:
     The above copyright notice and this permission notice shall be included in
     all copies or substantial portions of the Software.
 
-* jsoneditor is licensed under the Apache License, Version 2.0.
-
-    JSON Editor
-    https://github.com/josdejong/jsoneditor
-
-    Copyright (C) 2011-2017 Jos de Jong
+* jsoneditor (https://github.com/josdejong/jsoneditor) and coinbase-php (https://github.com/coinbase/coinbase-php) are licensed under the Apache License, Version 2.0.
 
 
     Licensed under the Apache License, Version 2.0 (the "License");

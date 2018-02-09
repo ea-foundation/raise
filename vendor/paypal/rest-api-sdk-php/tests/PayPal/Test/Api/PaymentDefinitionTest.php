@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\PaymentDefinition;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class PaymentDefinition
  *
  * @package PayPal\Test\Api
  */
-class PaymentDefinitionTest extends \PHPUnit_Framework_TestCase
+class PaymentDefinitionTest extends TestCase
 {
     /**
      * Gets Json String of Object PaymentDefinition
@@ -65,5 +66,4 @@ class PaymentDefinitionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getAmount(), CurrencyTest::getObject());
         $this->assertEquals($obj->getChargeModels(), ChargeModelTest::getObject());
     }
-
 }

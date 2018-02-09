@@ -4,27 +4,26 @@ namespace PayPal\Test\Api;
 
 use PayPal\Api\Authorization;
 use PayPal\Transport\PPRestCall;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Authorization
  *
  * @package PayPal\Test\Api
  */
-class AuthorizationTest extends \PHPUnit_Framework_TestCase
+class AuthorizationTest extends TestCase
 {
     /**
      * Gets Json String of Object Authorization
-     *
      * @return string
      */
     public static function getJson()
     {
-        return '{"id":"TestSample","amount":' . AmountTest::getJson() . ',"payment_mode":"TestSample","state":"TestSample","reason_code":"TestSample","pending_reason":"TestSample","protection_eligibility":"TestSample","protection_eligibility_type":"TestSample","fmf_details":' . FmfDetailsTest::getJson() . ',"parent_payment":"TestSample","valid_until":"TestSample","create_time":"TestSample","update_time":"TestSample","links":' . LinksTest::getJson() . '}';
+        return '{"id":"TestSample","amount":' .AmountTest::getJson() . ',"payment_mode":"TestSample","state":"TestSample","reason_code":"TestSample","pending_reason":"TestSample","protection_eligibility":"TestSample","protection_eligibility_type":"TestSample","fmf_details":' .FmfDetailsTest::getJson() . ',"parent_payment":"TestSample","valid_until":"TestSample","create_time":"TestSample","update_time":"TestSample","reference_id":"TestSample","receipt_id":"TestSample","links":' .LinksTest::getJson() . '}';
     }
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return Authorization
      */
     public static function getObject()
@@ -35,7 +34,6 @@ class AuthorizationTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return Authorization
      */
     public function testSerializationDeserialization()
@@ -55,6 +53,8 @@ class AuthorizationTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($obj->getValidUntil());
         $this->assertNotNull($obj->getCreateTime());
         $this->assertNotNull($obj->getUpdateTime());
+        $this->assertNotNull($obj->getReferenceId());
+        $this->assertNotNull($obj->getReceiptId());
         $this->assertNotNull($obj->getLinks());
         $this->assertEquals(self::getJson(), $obj->toJson());
         return $obj;
@@ -79,6 +79,8 @@ class AuthorizationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getValidUntil(), "TestSample");
         $this->assertEquals($obj->getCreateTime(), "TestSample");
         $this->assertEquals($obj->getUpdateTime(), "TestSample");
+        $this->assertEquals($obj->getReferenceId(), "TestSample");
+        $this->assertEquals($obj->getReceiptId(), "TestSample");
         $this->assertEquals($obj->getLinks(), LinksTest::getObject());
     }
 
@@ -95,13 +97,12 @@ class AuthorizationTest extends \PHPUnit_Framework_TestCase
         $mockPPRestCall->expects($this->any())
             ->method('execute')
             ->will($this->returnValue(
-                AuthorizationTest::getJson()
+                    AuthorizationTest::getJson()
             ));
 
         $result = $obj->get("authorizationId", $mockApiContext, $mockPPRestCall);
         $this->assertNotNull($result);
     }
-
     /**
      * @dataProvider mockProvider
      * @param Authorization $obj
@@ -115,14 +116,13 @@ class AuthorizationTest extends \PHPUnit_Framework_TestCase
         $mockPPRestCall->expects($this->any())
             ->method('execute')
             ->will($this->returnValue(
-                CaptureTest::getJson()
+                    CaptureTest::getJson()
             ));
         $capture = CaptureTest::getObject();
 
         $result = $obj->capture($capture, $mockApiContext, $mockPPRestCall);
         $this->assertNotNull($result);
     }
-
     /**
      * @dataProvider mockProvider
      * @param Authorization $obj
@@ -136,13 +136,12 @@ class AuthorizationTest extends \PHPUnit_Framework_TestCase
         $mockPPRestCall->expects($this->any())
             ->method('execute')
             ->will($this->returnValue(
-                self::getJson()
+                    self::getJson()
             ));
 
         $result = $obj->void($mockApiContext, $mockPPRestCall);
         $this->assertNotNull($result);
     }
-
     /**
      * @dataProvider mockProvider
      * @param Authorization $obj
@@ -156,7 +155,7 @@ class AuthorizationTest extends \PHPUnit_Framework_TestCase
         $mockPPRestCall->expects($this->any())
             ->method('execute')
             ->will($this->returnValue(
-                self::getJson()
+                    self::getJson()
             ));
 
         $result = $obj->reauthorize($mockApiContext, $mockPPRestCall);
@@ -167,8 +166,8 @@ class AuthorizationTest extends \PHPUnit_Framework_TestCase
     {
         $obj = self::getObject();
         $mockApiContext = $this->getMockBuilder('ApiContext')
-            ->disableOriginalConstructor()
-            ->getMock();
+                    ->disableOriginalConstructor()
+                    ->getMock();
         return array(
             array($obj, $mockApiContext),
             array($obj, null)

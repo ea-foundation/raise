@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\PaymentCardToken;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class PaymentCardToken
  *
  * @package PayPal\Test\Api
  */
-class PaymentCardTokenTest extends \PHPUnit_Framework_TestCase
+class PaymentCardTokenTest extends TestCase
 {
     /**
      * Gets Json String of Object PaymentCardToken
@@ -61,5 +62,4 @@ class PaymentCardTokenTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getExpireMonth(), 123);
         $this->assertEquals($obj->getExpireYear(), 123);
     }
-
 }

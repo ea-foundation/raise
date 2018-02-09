@@ -3,17 +3,17 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\Amount;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Amount
  *
  * @package PayPal\Test\Api
  */
-class AmountTest extends \PHPUnit_Framework_TestCase
+class AmountTest extends TestCase
 {
     /**
      * Gets Json String of Object Amount
-     *
      * @return string
      */
     public static function getJson()
@@ -23,7 +23,6 @@ class AmountTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return Amount
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class AmountTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return Amount
      */
     public function testSerializationDeserialization()
@@ -58,6 +56,4 @@ class AmountTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getTotal(), "12.34");
         $this->assertEquals($obj->getDetails(), DetailsTest::getObject());
     }
-
-
 }

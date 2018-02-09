@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\PotentialPayerInfo;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class PotentialPayerInfo
  *
  * @package PayPal\Test\Api
  */
-class PotentialPayerInfoTest extends \PHPUnit_Framework_TestCase
+class PotentialPayerInfoTest extends TestCase
 {
     /**
      * Gets Json String of Object PotentialPayerInfo
@@ -57,6 +58,4 @@ class PotentialPayerInfoTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getAccountNumber(), "TestSample");
         $this->assertEquals($obj->getBillingAddress(), AddressTest::getObject());
     }
-
-
 }

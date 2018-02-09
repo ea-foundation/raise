@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\Notification;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Notification
  *
  * @package PayPal\Test\Api
  */
-class NotificationTest extends \PHPUnit_Framework_TestCase
+class NotificationTest extends TestCase
 {
     /**
      * Gets Json String of Object Notification
@@ -55,6 +56,4 @@ class NotificationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getNote(), "TestSample");
         $this->assertEquals($obj->getSendToMerchant(), true);
     }
-
-
 }

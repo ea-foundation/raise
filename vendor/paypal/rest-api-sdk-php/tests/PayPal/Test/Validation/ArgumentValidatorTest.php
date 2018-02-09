@@ -2,8 +2,9 @@
 namespace PayPal\Test\Validation;
 
 use PayPal\Validation\ArgumentValidator;
+use PHPUnit\Framework\TestCase;
 
-class ArgumentValidatorTest extends \PHPUnit_Framework_TestCase
+class ArgumentValidatorTest extends TestCase
 {
 
     public static function positiveProvider()
@@ -47,5 +48,4 @@ class ArgumentValidatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertTrue(ArgumentValidator::validate($input, "Name"));
     }
-
 }

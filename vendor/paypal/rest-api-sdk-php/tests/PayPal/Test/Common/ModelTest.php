@@ -4,8 +4,9 @@ namespace PayPal\Test\Common;
 use PayPal\Api\Payment;
 use PayPal\Common\PayPalModel;
 use PayPal\Core\PayPalConfigManager;
+use PHPUnit\Framework\TestCase;
 
-class ModelTest extends \PHPUnit_Framework_TestCase
+class ModelTest extends TestCase
 {
 
     public function testSimpleClassConversion()
@@ -23,7 +24,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $newO = new SimpleClass();
         $newO->fromJson($json);
         $this->assertEquals($o, $newO);
-
     }
 
     public function testConstructorJSON()
@@ -68,7 +68,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals("test", $obj->getName());
         $this->assertEquals("description", $obj->getDescription());
-
     }
 
     public function testSimpleClassObjectInvalidConversion()

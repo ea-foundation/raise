@@ -8,8 +8,9 @@ use PayPal\Core\PayPalConfigManager;
 use PayPal\Rest\ApiContext;
 use PayPal\Test\Cache\AuthorizationCacheTest;
 use PayPal\Test\Constants;
+use PHPUnit\Framework\TestCase;
 
-class OAuthTokenCredentialTest extends \PHPUnit_Framework_TestCase
+class OAuthTokenCredentialTest extends TestCase
 {
 
     /**
@@ -47,7 +48,7 @@ class OAuthTokenCredentialTest extends \PHPUnit_Framework_TestCase
             'cache.enabled' => true,
             'cache.FileName' => AuthorizationCacheTest::CACHE_FILE
         );
-         $cred = new OAuthTokenCredential('clientId', 'clientSecret');
+        $cred = new OAuthTokenCredential('clientId', 'clientSecret');
 
         //{"clientId":{"clientId":"clientId","accessToken":"accessToken","tokenCreateTime":1421204091,"tokenExpiresIn":288000000}}
         AuthorizationCache::push($config, 'clientId', $cred->encrypt('accessToken'), 1421204091, 288000000);
@@ -79,7 +80,6 @@ class OAuthTokenCredentialTest extends \PHPUnit_Framework_TestCase
         $response = $auth->getRefreshToken($config, 'auth_value');
         $this->assertNotNull($response);
         $this->assertEquals('refresh_token_value', $response);
-
     }
 
     public function testUpdateAccessTokenUnitMock()
@@ -109,7 +109,6 @@ class OAuthTokenCredentialTest extends \PHPUnit_Framework_TestCase
         $response = $auth->updateAccessToken($config, 'refresh_token');
         $this->assertNotNull($response);
         $this->assertEquals('accessToken', $response);
-
     }
 
     /**
@@ -137,7 +136,5 @@ class OAuthTokenCredentialTest extends \PHPUnit_Framework_TestCase
         $response = $auth->updateAccessToken($config);
         $this->assertNotNull($response);
         $this->assertEquals('accessToken', $response);
-
     }
-
 }

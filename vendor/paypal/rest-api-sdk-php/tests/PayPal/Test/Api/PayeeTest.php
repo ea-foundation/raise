@@ -3,27 +3,26 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\Payee;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Payee
  *
  * @package PayPal\Test\Api
  */
-class PayeeTest extends \PHPUnit_Framework_TestCase
+class PayeeTest extends TestCase
 {
     /**
      * Gets Json String of Object Payee
-     *
      * @return string
      */
     public static function getJson()
     {
-        return '{"email":"TestSample","merchant_id":"TestSample","first_name":"TestSample","last_name":"TestSample","account_number":"TestSample","phone":' . PhoneTest::getJson() . '}';
+        return '{"email":"TestSample","merchant_id":"TestSample","first_name":"TestSample","last_name":"TestSample","account_number":"TestSample","phone":' .PhoneTest::getJson() . '}';
     }
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return Payee
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class PayeeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return Payee
      */
     public function testSerializationDeserialization()
@@ -64,6 +62,4 @@ class PayeeTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getAccountNumber(), "TestSample");
         $this->assertEquals($obj->getPhone(), PhoneTest::getObject());
     }
-
-
 }

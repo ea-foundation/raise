@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\CreditCard;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class CreditCard
  *
  * @package PayPal\Test\Api
  */
-class CreditCardTest extends \PHPUnit_Framework_TestCase
+class CreditCardTest extends TestCase
 {
     /**
      * Gets Json String of Object CreditCard
@@ -23,7 +24,6 @@ class CreditCardTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return CreditCard
      */
     public static function getObject()
@@ -78,6 +78,4 @@ class CreditCardTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getValidUntil(), "TestSample");
         $this->assertEquals($obj->getLinks(), LinksTest::getObject());
     }
-
-
 }

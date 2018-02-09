@@ -498,6 +498,7 @@ phpunit
 * [paypal/rest-api-sdk-php](https://github.com/paypal/rest-api-sdk-php) - PayPal back-end SDK
 * [gocardless/gocardless-pro-php](https://github.com/gocardless/gocardless-pro-php) - GoCardless SDK
 * [bitpay/php-client](https://github.com/bitpay/php-client) - BitPay SDK
+* [coinbase/coinbase-php](https://github.com/coinbase/coinbase-php) - Coinbase SDK
 * [twigphp/Twig](https://github.com/twigphp/twig) - Template Engine (used for formatting confirmation emails)
 * [google/recaptcha](https://github.com/google/recaptcha) - reCAPTCHA PHP client library
 * [twbs/bootstrap](https://github.com/twbs/bootstrap/tree/v3-dev) - Bootstrap

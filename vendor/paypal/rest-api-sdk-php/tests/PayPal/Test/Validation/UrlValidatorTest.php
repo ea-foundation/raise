@@ -2,8 +2,9 @@
 namespace PayPal\Test\Validation;
 
 use PayPal\Validation\UrlValidator;
+use PHPUnit\Framework\TestCase;
 
-class UrlValidatorTest extends \PHPUnit_Framework_TestCase
+class UrlValidatorTest extends TestCase
 {
 
     public static function positiveProvider()
@@ -49,7 +50,6 @@ class UrlValidatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidateException($input)
     {
-       UrlValidator::validate($input, "Test Value");
+        UrlValidator::validate($input, "Test Value");
     }
-
 }

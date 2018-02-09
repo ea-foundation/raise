@@ -3,17 +3,17 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\RelatedResources;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class RelatedResources
  *
  * @package PayPal\Test\Api
  */
-class RelatedResourcesTest extends \PHPUnit_Framework_TestCase
+class RelatedResourcesTest extends TestCase
 {
     /**
      * Gets Json String of Object RelatedResources
-     *
      * @return string
      */
     public static function getJson()
@@ -23,7 +23,6 @@ class RelatedResourcesTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return RelatedResources
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class RelatedResourcesTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return RelatedResources
      */
     public function testSerializationDeserialization()
@@ -62,6 +60,4 @@ class RelatedResourcesTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getCapture(), CaptureTest::getObject());
         $this->assertEquals($obj->getRefund(), RefundTest::getObject());
     }
-
-
 }

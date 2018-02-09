@@ -12,17 +12,19 @@ use PayPal\Validation\UrlValidator;
  *
  * @package PayPal\Api
  *
- * @property string                     reference_id
- * @property \PayPal\Api\Amount         amount
- * @property string                     description
- * @property string                     note_to_payee
- * @property string                     custom
- * @property string                     invoice_number
- * @property string                     soft_descriptor
+ * @property string reference_id
+ * @property \PayPal\Api\Amount amount
+ * @property \PayPal\Api\Payee payee
+ * @property string description
+ * @property string note_to_payee
+ * @property string custom
+ * @property string invoice_number
+ * @property string purchase_order
+ * @property string soft_descriptor
  * @property \PayPal\Api\PaymentOptions payment_options
- * @property \PayPal\Api\ItemList       item_list
- * @property string                     notify_url
- * @property string                     order_url
+ * @property \PayPal\Api\ItemList item_list
+ * @property string notify_url
+ * @property string order_url
  */
 class CartBase extends PayPalModel
 {
@@ -30,7 +32,7 @@ class CartBase extends PayPalModel
      * Merchant identifier to the purchase unit. Optional parameter
      *
      * @param string $reference_id
-     *
+     * 
      * @return $this
      */
     public function setReferenceId($reference_id)
@@ -53,7 +55,7 @@ class CartBase extends PayPalModel
      * Amount being collected.
      *
      * @param \PayPal\Api\Amount $amount
-     *
+     * 
      * @return $this
      */
     public function setAmount($amount)
@@ -75,9 +77,8 @@ class CartBase extends PayPalModel
     /**
      * Recipient of the funds in this transaction.
      *
-     * @deprecated Not publicly available
      * @param \PayPal\Api\Payee $payee
-     *
+     * 
      * @return $this
      */
     public function setPayee($payee)
@@ -89,7 +90,6 @@ class CartBase extends PayPalModel
     /**
      * Recipient of the funds in this transaction.
      *
-     * @deprecated Not publicly available
      * @return \PayPal\Api\Payee
      */
     public function getPayee()
@@ -98,10 +98,10 @@ class CartBase extends PayPalModel
     }
 
     /**
-     * Description of transaction.
+     * Description of what is being paid for.
      *
      * @param string $description
-     *
+     * 
      * @return $this
      */
     public function setDescription($description)
@@ -111,7 +111,7 @@ class CartBase extends PayPalModel
     }
 
     /**
-     * Description of transaction.
+     * Description of what is being paid for.
      *
      * @return string
      */
@@ -124,7 +124,7 @@ class CartBase extends PayPalModel
      * Note to the recipient of the funds in this transaction.
      *
      * @param string $note_to_payee
-     *
+     * 
      * @return $this
      */
     public function setNoteToPayee($note_to_payee)
@@ -144,10 +144,10 @@ class CartBase extends PayPalModel
     }
 
     /**
-     * Free-form field for the use of clients. Only supported when the `payment_method` is set to `paypal`.
+     * free-form field for the use of clients
      *
      * @param string $custom
-     *
+     * 
      * @return $this
      */
     public function setCustom($custom)
@@ -157,7 +157,7 @@ class CartBase extends PayPalModel
     }
 
     /**
-     * Free-form field for the use of clients. Only supported when the `payment_method` is set to `paypal`.
+     * free-form field for the use of clients
      *
      * @return string
      */
@@ -167,10 +167,10 @@ class CartBase extends PayPalModel
     }
 
     /**
-     * Invoice number used to track the payment. Only supported when the `payment_method` is set to `paypal`.
+     * invoice number to track this payment
      *
      * @param string $invoice_number
-     *
+     * 
      * @return $this
      */
     public function setInvoiceNumber($invoice_number)
@@ -180,7 +180,7 @@ class CartBase extends PayPalModel
     }
 
     /**
-     * Invoice number used to track the payment. Only supported when the `payment_method` is set to `paypal`.
+     * invoice number to track this payment
      *
      * @return string
      */
@@ -190,10 +190,33 @@ class CartBase extends PayPalModel
     }
 
     /**
+     * purchase order is number or id specific to this payment
+     *
+     * @param string $purchase_order
+     * 
+     * @return $this
+     */
+    public function setPurchaseOrder($purchase_order)
+    {
+        $this->purchase_order = $purchase_order;
+        return $this;
+    }
+
+    /**
+     * purchase order is number or id specific to this payment
+     *
+     * @return string
+     */
+    public function getPurchaseOrder()
+    {
+        return $this->purchase_order;
+    }
+
+    /**
      * Soft descriptor used when charging this funding source. If length exceeds max length, the value will be truncated
      *
      * @param string $soft_descriptor
-     *
+     * 
      * @return $this
      */
     public function setSoftDescriptor($soft_descriptor)
@@ -214,10 +237,9 @@ class CartBase extends PayPalModel
 
     /**
      * Soft descriptor city used when charging this funding source. If length exceeds max length, the value will be truncated. Only supported when the `payment_method` is set to `credit_card`
-     *
      * @deprecated Not publicly available
      * @param string $soft_descriptor_city
-     *
+     * 
      * @return $this
      */
     public function setSoftDescriptorCity($soft_descriptor_city)
@@ -228,7 +250,6 @@ class CartBase extends PayPalModel
 
     /**
      * Soft descriptor city used when charging this funding source. If length exceeds max length, the value will be truncated. Only supported when the `payment_method` is set to `credit_card`
-     *
      * @deprecated Not publicly available
      * @return string
      */
@@ -241,7 +262,7 @@ class CartBase extends PayPalModel
      * Payment options requested for this purchase unit
      *
      * @param \PayPal\Api\PaymentOptions $payment_options
-     *
+     * 
      * @return $this
      */
     public function setPaymentOptions($payment_options)
@@ -261,10 +282,10 @@ class CartBase extends PayPalModel
     }
 
     /**
-     * Items and related shipping address within a transaction.
+     * List of items being paid for.
      *
      * @param \PayPal\Api\ItemList $item_list
-     *
+     * 
      * @return $this
      */
     public function setItemList($item_list)
@@ -274,7 +295,7 @@ class CartBase extends PayPalModel
     }
 
     /**
-     * Items and related shipping address within a transaction.
+     * List of items being paid for.
      *
      * @return \PayPal\Api\ItemList
      */
@@ -333,7 +354,6 @@ class CartBase extends PayPalModel
 
     /**
      * List of external funding being applied to the purchase unit. Each external_funding unit should have a unique reference_id
-     *
      * @deprecated Not publicly available
      * @param \PayPal\Api\ExternalFunding[] $external_funding
      *
@@ -347,7 +367,6 @@ class CartBase extends PayPalModel
 
     /**
      * List of external funding being applied to the purchase unit. Each external_funding unit should have a unique reference_id
-     *
      * @deprecated Not publicly available
      * @return \PayPal\Api\ExternalFunding[]
      */
@@ -358,7 +377,6 @@ class CartBase extends PayPalModel
 
     /**
      * Append ExternalFunding to the list.
-     *
      * @deprecated Not publicly available
      * @param \PayPal\Api\ExternalFunding $externalFunding
      * @return $this
@@ -376,7 +394,6 @@ class CartBase extends PayPalModel
 
     /**
      * Remove ExternalFunding from the list.
-     *
      * @deprecated Not publicly available
      * @param \PayPal\Api\ExternalFunding $externalFunding
      * @return $this

@@ -3,17 +3,17 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\Measurement;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Measurement
  *
  * @package PayPal\Test\Api
  */
-class MeasurementTest extends \PHPUnit_Framework_TestCase
+class MeasurementTest extends TestCase
 {
     /**
      * Gets Json String of Object Measurement
-     *
      * @return string
      */
     public static function getJson()
@@ -23,7 +23,6 @@ class MeasurementTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return Measurement
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class MeasurementTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return Measurement
      */
     public function testSerializationDeserialization()
@@ -56,6 +54,4 @@ class MeasurementTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getValue(), "TestSample");
         $this->assertEquals($obj->getUnit(), "TestSample");
     }
-
-
 }

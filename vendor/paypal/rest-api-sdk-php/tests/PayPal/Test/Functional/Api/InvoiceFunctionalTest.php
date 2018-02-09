@@ -1,6 +1,7 @@
 <?php
 
 namespace PayPal\Test\Functional\Api;
+
 use PayPal\Api\CancelNotification;
 use PayPal\Api\Invoice;
 use PayPal\Api\Notification;
@@ -8,13 +9,14 @@ use PayPal\Api\PaymentDetail;
 use PayPal\Api\RefundDetail;
 use PayPal\Api\Search;
 use PayPal\Test\Functional\Setup;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Invoice
  *
  * @package PayPal\Test\Api
  */
-class InvoiceFunctionalTest extends \PHPUnit_Framework_TestCase
+class InvoiceFunctionalTest extends TestCase
 {
 
     public static $obj;
@@ -114,7 +116,6 @@ class InvoiceFunctionalTest extends \PHPUnit_Framework_TestCase
             }
             if (!$found) {
                 $result = Invoice::getAll(array('page' => --$totalPages, 'page_size' => '20', 'total_required' => 'yes'), $this->apiContext, $this->mockPayPalRestCall);
-
             }
         } while ($totalPages > 0 && $found == false);
         $this->assertTrue($found, "The Created Invoice was not found in the get list");
@@ -235,6 +236,4 @@ class InvoiceFunctionalTest extends \PHPUnit_Framework_TestCase
         $result = $invoice->delete($this->apiContext, $this->mockPayPalRestCall);
         $this->assertNotNull($result);
     }
-
-
 }

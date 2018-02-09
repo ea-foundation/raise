@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\Presentation;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Presentation
  *
  * @package PayPal\Test\Api
  */
-class PresentationTest extends \PHPUnit_Framework_TestCase
+class PresentationTest extends TestCase
 {
     /**
      * Gets Json String of Object Presentation
@@ -17,7 +18,7 @@ class PresentationTest extends \PHPUnit_Framework_TestCase
      */
     public static function getJson()
     {
-        return json_encode(json_decode('{"brand_name":"TestSample","logo_image":"TestSample","locale_code":"TestSample"}'));
+        return '{"brand_name":"TestSample","logo_image":"TestSample","locale_code":"TestSample","return_url_label":"TestSample","note_to_seller_label":"TestSample"}';
     }
 
     /**
@@ -41,6 +42,8 @@ class PresentationTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($obj->getBrandName());
         $this->assertNotNull($obj->getLogoImage());
         $this->assertNotNull($obj->getLocaleCode());
+        $this->assertNotNull($obj->getReturnUrlLabel());
+        $this->assertNotNull($obj->getNoteToSellerLabel());
         $this->assertEquals(self::getJson(), $obj->toJson());
         return $obj;
     }
@@ -54,6 +57,9 @@ class PresentationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getBrandName(), "TestSample");
         $this->assertEquals($obj->getLogoImage(), "TestSample");
         $this->assertEquals($obj->getLocaleCode(), "TestSample");
+        $this->assertEquals($obj->getReturnUrlLabel(), "TestSample");
+        $this->assertEquals($obj->getNoteToSellerLabel(), "TestSample");
     }
+
 
 }
