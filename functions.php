@@ -746,6 +746,7 @@ function raise_send_webhook($url, array $params)
     $args      = array(
         'user-agent' => $userAgent,
         'body'       => $params,
+        'timeout'    => 30,
         'referer'    => get_bloginfo('url'),
     );
     
