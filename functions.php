@@ -270,6 +270,11 @@ function raise_print_payment_providers($formSettings, $mode)
                 $text   = '<span class="payment-method-name sr-only">Bitcoin</span>';
                 $images = ['pp bitcoin'];
                 break;
+            case 'coinbase':
+                $value  = 'Coinbase';
+                $text   = '<span class="payment-method-name sr-only">Coinbase</span>';
+                $images = ['pp coinbase'];
+                break;
             case 'skrill':
                 $value  = 'Skrill';
                 $text   = '<span class="payment-method-name sr-only">Skrill</span>';

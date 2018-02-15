@@ -579,6 +579,12 @@ input[type='number'] {
     background-size: 38px;
 }
 
+.pp-images .pp.coinbase {
+    background: url(../images/coinbase.svg) no-repeat 0 1px;
+    background-size: 78px;
+    width: 78px;
+}
+
 #GoCardlessModal .pp.gocardless {
     display: inline-block;
     background: url(../images/gocardless.svg) no-repeat -7px -7px;
