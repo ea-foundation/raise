@@ -125,6 +125,7 @@ function raise_register_donation_styles()
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/api/checkout.js?data-version-4'); // The query string is actually supposed to be a separate attribute without value, see below
+    wp_register_script('donation-plugin-coinbase', 'https://www.coinbase.com/assets/button.js');
     wp_register_script('donation-combobox', plugins_url('js/bootstrap-combobox.js', __FILE__), array(), RAISE_ASSET_VERSION);
     wp_register_script('donation-plugin-form', plugins_url('js/form.js', __FILE__), array('jquery'), RAISE_ASSET_VERSION);
 }

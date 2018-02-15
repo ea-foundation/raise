@@ -121,6 +121,9 @@ function raise_init_donation_form($form, $mode)
     if (in_array('paypal', $enabledProviders)) {
         wp_enqueue_script('donation-plugin-paypal');
     }
+    if (in_array('coinbase', $enabledProviders)) {
+        wp_enqueue_script('donation-plugin-coinbase');
+    }
     wp_enqueue_script('donation-plugin-form');
     wp_enqueue_script('donation-combobox');
 
