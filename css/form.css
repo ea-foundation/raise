@@ -580,9 +580,9 @@ input[type='number'] {
 }
 
 .pp-images .pp.coinbase {
-    background: url(../images/coinbase.svg) no-repeat 0 1px;
-    background-size: 78px;
-    width: 78px;
+    background: url(../images/coinbase.svg) no-repeat 0 2px;
+    background-size: 70px;
+    width: 70px;
 }
 
 #GoCardlessModal .pp.gocardless {

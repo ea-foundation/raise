@@ -19,6 +19,11 @@ $GLOBALS['paypalPaymentEndpoint'] = array(
 $GLOBALS['SkrillApiEndpoint'] = 'https://pay.skrill.com';
 
 /**
+ * Coinbase
+ */
+$GLOBALS['CoinbaseEndpoint'] = 'https://www.coinbase.com/checkouts/';
+
+/**
  * Supported bank account labels (listed here for automatic detection by Poedit)
  */
 __("Beneficiary", "raise");

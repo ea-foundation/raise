@@ -235,6 +235,10 @@ jQuery(function($) {
                     provider = 'paypal';
                     handlePayPalDonation();
                     break;
+                case 'payment-coinbase':
+                    provider = 'coinbase';
+                    handleIFrameDonation('Coinbase');
+                    break;
                 case 'payment-gocardless':
                     provider = 'gocardless';
                     handlePopupDonation('GoCardless');

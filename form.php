@@ -534,6 +534,20 @@ function raise_form($atts, $content = null)
     </div>
 <?php endif; ?>
 
+<?php if (in_array('coinbase', $enabledProviders)): ?>
+    <!-- Coinbase modal -->
+    <div id="CoinbaseModal" class="modal raise-modal raise-iframe-modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body"></div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
 <div id="drawer"></div>
 
 </div>

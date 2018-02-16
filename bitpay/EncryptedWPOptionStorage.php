@@ -40,7 +40,7 @@ class EncryptedWPOptionStorage implements StorageInterface
      */
     public function persist(\Bitpay\KeyInterface $key)
     {
-        $id = $key->getId();
+        $id      = $key->getId();
         $data    = serialize($key);
         $encoded = bin2hex(openssl_encrypt(
             $data,

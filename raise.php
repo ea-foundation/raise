@@ -62,7 +62,7 @@ function raise_start_session()
 add_action("wp_ajax_nopriv_raise_donate", "raise_process_donation");
 add_action("wp_ajax_raise_donate", "raise_process_donation");
 
-// Prepare redirect (PayPal, Skrill, GoCardless, BitPay)
+// Prepare redirect (PayPal, Skrill, GoCardless, BitPay, Coinbase)
 add_action("wp_ajax_nopriv_raise_redirect", "raise_prepare_redirect");
 add_action("wp_ajax_raise_redirect", "raise_prepare_redirect");
 
@@ -77,6 +77,10 @@ add_action("wp_ajax_gocardless_debit", "raise_process_gocardless_donation");
 // Log BitPay donation
 add_action("wp_ajax_nopriv_bitpay_log", "raise_process_bitpay_log");
 add_action("wp_ajax_bitpay_log", "raise_process_bitpay_log");
+
+// Log Coinbase donation
+add_action("wp_ajax_nopriv_coinbase_log", "raise_process_coinbase_log");
+add_action("wp_ajax_coinbase_log", "raise_process_coinbase_log");
 
 // Log Skrill donation
 add_action("wp_ajax_nopriv_skrill_log", "raise_process_skrill_log");
@@ -125,7 +129,6 @@ function raise_register_donation_styles()
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/api/checkout.js?data-version-4'); // The query string is actually supposed to be a separate attribute without value, see below
-    wp_register_script('donation-plugin-coinbase', 'https://www.coinbase.com/assets/button.js');
     wp_register_script('donation-combobox', plugins_url('js/bootstrap-combobox.js', __FILE__), array(), RAISE_ASSET_VERSION);
     wp_register_script('donation-plugin-form', plugins_url('js/form.js', __FILE__), array('jquery'), RAISE_ASSET_VERSION);
 }
