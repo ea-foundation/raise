@@ -146,7 +146,6 @@
 
 ul#amounts li {
     display: block;
-    vertical-align: middle;
     white-space: nowrap;
 }
 
@@ -229,7 +228,7 @@ div#amount-item span.form-control-feedback {
 }
 
 #wizard .glyphicon-refresh-animate {
-    -animation: spin .7s infinite linear;
+    animation: spin .7s infinite linear;
     -webkit-animation: spin2 .7s infinite linear;
 }
 
@@ -396,7 +395,6 @@ ul#frequency {
 }
 
 ul#frequency li {
-    display: inline;
     list-style-type:none;
     list-style-image:none;
     margin-bottom: 20px !important; /* theme compatibility hack */
@@ -539,7 +537,6 @@ input[type='number'] {
 }
 
 .pp-images .pp {
-    display: inline-block;
     width: 38px;
     height: 23px;
     float: left;

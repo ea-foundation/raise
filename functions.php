@@ -2965,8 +2965,7 @@ function raise_array_replace_recursive($array, $array1)
 {
     $recurse = function($array, $array1) use (&$recurse)
     {
-        foreach ($array1 as $key => $value)
-        {
+        foreach ($array1 as $key => $value) {
             // Create new key in $array, if it is empty or not an array
             if (!isset($array[$key]) || (isset($array[$key]) && !is_array($array[$key]))) {
                 $array[$key] = array();

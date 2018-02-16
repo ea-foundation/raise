@@ -82,7 +82,12 @@ class RaiseOptionsPage
             $forms     = $mergedSettings['forms'];
             $formNames = array_keys($forms);
             $mergedSettings['forms'] = array_map(function($formName) use ($forms) {
-                $mergedForm = raise_rec_load_settings($formName, $forms);
+                try {
+                    $mergedForm = raise_rec_load_settings($formName, $forms);
+                } catch(\Exception $e) {
+                    $mergedForm = array('Error' => $e->getMessage());
+                }
+
                 unset($mergedForm['inherits']);
                 return $mergedForm;
             }, array_combine($formNames, $formNames));
