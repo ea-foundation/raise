@@ -6,13 +6,14 @@ use PayPal\Api\Patch;
 use PayPal\Api\PatchRequest;
 use PayPal\Api\Plan;
 use PayPal\Test\Functional\Setup;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Billing Plans
  *
  * @package PayPal\Test\Api
  */
-class BillingPlansFunctionalTest extends \PHPUnit_Framework_TestCase
+class BillingPlansFunctionalTest extends TestCase
 {
 
     public static $obj;
@@ -128,12 +129,10 @@ class BillingPlansFunctionalTest extends \PHPUnit_Framework_TestCase
             }
             if (!$found) {
                 $result = Plan::all(array('page' => --$totalPages, 'page_size' => '20', 'total_required' => 'yes'), $this->apiContext, $this->mockPayPalRestCall);
-
             }
         } while ($totalPages > 0 && $found == false);
         $this->assertTrue($found, "The Created Plan was not found in the get list");
         $this->assertEquals($plan->getId(), $foundObject->getId());
-
     }
 
     /**

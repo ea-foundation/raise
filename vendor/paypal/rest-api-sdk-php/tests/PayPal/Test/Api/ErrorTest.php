@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\Error;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Error
  *
  * @package PayPal\Test\Api
  */
-class ErrorTest extends \PHPUnit_Framework_TestCase
+class ErrorTest extends TestCase
 {
     /**
      * Gets Json String of Object Error
@@ -23,7 +24,6 @@ class ErrorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return Error
      */
     public static function getObject()
@@ -34,7 +34,6 @@ class ErrorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return Error
      */
     public function testSerializationDeserialization()
@@ -72,6 +71,4 @@ class ErrorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getDebugId(), "TestSample");
         $this->assertEquals($obj->getLinks(), LinksTest::getObject());
     }
-
-
 }

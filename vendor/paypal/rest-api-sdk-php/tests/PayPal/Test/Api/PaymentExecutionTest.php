@@ -3,17 +3,17 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\PaymentExecution;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class PaymentExecution
  *
  * @package PayPal\Test\Api
  */
-class PaymentExecutionTest extends \PHPUnit_Framework_TestCase
+class PaymentExecutionTest extends TestCase
 {
     /**
      * Gets Json String of Object PaymentExecution
-     *
      * @return string
      */
     public static function getJson()
@@ -23,7 +23,6 @@ class PaymentExecutionTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return PaymentExecution
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class PaymentExecutionTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return PaymentExecution
      */
     public function testSerializationDeserialization()
@@ -58,6 +56,4 @@ class PaymentExecutionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getCarrierAccountId(), "TestSample");
         $this->assertEquals($obj->getTransactions(), array(TransactionTest::getObject()));
     }
-
-
 }

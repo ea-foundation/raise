@@ -7,8 +7,7 @@
 // API used: /v1/payments/billing-agreements/<Agreement-Id>/suspend
 
 // Retrieving the Agreement object from Create Agreement Sample to demonstrate the List
-/** @var Agreement $createdAgreement */
-$createdAgreement = require 'CreateBillingAgreementWithCreditCard.php';
+require __DIR__ . '/../bootstrap.php';
 
 use PayPal\Api\Agreement;
 use PayPal\Api\AgreementStateDescriptor;
@@ -17,16 +16,18 @@ use PayPal\Api\AgreementStateDescriptor;
 $agreementStateDescriptor = new AgreementStateDescriptor();
 $agreementStateDescriptor->setNote("Suspending the agreement");
 
-try {
+// Fetch the agreement object
+/** @var Agreement $createdAgreement */
+$createdAgreement = null; // Replace this with your fetched agreement object
 
+try {
     $createdAgreement->suspend($agreementStateDescriptor, $apiContext);
 
     // Lets get the updated Agreement Object
     $agreement = Agreement::get($createdAgreement->getId(), $apiContext);
-
 } catch (Exception $ex) {
     // NOTE: PLEASE DO NOT USE RESULTPRINTER CLASS IN YOUR ORIGINAL CODE. FOR SAMPLE ONLY
- 	ResultPrinter::printError("Suspended the Agreement", "Agreement", null, $agreementStateDescriptor, $ex);
+    ResultPrinter::printError("Suspended the Agreement", "Agreement", null, $agreementStateDescriptor, $ex);
     exit(1);
 }
 

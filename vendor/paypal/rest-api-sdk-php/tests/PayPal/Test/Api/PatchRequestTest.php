@@ -2,14 +2,16 @@
 
 namespace PayPal\Test\Api;
 
+use PayPal\Common\PayPalModel;
 use PayPal\Api\PatchRequest;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class PatchRequest
  *
  * @package PayPal\Test\Api
  */
-class PatchRequestTest extends \PHPUnit_Framework_TestCase
+class PatchRequestTest extends TestCase
 {
     /**
      * Gets Json String of Object PatchRequest
@@ -50,5 +52,4 @@ class PatchRequestTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals($obj->getPatches(), PatchTest::getObject());
     }
-
 }

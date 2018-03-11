@@ -2,14 +2,19 @@
 
 namespace PayPal\Test\Api;
 
+use PayPal\Common\PayPalResourceModel;
+use PayPal\Validation\ArgumentValidator;
+use PayPal\Api\WebhookList;
+use PayPal\Rest\ApiContext;
 use PayPal\Api\Webhook;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Webhook
  *
  * @package PayPal\Test\Api
  */
-class WebhookTest extends \PHPUnit_Framework_TestCase
+class WebhookTest extends TestCase
 {
     /**
      * Gets Json String of Object Webhook
@@ -67,24 +72,23 @@ class WebhookTest extends \PHPUnit_Framework_TestCase
         $obj = new Webhook();
         $obj->setUrl(null);
     }
-
     /**
      * @dataProvider mockProvider
      * @param Webhook $obj
      */
     public function testCreate($obj, $mockApiContext)
     {
-        $mockPayPalRestCall = $this->getMockBuilder('\PayPal\Transport\PayPalRestCall')
+        $mockPPRestCall = $this->getMockBuilder('\PayPal\Transport\PayPalRestCall')
             ->disableOriginalConstructor()
             ->getMock();
 
-        $mockPayPalRestCall->expects($this->any())
+        $mockPPRestCall->expects($this->any())
             ->method('execute')
             ->will($this->returnValue(
                     self::getJson()
             ));
 
-        $result = $obj->create($mockApiContext, $mockPayPalRestCall);
+        $result = $obj->create($mockApiContext, $mockPPRestCall);
         $this->assertNotNull($result);
     }
     /**
@@ -93,17 +97,17 @@ class WebhookTest extends \PHPUnit_Framework_TestCase
      */
     public function testGet($obj, $mockApiContext)
     {
-        $mockPayPalRestCall = $this->getMockBuilder('\PayPal\Transport\PayPalRestCall')
+        $mockPPRestCall = $this->getMockBuilder('\PayPal\Transport\PayPalRestCall')
             ->disableOriginalConstructor()
             ->getMock();
 
-        $mockPayPalRestCall->expects($this->any())
+        $mockPPRestCall->expects($this->any())
             ->method('execute')
             ->will($this->returnValue(
                     WebhookTest::getJson()
             ));
 
-        $result = $obj->get("webhookId", $mockApiContext, $mockPayPalRestCall);
+        $result = $obj->get("webhookId", $mockApiContext, $mockPPRestCall);
         $this->assertNotNull($result);
     }
     /**
@@ -112,17 +116,18 @@ class WebhookTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetAll($obj, $mockApiContext)
     {
-        $mockPayPalRestCall = $this->getMockBuilder('\PayPal\Transport\PayPalRestCall')
+        $mockPPRestCall = $this->getMockBuilder('\PayPal\Transport\PayPalRestCall')
             ->disableOriginalConstructor()
             ->getMock();
 
-        $mockPayPalRestCall->expects($this->any())
+        $mockPPRestCall->expects($this->any())
             ->method('execute')
             ->will($this->returnValue(
                     WebhookListTest::getJson()
             ));
+        $params = array();
 
-        $result = $obj->getAll($mockApiContext, $mockPayPalRestCall);
+        $result = $obj->getAllWithParams($params, $mockApiContext, $mockPPRestCall);
         $this->assertNotNull($result);
     }
     /**
@@ -131,18 +136,18 @@ class WebhookTest extends \PHPUnit_Framework_TestCase
      */
     public function testUpdate($obj, $mockApiContext)
     {
-        $mockPayPalRestCall = $this->getMockBuilder('\PayPal\Transport\PayPalRestCall')
+        $mockPPRestCall = $this->getMockBuilder('\PayPal\Transport\PayPalRestCall')
             ->disableOriginalConstructor()
             ->getMock();
 
-        $mockPayPalRestCall->expects($this->any())
+        $mockPPRestCall->expects($this->any())
             ->method('execute')
             ->will($this->returnValue(
                     self::getJson()
             ));
         $patchRequest = PatchRequestTest::getObject();
 
-        $result = $obj->update($patchRequest, $mockApiContext, $mockPayPalRestCall);
+        $result = $obj->update($patchRequest, $mockApiContext, $mockPPRestCall);
         $this->assertNotNull($result);
     }
     /**
@@ -151,17 +156,17 @@ class WebhookTest extends \PHPUnit_Framework_TestCase
      */
     public function testDelete($obj, $mockApiContext)
     {
-        $mockPayPalRestCall = $this->getMockBuilder('\PayPal\Transport\PayPalRestCall')
+        $mockPPRestCall = $this->getMockBuilder('\PayPal\Transport\PayPalRestCall')
             ->disableOriginalConstructor()
             ->getMock();
 
-        $mockPayPalRestCall->expects($this->any())
+        $mockPPRestCall->expects($this->any())
             ->method('execute')
             ->will($this->returnValue(
                     true
             ));
 
-        $result = $obj->delete($mockApiContext, $mockPayPalRestCall);
+        $result = $obj->delete($mockApiContext, $mockPPRestCall);
         $this->assertNotNull($result);
     }
 

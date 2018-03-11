@@ -3,12 +3,13 @@
 namespace PayPal\Test\Cache;
 
 use PayPal\Cache\AuthorizationCache;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Test class for AuthorizationCacheTest.
  *
  */
-class AuthorizationCacheTest extends \PHPUnit_Framework_TestCase
+class AuthorizationCacheTest extends TestCase
 {
     const CACHE_FILE = 'tests/var/test.cache';
 
@@ -79,7 +80,6 @@ class AuthorizationCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('accessToken', $tokens['clientId']['accessTokenEncrypted']);
         $this->assertEquals('tokenCreateTime', $tokens['clientId']['tokenCreateTime']);
         $this->assertEquals('tokenExpiresIn', $tokens['clientId']['tokenExpiresIn']);
-
     }
 
     public function testCachePullNonExisting()
@@ -103,5 +103,4 @@ class AuthorizationCacheTest extends \PHPUnit_Framework_TestCase
 
         unlink(AuthorizationCacheTest::CACHE_FILE);
     }
-
 }

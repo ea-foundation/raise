@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\ErrorDetails;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class ErrorDetails
  *
  * @package PayPal\Test\Api
  */
-class ErrorDetailsTest extends \PHPUnit_Framework_TestCase
+class ErrorDetailsTest extends TestCase
 {
     /**
      * Gets Json String of Object ErrorDetails
@@ -60,6 +61,4 @@ class ErrorDetailsTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getPurchaseUnitReferenceId(), "TestSample");
         $this->assertEquals($obj->getCode(), "TestSample");
     }
-
-
 }

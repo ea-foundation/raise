@@ -6,17 +6,12 @@
 // details of completed Sale Transaction.
 // API used: /v1/payments/sale/{sale-id}
 
-/** @var Payment $payment */
-$payment = require __DIR__ . '/../payments/CreatePayment.php';
+require __DIR__ . '/../bootstrap.php';
 use PayPal\Api\Payment;
 use PayPal\Api\Sale;
 
-// ### Get Sale From Created Payment
 // You can retrieve the sale Id from Related Resources for each transactions.
-$transactions = $payment->getTransactions();
-$relatedResources = $transactions[0]->getRelatedResources();
-$sale = $relatedResources[0]->getSale();
-$saleId = $sale->getId();
+$saleId = "enter your sale id";
 
 try {
     // ### Retrieve the sale object
@@ -25,7 +20,7 @@ try {
     $sale = Sale::get($saleId, $apiContext);
 } catch (Exception $ex) {
     // NOTE: PLEASE DO NOT USE RESULTPRINTER CLASS IN YOUR ORIGINAL CODE. FOR SAMPLE ONLY
- 	ResultPrinter::printError("Look Up A Sale", "Sale", $sale->getId(), null, $ex);
+    ResultPrinter::printError("Look Up A Sale", "Sale", $sale->getId(), null, $ex);
     exit(1);
 }
 

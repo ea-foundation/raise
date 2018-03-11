@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\CarrierAccount;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class CarrierAccount
  *
  * @package PayPal\Test\Api
  */
-class CarrierAccountTest extends \PHPUnit_Framework_TestCase
+class CarrierAccountTest extends TestCase
 {
     /**
      * Gets Json String of Object CarrierAccount
@@ -59,6 +60,4 @@ class CarrierAccountTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getPhoneSource(), "TestSample");
         $this->assertEquals($obj->getCountryCode(), CountryCodeTest::getObject());
     }
-
-
 }

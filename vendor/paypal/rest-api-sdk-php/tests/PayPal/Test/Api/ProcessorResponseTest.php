@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\ProcessorResponse;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class ProcessorResponse
  *
  * @package PayPal\Test\Api
  */
-class ProcessorResponseTest extends \PHPUnit_Framework_TestCase
+class ProcessorResponseTest extends TestCase
 {
     /**
      * Gets Json String of Object ProcessorResponse
@@ -61,6 +62,4 @@ class ProcessorResponseTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getEciSubmitted(), "TestSample");
         $this->assertEquals($obj->getVpas(), "TestSample");
     }
-
-
 }

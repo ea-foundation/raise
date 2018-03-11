@@ -29,7 +29,7 @@ date_default_timezone_set(@date_default_timezone_get());
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-// Replace these values by entering your own ClientId and Secret by visiting https://developer.paypal.com/webapps/developer/applications/myapps
+// Replace these values by entering your own ClientId and Secret by visiting https://developer.paypal.com/developer/applications/
 $clientId = 'AYSq3RDGsmBLJE-otTkBtM-jBRd1TCQwFf9RGfwddNXWz0uFU9ztymylOhRS';
 $clientSecret = 'EGnHDxD_qRPdaLdZz8iCr8N7_MzF-YHPTkjs6NKYQvQSBngp4PTTVWkPZRbL';
 
@@ -38,7 +38,7 @@ $clientSecret = 'EGnHDxD_qRPdaLdZz8iCr8N7_MzF-YHPTkjs6NKYQvQSBngp4PTTVWkPZRbL';
  * for your specific environments, feel free to add them using the code shown below
  * Uncomment below line to override any default curl options.
  */
-//PayPalHttpConfig::$defaultCurlOptions[CURLOPT_SSLVERSION] = CURL_SSLVERSION_TLSv1_2;
+// \PayPal\Core\PayPalHttpConfig::$defaultCurlOptions[CURLOPT_SSLVERSION] = CURL_SSLVERSION_TLSv1_2;
 
 
 /** @var \Paypal\Rest\ApiContext $apiContext */

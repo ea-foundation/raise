@@ -267,6 +267,11 @@ function raise_print_payment_providers($formSettings, $mode)
                 $text   = '<span class="payment-method-name sr-only">Bitcoin</span>';
                 $images = ['pp bitcoin'];
                 break;
+            case 'coinbase':
+                $value  = 'Coinbase';
+                $text   = '<span class="payment-method-name sr-only">Coinbase</span>';
+                $images = ['pp coinbase'];
+                break;
             case 'skrill':
                 $value  = 'Skrill';
                 $text   = '<span class="payment-method-name sr-only">Skrill</span>';
@@ -355,7 +360,7 @@ function raise_get_donation_from_post()
 }
 
 /**
- * AJAX endpoint that creates redirect response (PayPal, Skrill, GoCardless, BitPay)
+ * AJAX endpoint that creates redirect response (PayPal, Skrill, GoCardless, BitPay, Coinbase)
  *
  * @return string JSON response
  */
@@ -387,6 +392,9 @@ function raise_prepare_redirect()
                 break;
             case "BitPay":
                 $response = raise_prepare_bitpay_donation($post);
+                break;
+            case "Coinbase":
+                $response = raise_prepare_coinbase_donation($post);
                 break;
             default:
                 throw new \Exception('Payment method ' . $post['payment_provider'] . ' is invalid');
@@ -487,7 +495,14 @@ function raise_handle_stripe_payment($donation, $token, $publicKey)
         );
 
         if ($settings['public_key'] != $publicKey) {
-            throw new \Exception("Key mismatch");
+            throw new \Exception(
+                "Key mismatch. Expected " . $settings['public_key'] . ", got " . $publicKey . ". Details:\n" .
+                "Mode: " . $donation['mode'] . "\n" .
+                "Tax receipt: " . ($donation['tax_receipt'] ? 'Yes' : 'No') . "\n" .
+                "Currency: " . $donation['currency'] . "\n" .
+                "Country: " . raise_get($donation['country']) . "\n" .
+                "Account: " . raise_get($donation['account']) . "\n"
+            );
         }
 
         // Load secret key
@@ -892,6 +907,8 @@ function raise_get_payment_provider_properties($provider)
             return array("pairing_code");
         case "skrill":
             return array("merchant_account");
+        case "coinbase":
+            return array("api_key", "api_secret");
         default:
             return array();
     }
@@ -1055,59 +1072,33 @@ function raise_get_bitpay_key_ids($pairingCode)
 }
 
 /**
- * Get BitPay object
+ * Load BitPay credentials
  *
- * @param string $form
- * @param string $mode
- * @param bool   $taxReceipt
- * @param string $currency
- * @param string $country
- * @param string $account
- * @return \Bitpay\Bitpay
+ * @param string $pairingCode
+ * @return array
  */
-function raise_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $currency, $country, $account = null)
+function raise_load_bitpay_credentials($pairingCode)
 {
-    // Get BitPay pairing code
-    $formSettings = raise_load_settings($form);
-    $settings     = raise_get_best_payment_provider_settings(
-        $formSettings,
-        "bitpay",
-        $mode,
-        $taxReceipt,
-        $currency,
-        $country,
-        $account
-    );
-    $pairingCode = $settings['pairing_code'];
-
     // Get key IDs
     list($privateKeyId, $publicKeyId, $tokenId) = raise_get_bitpay_key_ids($pairingCode);
 
-    // Get BitPay client
-    $bitpay = new \Bitpay\Bitpay(array(
-        'bitpay' => array(
-            'network'              => $mode == 'live' ? 'livenet' : 'testnet',
-            'public_key'           => $publicKeyId,
-            'private_key'          => $privateKeyId,
-            'key_storage'          => 'Raise\Bitpay\EncryptedWPOptionStorage',
-            'key_storage_password' => $pairingCode, // Abuse pairing code for this
-        )
-    ));
+    // Load keys
+    $keyStorage = new \Raise\Bitpay\EncryptedWPOptionStorage($pairingCode);
+    $privateKey = $keyStorage->load($privateKeyId);
+    $publicKey  = $keyStorage->load($publicKeyId);
 
-    return $bitpay;
+    return [$privateKey, $publicKey];
 }
 
 /**
- * Get BitPay token
+ * Generate BitPay credentials
  *
- * @param \Bitpay\Bitpay $bitpay
- * @param string $label
- * @return \Bitpay\Token
+ * @param string $pairingCode
+ * @return array
  */
-function raise_generate_bitpay_token(\Bitpay\Bitpay $bitpay, $label = '')
+function raise_generate_bitpay_credentials($pairingCode)
 {
     // Get BitPay pairing code as well as key/token IDs
-    $pairingCode = $bitpay->getContainer()->getParameter('bitpay.key_storage_password');
     list($privateKeyId, $publicKeyId, $tokenId) = raise_get_bitpay_key_ids($pairingCode);
     
     // Generate keys
@@ -1118,23 +1109,11 @@ function raise_generate_bitpay_token(\Bitpay\Bitpay $bitpay, $label = '')
         ->generate();
 
     // Save keys (abuse pairing code as encryption password)
-    $keyStorage = $bitpay->get('key_manager');
+    $keyStorage = new \Raise\Bitpay\EncryptedWPOptionStorage($pairingCode);
     $keyStorage->persist($privateKey);
     $keyStorage->persist($publicKey);
 
-    // Get token
-    // @var \Bitpay\SinKey
-    $sin   = \Bitpay\SinKey::create()->setPublicKey($publicKey)->generate();
-    $token = $bitpay->get('client')->createToken(array(
-        'pairingCode' => $pairingCode,
-        'label'       => $label,
-        'id'          => (string) $sin,
-    ));
-
-    // Save token
-    update_option($tokenId, $token->getToken());
-
-    return $token;
+    return [$privateKey, $publicKey];
 }
 
 /**
@@ -1150,24 +1129,64 @@ function raise_generate_bitpay_token(\Bitpay\Bitpay $bitpay, $label = '')
  */
 function raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country, $account = null)
 {
-    // Get BitPay dependency injector
-    $bitpay = raise_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $currency, $country, $account);
+    // Get BitPay pairing code
+    $formSettings = raise_load_settings($form);
+    $settings     = raise_get_best_payment_provider_settings(
+        $formSettings,
+        "bitpay",
+        $mode,
+        $taxReceipt,
+        $currency,
+        $country,
+        $account
+    );
+    $pairingCode = $settings['pairing_code'];
 
-    // Get BitPay pairing code as well as key/token IDs
-    $pairingCode = $bitpay->getContainer()->getParameter('bitpay.key_storage_password');
+    // Get credentials
     list($privateKeyId, $publicKeyId, $tokenId) = raise_get_bitpay_key_ids($pairingCode);
+    $tokenString = get_option($tokenId);
+    if (empty($tokenString)) {
+        // First time. Generate credentials
+        list($privateKey, $publicKey) = raise_generate_bitpay_credentials($pairingCode);
+    } else {
+        // Get credentials from key storage
+        list($privateKey, $publicKey) = raise_load_bitpay_credentials($pairingCode);
+    }
 
-    // Generate token if first time
-    if (!get_option($publicKeyId) || !get_option($privateKeyId) || !($tokenString = get_option($tokenId))) {
+    // Get network
+    $network = $mode == 'live' ? new \Bitpay\Network\Livenet() : new \Bitpay\Network\Testnet();
+
+    // Get adapter
+    $adapter = new \Bitpay\Client\Adapter\CurlAdapter();
+
+    // Configure client
+    $client = new \Bitpay\Client\Client();
+    $client->setPrivateKey($privateKey);
+    $client->setPublicKey($publicKey);
+    $client->setNetwork($network);
+    $client->setAdapter($adapter);
+
+    // Set token
+    if (empty($tokenString)) {
+        // Generate new token
         $urlParts = parse_url(home_url());
         $label    = $urlParts['host'];
-        $token    = raise_generate_bitpay_token($bitpay, $label);
+
+        // Generate token
+        $sin    = \Bitpay\SinKey::create()->setPublicKey($publicKey)->generate();
+        $token  = $client->createToken(array(
+            'pairingCode' => $pairingCode,
+            'label'       => $label,
+            'id'          => (string) $sin,
+        ));
+
+        // Save token
+        update_option($tokenId, $token->getToken());
     } else {
+        // Get token from token string
         $token = new \Bitpay\Token();
         $token->setToken($tokenString);
     }
-
-    $client = $bitpay->get('client');
     $client->setToken($token);
 
     return $client;
@@ -1272,6 +1291,86 @@ function raise_get_skrill_url($reqId, $post)
 }
 
 /**
+ * Get Coinbase client
+ *
+ * @param string $form
+ * @param string $mode
+ * @param bool   $taxReceipt
+ * @param string $currency
+ * @param string $country
+ * @param string $account
+ * @return \Coinbase\Wallet\Client
+ */
+function raise_get_coinbase_client($form, $mode, $taxReceipt, $currency, $country, $account = null)
+{
+    $formSettings = raise_load_settings($form);
+    $settings     = raise_get_best_payment_provider_settings(
+        $formSettings,
+        "coinbase",
+        $mode,
+        $taxReceipt,
+        $currency,
+        $country,
+        $account
+    );
+    $configuration = \Coinbase\Wallet\Configuration::apiKey($settings['api_key'], $settings['api_secret']);
+
+    return \Coinbase\Wallet\Client::create($configuration);
+}
+
+/**
+ * AJAX endpoint that returns the Coinbase URL. It stores
+ * user input in session until user is forwarded back from Coinbase
+ *
+ * @param array $post
+ * @return array
+ */
+function raise_prepare_coinbase_donation(array $post)
+{
+    try {
+        $form       = $post['form'];
+        $mode       = $post['mode'];
+        $email      = $post['email'];
+        $name       = $post['name'];
+        $amount     = $post['amount'];
+        $currency   = $post['currency'];
+        $country    = $post['country'];
+        $taxReceipt = raise_get($post['tax_receipt'], false);
+        $account    = raise_get($post['account']);
+        $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
+        $cancelUrl  = raise_get_ajax_endpoint() . '?action=coinbase_log';
+        $returnUrl  = $cancelUrl . '&req=' . $reqId;
+
+        // Get client
+        $client = raise_get_coinbase_client($form, $mode, $taxReceipt, $currency, $country, $account);
+
+        // Execute checkout
+        $params = array(
+            'name'          => "$name ($email)",
+            'amount'        => new \Coinbase\Wallet\Value\Money($amount, $currency),
+            'type'          => 'donation',
+            'success_url'   => $returnUrl,
+            'cancel_url'    => $cancelUrl,
+            'auto_redirect' => true,
+        );
+        $checkout = new \Coinbase\Wallet\Resource\Checkout($params);
+        $client->createCheckout($checkout);
+        $code = $checkout->getEmbedCode();
+
+        // Return URL
+        return array(
+            'success' => true,
+            'url'     => $GLOBALS['CoinbaseEndpoint'] . $code,
+        );
+    } catch (\Exception $e) {
+        return array(
+            'success' => false,
+            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
+        );
+    }
+}
+
+/**
  * AJAX endpoint that returns the BitPay URL. It stores
  * user input in session until user is forwarded back from BitPay
  *
@@ -1283,20 +1382,20 @@ function raise_prepare_bitpay_donation(array $post)
     try {
         $form       = $post['form'];
         $mode       = $post['mode'];
-        $language   = $post['language'];
         $email      = $post['email'];
         $name       = $post['name'];
         $amount     = $post['amount'];
         $currency   = $post['currency'];
         $taxReceipt = raise_get($post['tax_receipt'], false);
         $country    = $post['country'];
+        $account    = raise_get($post['account']);
         $frequency  = $post['frequency'];
         $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
         $returnUrl  = raise_get_ajax_endpoint() . '?action=bitpay_log&req=' . $reqId;
         //$returnUrl       = raise_get_ajax_endpoint() . '?action=bitpay_confirm';
 
         // Get BitPay object and token
-        $client = raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country, raise_get($post['account']));
+        $client = raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country, $account);
 
         // Make item
         $item = new \Bitpay\Item();
@@ -1324,18 +1423,19 @@ function raise_prepare_bitpay_donation(array $post)
         } catch (\Exception $e) {
             $request  = $client->getRequest();
             $response = $client->getResponse();
-            $message  = (string) $request.PHP_EOL.PHP_EOL.PHP_EOL;
-            $message .= (string) $response.PHP_EOL.PHP_EOL;
+            $message  = $e->getMessage();
+            // $message  = (string) $request.PHP_EOL.PHP_EOL.PHP_EOL;
+            // $message .= (string) $response.PHP_EOL.PHP_EOL;
             throw new \Exception($message);
         }
 
         // Save invoice ID to session
-        $_SESSION['raise-vendor-transaction-id']  = $invoice->getId();
+        $_SESSION['raise-vendor-transaction-id'] = $invoice->getId();
 
         // Save user data to session
         raise_set_donation_data_to_session($post, $reqId);
 
-        // Return pay key
+        // Return invoice URL
         return array(
             'success' => true,
             'url'     => $invoice->getUrl(),
@@ -1369,6 +1469,33 @@ function raise_verify_session()
 function raise_reset_request_id()
 {
     $_SESSION['raise-req-id'] = uniqid();
+}
+
+/**
+ * AJAX endpoint for handling donation logging for Coinbase.
+ * User is forwarded here after successful Coinbase transaction.
+ * Takes user data from session and triggers the web hooks.
+ *
+ * @return string HTML with script that terminates the Coinbase flow and shows the thank you step
+ */
+function raise_process_coinbase_log()
+{
+    try {
+        // Verify session and purge reqId
+        raise_verify_session();
+
+        // Get donation from session
+        $donation = raise_get_donation_from_session();
+
+        // Do post donation actions
+        raise_do_post_donation_actions($donation);
+    } catch (\Exception $e) {
+        // No need to say anything. Just show confirmation.
+    }
+
+    die('<!doctype html>
+         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <body><script>parent.showConfirmation("coinbase"); parent.hideModal();</script></body></html>');
 }
 
 /**
@@ -1422,18 +1549,18 @@ function raise_process_bitpay_log()
         // Add vendor transaction ID (BitPay invoice ID)
         $donation['vendor_transaction_id'] = $_SESSION['raise-vendor-transaction-id'];
 
-        // Make sure the payment is paid
-        $client      = raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country);
-        $invoice     = $client->getInvoice($_SESSION['raise-vendor-transaction-id']);
-        $status      = $invoice->getStatus();
-        $validStates = array(
-            \Bitpay\Invoice::STATUS_PAID,
-            \Bitpay\Invoice::STATUS_CONFIRMED,
-            \Bitpay\Invoice::STATUS_COMPLETE,
-        );
-        if (!in_array($status, $validStates)) {
-            throw new \Exception('Not paid');
-        }
+        // Make sure the payment is paid (too slow)
+        // $client      = raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country);
+        // $invoice     = $client->getInvoice($_SESSION['raise-vendor-transaction-id']);
+        // $status      = $invoice->getStatus();
+        // $validStates = array(
+        //     \Bitpay\Invoice::STATUS_PAID,
+        //     \Bitpay\Invoice::STATUS_CONFIRMED,
+        //     \Bitpay\Invoice::STATUS_COMPLETE,
+        // );
+        // if (!in_array($status, $validStates)) {
+        //     throw new \Exception('Not paid');
+        // }
 
         // Do post donation actions
         raise_do_post_donation_actions($donation);

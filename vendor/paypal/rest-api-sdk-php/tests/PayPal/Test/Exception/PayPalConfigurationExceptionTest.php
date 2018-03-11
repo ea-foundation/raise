@@ -1,11 +1,12 @@
 <?php
 use PayPal\Exception\PayPalConfigurationException;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Test class for PayPalConfigurationException.
  *
  */
-class PayPalConfigurationExceptionTest extends \PHPUnit_Framework_TestCase
+class PayPalConfigurationExceptionTest extends TestCase
 {
     /**
      * @var PayPalConfigurationException
@@ -34,5 +35,3 @@ class PayPalConfigurationExceptionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('Test PayPalConfigurationException', $this->object->getMessage());
     }
 }
-
-?>

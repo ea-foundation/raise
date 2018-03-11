@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\ShippingCost;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class ShippingCost
  *
  * @package PayPal\Test\Api
  */
-class ShippingCostTest extends \PHPUnit_Framework_TestCase
+class ShippingCostTest extends TestCase
 {
     /**
      * Gets Json String of Object ShippingCost
@@ -53,5 +54,4 @@ class ShippingCostTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getAmount(), CurrencyTest::getObject());
         $this->assertEquals($obj->getTax(), TaxTest::getObject());
     }
-
 }

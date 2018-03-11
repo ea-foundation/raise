@@ -62,7 +62,7 @@ function raise_start_session()
 add_action("wp_ajax_nopriv_raise_donate", "raise_process_donation");
 add_action("wp_ajax_raise_donate", "raise_process_donation");
 
-// Prepare redirect (PayPal, Skrill, GoCardless, BitPay)
+// Prepare redirect (PayPal, Skrill, GoCardless, BitPay, Coinbase)
 add_action("wp_ajax_nopriv_raise_redirect", "raise_prepare_redirect");
 add_action("wp_ajax_raise_redirect", "raise_prepare_redirect");
 
@@ -77,6 +77,10 @@ add_action("wp_ajax_gocardless_debit", "raise_process_gocardless_donation");
 // Log BitPay donation
 add_action("wp_ajax_nopriv_bitpay_log", "raise_process_bitpay_log");
 add_action("wp_ajax_bitpay_log", "raise_process_bitpay_log");
+
+// Log Coinbase donation
+add_action("wp_ajax_nopriv_coinbase_log", "raise_process_coinbase_log");
+add_action("wp_ajax_coinbase_log", "raise_process_coinbase_log");
 
 // Log Skrill donation
 add_action("wp_ajax_nopriv_skrill_log", "raise_process_skrill_log");

@@ -2,14 +2,16 @@
 
 namespace PayPal\Test\Api;
 
+use PayPal\Common\PayPalModel;
 use PayPal\Api\WebhookEventTypeList;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class WebhookEventTypeList
  *
  * @package PayPal\Test\Api
  */
-class WebhookEventTypeListTest extends \PHPUnit_Framework_TestCase
+class WebhookEventTypeListTest extends TestCase
 {
     /**
      * Gets Json String of Object WebhookEventTypeList
@@ -51,5 +53,6 @@ class WebhookEventTypeListTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals($obj->getEventTypes(), WebhookEventTypeTest::getObject());
     }
+
 
 }

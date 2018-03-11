@@ -235,6 +235,10 @@ jQuery(function($) {
                     provider = 'paypal';
                     handlePayPalDonation();
                     break;
+                case 'payment-coinbase':
+                    provider = 'coinbase';
+                    handleIFrameDonation('Coinbase');
+                    break;
                 case 'payment-gocardless':
                     provider = 'gocardless';
                     handlePopupDonation('GoCardless');
@@ -1324,7 +1328,7 @@ function getFormAsObject() {
     // Localize values for frequency, payment_provider, country, purpose
     formObj.frequency        = jQuery('input[name=frequency][value=' + formObj.frequency + ']').siblings('label').text();
     formObj.payment_provider = jQuery('input[name=payment_provider][value=' + formObj.payment_provider.replace(' ', '\\ ') + ']').siblings('span').text();
-    if ('country' in formObj) {
+    if ('country' in formObj && formObj.country) {
         formObj.country = jQuery('select#donor-country option[value=' + formObj.country.toUpperCase() + ']').text();
     }
     if ('purpose' in formObj) {

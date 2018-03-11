@@ -6,13 +6,14 @@ use PayPal\Api\Payout;
 use PayPal\Api\PayoutBatch;
 use PayPal\Api\PayoutItem;
 use PayPal\Test\Functional\Setup;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Payouts
  *
  * @package PayPal\Test\Api
  */
-class PayoutsFunctionalTest extends \PHPUnit_Framework_TestCase
+class PayoutsFunctionalTest extends TestCase
 {
 
     public $operation;
@@ -120,5 +121,4 @@ class PayoutsFunctionalTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($item->getPayoutItemFee(), $result->getPayoutItemFee());
         $this->assertEquals('RETURNED', $result->getTransactionStatus());
     }
-
 }
