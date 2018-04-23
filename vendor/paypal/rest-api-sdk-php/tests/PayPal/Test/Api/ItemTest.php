@@ -3,17 +3,17 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\Item;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Item
  *
  * @package PayPal\Test\Api
  */
-class ItemTest extends \PHPUnit_Framework_TestCase
+class ItemTest extends TestCase
 {
     /**
      * Gets Json String of Object Item
-     *
      * @return string
      */
     public static function getJson()
@@ -23,7 +23,6 @@ class ItemTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return Item
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class ItemTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return Item
      */
     public function testSerializationDeserialization()
@@ -92,5 +90,4 @@ class ItemTest extends \PHPUnit_Framework_TestCase
         $obj = new Item();
         $obj->setUrl(null);
     }
-
 }

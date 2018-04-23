@@ -3,17 +3,17 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\FundingDetail;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class FundingDetail
  *
  * @package PayPal\Test\Api
  */
-class FundingDetailTest extends \PHPUnit_Framework_TestCase
+class FundingDetailTest extends TestCase
 {
     /**
      * Gets Json String of Object FundingDetail
-     *
      * @return string
      */
     public static function getJson()
@@ -23,7 +23,6 @@ class FundingDetailTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return FundingDetail
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class FundingDetailTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return FundingDetail
      */
     public function testSerializationDeserialization()
@@ -60,6 +58,4 @@ class FundingDetailTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getPaymentDebitDate(), "TestSample");
         $this->assertEquals($obj->getProcessingType(), "TestSample");
     }
-
-
 }

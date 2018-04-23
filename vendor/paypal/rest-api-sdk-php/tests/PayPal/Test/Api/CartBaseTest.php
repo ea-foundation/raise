@@ -2,28 +2,28 @@
 
 namespace PayPal\Test\Api;
 
+use PayPal\Common\PayPalModel;
 use PayPal\Api\CartBase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class CartBase
  *
  * @package PayPal\Test\Api
  */
-class CartBaseTest extends \PHPUnit_Framework_TestCase
+class CartBaseTest extends TestCase
 {
     /**
      * Gets Json String of Object CartBase
-     *
      * @return string
      */
     public static function getJson()
     {
-        return '{"reference_id":"TestSample","amount":' . AmountTest::getJson() . ',"payee":' . PayeeTest::getJson() . ',"description":"TestSample","note_to_payee":"TestSample","custom":"TestSample","invoice_number":"TestSample","soft_descriptor":"TestSample","soft_descriptor_city":"TestSample","payment_options":' . PaymentOptionsTest::getJson() . ',"item_list":' . ItemListTest::getJson() . ',"notify_url":"http://www.google.com","order_url":"http://www.google.com","external_funding":' . ExternalFundingTest::getJson() . '}';
+        return '{"reference_id":"TestSample","amount":' .AmountTest::getJson() . ',"payee":' .PayeeTest::getJson() . ',"description":"TestSample","note_to_payee":"TestSample","custom":"TestSample","invoice_number":"TestSample","purchase_order":"TestSample","soft_descriptor":"TestSample","soft_descriptor_city":"TestSample","payment_options":' .PaymentOptionsTest::getJson() . ',"item_list":' .ItemListTest::getJson() . ',"notify_url":"http://www.google.com","order_url":"http://www.google.com","external_funding":' .ExternalFundingTest::getJson() . ',"type":"TestSample"}';
     }
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return CartBase
      */
     public static function getObject()
@@ -34,7 +34,6 @@ class CartBaseTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return CartBase
      */
     public function testSerializationDeserialization()
@@ -48,6 +47,7 @@ class CartBaseTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($obj->getNoteToPayee());
         $this->assertNotNull($obj->getCustom());
         $this->assertNotNull($obj->getInvoiceNumber());
+        $this->assertNotNull($obj->getPurchaseOrder());
         $this->assertNotNull($obj->getSoftDescriptor());
         $this->assertNotNull($obj->getSoftDescriptorCity());
         $this->assertNotNull($obj->getPaymentOptions());
@@ -72,6 +72,7 @@ class CartBaseTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getNoteToPayee(), "TestSample");
         $this->assertEquals($obj->getCustom(), "TestSample");
         $this->assertEquals($obj->getInvoiceNumber(), "TestSample");
+        $this->assertEquals($obj->getPurchaseOrder(), "TestSample");
         $this->assertEquals($obj->getSoftDescriptor(), "TestSample");
         $this->assertEquals($obj->getSoftDescriptorCity(), "TestSample");
         $this->assertEquals($obj->getPaymentOptions(), PaymentOptionsTest::getObject());
@@ -100,5 +101,4 @@ class CartBaseTest extends \PHPUnit_Framework_TestCase
         $obj = new CartBase();
         $obj->setOrderUrl(null);
     }
-
 }

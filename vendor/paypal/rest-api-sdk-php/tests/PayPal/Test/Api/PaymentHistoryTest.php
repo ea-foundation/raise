@@ -3,17 +3,17 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\PaymentHistory;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class PaymentHistory
  *
  * @package PayPal\Test\Api
  */
-class PaymentHistoryTest extends \PHPUnit_Framework_TestCase
+class PaymentHistoryTest extends TestCase
 {
     /**
      * Gets Json String of Object PaymentHistory
-     *
      * @return string
      */
     public static function getJson()
@@ -23,7 +23,6 @@ class PaymentHistoryTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return PaymentHistory
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class PaymentHistoryTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return PaymentHistory
      */
     public function testSerializationDeserialization()
@@ -58,6 +56,4 @@ class PaymentHistoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getCount(), 123);
         $this->assertEquals($obj->getNextId(), "TestSample");
     }
-
-
 }

@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\InvoiceAddress;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class InvoiceAddress
  *
  * @package PayPal\Test\Api
  */
-class InvoiceAddressTest extends \PHPUnit_Framework_TestCase
+class InvoiceAddressTest extends TestCase
 {
     /**
      * Gets Json String of Object Address
@@ -63,5 +64,4 @@ class InvoiceAddressTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getState(), "TestSample");
         $this->assertEquals($obj->getPhone(), PhoneTest::getObject());
     }
-
 }

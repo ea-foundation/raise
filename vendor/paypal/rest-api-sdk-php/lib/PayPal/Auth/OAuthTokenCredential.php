@@ -31,7 +31,7 @@ class OAuthTokenCredential extends PayPalResourceModel
      *
      * @var int $expiryBufferTime
      */
-    private static $expiryBufferTime = 120;
+    public static $expiryBufferTime = 120;
 
     /**
      * Client ID as obtained from the developer portal
@@ -225,6 +225,11 @@ class OAuthTokenCredential extends PayPalResourceModel
     protected function getToken($config, $clientId, $clientSecret, $payload)
     {
         $httpConfig = new PayPalHttpConfig(null, 'POST', $config);
+
+        // if proxy set via config, add it
+        if (!empty($config['http.Proxy'])) {
+            $httpConfig->setHttpProxy($config['http.Proxy']);
+        }
 
         $handlers = array(self::$AUTH_HANDLER);
 

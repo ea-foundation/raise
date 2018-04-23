@@ -3,17 +3,17 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\PaymentOptions;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class PaymentOptions
  *
  * @package PayPal\Test\Api
  */
-class PaymentOptionsTest extends \PHPUnit_Framework_TestCase
+class PaymentOptionsTest extends TestCase
 {
     /**
      * Gets Json String of Object PaymentOptions
-     *
      * @return string
      */
     public static function getJson()
@@ -23,7 +23,6 @@ class PaymentOptionsTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return PaymentOptions
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class PaymentOptionsTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return PaymentOptions
      */
     public function testSerializationDeserialization()
@@ -58,6 +56,4 @@ class PaymentOptionsTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getRecurringFlag(), true);
         $this->assertEquals($obj->getSkipFmf(), true);
     }
-
-
 }

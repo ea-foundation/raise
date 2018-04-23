@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\Tax;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Tax
  *
  * @package PayPal\Test\Api
  */
-class TaxTest extends \PHPUnit_Framework_TestCase
+class TaxTest extends TestCase
 {
     /**
      * Gets Json String of Object Tax
@@ -57,5 +58,4 @@ class TaxTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getPercent(), "12.34");
         $this->assertEquals($obj->getAmount(), CurrencyTest::getObject());
     }
-
 }

@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\Terms;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Terms
  *
  * @package PayPal\Test\Api
  */
-class TermsTest extends \PHPUnit_Framework_TestCase
+class TermsTest extends TestCase
 {
     /**
      * Gets Json String of Object Terms
@@ -61,5 +62,4 @@ class TermsTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getAmountRange(), CurrencyTest::getObject());
         $this->assertEquals($obj->getBuyerEditable(), "TestSample");
     }
-
 }

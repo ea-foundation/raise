@@ -3,17 +3,17 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\BankToken;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class BankToken
  *
  * @package PayPal\Test\Api
  */
-class BankTokenTest extends \PHPUnit_Framework_TestCase
+class BankTokenTest extends TestCase
 {
     /**
      * Gets Json String of Object BankToken
-     *
      * @return string
      */
     public static function getJson()
@@ -23,7 +23,6 @@ class BankTokenTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return BankToken
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class BankTokenTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return BankToken
      */
     public function testSerializationDeserialization()
@@ -58,6 +56,4 @@ class BankTokenTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getExternalCustomerId(), "TestSample");
         $this->assertEquals($obj->getMandateReferenceNumber(), "TestSample");
     }
-
-
 }

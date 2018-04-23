@@ -5,19 +5,22 @@
 // API used: /v1/payments/payment
 // https://developer.paypal.com/webapps/developer/docs/api/#capture-an-authorization
 
-/** @var Authorization $authorization */
-$authorization = require 'GetAuthorization.php';
 use PayPal\Api\Amount;
 use PayPal\Api\Authorization;
 use PayPal\Api\Capture;
 
+
+// Replace $authorizationId with any static Id you might already have. 
+$authorizationId = "<your authorization id here>";
 
 // ### Capture Payment
 // You can capture and process a previously created authorization
 // by invoking the $authorization->capture method
 // with a valid ApiContext (See bootstrap.php for more on `ApiContext`)
 try {
-    $authId = $authorization->getId();
+
+    // Retrieve the authorization
+    $authorization = Authorization::get($authorizationId, $apiContext);
 
     $amt = new Amount();
     $amt->setCurrency("USD")
@@ -31,7 +34,7 @@ try {
     $getCapture = $authorization->capture($capture, $apiContext);
 } catch (Exception $ex) {
     // NOTE: PLEASE DO NOT USE RESULTPRINTER CLASS IN YOUR ORIGINAL CODE. FOR SAMPLE ONLY
- 	ResultPrinter::printError("Capture Payment", "Authorization", null, $capture, $ex);
+    ResultPrinter::printError("Capture Payment", "Authorization", null, $capture, $ex);
     exit(1);
 }
 

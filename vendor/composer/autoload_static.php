@@ -20,6 +20,8 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
         'S' => 
         array (
             'Symfony\\Component\\Filesystem\\' => 29,
+            'Symfony\\Component\\DependencyInjection\\' => 38,
+            'Symfony\\Component\\Config\\' => 25,
             'Stripe\\' => 7,
         ),
         'R' => 
@@ -28,7 +30,9 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
         ),
         'P' => 
         array (
+            'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
+            'Psr\\Container\\' => 14,
         ),
         'G' => 
         array (
@@ -48,6 +52,14 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
         array (
             0 => __DIR__ . '/..' . '/symfony/filesystem',
         ),
+        'Symfony\\Component\\DependencyInjection\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/dependency-injection',
+        ),
+        'Symfony\\Component\\Config\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/config',
+        ),
         'Stripe\\' => 
         array (
             0 => __DIR__ . '/..' . '/stripe/stripe-php/lib',
@@ -56,9 +68,17 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
         array (
             0 => __DIR__ . '/..' . '/google/recaptcha/src/ReCaptcha',
         ),
+        'Psr\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
+        ),
+        'Psr\\Container\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/container/src',
         ),
         'GuzzleHttp\\Psr7\\' => 
         array (
@@ -90,26 +110,18 @@ class ComposerStaticInit2f855ff12c81cc1077e510493bf9c324
                 0 => __DIR__ . '/..' . '/twig/twig/lib',
             ),
         ),
-        'S' => 
-        array (
-            'Symfony\\Component\\DependencyInjection\\' => 
-            array (
-                0 => __DIR__ . '/..' . '/symfony/dependency-injection',
-            ),
-            'Symfony\\Component\\Config\\' => 
-            array (
-                0 => __DIR__ . '/..' . '/symfony/config',
-            ),
-        ),
         'P' => 
         array (
-            'Psr\\Log\\' => 
-            array (
-                0 => __DIR__ . '/..' . '/psr/log',
-            ),
             'PayPal' => 
             array (
                 0 => __DIR__ . '/..' . '/paypal/rest-api-sdk-php/lib',
+            ),
+        ),
+        'J' => 
+        array (
+            'JWadhams' => 
+            array (
+                0 => __DIR__ . '/..' . '/jwadhams/json-logic-php/src',
             ),
         ),
     );

@@ -3,27 +3,26 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\PayerInfo;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class PayerInfo
  *
  * @package PayPal\Test\Api
  */
-class PayerInfoTest extends \PHPUnit_Framework_TestCase
+class PayerInfoTest extends TestCase
 {
     /**
      * Gets Json String of Object PayerInfo
-     *
      * @return string
      */
     public static function getJson()
     {
-        return '{"email":"TestSample","external_remember_me_id":"TestSample","account_number":"TestSample","salutation":"TestSample","first_name":"TestSample","middle_name":"TestSample","last_name":"TestSample","suffix":"TestSample","payer_id":"TestSample","phone":"TestSample","phone_type":"TestSample","birth_date":"TestSample","tax_id":"TestSample","tax_id_type":"TestSample","country_code":"TestSample","billing_address":' . AddressTest::getJson() . ',"shipping_address":' . ShippingAddressTest::getJson() . '}';
+        return '{"email":"TestSample","external_remember_me_id":"TestSample","buyer_account_number":"TestSample","salutation":"TestSample","first_name":"TestSample","middle_name":"TestSample","last_name":"TestSample","suffix":"TestSample","payer_id":"TestSample","phone":"TestSample","phone_type":"TestSample","birth_date":"TestSample","tax_id":"TestSample","tax_id_type":"TestSample","country_code":"TestSample","billing_address":' .AddressTest::getJson() . ',"shipping_address":' .ShippingAddressTest::getJson() . '}';
     }
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return PayerInfo
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class PayerInfoTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return PayerInfo
      */
     public function testSerializationDeserialization()
@@ -43,7 +41,7 @@ class PayerInfoTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($obj);
         $this->assertNotNull($obj->getEmail());
         $this->assertNotNull($obj->getExternalRememberMeId());
-        $this->assertNotNull($obj->getAccountNumber());
+        $this->assertNotNull($obj->getBuyerAccountNumber());
         $this->assertNotNull($obj->getSalutation());
         $this->assertNotNull($obj->getFirstName());
         $this->assertNotNull($obj->getMiddleName());
@@ -70,7 +68,7 @@ class PayerInfoTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals($obj->getEmail(), "TestSample");
         $this->assertEquals($obj->getExternalRememberMeId(), "TestSample");
-        $this->assertEquals($obj->getAccountNumber(), "TestSample");
+        $this->assertEquals($obj->getBuyerAccountNumber(), "TestSample");
         $this->assertEquals($obj->getSalutation(), "TestSample");
         $this->assertEquals($obj->getFirstName(), "TestSample");
         $this->assertEquals($obj->getMiddleName(), "TestSample");
@@ -86,6 +84,4 @@ class PayerInfoTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getBillingAddress(), AddressTest::getObject());
         $this->assertEquals($obj->getShippingAddress(), ShippingAddressTest::getObject());
     }
-
-
 }

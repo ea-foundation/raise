@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\RefundDetail;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class RefundDetail
  *
  * @package PayPal\Test\Api
  */
-class RefundDetailTest extends \PHPUnit_Framework_TestCase
+class RefundDetailTest extends TestCase
 {
     /**
      * Gets Json String of Object RefundDetail
@@ -17,7 +18,7 @@ class RefundDetailTest extends \PHPUnit_Framework_TestCase
      */
     public static function getJson()
     {
-        return '{"type":"TestSample","date":"TestSample","note":"TestSample"}';
+        return '{"type":"TestSample","date":"TestSample","note":"TestSample","amount":' .CurrencyTest::getJson() . '}';
     }
 
     /**
@@ -39,8 +40,10 @@ class RefundDetailTest extends \PHPUnit_Framework_TestCase
         $obj = new RefundDetail(self::getJson());
         $this->assertNotNull($obj);
         $this->assertNotNull($obj->getType());
+        $this->assertNotNull($obj->getTransactionId());
         $this->assertNotNull($obj->getDate());
         $this->assertNotNull($obj->getNote());
+        $this->assertNotNull($obj->getAmount());
         $this->assertEquals(self::getJson(), $obj->toJson());
         return $obj;
     }
@@ -52,8 +55,9 @@ class RefundDetailTest extends \PHPUnit_Framework_TestCase
     public function testGetters($obj)
     {
         $this->assertEquals($obj->getType(), "TestSample");
+        $this->assertEquals($obj->getTransactionId(), "TestSample");
         $this->assertEquals($obj->getDate(), "TestSample");
         $this->assertEquals($obj->getNote(), "TestSample");
+        $this->assertEquals($obj->getAmount(), CurrencyTest::getObject());
     }
-
 }

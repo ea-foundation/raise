@@ -6,13 +6,14 @@ use PayPal\Api\CreateProfileResponse;
 use PayPal\Api\Patch;
 use PayPal\Api\WebProfile;
 use PayPal\Test\Functional\Setup;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class WebProfile
  *
  * @package PayPal\Test\Api
  */
-class WebProfileFunctionalTest extends \PHPUnit_Framework_TestCase
+class WebProfileFunctionalTest extends TestCase
 {
 
     public $operation;
@@ -96,7 +97,6 @@ class WebProfileFunctionalTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($this->operation['response']['body'][0]['presentation']['logo_image'], $foundObject->getPresentation()->getLogoImage());
         $this->assertEquals($this->operation['response']['body'][0]['input_fields']['no_shipping'], $foundObject->getInputFields()->getNoShipping());
         $this->assertEquals($this->operation['response']['body'][0]['input_fields']['address_override'], $foundObject->getInputFields()->getAddressOverride());
-
     }
 
     /**
@@ -145,5 +145,4 @@ class WebProfileFunctionalTest extends \PHPUnit_Framework_TestCase
         $result = $webProfile->delete($this->apiContext, $this->mockPayPalRestCall);
         $this->assertTrue($result);
     }
-
 }

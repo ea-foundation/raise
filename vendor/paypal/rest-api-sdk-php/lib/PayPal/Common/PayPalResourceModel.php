@@ -41,9 +41,11 @@ class PayPalResourceModel extends PayPalModel implements IResource
 
     public function getLink($rel)
     {
-        foreach ($this->links as $link) {
-            if ($link->getRel() == $rel) {
-                return $link->getHref();
+        if (is_array($this->links)) {
+            foreach ($this->links as $link) {
+                if ($link->getRel() == $rel) {
+                    return $link->getHref();
+                }
             }
         }
         return null;
@@ -115,4 +117,4 @@ class PayPalResourceModel extends PayPalModel implements IResource
         $apiContext = $apiContext ? $apiContext : new ApiContext(self::$credential);
         $apiContext->getCredential()->updateAccessToken($apiContext->getConfig(), $refreshToken);
     }
-} 
+}

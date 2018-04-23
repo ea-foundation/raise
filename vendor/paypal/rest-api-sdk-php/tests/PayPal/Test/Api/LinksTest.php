@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\Links;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Links
  *
  * @package PayPal\Test\Api
  */
-class LinksTest extends \PHPUnit_Framework_TestCase
+class LinksTest extends TestCase
 {
     /**
      * Gets Json String of Object Links
@@ -61,5 +62,4 @@ class LinksTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getEnctype(), "TestSample");
         $this->assertEquals($obj->getSchema(), HyperSchemaTest::getObject());
     }
-
 }

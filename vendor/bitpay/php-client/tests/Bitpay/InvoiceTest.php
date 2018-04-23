@@ -181,7 +181,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testIsFullNotifications()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertFalse($this->invoice->isFullNotifications());
+        $this->assertTrue($this->invoice->isFullNotifications());
     }
 
     public function testGetId()
@@ -244,7 +244,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testSetInvoiceTime()
     {
         $this->assertNotNull($this->invoice);
-        $date = new \DateTime();
+        $date = new \DateTime('now', new \DateTimeZone("UTC"));
         $this->invoice->setInvoiceTime($date);
         $this->assertSame($date, $this->invoice->getInvoiceTime());
     }
@@ -262,7 +262,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertNotNull($this->invoice);
 
-        $date = new \DateTime();
+        $date = new \DateTime('now',new \DateTimeZone("UTC"));
 
         $this->assertNotNull($date);
 
@@ -283,7 +283,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertNotNull($this->invoice);
 
-        $date = new \DateTime();
+        $date = new \DateTime('now',new \DateTimeZone("UTC"));
 
         $this->assertNotNull($date);
 
@@ -523,9 +523,9 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
 
     public function testSetFullNotifications()
     {
-        $this->assertFalse($this->invoice->isFullNotifications());
-        $this->invoice->setFullNotifications(true);
         $this->assertTrue($this->invoice->isFullNotifications());
+        $this->invoice->setFullNotifications(false);
+        $this->assertFalse($this->invoice->isFullNotifications());
     }
 
     private function getMockItem()

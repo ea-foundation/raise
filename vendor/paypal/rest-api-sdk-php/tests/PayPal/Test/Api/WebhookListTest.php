@@ -2,14 +2,16 @@
 
 namespace PayPal\Test\Api;
 
+use PayPal\Common\PayPalModel;
 use PayPal\Api\WebhookList;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class WebhookList
  *
  * @package PayPal\Test\Api
  */
-class WebhookListTest extends \PHPUnit_Framework_TestCase
+class WebhookListTest extends TestCase
 {
     /**
      * Gets Json String of Object WebhookList
@@ -51,5 +53,6 @@ class WebhookListTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals($obj->getWebhooks(), WebhookTest::getObject());
     }
+
 
 }

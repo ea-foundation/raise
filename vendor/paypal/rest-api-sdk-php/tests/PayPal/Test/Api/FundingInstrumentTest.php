@@ -3,17 +3,17 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\FundingInstrument;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class FundingInstrument
  *
  * @package PayPal\Test\Api
  */
-class FundingInstrumentTest extends \PHPUnit_Framework_TestCase
+class FundingInstrumentTest extends TestCase
 {
     /**
      * Gets Json String of Object FundingInstrument
-     *
      * @return string
      */
     public static function getJson()
@@ -23,7 +23,6 @@ class FundingInstrumentTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return FundingInstrument
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class FundingInstrumentTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return FundingInstrument
      */
     public function testSerializationDeserialization()
@@ -53,7 +51,6 @@ class FundingInstrumentTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($obj->getCarrierAccount());
         $this->assertNotNull($obj->getPrivateLabelCard());
         $this->assertNotNull($obj->getBilling());
-        $this->assertNotNull($obj->getAlternatePayment());
         $this->assertEquals(self::getJson(), $obj->toJson());
         return $obj;
     }
@@ -76,8 +73,5 @@ class FundingInstrumentTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getCarrierAccount(), CarrierAccountTest::getObject());
         $this->assertEquals($obj->getPrivateLabelCard(), PrivateLabelCardTest::getObject());
         $this->assertEquals($obj->getBilling(), BillingTest::getObject());
-        $this->assertEquals($obj->getAlternatePayment(), AlternatePaymentTest::getObject());
     }
-
-
 }

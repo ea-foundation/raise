@@ -3,13 +3,14 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\Transaction;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class Transaction
  *
  * @package PayPal\Test\Api
  */
-class TransactionTest extends \PHPUnit_Framework_TestCase
+class TransactionTest extends TestCase
 {
     /**
      * Gets Json String of Object Transaction
@@ -23,7 +24,6 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return Transaction
      */
     public static function getObject()
@@ -34,7 +34,6 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return Transaction
      */
     public function testSerializationDeserialization()
@@ -52,6 +51,4 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
     public function testGetters($obj)
     {
     }
-
-
 }

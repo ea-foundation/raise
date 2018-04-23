@@ -3,17 +3,17 @@
 namespace PayPal\Test\Api;
 
 use PayPal\Api\InstallmentOption;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class InstallmentOption
  *
  * @package PayPal\Test\Api
  */
-class InstallmentOptionTest extends \PHPUnit_Framework_TestCase
+class InstallmentOptionTest extends TestCase
 {
     /**
      * Gets Json String of Object InstallmentOption
-     *
      * @return string
      */
     public static function getJson()
@@ -23,7 +23,6 @@ class InstallmentOptionTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Gets Object Instance with Json data filled in
-     *
      * @return InstallmentOption
      */
     public static function getObject()
@@ -34,7 +33,6 @@ class InstallmentOptionTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Tests for Serialization and Deserialization Issues
-     *
      * @return InstallmentOption
      */
     public function testSerializationDeserialization()
@@ -60,6 +58,4 @@ class InstallmentOptionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($obj->getDiscountAmount(), CurrencyTest::getObject());
         $this->assertEquals($obj->getDiscountPercentage(), "TestSample");
     }
-
-
 }
