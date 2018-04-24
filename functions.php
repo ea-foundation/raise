@@ -1718,12 +1718,19 @@ function raise_execute_paypal_donation()
             $execution->setPayerId($_POST['payerID']);
             $payment->execute($execution, $apiContext);
 
-            // Add vendor transaction ID (remove PAY- prefix)
-            $donation['vendor_transaction_id'] = substr($paymentId, 4);
+            // Add vendor transaction ID
+            /** @var \PayPal\Api\Transaction $transaction */
+            $transaction = end($payment->getTransactions());
+            /** @var \PayPal\Api\RelatedResources $relatedResources */
+            $relatedResources = end($transaction->getRelatedResources());
+
+            $donation['vendor_transaction_id'] = $relatedResources->getSale()->getId();
         } else if (!empty($_POST['token'])) {
             // Execute billing agreement (monthly)
             $agreement = new \PayPal\Api\Agreement();
             $agreement->execute($_POST['token'], $apiContext);
+
+            $donation['vendor_subscription_id'] = $agreement->getId();
         } else {
             throw new \Exception("An error occured. Payment aborted.");
         }
