@@ -657,6 +657,11 @@ function raise_trigger_logging_webhooks($donation)
  */
 function raise_clean_up_donation_data(array $donation)
 {
+    // Replace \" with "
+    $donation = array_map(function($val) {
+        return str_replace('\"', '"', $val);
+    }, $donation);
+
     // Transform boolean values to yes/no strings
     $donation = array_map(function($val) {
         return is_bool($val) ? ($val ? 'yes' : 'no') : $val;
