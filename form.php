@@ -121,7 +121,7 @@ function raise_form($atts, $content = null)
                     <div class="col-xs-12" id="donation-currency">
                         <div class="btn-group">
                             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                              <img src="<?php echo plugins_url('images/blank.gif', __FILE__) ?>" id="selected-currency-flag" class="flag flag-<?php echo $preselectedCurrencyFlag ?>" alt="<?php echo $preselectedCurrency ?>">
+                              <img src="<?php echo plugins_url('assets/images/blank.gif', __FILE__) ?>" id="selected-currency-flag" class="flag flag-<?php echo $preselectedCurrencyFlag ?>" alt="<?php echo $preselectedCurrency ?>">
                               <span id="selected-currency"><?php echo $preselectedCurrency ?></span>
                               <span class="caret"></span>
                             </button>
@@ -131,7 +131,7 @@ function raise_form($atts, $content = null)
                                         $currency = strtoupper($lcCurrency);
                                         $flagCss  = isset($currencySettings['country_flag']) ? 'flag-' . $currencySettings['country_flag'] : '';
                                         $checked  = $currency == $preselectedCurrency ? 'checked' : '';
-                                        echo '<li><label for="currency-' . $lcCurrency . '"><input type="radio" id="currency-' . $lcCurrency . '" name="currency" value="' . $currency . '" class="hidden" ' . $checked . '><img src="'. plugins_url("images/blank.gif", __FILE__) . '" class="flag ' . $flagCss . '" alt="' . $currency . '">' . $currency . '</label></li>';
+                                        echo '<li><label for="currency-' . $lcCurrency . '"><input type="radio" id="currency-' . $lcCurrency . '" name="currency" value="' . $currency . '" class="hidden" ' . $checked . '><img src="'. plugins_url("assets/images/blank.gif", __FILE__) . '" class="flag ' . $flagCss . '" alt="' . $currency . '">' . $currency . '</label></li>';
                                     }
                                 ?>
                             </ul>

@@ -3,7 +3,7 @@
 .flag {
     width: 16px !important;
     height: 11px !important;
-    background:url(../images/flags-most.png) no-repeat
+    background: url("../images/flags-most.png") no-repeat;
 }
 
 .flag.flag-ad {background-position: -16px 0}
