@@ -273,8 +273,8 @@ To match bank transfers with registrations, you can declare a reference number p
 Requires `secret_key` and `public_key`. The organisation logo used in the checkout modal can be configured on the settings page.
 
 Additional webhook data:
-- `vendor_transaction_id`: Charge ID
-- `vendor_subscription_id`: Subscription ID
+- `vendor_transaction_id`: Charge ID (one-time)
+- `vendor_subscription_id`: Subscription ID (recurring)
 - `vendor_customer_id`: Customer ID
 
 ![Stripe flow](/doc/images/stripe_flow.png?raw=true)
@@ -283,6 +283,11 @@ Additional webhook data:
 
 ### PayPal
 Requires `client_id` and `client_secret`. Generate credentials on PayPal Dashboard > My Apps & Credentials > [REST API apps](https://developer.paypal.com/developer/applications/).
+
+Additional webhook data:
+- `vendor_transaction_id`: Transaction ID (one-time)
+- `vendor_subscription_id`: Agreement/Profile ID (recurring)
+- `vendor_customer_id`: Payer ID
 
 ![PayPal flow](/doc/images/paypal_flow.png?raw=true)
 

@@ -82,7 +82,7 @@ function raise_init_donation_form($form, $mode)
     // Get tax deduction labels
     $taxDeductionLabels = raise_load_tax_deduction_settings($form);
 
-    // Get bank accounts and localize their labels
+    //TODO Get bank accounts and localize their labels
     $bankAccounts = array_map('raise_localize_array_keys', raise_get($formSettings['payment']['provider']['banktransfer']['accounts'], array()));
 
     // Localize script
@@ -442,18 +442,18 @@ function raise_process_donation()
             }
 
             // Handle payment
-            $reference = raise_handle_banktransfer_payment($donation);
+            $confirmationHtml = raise_handle_banktransfer_payment($donation);
 
             // Prepare response
             $response = array(
-                'success'   => true,
-                'reference' => $reference,
+                'success'           => true,
+                'confirmation_html' => $confirmationHtml,
             );
         } else {
             throw new \Exception('Payment method is invalid');
         }
 
-        die(json_encode($response));
+        wp_send_json($response);
     } catch (\Exception $e) {
         die(json_encode(array(
             'success' => false,
@@ -600,7 +600,7 @@ function raise_handle_banktransfer_payment(array $donation)
     if (!empty($donation['success_text'])) {
         $donation['success_text'] = str_replace('%reference_number%', $reference, $donation['success_text']);
     }
-
+   
     // Do post donation actions
     raise_do_post_donation_actions($donation);
 
@@ -2500,6 +2500,55 @@ function raise_get_localized_value($setting, $language = null)
     return null;
 }
 
+function raise_get_conditional_value($setting, $donation, $language = null)
+{
+    if (!is_array($setting)) {
+        // Simple string
+        return $setting;
+    }
+
+    // If associative, it's a simple multilingual object
+    if (raise_has_string_keys($setting)) {
+        return raise_get_localized_value($setting, $language);
+    }
+
+    // Setting is numeric --> JsonLogic nodes. Construct one big if operation
+    $rule = raise_get_jsonlogic_if_rule($setting);
+
+    // Apply JsonLogic
+    return JWadhams\JsonLogic::apply($rule, $donation);
+}
+
+/**
+ * Return JsonLogic `if` rule
+ * 
+ * { if : [cond_1, val_1, cond_2, val_2, ..., cond_n, val_n, val_else ] }
+ *
+ * @return array
+ */
+function raise_get_jsonlogic_if_rule()
+{
+    // Iterate over array and construct if rule
+    $if = [];
+    foreach ($setting as $settingNode) {
+        if (!isset($settingNode['value']) || !isset($settingNode['if'])) {
+            throw new \Exception("Invalid JsonLogic node. Make sure value property and if property are present.");
+        }
+
+        // Add condition
+        $if[] = $settingNode['if'];
+
+        // Add value
+        $if[] = $settingNode['value'];
+    }
+
+    // Add catch-all value
+    $if[] = null;
+
+    return [
+        'if' => $if
+    ];
+}
 /**
  * Retruns value if exists, otherwise default
  *
@@ -2551,8 +2600,8 @@ function raise_check_honey_pot($post)
 /**
  * Get twig singleton for form emails
  *
- * @param string $text    Email text
- * @param string $subject Email subject
+ * @param string $text    Email template text
+ * @param string $subject Email template subject
  * @param bool   $html    Is email HTML?
  * @return Twig_Environment
  */
