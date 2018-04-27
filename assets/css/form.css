@@ -177,19 +177,23 @@ ul#amounts input {
     padding-left: 0;
 }
 
-div#payment-method-providers label {
+div#payment-providers label {
     margin-left: 0;
     margin-right: 10px;
     margin-bottom: 5px !important; /* theme compatibility hack */
 }
 
-div#payment-method-providers label:last-child {
+div#payment-providers label:last-child {
     margin-right: 0;
 }
 
-div#payment-method-providers input[type=radio] {
+div#payment-providers input[type=radio] {
     margin-bottom: 0;
     margin-left: -18px;
+}
+
+div#payment-providers div[data-toggle="tooltip"] {
+    height: 23px;
 }
 
 div#amount-item span.form-control-feedback {
@@ -218,7 +222,7 @@ div#amount-item span.form-control-feedback {
     padding-bottom: 25px;
 }
 
-#wizard span.payment-method-name {
+#wizard .payment-method-name {
     display: inline-block;
     margin-left: 2px;
     text-transform: capitalize;

@@ -90,8 +90,7 @@ function raise_form($atts, $content = null)
 <input type="hidden" name="action" value="raise_donate"> <!-- ajax key -->
 <input type="hidden" name="form" value="<?= $form ?>" id="raise-form-name">
 <input type="hidden" name="mode" value="<?= $mode ?>" id="raise-form-mode">
-<input type="hidden" name="account" value="" id="raise-form-account">
-<input type="hidden" name="success_text" value="" id="raise-form-success-text">
+<input type="hidden" name="post_donation_instructions" value="" id="raise-form-post-donation-instructions">
 <input type="hidden" name="locale" value="<?= get_locale() ?>">
 
 <!-- Scrollable root element -->
@@ -207,7 +206,7 @@ function raise_form($atts, $content = null)
                 <div class="sr-only">
                     <h3><?php _e('Choose a payment method', 'raise') ?></h3>
                 </div>
-                <div class="form-group payment-info" id="payment-method-providers">
+                <div class="form-group payment-info" id="payment-providers">
                     <?= raise_print_payment_providers($formSettings, $mode); ?>
                 </div>
 
@@ -253,12 +252,12 @@ function raise_form($atts, $content = null)
                 <div class="form-group required donor-info">
                     <label for="donor-country" class="col-sm-3 control-label"><?php _e('Country', 'raise') ?></label>
                     <div class="col-sm-9">
-                        <select class="combobox form-control" name="country" id="donor-country">
+                        <select class="combobox form-control" name="country_code" id="donor-country">
                             <option></option>
                             <?php
                                 $countries = raise_get_sorted_country_list();
                                 foreach ($countries as $code => $country) {
-                                    $checked = $userCountryCode == $code ? 'selected' : '';
+                                    $checked = $userCountryCode === $code ? 'selected' : '';
                                     echo '<option value="' . $code . '" '  . $checked . '>' . $country[0] . '</option>';
                                 }
                             ?>
@@ -352,15 +351,7 @@ function raise_form($atts, $content = null)
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1" disabled="disabled">
-                                <span id="tax-receipt-text">
-                                <?php
-                                    if (!empty($formSettings['payment']['labels']['tax_receipt'])) {
-                                        echo esc_html(raise_get_localized_value($formSettings['payment']['labels']['tax_receipt']));
-                                    } else {
-                                        _e('I need a tax receipt', 'raise');
-                                    }
-                                ?>
-                                </span>
+                                <span id="tax-receipt-text"><?php _e('I need a tax receipt', 'raise'); ?></span>
                             </label>
                         </div>
                     </div>

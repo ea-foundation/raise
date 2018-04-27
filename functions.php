@@ -21,7 +21,7 @@ const RAISE_WEBHOOK_KEYS = [
     'purpose',
     'reference',
     'referrer',
-    'success_text',
+    'post_donation_instructions',
     'tax_receipt',
     'time',
     'type', //TODO Legacy. Remove in next major release.
@@ -73,30 +73,81 @@ function raise_init_donation_form($form, $mode)
         array_change_key_case(raise_get($formSettings['amount']['currency'], []), CASE_UPPER)
     )));
 
-    // Get enabled payment providers
-    $enabledProviders = raise_enabled_payment_providers($formSettings, $mode);
-
     // Get Stripe public keys
-    $stripeKeys = in_array('stripe', $enabledProviders) ? raise_get_stripe_public_keys($formSettings, $mode) : array();
+    $stripeKeys = raise_get_stripe_public_keys_rule($formSettings, $mode);
 
-    // Get tax deduction labels
-    $taxDeductionLabels = raise_load_tax_deduction_settings($form);
+    // Get post_donation_instructions and localize labels
+    $postDonationInstructions = raise_get($formSettings['finish']['post_donation_instructions'], "");
+    if (is_array($postDonationInstructions) && !raise_has_string_keys($postDonationInstructions)) {
+        $postDonationInstructions = array_map(function($item) {
+            if (!empty($item['value']) && is_array($item['value'])) {
+                $item['value'] = raise_get_localized_value($item['value']);
+            }
+            return $item;
+        }, $postDonationInstructions);
+    }
+    $postDonationInstructionsRule = raise_get_jsonlogic_if_rule($postDonationInstructions, 'raise_get_localized_value');
 
-    //TODO Get bank accounts and localize their labels
-    $bankAccounts = array_map('raise_localize_array_keys', raise_get($formSettings['payment']['provider']['banktransfer']['accounts'], array()));
+    // Get tax_receipt rule and localize labels
+    $taxReceiptRule = raise_get_tax_receipt_rule($formSettings);
+
+    // Get bank accounts and localize their labels
+    $bankAccounts = raise_get($formSettings['payment']['provider']['banktransfer']);
+    if (is_array($bankAccounts) && !raise_has_string_keys($bankAccounts)) {
+        $bankAccounts = array_map(function($item) {
+            if (!empty($item['value']['account']) && is_array($item['value']['account'])) {
+                $item['value']['account'] = raise_localize_array_keys($item['value']['account']);
+            }
+            if (!empty($item['value']['tooltip']) && is_array($item['value']['tooltip'])) {
+                $item['value']['tooltip'] = raise_get_localized_value($item['value']['tooltip']);
+            }
+            return $item;
+        }, $bankAccounts);
+    }
+    $bankAccountsRule = raise_get_jsonlogic_if_rule($bankAccounts, 'json_encode');
+
+    // Get tooltips and payment provider display rules
+    $enabledProviders = raise_enabled_payment_providers($formSettings, $mode);
+    $providerSettings = raise_get($formSettings['payment']['provider'], []);
+    $tooltipMap       = function ($value) { return raise_get_localized_value($value['tooltip'], ""); };
+    $displayMap       = function ($value) { return true; };
+    $tooltipIf        = [];
+    $displayIf        = [];
+    foreach ($enabledProviders as $provider) {
+        // First level rule (provider)
+        $tooltipIf[] = $displayIf[] = ['===' => [["var" => "payment_provider"], $GLOBALS['pp_key2pp_label'][$provider]]];
+        // Second level rule (account)
+        if (!is_array($providerSettings[$provider])) {
+            $tooltipIf[] = "";
+            $displayIf[] = false;
+        } elseif (raise_has_string_keys($providerSettings[$provider])) {
+            $tooltipIf[] = raise_get_localized_value(raise_get($providerSettings[$provider]['tooltip'], ""));
+            $displayIf[] = true;
+        } else {
+            $tooltipIf[] = raise_get_jsonlogic_if_rule($providerSettings[$provider], $tooltipMap, "");
+            $displayIf[] = raise_get_jsonlogic_if_rule($providerSettings[$provider], $displayMap, false);
+        }
+    }
+    $tooltipIf[] = ""; // Default tooltip
+    $displayIf[] = false; // Default display mode
+    $paymentProviderTooltipRule = ["if" => $tooltipIf];
+    $paymentProviderDisplayRule = ["if" => $displayIf];
 
     // Localize script
     wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
-        'logo'                 => $logo,
-        'ajax_endpoint'        => admin_url('admin-ajax.php'),
-        'amount_patterns'      => $amountPatterns,
-        'amount_minimums'      => $amountMinimums,
-        'stripe_public_keys'   => array_change_key_case($stripeKeys, CASE_LOWER),
-        'tax_deduction_labels' => $taxDeductionLabels,
-        'bank_accounts'        => $bankAccounts,
-        'organization'         => $GLOBALS['raiseOrganization'],
-        'currency2country'     => $GLOBALS['currency2country'],
-        'labels'               => [
+        'logo'                            => $logo,
+        'ajax_endpoint'                   => admin_url('admin-ajax.php'),
+        'amount_patterns'                 => $amountPatterns,
+        'amount_minimums'                 => $amountMinimums,
+        'stripe_public_key_rule'          => array_change_key_case($stripeKeys, CASE_LOWER),
+        'post_donation_instructions_rule' => $postDonationInstructionsRule,
+        'payment_provider_tooltip_rule'   => $paymentProviderTooltipRule,
+        'payment_provider_display_rule'   => $paymentProviderDisplayRule,
+        'tax_receipt_rule'                => $taxReceiptRule,
+        'bank_account_rule'               => $bankAccountsRule,
+        'organization'                    => $GLOBALS['raiseOrganization'],
+        'currency2country'                => $GLOBALS['currency2country'],
+        'labels'                          => [
             'yes'                   => __("yes", "raise"),
             'no'                    => __("no", "raise"),
             'donate_button_once'    => __("Donate %currency-amount%", "raise"),
@@ -121,8 +172,9 @@ function raise_init_donation_form($form, $mode)
     if (in_array('paypal', $enabledProviders)) {
         wp_enqueue_script('donation-plugin-paypal');
     }
+    wp_enqueue_script('donation-plugin-json-logic');
     wp_enqueue_script('donation-plugin-form');
-    wp_enqueue_script('donation-combobox');
+    wp_enqueue_script('donation-plugin-combobox');
 
     return $formSettings;
 }
@@ -201,6 +253,31 @@ function raise_rec_load_settings($form, $formsSettings, $childForms = array())
 }
 
 /**
+ * Get tax receipt rule
+ *
+ * @param array $formSettings
+ * @return array
+ */
+function raise_get_tax_receipt_rule(array $formSettings)
+{
+    $taxReceipt = raise_get($formSettings['payment']['form_elements']['tax_receipt'], "");
+    if (is_array($taxReceipt)) {
+        if (isset($taxReceipt['label'])) {
+            $taxReceipt['label'] = raise_get_localized_value($taxReceipt['label']);
+        } else {
+            $taxReceipt = array_map(function($item) {
+                if (!empty($item['value']['label']) && is_array($item['value']['label'])) {
+                    $item['value']['label'] = raise_get_localized_value($item['value']['label']);
+                }
+                return $item;
+            }, $taxReceipt);
+        }        
+    }
+
+    return raise_get_jsonlogic_if_rule($taxReceipt, 'json_encode');
+}
+
+/**
  * Return list of enabled providers
  *
  * @param array  $formSettings
@@ -212,14 +289,31 @@ function raise_enabled_payment_providers($formSettings, $mode)
     // Get provider settings
     $providerSettings = raise_get($formSettings['payment']['provider'], array());
 
-    // Extract default settings (always needed)
-    $providers = array_keys(array_filter($providerSettings, function ($settings, $provider) use ($mode) {
-        return strpos($provider, '_') === false &&
-               is_array($settings) &&
-               raise_payment_provider_settings_complete($provider, raise_get($settings[$mode], array()));
-    }, ARRAY_FILTER_USE_BOTH));
+    // Filter out incomplete settings
+    $providers = array_filter($providerSettings, function ($settings, $provider) use ($mode) {
+        return strpos($provider, '_') === false // No underscores in provider key
+               &&
+               is_array($settings) // Must be array
+               &&
+               (
+                    (
+                        // Make sure all necessary account properties are present
+                        raise_has_string_keys($settings)
+                        &&
+                        raise_payment_provider_settings_complete($provider, raise_get($settings[$mode], []))
+                    ) || (
+                        // If it's JsonLogic, do the same for all nodes
+                        !raise_has_string_keys($settings)
+                        &&
+                        array_reduce($settings, function ($carry, $item) use ($provider, $mode) {
+                            return $carry && raise_payment_provider_settings_complete($provider, raise_get($item['value'][$mode], []));
+                        }, true)
+                    )
+               );
+    }, ARRAY_FILTER_USE_BOTH);
 
-    return $providers;
+    // Only return keys
+    return array_keys($providers);
 }
 
 /**
@@ -254,32 +348,32 @@ function raise_print_payment_providers($formSettings, $mode)
         switch ($provider) {
             case 'stripe':
                 $value  = 'Stripe';
-                $text   = '<span class="payment-method-name sr-only">' . __('credit card', 'raise') . '</span>';
+                $text   = '<div class="payment-method-name sr-only">' . __('credit card', 'raise') . '</div>';
                 $images = ['pp cc visa', 'pp cc mastercard', 'pp cc amex'];
                 break;
             case 'paypal':
                 $value  = 'PayPal';
-                $text   = '<span class="payment-method-name sr-only">PayPal</span>';
+                $text   = '<div class="payment-method-name sr-only">PayPal</div>';
                 $images = ['pp paypal'];
                 break;
             case 'bitpay':
                 $value  = 'BitPay';
-                $text   = '<span class="payment-method-name sr-only">Bitcoin</span>';
+                $text   = '<div class="payment-method-name sr-only">Bitcoin</div>';
                 $images = ['pp bitcoin'];
                 break;
             case 'skrill':
                 $value  = 'Skrill';
-                $text   = '<span class="payment-method-name sr-only">Skrill</span>';
+                $text   = '<div class="payment-method-name sr-only">Skrill</div>';
                 $images = ['pp skrill'];
                 break;
             case 'gocardless':
                 $value  = 'GoCardless';
-                $text   = '<span class="payment-method-name" data-toggle="tooltip" data-container="body" title="' . __('Available for Eurozone, UK, and Sweden', 'raise') . '">' . __('direct debit', 'raise') . '</span></a>';
+                $text   = '<div class="payment-method-name">' . __('direct debit', 'raise') . '</div>';
                 $images = [];
                 break;
             case 'banktransfer':
                 $value  = 'Bank Transfer';
-                $text   = '<span class="payment-method-name">' . __('bank transfer', 'raise') . '</span>';
+                $text   = '<div class="payment-method-name">' . __('bank transfer', 'raise') . '</div>';
                 $images = [];
                 break;
             default:
@@ -290,13 +384,16 @@ function raise_print_payment_providers($formSettings, $mode)
         $id          = str_replace(' ', '', strtolower($value));
         $checkedAttr = $checked ? 'checked' : '';
         $checked     = false;
-        $result .= '<label for="payment-' . $id . '" class="radio-inline">';
-        $result .= '<input type="radio" name="payment_provider" value="' . $value . '" id="payment-' . $id . '" ' . $checkedAttr . '> ';
-        $result .= '<div class="pp-images">' . implode('', array_map(function($val) {
+
+        // Construct radio and append to result
+        $radio  = '<div class="pp-images">' . implode('', array_map(function($val) {
             return '<div class="' . $val . '"></div>';
-        }, $images)) . '</div>';
-        $result .= $text;
-        $result .= '</label>' . "\n";
+        }, $images)) . '</div>' . $text;
+        $radio  = '<div data-toggle="tooltip" data-container="body" title="">' . $radio . '</div>';
+        $radio  = '<input type="radio" name="payment_provider" value="' . $value . '" id="payment-' . $id . '" ' . $checkedAttr . '> ' . $radio;
+        $radio  = '<label for="payment-' . $id . '" class="radio-inline">' . $radio . '</label>' . "\n";
+
+        $result .= $radio;
     }
 
     return $result;
@@ -328,29 +425,29 @@ function raise_get_donation_from_post()
     }
 
     return array(
-        'form'                 => $post['form'],
-        'mode'                 => $post['mode'],
-        'url'                  => $_SERVER['HTTP_REFERER'],
-        'language'             => substr($post['locale'], 0, 2),
-        'time'                 => date('c'),
-        'currency'             => $post['currency'],
-        'amount'               => $post['amount'],
-        'frequency'            => $post['frequency'],
-        'payment_provider'     => $post['payment_provider'],
-        'email'                => $post['email'],
-        'name'                 => $post['name'],
-        'purpose'              => raise_get($post['purpose'], ''),
-        'address'              => raise_get($post['address'], ''),
-        'zip'                  => raise_get($post['zip'], ''),
-        'city'                 => raise_get($post['city'], ''),
-        'country'              => raise_get($post['country'], ''),
-        'comment'              => raise_get($post['comment'], ''),
-        'account'              => raise_get($post['account'], ''),
-        'success_text'         => raise_get($post['success_text'], ''),
-        'g-recaptcha-response' => raise_get($post['g-recaptcha-response'], ''),
-        'anonymous'            => (bool) raise_get($post['anonymous'], false),
-        'mailinglist'          => (bool) raise_get($post['mailinglist'], false),
-        'tax_receipt'          => (bool) raise_get($post['tax_receipt'], false),
+        'form'                       => $post['form'],
+        'mode'                       => $post['mode'],
+        'url'                        => $_SERVER['HTTP_REFERER'],
+        'language'                   => substr($post['locale'], 0, 2),
+        'time'                       => date('c'),
+        'currency'                   => $post['currency'],
+        'amount'                     => $post['amount'],
+        'frequency'                  => $post['frequency'],
+        'payment_provider'           => $post['payment_provider'],
+        'email'                      => $post['email'],
+        'name'                       => $post['name'],
+        'purpose'                    => raise_get($post['purpose'], ''),
+        'address'                    => raise_get($post['address'], ''),
+        'zip'                        => raise_get($post['zip'], ''),
+        'city'                       => raise_get($post['city'], ''),
+        'country_code'               => raise_get($post['country_code'], ''),
+        'comment'                    => raise_get($post['comment'], ''),
+        'account'                    => raise_get($post['account'], ''),
+        'post_donation_instructions' => raise_get($post['post_donation_instructions'], ''),
+        'g-recaptcha-response'       => raise_get($post['g-recaptcha-response'], ''),
+        'anonymous'                  => (bool) raise_get($post['anonymous'], false),
+        'mailinglist'                => (bool) raise_get($post['mailinglist'], false),
+        'tax_receipt'                => (bool) raise_get($post['tax_receipt'], false),
     );
 }
 
@@ -442,12 +539,12 @@ function raise_process_donation()
             }
 
             // Handle payment
-            $confirmationHtml = raise_handle_banktransfer_payment($donation);
+            $reference = raise_handle_banktransfer_payment($donation);
 
             // Prepare response
             $response = array(
-                'success'           => true,
-                'confirmation_html' => $confirmationHtml,
+                'success'   => true,
+                'reference' => $reference,
             );
         } else {
             throw new \Exception('Payment method is invalid');
@@ -474,17 +571,8 @@ function raise_handle_stripe_payment($donation, $token, $publicKey)
 {
     // Create the charge on Stripe's servers - this will charge the user's card
     try {
-        // Get Stripe settings
-        $formSettings = raise_load_settings($donation['form']);
-        $settings     = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            $donation['mode'],
-            $donation['tax_receipt'],
-            $donation['currency'],
-            raise_get($donation['country']),
-            raise_get($donation['account'])
-        );
+        // Get Stripe account settings
+        $settings = raise_get_payment_provider_account_settings('stripe', $donation);
 
         if ($settings['public_key'] != $publicKey) {
             throw new \Exception("Key mismatch");
@@ -596,12 +684,12 @@ function raise_handle_banktransfer_payment(array $donation)
     $reference             = raise_get_banktransfer_reference($donation['form'], raise_get($donation['purpose']));
     $donation['reference'] = $reference;
 
-    // Inject reference number into success_text
-    if (!empty($donation['success_text'])) {
-        $donation['success_text'] = str_replace('%reference_number%', $reference, $donation['success_text']);
+    // Inject reference number into post_donation_instructions
+    if (!empty($donation['post_donation_instructions'])) {
+        $donation['post_donation_instructions'] = str_replace('%reference_number%', $reference, $donation['post_donation_instructions']);
     }
    
-    // Do post donation actions
+    // // Do post donation actions
     raise_do_post_donation_actions($donation);
 
     return $reference;
@@ -657,20 +745,19 @@ function raise_trigger_logging_webhooks($donation)
  */
 function raise_clean_up_donation_data(array $donation)
 {
-    // Replace \" with "
-    $donation = array_map(function($val) {
-        return str_replace('\"', '"', $val);
-    }, $donation);
-
     // Transform boolean values to yes/no strings
     $donation = array_map(function($val) {
         return is_bool($val) ? ($val ? 'yes' : 'no') : $val;
     }, $donation);
 
+    // Replace \" with "
+    $donation = array_map(function($val) {
+        return is_string($val) ? str_replace('\"', '"', $val) : $val;
+    }, $donation);
+
     // Translate country code to English
-    if (!empty($donation['country'])) {
-        $donation['country_code'] = $donation['country'];
-        $donation['country']      = raise_get_english_name_by_country_code($donation['country']);
+    if (!empty($donation['country_code'])) {
+        $donation['country'] = raise_get_english_name_by_country_code($donation['country_code']);
     }
 
     // Add referrer from query string if present
@@ -761,121 +848,18 @@ function raise_send_webhook($url, array $params)
 /**
  * Get GoCardless client
  *
- * @param string $form Form name
- * @param string $mode Form mode (live/sandbox)
- * @param bool   $taxReceiptNeeded
- * @param string $currency
- * @param string $country
- * @param string $account
+ * @param array $donation
  * @return \GoCardlessPro\Client
  */
-function raise_get_gocardless_client($form, $mode, $taxReceiptNeeded, $currency, $country, $account = null)
+function raise_get_gocardless_client(array $donation)
 {
-    // Get access token
-    $formSettings = raise_load_settings($form);
-    $settings     = raise_get_best_payment_provider_settings(
-        $formSettings,
-        "gocardless",
-        $mode,
-        $taxReceiptNeeded,
-        $currency,
-        $country,
-        $account
-    );
+    // Get GoCardless account settings
+    $settings = raise_get_payment_provider_account_settings('gocardless', $donation);
 
     return new \GoCardlessPro\Client([
         'access_token' => $settings['access_token'],
         'environment'  => $mode == 'live' ? \GoCardlessPro\Environment::LIVE : \GoCardlessPro\Environment::SANDBOX,
     ]);
-}
-
-/**
- * Get best payment settings for the donor
- *
- * @param array  $formSettings
- * @param string $provider
- * @param string $mode
- * @param bool   $taxReceiptNeeded
- * @param string $currency
- * @param string $country
- * @param string account
- * @return array
- * @throws \Exception
- */
-function raise_get_best_payment_provider_settings(
-    $formSettings,
-    $provider,
-    $mode,
-    $taxReceiptNeeded,
-    $currency,
-    $country,
-    $account = null
-) {
-    $providers = raise_get($formSettings['payment']['provider'], []);
-
-    // Make keys lowercase
-    $providers = array_change_key_case($providers, CASE_LOWER);
-
-    // Try to find account if defined
-    if (!empty($account) && $settings = raise_get($providers[$provider . '_' . strtolower($account)][$mode])) {
-        return $settings;
-    }
-
-    // Make things lowercase
-    $provider = strtolower($provider);
-    $currency = strtolower($currency);
-    $country  = strtolower($country);
-
-    // Extract settings of the form we're talking about
-    $countryCompulsory = raise_get($formSettings['payment']['extra_fields']['country'], false);
-
-    // Check all possible settings
-    if (empty($providers[$provider][$mode])) {
-        throw new \Exception("No default settings found for $provider in $mode mode");
-    }
-    $hasCountrySetting  = raise_payment_provider_settings_complete($provider, raise_get($providers[$provider . '_' . $country][$mode], array()));
-    $hasCurrencySetting = raise_payment_provider_settings_complete($provider, raise_get($providers[$provider . '_' . $currency][$mode], array()));
-    $hasDefaultSetting  = raise_payment_provider_settings_complete($provider, raise_get($providers[$provider][$mode], array()));
-
-    // Check if there are settings for a country where the chosen currency is used.
-    // This is only relevant if the donor does not need a donation receipt (always related
-    // to specific country) and if there are no currency specific settings
-    $hasCountryOfCurrencySetting = false;
-    $countryOfCurrency           = '';
-    if (!$countryCompulsory && !$taxReceiptNeeded && !$hasCurrencySetting) {
-        $countries = array_map('strtolower', raise_get_countries_by_currency($currency));
-        foreach ($countries as $coc) {
-            if (isset($providers[$provider . '_' . $coc][$mode])) {
-                // Make sure we have all the properties
-                $hasCountryOfCurrencySetting = raise_payment_provider_settings_complete($provider, raise_get($providers[$provider . '_' . $coc][$mode], array()));
-
-                // If so, stop
-                if ($hasCountryOfCurrencySetting) {
-                    $countryOfCurrency = $coc;
-                    break;
-                }
-            }
-        }
-    }
-
-    if ($hasCountrySetting && ($taxReceiptNeeded || $countryCompulsory)) {
-        // Use country specific settings
-        return $providers[$provider . '_' . $country][$mode];
-    } else if ($hasCurrencySetting) {
-        // Use currency specific settings
-        return $providers[$provider . '_' . $currency][$mode];
-    } else if ($hasCountryOfCurrencySetting) {
-        // Use settings of a country where the chosen currency is used
-        return $providers[$provider . '_' . $countryOfCurrency][$mode];
-    } else if ($hasDefaultSetting) {
-        // Use default settings
-        return $providers[$provider][$mode];
-    } else {
-        $requiredProperties = raise_get_payment_provider_properties($provider);
-        $advice             = $requiredProperties ? " Required properties: " . implode(', ', $requiredProperties) : "";
-
-        throw new \Exception("No valid settings found for $provider." . $advice);
-    }
 }
 
 /**
@@ -906,27 +890,20 @@ function raise_get_payment_provider_properties($provider)
  * AJAX endpoint that returns the GoCardless setup URL. It stores
  * user input in session until user is forwarded back from GoCardless
  *
- * @param array $post
+ * @param array $donation
  * @return array
  */
-function raise_prepare_gocardless_donation(array $post)
+function raise_prepare_gocardless_donation(array $donation)
 {
     try {
         // Make GoCardless redirect flow
         $reqId        = uniqid(); // Secret request ID. Needed to prevent replay attack
         $returnUrl    = raise_get_ajax_endpoint() . '?action=gocardless_debit&req=' . $reqId;
-        $monthly      = $post['frequency'] == 'monthly' ? ", " . __("monthly", "raise") : "";
-        $client       = raise_get_gocardless_client(
-            $post['form'],
-            $post['mode'],
-            raise_get($post['tax_receipt'], false),
-            $post['currency'],
-            $post['country'],
-            raise_get($post['account'])
-        );
+        $monthly      = $donation['frequency'] == 'monthly' ? ", " . __("monthly", "raise") : "";
+        $client       = raise_get_gocardless_client($donation);
         $redirectFlow = $client->redirectFlows()->create([
             "params" => [
-                "description"          => __("Donation", "raise") . " (" . $post['currency'] . " " . money_format('%i', $post['amount']) . $monthly . ")",
+                "description"          => __("Donation", "raise") . " (" . $donation['currency'] . " " . money_format('%i', $donation['amount']) . $monthly . ")",
                 "session_token"        => $reqId,
                 "success_redirect_url" => $returnUrl,
             ]
@@ -936,7 +913,7 @@ function raise_prepare_gocardless_donation(array $post)
         $_SESSION['raise-gocardless-flow-id'] = $redirectFlow->id;
 
         // Save rest to session
-        raise_set_donation_data_to_session($post, $reqId);
+        raise_set_donation_data_to_session($donation, $reqId);
 
         // Return redirect URL
         return array(
@@ -970,9 +947,8 @@ function raise_process_gocardless_donation()
         $taxReceipt = $donation['tax_receipt'];
         $currency   = $donation['currency'];
         $country    = $donation['country'];
-        $account    = $donation['account'];
         $reqId      = $donation['reqId'];
-        $client     = raise_get_gocardless_client($form, $mode, $taxReceipt, $currency, $country, $account);
+        $client     = raise_get_gocardless_client($donation);
 
         if (!isset($_GET['redirect_flow_id']) || $_GET['redirect_flow_id'] != $_SESSION['raise-gocardless-flow-id']) {
             throw new \Exception('Invalid flow ID');
@@ -1105,29 +1081,36 @@ function raise_generate_bitpay_credentials($pairingCode)
 }
 
 /**
+ * Get payment provider account settings
+ *
+ * @param string $name
+ * @param array  $donation
+ * @return array
+ */
+function raise_get_payment_provider_account_settings($name, $donation)
+{
+    $formSettings = raise_load_settings($donation['form']);
+    $mode         = raise_get($donation['mode'], "");
+    $map          = function ($item) use ($mode) { return json_encode(raise_get($item[$mode], [])); };
+    $settings     = json_decode(raise_get_conditional_value($formSettings['payment']['provider'][$name], $donation, $map), true);
+
+    if (!raise_payment_provider_settings_complete($name, $settings)) {
+        throw new \Exception("Incomplete account settings");
+    }
+
+    return $settings;
+}
+
+/**
  * Get BitPay client
  *
- * @param string $form
- * @param string $mode
- * @param bool   $taxReceipt
- * @param string $currency
- * @param string $country
- * @param string $account
+ * @param array $donation
  * @return \Bitpay\Client\Client
  */
-function raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country, $account = null)
+function raise_get_bitpay_client(array $donation)
 {
     // Get BitPay pairing code
-    $formSettings = raise_load_settings($form);
-    $settings     = raise_get_best_payment_provider_settings(
-        $formSettings,
-        "bitpay",
-        $mode,
-        $taxReceipt,
-        $currency,
-        $country,
-        $account
-    );
+    $settings    = raise_get_payment_provider_account_settings('bitpay', $donation);
     $pairingCode = $settings['pairing_code'];
 
     // Get credentials
@@ -1182,20 +1165,20 @@ function raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country,
  * Returns the Skrill URL. It stores
  * user input in session until user is forwarded back from Skrill
  *
- * @param array $post
+ * @param array $donation
  * @return array
  */
-function raise_prepare_skrill_donation(array $post)
+function raise_prepare_skrill_donation(array $donation)
 {
     try {
         // Save request ID to session
         $reqId = uniqid(); // Secret request ID. Needed to prevent replay attack
 
         // Put user data in session
-        raise_set_donation_data_to_session($post, $reqId);
+        raise_set_donation_data_to_session($donation, $reqId);
 
         // Get Skrill URL
-        $url = raise_get_skrill_url($reqId, $post);
+        $url = raise_get_skrill_url($reqId, $donation);
 
         // Return URL
         return array(
@@ -1214,42 +1197,33 @@ function raise_prepare_skrill_donation(array $post)
  * Get Skrill URL
  *
  * @param string $reqId
- * @param array  $post
+ * @param array  $donation
  * @return string
  */
-function raise_get_skrill_url($reqId, $post)
+function raise_get_skrill_url($reqId, $donation)
 {
-    // Get best Skrill account settings
-    $formSettings = raise_load_settings($post['form']);
-    $settings     = raise_get_best_payment_provider_settings(
-        $formSettings,
-        "skrill",
-        $post['mode'],
-        raise_get($post['tax_receipt'], false),
-        $post['currency'],
-        $post['country'],
-        raise_get($post['account'])
-    );
+    // Get Skrill account settings
+    $settings = raise_get_payment_provider_account_settings('skrill', $donation);
 
     // Prepare parameter array
     $params = array(
         'pay_to_email'      => $settings['merchant_account'],
-        'pay_from_email'    => $post['email'],
-        'amount'            => $post['amount'],
-        'currency'          => $post['currency'],
+        'pay_from_email'    => $donation['email'],
+        'amount'            => $donation['amount'],
+        'currency'          => $donation['currency'],
         'return_url'        => raise_get_ajax_endpoint() . '?action=skrill_log&req=' . $reqId,
         'return_url_target' => 3, // _self
         'logo_url'          => preg_replace("/^http:/i", "https:", get_option('raise_logo', plugin_dir_url(__FILE__) . 'images/logo.png')),
-        'language'          => strtoupper($post['language']),
+        'language'          => strtoupper($donation['language']),
         'transaction_id'    => $reqId,
         'payment_methods'   => "WLT", // Skrill comes first
         'prepare_only'      => 1, // Return URL instead of form HTML
     );
 
     // Add parameters for monthly donations
-    if ($post['frequency'] == 'monthly') {
+    if ($donation['frequency'] == 'monthly') {
         $recStartDate = new \DateTime('+1 month');
-        $params['rec_amount']     = $post['amount'];
+        $params['rec_amount']     = $donation['amount'];
         $params['rec_start_date'] = $recStartDate->format('d/m/Y');
         $params['rec_period']     = 1;
         $params['rec_cycle']      = 'month';
@@ -1265,7 +1239,7 @@ function raise_get_skrill_url($reqId, $post)
     );
 
     //FIXME Remove this when XAMPP problem is fixed
-    if ($post['mode'] == 'sandbox') {
+    if ($donation['mode'] == 'sandbox') {
         // Disable verify peer for local development
         $options['ssl'] = array('verify_peer' => false);
     }
@@ -1280,29 +1254,28 @@ function raise_get_skrill_url($reqId, $post)
  * AJAX endpoint that returns the BitPay URL. It stores
  * user input in session until user is forwarded back from BitPay
  *
- * @param array $post
+ * @param array $donation
  * @return array
  */
-function raise_prepare_bitpay_donation(array $post)
+function raise_prepare_bitpay_donation(array $donation)
 {
     try {
-        $form       = $post['form'];
-        $mode       = $post['mode'];
-        $language   = $post['language'];
-        $email      = $post['email'];
-        $name       = $post['name'];
-        $amount     = $post['amount'];
-        $currency   = $post['currency'];
-        $taxReceipt = raise_get($post['tax_receipt'], false);
-        $country    = $post['country'];
-        $account    = raise_get($post['account']);
-        $frequency  = $post['frequency'];
+        $form       = $donation['form'];
+        $mode       = $donation['mode'];
+        $language   = $donation['language'];
+        $email      = $donation['email'];
+        $name       = $donation['name'];
+        $amount     = $donation['amount'];
+        $currency   = $donation['currency'];
+        $taxReceipt = raise_get($donation['tax_receipt'], false);
+        $country    = $donation['country'];
+        $frequency  = $donation['frequency'];
         $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
         $returnUrl  = raise_get_ajax_endpoint() . '?action=bitpay_log&req=' . $reqId;
         //$returnUrl       = raise_get_ajax_endpoint() . '?action=bitpay_confirm';
 
         // Get BitPay object and token
-        $client = raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country, $account);
+        $client = raise_get_bitpay_client($donation);
 
         // Make item
         $item = new \Bitpay\Item();
@@ -1336,7 +1309,7 @@ function raise_prepare_bitpay_donation(array $post)
         $_SESSION['raise-vendor-transaction-id'] = $invoice->getId();
 
         // Save user data to session
-        raise_set_donation_data_to_session($post, $reqId);
+        raise_set_donation_data_to_session($donation, $reqId);
 
         // Return pay key
         return array(
@@ -1426,7 +1399,7 @@ function raise_process_bitpay_log()
         $donation['vendor_transaction_id'] = $_SESSION['raise-vendor-transaction-id'];
 
         // Make sure the payment is paid
-        $client      = raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country);
+        $client      = raise_get_bitpay_client($donation);
         $invoice     = $client->getInvoice($_SESSION['raise-vendor-transaction-id']);
         $status      = $invoice->getStatus();
         $validStates = array(
@@ -1457,74 +1430,72 @@ function raise_process_bitpay_log()
 function raise_get_donation_from_session()
 {
     return array(
-        "time"             => date('c'), // new
-        "form"             => $_SESSION['raise-form'],
-        "mode"             => $_SESSION['raise-mode'],
-        "language"         => $_SESSION['raise-language'],
-        "url"              => $_SESSION['raise-url'],
-        "reqId"            => $_SESSION['raise-req-id'],
-        "email"            => $_SESSION['raise-email'],
-        "name"             => $_SESSION['raise-name'],
-        "currency"         => $_SESSION['raise-currency'],
-        "country"          => $_SESSION['raise-country'],
-        "amount"           => $_SESSION['raise-amount'],
-        "frequency"        => $_SESSION['raise-frequency'],
-        "tax_receipt"      => $_SESSION['raise-tax-receipt'],
-        "payment_provider" => $_SESSION['raise-payment-provider'],
-        "purpose"          => $_SESSION['raise-purpose'],
-        "address"          => $_SESSION['raise-address'],
-        "zip"              => $_SESSION['raise-zip'],
-        "city"             => $_SESSION['raise-city'],
-        "mailinglist"      => $_SESSION['raise-mailinglist'],
-        "comment"          => $_SESSION['raise-comment'],
-        "account"          => $_SESSION['raise-account'],
-        "success_text"     => $_SESSION['raise-success-text'],
-        "anonymous"        => $_SESSION['raise-anonymous'],
+        "time"                       => date('c'), // new
+        "form"                       => $_SESSION['raise-form'],
+        "mode"                       => $_SESSION['raise-mode'],
+        "language"                   => $_SESSION['raise-language'],
+        "url"                        => $_SESSION['raise-url'],
+        "reqId"                      => $_SESSION['raise-req-id'],
+        "email"                      => $_SESSION['raise-email'],
+        "name"                       => $_SESSION['raise-name'],
+        "currency"                   => $_SESSION['raise-currency'],
+        "country_code"               => $_SESSION['raise-country_code'],
+        "amount"                     => $_SESSION['raise-amount'],
+        "frequency"                  => $_SESSION['raise-frequency'],
+        "tax_receipt"                => $_SESSION['raise-tax-receipt'],
+        "payment_provider"           => $_SESSION['raise-payment-provider'],
+        "purpose"                    => $_SESSION['raise-purpose'],
+        "address"                    => $_SESSION['raise-address'],
+        "zip"                        => $_SESSION['raise-zip'],
+        "city"                       => $_SESSION['raise-city'],
+        "mailinglist"                => $_SESSION['raise-mailinglist'],
+        "comment"                    => $_SESSION['raise-comment'],
+        "post_donation_instructions" => $_SESSION['post_donation_instructions'],
+        "anonymous"                  => $_SESSION['raise-anonymous'],
     );
 }
 
 /**
  * Set donation data to session
  *
- * @param array  $post  Form post
- * @param string $reqId Request ID (against replay attack)
+ * @param array  $donation Form post
+ * @param string $reqId    Request ID (against replay attack)
  */
-function raise_set_donation_data_to_session(array $post, $reqId = null)
+function raise_set_donation_data_to_session(array $donation, $reqId = null)
 {
     // Required fields
-    $_SESSION['raise-form']             = $post['form'];
-    $_SESSION['raise-mode']             = $post['mode'];
-    $_SESSION['raise-language']         = $post['language'];
+    $_SESSION['raise-form']             = $donation['form'];
+    $_SESSION['raise-mode']             = $donation['mode'];
+    $_SESSION['raise-language']         = $donation['language'];
     $_SESSION['raise-url']              = $_SERVER['HTTP_REFERER'];
     $_SESSION['raise-req-id']           = $reqId;
-    $_SESSION['raise-email']            = $post['email'];
-    $_SESSION['raise-name']             = $post['name'];
-    $_SESSION['raise-currency']         = $post['currency'];
-    $_SESSION['raise-country']          = $post['country'];
-    $_SESSION['raise-amount']           = money_format('%i', $post['amount']);
-    $_SESSION['raise-frequency']        = $post['frequency'];
-    $_SESSION['raise-payment-provider'] = $post['payment_provider'];
+    $_SESSION['raise-email']            = $donation['email'];
+    $_SESSION['raise-name']             = $donation['name'];
+    $_SESSION['raise-currency']         = $donation['currency'];
+    $_SESSION['raise-country_code']     = $donation['country_code'];
+    $_SESSION['raise-amount']           = money_format('%i', $donation['amount']);
+    $_SESSION['raise-frequency']        = $donation['frequency'];
+    $_SESSION['raise-payment-provider'] = $donation['payment_provider'];
 
     // Optional fields
-    $_SESSION['raise-purpose']      = raise_get($post['purpose'], '');
-    $_SESSION['raise-address']      = raise_get($post['address'], '');
-    $_SESSION['raise-zip']          = raise_get($post['zip'], '');
-    $_SESSION['raise-city']         = raise_get($post['city'], '');
-    $_SESSION['raise-comment']      = raise_get($post['comment'], '');
-    $_SESSION['raise-account']      = raise_get($post['account'], '');
-    $_SESSION['raise-success-text'] = raise_get($post['success_text'], '');
-    $_SESSION['raise-tax-receipt']  = (bool) raise_get($post['tax_receipt'], false);
-    $_SESSION['raise-mailinglist']  = (bool) raise_get($post['mailinglist'], false);
-    $_SESSION['raise-anonymous']    = (bool) raise_get($post['anonymous'], false);
+    $_SESSION['raise-purpose']              = raise_get($donation['purpose'], '');
+    $_SESSION['raise-address']              = raise_get($donation['address'], '');
+    $_SESSION['raise-zip']                  = raise_get($donation['zip'], '');
+    $_SESSION['raise-city']                 = raise_get($donation['city'], '');
+    $_SESSION['raise-comment']              = raise_get($donation['comment'], '');
+    $_SESSION['post_donation_instructions'] = raise_get($donation['post_donation_instructions'], '');
+    $_SESSION['raise-tax-receipt']          = (bool) raise_get($donation['tax_receipt'], false);
+    $_SESSION['raise-mailinglist']          = (bool) raise_get($donation['mailinglist'], false);
+    $_SESSION['raise-anonymous']            = (bool) raise_get($donation['anonymous'], false);
 }
 
 /**
  * Make PayPal payment (= one-time payment)
  *
- * @param array $post
+ * @param array $donation
  * @return PayPal\Api\Payment
  */
-function raise_create_paypal_payment(array $post)
+function raise_create_paypal_payment(array $donation)
 {
     // Make payer
     $payer = new \PayPal\Api\Payer();
@@ -1532,13 +1503,13 @@ function raise_create_paypal_payment(array $post)
 
     // Make amount
     $amount = new \PayPal\Api\Amount();
-    $amount->setCurrency($post['currency'])
-        ->setTotal($post['amount']);
+    $amount->setCurrency($donation['currency'])
+        ->setTotal($donation['amount']);
 
     // Make transaction
     $transaction = new \PayPal\Api\Transaction();
     $transaction->setAmount($amount)
-        ->setDescription($post['name'] . ' (' . $post['email'] . ')')
+        ->setDescription($donation['name'] . ' (' . $donation['email'] . ')')
         ->setInvoiceNumber(uniqid());
 
     // Make redirect URLs
@@ -1555,14 +1526,7 @@ function raise_create_paypal_payment(array $post)
         ->setRedirectUrls($redirectUrls);
 
     // Get API context end create payment
-    $apiContext = raise_get_paypal_api_context(
-        $post['form'],
-        $post['mode'],
-        raise_get($post['tax_receipt'], false),
-        $post['currency'],
-        $post['country'],
-        raise_get($post['account'])
-    );
+    $apiContext = raise_get_paypal_api_context($donation);
 
     return $payment->create($apiContext);
 }
@@ -1570,15 +1534,15 @@ function raise_create_paypal_payment(array $post)
 /**
  * Make PayPal billing agreement (= recurring payment)
  *
- * @param array $post
+ * @param array $donation
  * @return \PayPal\Api\Agreement
  */
-function raise_create_paypal_billing_agreement(array $post)
+function raise_create_paypal_billing_agreement(array $donation)
 {
     // Make new plan
     $plan = new \PayPal\Api\Plan();
     $plan->setName('Monthly Donation')
-        ->setDescription('Monthly donation of ' . $post['currency'] . ' ' . $post['amount'])
+        ->setDescription('Monthly donation of ' . $donation['currency'] . ' ' . $donation['amount'])
         ->setType('INFINITE');
 
     // Make payment definition
@@ -1588,7 +1552,7 @@ function raise_create_paypal_billing_agreement(array $post)
         ->setFrequency('Month')
         ->setFrequencyInterval('1')
         ->setCycles('0')
-        ->setAmount(new \PayPal\Api\Currency(array('value' => $post['amount'], 'currency' => $post['currency'])));
+        ->setAmount(new \PayPal\Api\Currency(array('value' => $donation['amount'], 'currency' => $donation['currency'])));
 
     // Make merchant preferences
     $returnUrl           = raise_get_ajax_endpoint() . '?action=paypal_execute';
@@ -1600,14 +1564,7 @@ function raise_create_paypal_billing_agreement(array $post)
         ->setMaxFailAttempts("0");
 
     // Put things together and create
-    $apiContext = raise_get_paypal_api_context(
-        $post['form'],
-        $post['mode'],
-        raise_get($post['tax_receipt'], false),
-        $post['currency'],
-        $post['country'],
-        raise_get($post['account'])
-    );
+    $apiContext = raise_get_paypal_api_context($donation);
     $plan->setPaymentDefinitions(array($paymentDefinition))
         ->setMerchantPreferences($merchantPreferences)
         ->create($apiContext);
@@ -1636,8 +1593,8 @@ function raise_create_paypal_billing_agreement(array $post)
     // Make agreement
     $agreement = new \PayPal\Api\Agreement();
     $startDate = new \DateTime('+1 day'); // Activation can take up to 24 hours
-    $agreement->setName(__("Monthly Donation", "raise") . ': ' . $post['currency'] . ' ' . $post['amount'])
-        ->setDescription(__("Monthly Donation", "raise") . ': ' . $post['currency'] . ' ' . $post['amount'])
+    $agreement->setName(__("Monthly Donation", "raise") . ': ' . $donation['currency'] . ' ' . $donation['amount'])
+        ->setDescription(__("Monthly Donation", "raise") . ': ' . $donation['currency'] . ' ' . $donation['amount'])
         ->setStartDate($startDate->format('c'))
         ->setPlan($plan)
         ->setPayer($payer);
@@ -1649,17 +1606,17 @@ function raise_create_paypal_billing_agreement(array $post)
  * Returns Paypal pay key for donation. It stores
  * user input in session until user is forwarded back from Paypal
  *
- * @param array $post
+ * @param array $donation
  * @return array
  */
-function raise_prepare_paypal_donation(array $post)
+function raise_prepare_paypal_donation(array $donation)
 {
     try {
-        if ($post['frequency'] == 'monthly') {
-            $billingAgreement = raise_create_paypal_billing_agreement($post);
+        if ($donation['frequency'] == 'monthly') {
+            $billingAgreement = raise_create_paypal_billing_agreement($donation);
 
             // Save doantion to session
-            raise_set_donation_data_to_session($post);
+            raise_set_donation_data_to_session($donation);
 
             // Parse approval link
             $approvalLinkParts = parse_url($billingAgreement->getApprovalLink());
@@ -1670,10 +1627,10 @@ function raise_prepare_paypal_donation(array $post)
                 'token'   => $query['token'],
             );
         } else {
-            $payment = raise_create_paypal_payment($post);
+            $payment = raise_create_paypal_payment($donation);
 
             // Save doantion to session
-            raise_set_donation_data_to_session($post);
+            raise_set_donation_data_to_session($donation);
 
             return array(
                 'success'   => true,
@@ -1706,14 +1663,7 @@ function raise_execute_paypal_donation()
         $donation = raise_get_donation_from_session();
 
         // Get API context
-        $apiContext = raise_get_paypal_api_context(
-            $donation['form'],
-            $donation['mode'],
-            $donation['tax_receipt'],
-            $donation['currency'],
-            $donation['country'],
-            $donation['account']
-        );
+        $apiContext = raise_get_paypal_api_context($donation);
 
         if (!empty($_POST['paymentID']) && !empty($_POST['payerID'])) {
             // Execute payment (one-time)
@@ -1994,7 +1944,7 @@ function raise_send_confirmation_email(array $donation)
         $subject = $twig->render('finish.email.subject', $donation);
         $text    = $twig->render('finish.email.text', $donation);
 
-        // Repalce %bank_account_formatted% from success_text with macro
+        // Repalce %bank_account_formatted% from post_donation_instructions with macro
         if (!empty($donation['bank_account']) && strpos($text, '%bank_account_formatted%') !== false) {
             $bankAccount = $html ? $twig->render('bank_account_formatted_html', $donation)
                                  : $twig->render('bank_account_formatted_text', $donation);
@@ -2434,45 +2384,43 @@ function raise_get_countries_by_currency($currency)
 }
 
 /**
- * Get Stripe public keys for the form
+ * Get JsonLogic rule for Stripe public keys for the form
  *
  * E.g.
- * [
- *     'default' => ['sandbox' => 'default_sandbox_key', 'live' => 'default_live_key'],
- *     'ch'      => ['sandbox' => 'ch_sandbox_key',  'live' => 'ch_live_key'],
- *     'gb'      => ['sandbox' => 'gb_sandbox_key',  'live' => 'gb_live_key'],
- *     'de'      => ['sandbox' => 'de_sandbox_key',  'live' => 'de_live_key'],
- *     'chf'     => ['sandbox' => 'chf_sandbox_key', 'live' => 'chf_live_key'],
- *     'eur'     => ['sandbox' => 'eur_sandbox_key', 'live' => 'eur_live_key'],
- *     'usd'     => ['sandbox' => 'usd_sandbox_key', 'live' => 'usd_live_key']
- * ]
+ * { "if" : [
+ *     { "===" : [{"var": "country_code"}, "CH"] },
+ *     "ch_special_public_key",
+ *     { "===" : [{"var": "currency"}, "USD"] },
+ *     "usd_special_public_key",
+ *     true,
+ *     "default_public_key"
+ * ]}
  *
- * @param array $formSettings
+ * @param array  $formSettings
  * @param string $mode sandbox/live
  * @return array
  */
-function raise_get_stripe_public_keys(array $formSettings, $mode)
+function raise_get_stripe_public_keys_rule(array $formSettings, $mode)
 {
     // Get all enabled Stripe accounts with a public key for the given mode
-    $stripeAccounts = array_filter(
-        raise_get($formSettings['payment']['provider'], array()),
-        function ($val, $key) use ($mode) {
-            return preg_match('#^stripe#', $key) && !empty($val[$mode]['public_key']) && !empty($val[$mode]['secret_key']);
-        },
-        ARRAY_FILTER_USE_BOTH
-    );
+    $stripeSettings = raise_get($formSettings['payment']['provider']['stripe']);
 
-    // Get rid of `stripe_` and rename `stripe` to `default`
-    $keys = array_map(function($key) {
-        return $key == 'stripe' ? 'default' : substr($key, 7);
-    }, array_keys($stripeAccounts));
+    if (empty($stripeSettings) || !is_array($stripeSettings)) {
+        return null;
+    }
 
-    // Only leave public key
-    $vals = array_map(function($val) use ($mode) {
-        return $val[$mode]['public_key'];
-    }, array_values($stripeAccounts));
+    if (raise_has_string_keys($stripeSettings)) {
+        // Regular settings
+        return raise_get($stripeSettings[$mode]['public_key']);
+    } else {
+        // JsonLogic rule
+        return ["if" => array_reduce($stripeSettings, function($carry, $item) use ($mode) {
+            $carry[] = raise_get($item['if'], false);
+            $carry[] = raise_get($item['value'][$mode]['public_key']);
 
-    return array_combine($keys, $vals);
+            return $carry;
+        }, [])];
+    }
 }
 
 /**
@@ -2500,34 +2448,46 @@ function raise_get_localized_value($setting, $language = null)
     return null;
 }
 
-function raise_get_conditional_value($setting, $donation, $language = null)
+/**
+ * Get conditional value
+ *
+ * @param mixed         $setting
+ * @param array         $donation
+ * @param callable|null $valueMap
+ * @param mixed         $default
+ * @return mixed
+ */
+function raise_get_conditional_value($setting, $donation, $valueMap = null, $default = null)
 {
-    if (!is_array($setting)) {
-        // Simple string
-        return $setting;
-    }
-
-    // If associative, it's a simple multilingual object
-    if (raise_has_string_keys($setting)) {
-        return raise_get_localized_value($setting, $language);
+    // If literal or associative array, return that value
+    if (!is_array($setting) || raise_has_string_keys($setting)) {
+        return $valueMap ? $valueMap($setting) : $setting;
     }
 
     // Setting is numeric --> JsonLogic nodes. Construct one big if operation
-    $rule = raise_get_jsonlogic_if_rule($setting);
+    $rule = raise_get_jsonlogic_if_rule($setting, $valueMap, $default);
 
     // Apply JsonLogic
     return JWadhams\JsonLogic::apply($rule, $donation);
 }
 
 /**
- * Return JsonLogic `if` rule
+ * Return JsonLogic `if` rule or (localized) string
  * 
  * { if : [cond_1, val_1, cond_2, val_2, ..., cond_n, val_n, val_else ] }
  *
+ * @param mixed         $setting
+ * @param callable|null $valueMap A function run on all value nodes
+ * @param mixed         $default  Default value
  * @return array
  */
-function raise_get_jsonlogic_if_rule()
+function raise_get_jsonlogic_if_rule($setting, $valueMap = null, $default = null)
 {
+    // If literal or associative array, return that value (JSON encoded to avoid evaluation)
+    if (empty($setting) || !is_array($setting) || raise_has_string_keys($setting)) {
+        return $valueMap ? $valueMap($setting) : $setting;
+    }
+
     // Iterate over array and construct if rule
     $if = [];
     foreach ($setting as $settingNode) {
@@ -2538,12 +2498,12 @@ function raise_get_jsonlogic_if_rule()
         // Add condition
         $if[] = $settingNode['if'];
 
-        // Add value
-        $if[] = $settingNode['value'];
+        // Run mapping function and add result to rule (JSON encoded to avoid evaluation)
+        $if[] = $valueMap ? $valueMap($settingNode['value']) : $settingNode['value'];
     }
 
-    // Add catch-all value
-    $if[] = null;
+    // Add catch-all default value
+    $if[] = $default;
 
     return [
         'if' => $if
@@ -2710,53 +2670,6 @@ function raise_monolinguify(array $labels, $depth = 0, $language = null)
 }
 
 /**
- * Load tax deduction settings for donation
- *
- * @param array $donation
- * @return array
- * @see raise_load_tax_deduction_settings
- */
-function raise_get_tax_deduction_settings_by_donation(array $donation)
-{
-    $settings = array();
-
-    $taxDeductionSettings = raise_load_tax_deduction_settings($donation['form'], $donation['language']);
-    if ($taxDeductionSettings) {
-        $countries = !empty($donation['country']) ? ['default', strtolower($donation['country'])]                    : ['default'];
-        $types     = !empty($donation['payment_provider'])    ? ['default', str_replace(" ", "", strtolower($donation['payment_provider']))] : ['default']; // Payment provider
-        $purposes  = !empty($donation['purpose']) ? ['default', $donation['purpose']]                                : ['default'];
-
-        // Find best labels, more specific settings override more general settings
-        foreach ($countries as $country) {
-            foreach ($types as $type) {
-                foreach ($purposes as $purpose) {
-                    if (isset($taxDeductionSettings[$country][$type][$purpose])) {
-                        $settings = array_merge($settings, $taxDeductionSettings[$country][$type][$purpose]);
-                    }
-                }
-            }
-        }
-
-        // Get %bank_account_formatted% and insert reference number (if present)
-        $form         = raise_get($donation['form'], '');
-        $formSettings = raise_load_settings($form);
-        $account      = raise_get($formSettings['payment']['provider']['banktransfer']['accounts'][raise_get($donation['account'], '')], array());
-        if ($donation['payment_provider'] == 'Bank Transfer' && $account) {
-            // Insert %reference_number%
-            if ($reference = raise_get($donation['reference'])) {
-                $settings['bank_account'] = array_map(function ($val) use ($reference) {
-                    return str_replace('%reference_number%', $reference, $val);
-                }, raise_localize_array_keys($account));
-            } else {
-                $settings['bank_account'] = $account;
-            }
-        }
-    }
-
-    return $settings;
-}
-
-/**
  * Load tax deduction settings
  *
  * @param string $form     Form name
@@ -2820,28 +2733,14 @@ function raise_get_banktransfer_reference($form, $prefix = '', $length = 8, $blo
 /**
  * Get PayPal API context
  *
- * @param string $form
- * @param string $mode
- * @param bool   $taxReceipt
- * @param string $currency
- * @param string $country
- * @param string $account
+ * @param array $donation
  * @return \PayPal\Rest\ApiContext
  * @throws \Exception
  */
-function raise_get_paypal_api_context($form, $mode, $taxReceipt, $currency, $country, $account = null)
+function raise_get_paypal_api_context(array $donation)
 {
-    // Get best settings
-    $formSettings = raise_load_settings($form);
-    $settings     = raise_get_best_payment_provider_settings(
-        $formSettings,
-        "paypal",
-        $mode,
-        $taxReceipt,
-        $currency,
-        $country,
-        $account
-    );
+    // Get PayPal account settings
+    $settings = raise_get_payment_provider_account_settings('paypal', $donation);
 
     $apiContext = new \PayPal\Rest\ApiContext(
         new \PayPal\Auth\OAuthTokenCredential(
@@ -2879,11 +2778,14 @@ function raise_localize_array_keys(array $array)
  */
 function raise_do_post_donation_actions(array $donation)
 {
-    // Add tax dedcution labels to donation
-    $taxDonation = $donation + raise_get_tax_deduction_settings_by_donation($donation);
+    // Add post donation instructions and deductible flag to donation
+    $formSettings           = raise_load_settings($donation['form']);
+    $taxReceiptSettings     = raise_get($formSettings['payment']['form_elements']['tax_receipt']);
+    $mapper                 = function ($item) { return !raise_get($item['disabled'], false); };
+    $donation['deductible'] = raise_get_conditional_value($taxReceiptSettings, $donation, $mapper);
 
     // Clean up donation data
-    $cleanDonation = raise_clean_up_donation_data($taxDonation);
+    $cleanDonation = raise_clean_up_donation_data($donation);
 
     // Save custom posts (if enabled)
     raise_save_custom_posts($cleanDonation);
