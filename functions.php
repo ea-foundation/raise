@@ -139,7 +139,7 @@ function raise_init_donation_form($form, $mode)
         'ajax_endpoint'                   => admin_url('admin-ajax.php'),
         'amount_patterns'                 => $amountPatterns,
         'amount_minimums'                 => $amountMinimums,
-        'stripe_public_key_rule'          => array_change_key_case($stripeKeys, CASE_LOWER),
+        'stripe_public_key_rule'          => $stripeKeys,
         'post_donation_instructions_rule' => $postDonationInstructionsRule,
         'payment_provider_tooltip_rule'   => $paymentProviderTooltipRule,
         'payment_provider_display_rule'   => $paymentProviderDisplayRule,
@@ -249,6 +249,7 @@ function raise_rec_load_settings($form, $formsSettings, $childForms = array())
     // Recurse and merge
     $childForms[]       = $form;
     $parentFormSettings = raise_rec_load_settings($parentForm, $formsSettings, $childForms);
+
     return raise_array_replace_recursive($parentFormSettings, $formsSettings[$form]);
 }
 
@@ -2816,8 +2817,14 @@ function raise_array_replace_recursive($array, $array1)
             }
 
             // Overwrite the value in the base array
-            if (is_array($value) && raise_has_string_keys($value)) {
-                $value = $recurse($array[$key], $value);
+            if (is_array($value)) {
+                if (raise_has_string_keys($value)) {
+                    // Replace if string keys
+                    $value = $recurse($array[$key], $value);
+                } else {
+                    // Prepend if numeric keys
+                    $value = array_merge($value, $array[$key]);
+                }
             }
             $array[$key] = $value;
         }
