@@ -105,9 +105,6 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "site_key": "my_recaptcha_site_key",
           "secret_key": "my_secret_key"
         },
-        "checkbox_defaults": {
-          "mailing_list_checked": true
-        },
         "labels": {
           "purpose": "Purpose",
           "mailing_list": "Subscribe to newsletter",

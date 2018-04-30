@@ -331,7 +331,7 @@ function raise_form($atts, $content = null)
                         <div class="col-sm-offset-3 col-sm-9">
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1" <?= raise_get($formSettings['payment']['checkbox_defaults']['mailing_list_checked'], false) ? 'checked' : '' ?>>
+                                    <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1">
                                     <?php
                                         if (!empty($formSettings['payment']['labels']['mailing_list'])) {
                                             echo esc_html(raise_get_localized_value($formSettings['payment']['labels']['mailing_list']));
