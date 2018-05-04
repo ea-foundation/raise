@@ -1055,59 +1055,33 @@ function raise_get_bitpay_key_ids($pairingCode)
 }
 
 /**
- * Get BitPay object
+ * Load BitPay credentials
  *
- * @param string $form
- * @param string $mode
- * @param bool   $taxReceipt
- * @param string $currency
- * @param string $country
- * @param string $account
- * @return \Bitpay\Bitpay
+ * @param string $pairingCode
+ * @return array
  */
-function raise_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $currency, $country, $account = null)
+function raise_load_bitpay_credentials($pairingCode)
 {
-    // Get BitPay pairing code
-    $formSettings = raise_load_settings($form);
-    $settings     = raise_get_best_payment_provider_settings(
-        $formSettings,
-        "bitpay",
-        $mode,
-        $taxReceipt,
-        $currency,
-        $country,
-        $account
-    );
-    $pairingCode = $settings['pairing_code'];
-
     // Get key IDs
     list($privateKeyId, $publicKeyId, $tokenId) = raise_get_bitpay_key_ids($pairingCode);
 
-    // Get BitPay client
-    $bitpay = new \Bitpay\Bitpay(array(
-        'bitpay' => array(
-            'network'              => $mode == 'live' ? 'livenet' : 'testnet',
-            'public_key'           => $publicKeyId,
-            'private_key'          => $privateKeyId,
-            'key_storage'          => 'Raise\Bitpay\EncryptedWPOptionStorage',
-            'key_storage_password' => $pairingCode, // Abuse pairing code for this
-        )
-    ));
+    // Load keys
+    $keyStorage = new \Raise\Bitpay\EncryptedWPOptionStorage($pairingCode);
+    $privateKey = $keyStorage->load($privateKeyId);
+    $publicKey  = $keyStorage->load($publicKeyId);
 
-    return $bitpay;
+    return [$privateKey, $publicKey];
 }
 
 /**
- * Get BitPay token
+ * Generate BitPay credentials
  *
- * @param \Bitpay\Bitpay $bitpay
- * @param string $label
- * @return \Bitpay\Token
+ * @param string $pairingCode
+ * @return array
  */
-function raise_generate_bitpay_token(\Bitpay\Bitpay $bitpay, $label = '')
+function raise_generate_bitpay_credentials($pairingCode)
 {
     // Get BitPay pairing code as well as key/token IDs
-    $pairingCode = $bitpay->getContainer()->getParameter('bitpay.key_storage_password');
     list($privateKeyId, $publicKeyId, $tokenId) = raise_get_bitpay_key_ids($pairingCode);
     
     // Generate keys
@@ -1118,23 +1092,11 @@ function raise_generate_bitpay_token(\Bitpay\Bitpay $bitpay, $label = '')
         ->generate();
 
     // Save keys (abuse pairing code as encryption password)
-    $keyStorage = $bitpay->get('key_manager');
+    $keyStorage = new \Raise\Bitpay\EncryptedWPOptionStorage($pairingCode);
     $keyStorage->persist($privateKey);
     $keyStorage->persist($publicKey);
 
-    // Get token
-    // @var \Bitpay\SinKey
-    $sin   = \Bitpay\SinKey::create()->setPublicKey($publicKey)->generate();
-    $token = $bitpay->get('client')->createToken(array(
-        'pairingCode' => $pairingCode,
-        'label'       => $label,
-        'id'          => (string) $sin,
-    ));
-
-    // Save token
-    update_option($tokenId, $token->getToken());
-
-    return $token;
+    return [$privateKey, $publicKey];
 }
 
 /**
@@ -1150,24 +1112,62 @@ function raise_generate_bitpay_token(\Bitpay\Bitpay $bitpay, $label = '')
  */
 function raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country, $account = null)
 {
-    // Get BitPay dependency injector
-    $bitpay = raise_get_bitpay_dependency_injector($form, $mode, $taxReceipt, $currency, $country, $account);
+    // Get BitPay pairing code
+    $formSettings = raise_load_settings($form);
+    $settings     = raise_get_best_payment_provider_settings(
+        $formSettings,
+        "bitpay",
+        $mode,
+        $taxReceipt,
+        $currency,
+        $country,
+        $account
+    );
+    $pairingCode = $settings['pairing_code'];
 
-    // Get BitPay pairing code as well as key/token IDs
-    $pairingCode = $bitpay->getContainer()->getParameter('bitpay.key_storage_password');
+    // Get credentials
     list($privateKeyId, $publicKeyId, $tokenId) = raise_get_bitpay_key_ids($pairingCode);
+    $tokenString = get_option($tokenId);
+    if (empty($tokenString)) {
+        // First time. Generate credentials
+        list($privateKey, $publicKey) = raise_generate_bitpay_credentials($pairingCode);
+    } else {
+        // Get credentials from key storage
+        list($privateKey, $publicKey) = raise_load_bitpay_credentials($pairingCode);
+    }
 
-    // Generate token if first time
-    if (!get_option($publicKeyId) || !get_option($privateKeyId) || !($tokenString = get_option($tokenId))) {
+    // Get network
+    $network = $mode == 'live' ? new \Bitpay\Network\Livenet() : new \Bitpay\Network\Testnet();
+
+    // Get adapter
+    $adapter = new \Bitpay\Client\Adapter\CurlAdapter();
+
+    // Configure client
+    $client = new \Bitpay\Client\Client();
+    $client->setPrivateKey($privateKey);
+    $client->setPublicKey($publicKey);
+    $client->setNetwork($network);
+    $client->setAdapter($adapter);
+
+    // Set token
+    if (empty($tokenString)) {
+        // Generate new token
         $urlParts = parse_url(home_url());
         $label    = $urlParts['host'];
-        $token    = raise_generate_bitpay_token($bitpay, $label);
+        // Generate token
+        $sin    = \Bitpay\SinKey::create()->setPublicKey($publicKey)->generate();
+        $token  = $client->createToken(array(
+            'pairingCode' => $pairingCode,
+            'label'       => $label,
+            'id'          => (string) $sin,
+        ));
+        // Save token
+        update_option($tokenId, $token->getToken());
     } else {
+        // Get token from token string
         $token = new \Bitpay\Token();
         $token->setToken($tokenString);
     }
-
-    $client = $bitpay->get('client');
     $client->setToken($token);
 
     return $client;
@@ -1290,13 +1290,14 @@ function raise_prepare_bitpay_donation(array $post)
         $currency   = $post['currency'];
         $taxReceipt = raise_get($post['tax_receipt'], false);
         $country    = $post['country'];
+        $account    = raise_get($post['account']);
         $frequency  = $post['frequency'];
         $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
         $returnUrl  = raise_get_ajax_endpoint() . '?action=bitpay_log&req=' . $reqId;
         //$returnUrl       = raise_get_ajax_endpoint() . '?action=bitpay_confirm';
 
         // Get BitPay object and token
-        $client = raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country, raise_get($post['account']));
+        $client = raise_get_bitpay_client($form, $mode, $taxReceipt, $currency, $country, $account);
 
         // Make item
         $item = new \Bitpay\Item();
@@ -1322,15 +1323,12 @@ function raise_prepare_bitpay_donation(array $post)
         try {
             $client->createInvoice($invoice);
         } catch (\Exception $e) {
-            $request  = $client->getRequest();
-            $response = $client->getResponse();
-            $message  = (string) $request.PHP_EOL.PHP_EOL.PHP_EOL;
-            $message .= (string) $response.PHP_EOL.PHP_EOL;
+            $message = $e->getMessage();
             throw new \Exception($message);
         }
 
         // Save invoice ID to session
-        $_SESSION['raise-vendor-transaction-id']  = $invoice->getId();
+        $_SESSION['raise-vendor-transaction-id'] = $invoice->getId();
 
         // Save user data to session
         raise_set_donation_data_to_session($post, $reqId);
