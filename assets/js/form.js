@@ -1127,7 +1127,8 @@ function updateFormLabels() {
     // Infer properties
     var paymentProviderTooltips  = jsonLogic.apply(wordpress_vars.payment_provider_tooltip_rule, formObj);
     var postDonationInstructions = jsonLogic.apply(wordpress_vars.post_donation_instructions_rule, formObj);
-    var taxReceipt               = applyJsonLogicAndParse(wordpress_vars.tax_receipt_rule, formObj);
+    var shareDataCheckboxState   = applyJsonLogicAndParse(wordpress_vars.share_data_rule, formObj);
+    var taxReceiptCheckboxState  = applyJsonLogicAndParse(wordpress_vars.tax_receipt_rule, formObj);
     var bankAccount              = applyJsonLogicAndParse(wordpress_vars.bank_account_rule, formObj) || {};
     var bankAccountProperties    = bankAccount.hasOwnProperty('account') ? bankAccount.account : {};
 
@@ -1139,43 +1140,53 @@ function updateFormLabels() {
         jQuery(this).find('div[data-toggle="tooltip"]').attr('data-original-title', tooltip);
     });
 
-    // Enable/disable receipt checkbox
-    var taxReceiptElement = jQuery('input#tax-receipt');
-    if (taxReceipt.hasOwnProperty('disabled')) {
-        taxDeductionDisabled = !!taxReceipt.disabled;
-
-        // Collapse address details if open
-        if (taxDeductionDisabled && taxReceiptElement.is(':checked')) {
-            taxReceiptElement.click();
-        }
-        taxReceiptElement.prop('disabled', taxDeductionDisabled);
-    } else {
-        // Enabled by default
-        taxDeductionDisabled = false;
-        taxReceiptElement.prop('disabled', false);
-    }
-
-    // Update tax receipt checkbox label
-    if (taxReceipt.hasOwnProperty('label')) {
-        taxReceiptElement.parent().parent().parent().parent().show();
-        taxReceipt.label = replaceDonationPlaceholders(taxReceipt.label, formObj);
-        jQuery('span#tax-receipt-text').html(taxReceipt.label);
-    } else {
-        // Hide checkbox
-        taxReceiptElement.prop('checked', false);
-        taxReceiptElement.parent().parent().parent().parent().hide();
-    }
-
-    // Update tax receipt checkbox state
-    if (taxReceipt.hasOwnProperty('checked')) {
-        taxReceiptElement.prop('checked', !!taxReceipt.checked);
-    }
+    // Update checkbox states
+    updateCheckboxState('share-data', shareDataCheckboxState, formObj);
+    updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
 
     // Update success text with nl2br
     if (postDonationInstructions !== null) {
         var postDonationInstructionText = nl2br(replaceDonationPlaceholders(postDonationInstructions, formObj, bankAccountProperties));
         jQuery('div#shortcode-content').html(postDonationInstructionText);
         jQuery('input[name=post_donation_instructions]').val(postDonationInstructionText);
+    }
+}
+
+/**
+ * Update checkbox state
+ * 
+ * @param string id      ID of form element
+ * @param Object state   Object containing the properties `label` and `disabled`
+ * @param Object formObj Form object
+ */
+function updateCheckboxState(id, state, formObj) {
+    // Enable/disable checkbox
+    var element = jQuery('input#' + id);
+    if (state.hasOwnProperty('disabled')) {
+        taxDeductionDisabled = !!state.disabled;
+
+        // Collapse address details if open
+        if (taxDeductionDisabled && element.is(':checked')) {
+            element.click();
+        }
+        element.prop('disabled', taxDeductionDisabled);
+    } else {
+        // Enable checkbox
+        if (element.prop('disabled')) {
+            taxDeductionDisabled = false;
+            element.prop('disabled', false);
+        }
+    }
+
+    // Update checkbox label
+    if (state.hasOwnProperty('label') && state.label) {
+        element.parent().parent().parent().parent().show();
+        state.label = replaceDonationPlaceholders(state.label, formObj);
+        jQuery('span#' + id + '-text').html(state.label);
+    } else {
+        // Hide checkbox
+        element.prop('checked', false);
+        element.parent().parent().parent().parent().hide();
     }
 }
 
@@ -1235,6 +1246,7 @@ function getFormAsObject() {
     }
 
     // Localize booleans
+    formObj.share_data_label  = formObj.hasOwnProperty('share_data')  ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.mailinglist_label = formObj.hasOwnProperty('mailinglist') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.tax_receipt_label = formObj.hasOwnProperty('tax_receipt') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
 

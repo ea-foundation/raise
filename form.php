@@ -315,6 +315,20 @@ function raise_form($atts, $content = null)
                     </div>
                 <?php endif; endif; ?>
 
+                <!-- Share with charity -->
+                <?php if (!empty($formSettings['payment']['form_elements']['share_data'])): ?>
+                    <div class="form-group donor-info" style="margin-top: -10px">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="share_data" id="share-data" value="1" disabled>
+                                    <span id="share-data-text"><?php _e('Share my data with recipient charity', 'raise'); ?></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <!-- Comment -->
                 <?php if (raise_get($formSettings['payment']['extra_fields']['comment'], false)): ?>
                     <div class="form-group donor-info">
@@ -327,7 +341,7 @@ function raise_form($atts, $content = null)
 
                 <!-- Mailing list -->
                 <?php if (!empty($formSettings['webhook']['mailing_list'][$mode])): ?>
-                    <div class="form-group donor-info">
+                    <div class="form-group donor-info" style="margin-top: -10px">
                         <div class="col-sm-offset-3 col-sm-9">
                             <div class="checkbox">
                                 <label>
@@ -346,11 +360,11 @@ function raise_form($atts, $content = null)
                 <?php endif; ?>
 
                 <!-- Tax receipt -->
-                <div class="form-group donor-info" <?= !empty($formSettings['webhook']['mailing_list'][$mode]) ? 'style="margin-top: -15px"' : ''; ?>>
+                <div class="form-group donor-info" style="margin-top: -10px">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1" disabled="disabled">
+                                <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1" disabled>
                                 <span id="tax-receipt-text"><?php _e('I need a tax receipt', 'raise'); ?></span>
                             </label>
                         </div>

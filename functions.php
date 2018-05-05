@@ -22,6 +22,7 @@ const RAISE_WEBHOOK_KEYS = [
     'reference',
     'referrer',
     'post_donation_instructions',
+    'share_data',
     'tax_receipt',
     'time',
     'type', //TODO Legacy. Remove in next major release.
@@ -89,7 +90,12 @@ function raise_init_donation_form($form, $mode)
     $postDonationInstructionsRule = raise_get_jsonlogic_if_rule($postDonationInstructions, 'raise_get_localized_value');
 
     // Get tax_receipt rule and localize labels
-    $taxReceiptRule = raise_get_tax_receipt_rule($formSettings);
+    $taxReceiptSettings = raise_get($formSettings['payment']['form_elements']['tax_receipt'], "");
+    $taxReceiptRule     = raise_get_checkbox_rule($taxReceiptSettings);
+
+    // Get share_data rule and localize labels
+    $shareDataSettings = raise_get($formSettings['payment']['form_elements']['share_data'], "");
+    $shareDataRule     = raise_get_checkbox_rule($shareDataSettings);
 
     // Get bank accounts and localize their labels
     $bankAccounts = raise_get($formSettings['payment']['provider']['banktransfer']);
@@ -143,6 +149,7 @@ function raise_init_donation_form($form, $mode)
         'post_donation_instructions_rule' => $postDonationInstructionsRule,
         'payment_provider_tooltip_rule'   => $paymentProviderTooltipRule,
         'payment_provider_display_rule'   => $paymentProviderDisplayRule,
+        'share_data_rule'                 => $shareDataRule,
         'tax_receipt_rule'                => $taxReceiptRule,
         'bank_account_rule'               => $bankAccountsRule,
         'organization'                    => $GLOBALS['raiseOrganization'],
@@ -254,28 +261,27 @@ function raise_rec_load_settings($form, $formsSettings, $childForms = array())
 }
 
 /**
- * Get tax receipt rule
+ * Get `if` rule with JSON encoded objects (label, disabled, checked) as return values for checkbox
  *
- * @param array $formSettings
+ * @param array $settings
  * @return array
  */
-function raise_get_tax_receipt_rule(array $formSettings)
+function raise_get_checkbox_rule(array $settings)
 {
-    $taxReceipt = raise_get($formSettings['payment']['form_elements']['tax_receipt'], "");
-    if (is_array($taxReceipt)) {
-        if (isset($taxReceipt['label'])) {
-            $taxReceipt['label'] = raise_get_localized_value($taxReceipt['label']);
+    if (is_array($settings)) {
+        if (isset($settings['label'])) {
+            $settings['label'] = raise_get_localized_value($settings['label']);
         } else {
-            $taxReceipt = array_map(function($item) {
+            $settings = array_map(function($item) {
                 if (!empty($item['value']['label']) && is_array($item['value']['label'])) {
                     $item['value']['label'] = raise_get_localized_value($item['value']['label']);
                 }
                 return $item;
-            }, $taxReceipt);
+            }, $settings);
         }        
     }
 
-    return raise_get_jsonlogic_if_rule($taxReceipt, 'json_encode');
+    return raise_get_jsonlogic_if_rule($settings, 'json_encode');
 }
 
 /**
@@ -449,6 +455,7 @@ function raise_get_donation_from_post()
         'anonymous'                  => (bool) raise_get($post['anonymous'], false),
         'mailinglist'                => (bool) raise_get($post['mailinglist'], false),
         'tax_receipt'                => (bool) raise_get($post['tax_receipt'], false),
+        'share_data'                 => (bool) raise_get($post['share_data'], false),
     );
 }
 
@@ -1444,6 +1451,7 @@ function raise_get_donation_from_session()
         "amount"                     => $_SESSION['raise-amount'],
         "frequency"                  => $_SESSION['raise-frequency'],
         "tax_receipt"                => $_SESSION['raise-tax-receipt'],
+        "share_data"                 => $_SESSION['raise-share-data'],
         "payment_provider"           => $_SESSION['raise-payment-provider'],
         "purpose"                    => $_SESSION['raise-purpose'],
         "address"                    => $_SESSION['raise-address'],
@@ -1485,6 +1493,7 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
     $_SESSION['raise-city']                 = raise_get($donation['city'], '');
     $_SESSION['raise-comment']              = raise_get($donation['comment'], '');
     $_SESSION['post_donation_instructions'] = raise_get($donation['post_donation_instructions'], '');
+    $_SESSION['raise-share-data']           = (bool) raise_get($donation['share_data'], false);
     $_SESSION['raise-tax-receipt']          = (bool) raise_get($donation['tax_receipt'], false);
     $_SESSION['raise-mailinglist']          = (bool) raise_get($donation['mailinglist'], false);
     $_SESSION['raise-anonymous']            = (bool) raise_get($donation['anonymous'], false);
