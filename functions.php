@@ -2776,6 +2776,31 @@ function raise_localize_array_keys(array $array)
 }
 
 /**
+ * Get donation account property
+ *
+ * @param array $formSettings
+ * @param array $donation
+ * @return string|null
+ */
+function raise_get_account(array $formSettings, array $donation)
+{
+    // Check if provider settings exist
+    $providerKeys    = array_flip($GLOBALS['pp_key2pp_label']);
+    $paymentProvider = $donation['payment_provider'];
+    $providerKey     = raise_get($providerKeys[$paymentProvider]);
+
+    if (!$providerKey || empty($formSettings['payment']['provider'][$providerKey])) {
+        return null;
+    }
+
+    // Return account
+    $settings = $formSettings['payment']['provider'][$providerKey];
+    $mapper   = function ($item) { return raise_get($item['account']); };
+
+    return raise_get_conditional_value($settings, $donation, $mapper);
+}
+
+/**
  * Clean up donation data, save local posts, send webhooks, send emails
  *
  * @param array $donation
@@ -2787,6 +2812,11 @@ function raise_do_post_donation_actions(array $donation)
     $taxReceiptSettings     = raise_get($formSettings['payment']['form_elements']['tax_receipt']);
     $mapper                 = function ($item) { return !raise_get($item['disabled'], false); };
     $donation['deductible'] = raise_get_conditional_value($taxReceiptSettings, $donation, $mapper);
+
+    // Add account
+    if ($account = raise_get_account($formSettings, $donation)) {
+        $donation['account'] = $account;
+    }
 
     // Clean up donation data
     $cleanDonation = raise_clean_up_donation_data($donation);
