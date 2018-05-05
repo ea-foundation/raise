@@ -1130,7 +1130,7 @@ function updateFormLabels() {
     var shareDataCheckboxState   = applyJsonLogicAndParse(wordpress_vars.share_data_rule, formObj);
     var taxReceiptCheckboxState  = applyJsonLogicAndParse(wordpress_vars.tax_receipt_rule, formObj);
     var bankAccount              = applyJsonLogicAndParse(wordpress_vars.bank_account_rule, formObj) || {};
-    var bankAccountProperties    = bankAccount.hasOwnProperty('account') ? bankAccount.account : {};
+    var bankAccountProperties    = bankAccount.hasOwnProperty('details') ? bankAccount.details : {};
 
     // Update payment provider tooltips
     jQuery('#payment-providers label').each(function() {
@@ -1144,7 +1144,7 @@ function updateFormLabels() {
     updateCheckboxState('share-data', shareDataCheckboxState, formObj);
     updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
 
-    // Update success text with nl2br
+    // Update post donation instructions with nl2br
     if (postDonationInstructions !== null) {
         var postDonationInstructionText = nl2br(replaceDonationPlaceholders(postDonationInstructions, formObj, bankAccountProperties));
         jQuery('div#shortcode-content').html(postDonationInstructionText);
@@ -1222,7 +1222,7 @@ function getFormAsObject() {
         }
     });
 
-    // Delete internal values email-confirm (honey pot), action, form, mode, locale, account
+    // Delete internal values email-confirm (honey pot), action, form, mode, locale
     delete formObj['email-confirm'];
     delete formObj['action'];
     delete formObj['form'];
