@@ -555,16 +555,15 @@ if (typeof paypal !== 'undefined') {
             // Send form
             return new paypal.Promise(function(resolve, reject) {
                 jQuery('form#donationForm').ajaxSubmit({
-                    success: function(responseText) {
-                        var response = JSON.parse(responseText);
-                        if (!('success' in response) || !response['success']) {
-                            var message = 'error' in response ? response['error'] : responseText;
+                    success: function(response) {
+                        if (!response.hasOwnProperty('success') || !response.success) {
+                            var message =  response.hasOwnProperty('error') ? response.error : responseText;
                             alert(message);
                             return;
                         }
 
                         // Resolve payment / billing agreement
-                        var token = 'paymentID' in response ? response.paymentID : response.token;
+                        var token = response.hasOwnProperty('paymentID') ? response.paymentID : response.token;
                         resolve(token);
                     },
                     error: function(err) {
@@ -587,10 +586,10 @@ if (typeof paypal !== 'undefined') {
 
             // Prepare parameters
             var params = { action: "paypal_execute" };
-            if ('paymentID' in data && 'payerID' in data) {
+            if (data.hasOwnProperty('paymentID') && data.hasOwnProperty('payerID')) {
                 params.paymentID = data.paymentID;
                 params.payerID   = data.payerID;
-            } else if ('paymentToken' in data) {
+            } else if (data.hasOwnProperty('paymentToken')) {
                 params.token = data.paymentToken;
             } else {
                 alert('An error occured. Donation aborted.');
@@ -600,10 +599,9 @@ if (typeof paypal !== 'undefined') {
 
             // Execute payment / billing agreement
             jQuery.post(wordpress_vars.ajax_endpoint, params)
-                .done(function(responseText) {
-                    var response = JSON.parse(responseText);
-                    if (!('success' in response) || !response['success']) {
-                        var message = 'error' in response ? response['error'] : responseText;
+                .done(function(response) {
+                    if (!response.hasOwnProperty('success') || !response.success) {
+                        var message = response.hasOwnProperty('error') ? response.error : responseText;
                         lockLastStep(false);
                         alert(message);
                         return;
@@ -697,11 +695,10 @@ function handlePopupDonation(provider) {
 
     // Get sign up URL
     jQuery('form#donationForm').ajaxSubmit({
-        success: function(responseText, statusText, xhr, form) {
+        success: function(response, statusText, xhr, form) {
             try {
-                var response = JSON.parse(responseText);
-                if (!('success' in response) || !response['success']) {
-                    var message = 'error' in response ? response['error'] : responseText;
+                if (!response.hasOwnProperty('success') || !response.success) {
+                    var message = response.hasOwnProperty('error') ? response.error : responseText;
                     alert(message);
                 }
 
@@ -710,7 +707,7 @@ function handlePopupDonation(provider) {
                     .unbind()
                     .click(function() {
                         // Open popup
-                        openRaisePopup(response['url'], provider);
+                        openRaisePopup(response.url, provider);
 
                         // Show "continue donation in secure" message on modal
                         jQuery('#' + provider + 'Modal .modal-body .raise_popup_closed').addClass('hidden');
@@ -735,13 +732,12 @@ function handlePopupDonation(provider) {
                 lockLastStep(false);
             }
         },
-        error: function(responseText) {
+        error: function(response) {
             // Should only happen on internal server error
-            try {
-                var response = JSON.parse(responseText);
+            if (response && typeof response === "object" && response.hasOwnProperty('error')) {
                 alert(response.error);
-            } catch (err) {
-                alert(responseText);
+            } else {
+                alert(response);
             }
         }
     });
@@ -758,11 +754,10 @@ function handleIFrameDonation(provider) {
 
     // Get sign up URL
     jQuery('form#donationForm').ajaxSubmit({
-        success: function(responseText, statusText, xhr, form) {
+        success: function(response, statusText, xhr, form) {
             try {
-                var response = JSON.parse(responseText);
-                if (!('success' in response) || !response['success']) {
-                    var message = 'error' in response ? response['error'] : responseText;
+                if (!response.hasOwnProperty('success') || !response.success) {
+                    var message = response.hasOwnProperty('error') ? response.error : responseText;
                     throw new Error(message);
                 }
 
@@ -779,13 +774,12 @@ function handleIFrameDonation(provider) {
                 lockLastStep(false);
             }
         },
-        error: function(responseText) {
+        error: function(response) {
             // Should only happen on internal server error
-            try {
-                var response = JSON.parse(responseText);
+            if (response && typeof response === "object" && response.hasOwnProperty('error')) {
                 alert(response.error);
-            } catch (err) {
-                alert(responseText);
+            } else {
+                alert(response);
             }
         }
     });
@@ -846,14 +840,14 @@ function sendBanktransferDonation() {
     jQuery('form#donationForm').ajaxSubmit({
         success: function(response, statusText, xhr, form) {
             try {
-                if (!('success' in response) || !response['success']) {
-                    var message = 'error' in response ? response['error'] : responseText;
+                if (!response.hasOwnProperty('success') || !response.success) {
+                    var message =  response.hasOwnProperty('error') ? response.error : responseText;
                     throw new Error(message);
                 }
 
                 // Inject reference number in the success text
                 jQuery('div#shortcode-content').html(
-                    jQuery('div#shortcode-content').html().replace(/%reference_number%/g, response['reference'])
+                    jQuery('div#shortcode-content').html().replace(/%reference_number%/g, response.reference)
                 );
 
                 // Everything worked! Display short code content on confirmation page
@@ -970,8 +964,8 @@ function loadStripeHandler() {
             jQuery('form#donationForm').append(tokenInput).append(keyInput).ajaxSubmit({
                 success: function(response, statusText, xhr, form) {
                     try {
-                        if (!('success' in response) || !response['success']) {
-                            var message = 'error' in response ? response['error'] : responseText;
+                        if (!response.hasOwnProperty('success') || !response.success) {
+                            var message = response.hasOwnProperty('error') ? response.error : responseText;
                             throw new Error(message);
                         }
 
@@ -1279,19 +1273,19 @@ function raiseTriggerFormLoadedEvent() {
  * Show appropriate error message
  */
 function getErrorMessage(errors) {
-    if ('amount' in errors) {
+    if (errors.hasOwnProperty('amount')) {
         var minAmount      = currencyMinimums[selectedCurrency][frequency];
         var currencyAmount = currencies[selectedCurrency].replace('%amount%', minAmount);
         return errors['amount'].replace(/%minimum_amount%/g, currencyAmount);
     }
 
-    if ('amount-other' in errors) {
+    if (errors.hasOwnProperty('amount-other')) {
         var minAmount      = currencyMinimums[selectedCurrency][frequency];
         var currencyAmount = currencies[selectedCurrency].replace('%amount%', minAmount);
         return errors['amount-other'].replace(/%minimum_amount%/g, currencyAmount);
     }
 
-    if ('donor-email' in errors) {
+    if (errors.hasOwnProperty('donor-email')) {
         return errors['donor-email'];
     }
 

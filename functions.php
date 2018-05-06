@@ -497,12 +497,12 @@ function raise_prepare_redirect()
         }
 
         // Return response
-        die(json_encode($response));
+        wp_send_json($response);
     } catch (\Exception $e) {
-        die(json_encode(array(
+        wp_send_json([
             'success' => false,
             'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
-        )));
+        ]);
     }
 }
 
@@ -559,10 +559,10 @@ function raise_process_donation()
 
         wp_send_json($response);
     } catch (\Exception $e) {
-        die(json_encode(array(
+        wp_send_json([
             'success' => false,
             'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
-        )));
+        ]);
     }
 }
 
@@ -844,7 +844,13 @@ function raise_send_webhook($url, array $params)
         'referer'    => get_bloginfo('url'),
     );
     
-    wp_remote_post($url, $args);
+    // Send webhook
+    $response = wp_remote_post($url, $args);
+
+    // Make sure it arrived
+    if (is_wp_error($response)) {
+        throw new \Exception($response->get_error_message());
+    }
 }
 
 /**
@@ -1700,12 +1706,12 @@ function raise_execute_paypal_donation()
         raise_do_post_donation_actions($donation);
 
         // Send response
-        die(json_encode(array('success' => true)));
+        wp_send_json(['success' => true]);
     } catch (\Exception $ex) {
-        die(json_encode(array(
+        wp_send_json([
             'success' => false,
             'error'   => $ex->getMessage(),
-        )));
+        ]);
     }
 }
 
