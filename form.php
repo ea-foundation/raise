@@ -317,7 +317,7 @@ function raise_form($atts, $content = null)
 
                 <!-- Share with charity -->
                 <?php if (!empty($formSettings['payment']['form_elements']['share_data'])): ?>
-                    <div class="form-group donor-info" style="margin-top: -10px">
+                    <div class="form-group donor-info" style="margin-top: -10px" id="share-data-form-group" style="display: none">
                         <div class="col-sm-offset-3 col-sm-9">
                             <div class="checkbox">
                                 <label>
@@ -347,8 +347,8 @@ function raise_form($atts, $content = null)
                                 <label>
                                     <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1">
                                     <?php
-                                        if (!empty($formSettings['payment']['labels']['mailing_list'])) {
-                                            echo esc_html(raise_get_localized_value($formSettings['payment']['labels']['mailing_list']));
+                                        if (!empty($formSettings['payment']['form_elements']['mailing_list'])) {
+                                            echo esc_html(raise_get_localized_value($formSettings['payment']['form_elements']['mailing_list']));
                                         } else {
                                             _e('Subscribe me to newsletter', 'raise');
                                         }
