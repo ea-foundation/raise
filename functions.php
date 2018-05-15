@@ -262,10 +262,10 @@ function raise_rec_load_settings($form, $formsSettings, $childForms = array())
 /**
  * Get `if` rule with JSON encoded objects (label, disabled, checked) as return values for checkbox
  *
- * @param array $settings
+ * @param array|string $settings
  * @return array
  */
-function raise_get_checkbox_rule(array $settings)
+function raise_get_checkbox_rule($settings)
 {
     if (is_array($settings)) {
         if (isset($settings['label'])) {

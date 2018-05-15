@@ -94,7 +94,7 @@ add_action('admin_enqueue_scripts', 'raise_json_settings_editor');
 function raise_json_settings_editor()
 {
     wp_enqueue_script('donation-jquery-ui', plugins_url('assets/js/jquery-ui.min.js', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_script('donation-json-settings-editor', plugins_url('js/jsoneditor.min.js', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_enqueue_script('donation-json-settings-editor', plugins_url('assets/js/jsoneditor.min.js', __FILE__), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-json-settings-editor-css', plugins_url('assets/css/jsoneditor.min.css', __FILE__), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-admin-css', plugins_url('assets/css/admin.css', __FILE__), array(), RAISE_ASSET_VERSION);
     wp_enqueue_style('donation-jquery-ui-css', plugins_url('assets/css/jquery-ui.min.css', __FILE__), array(), RAISE_ASSET_VERSION);
