@@ -487,7 +487,14 @@ function raise_handle_stripe_payment($donation, $token, $publicKey)
         );
 
         if ($settings['public_key'] != $publicKey) {
-            throw new \Exception("Key mismatch");
+            throw new \Exception(
+                "Key mismatch. Expected " . $settings['public_key'] . ", got " . $publicKey . ". Details:\n" .
+                "Mode: " . $donation['mode'] . "\n" .
+                "Tax receipt: " . ($donation['tax_receipt'] ? 'Yes' : 'No') . "\n" .
+                "Currency: " . $donation['currency'] . "\n" .
+                "Country: " . raise_get($donation['country']) . "\n" .
+                "Account: " . raise_get($donation['account']) . "\n"
+            );
         }
 
         // Load secret key
