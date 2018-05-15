@@ -1249,6 +1249,9 @@ function getFormAsObject() {
     formObj.mailinglist_label = formObj.hasOwnProperty('mailinglist') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.tax_receipt_label = formObj.hasOwnProperty('tax_receipt') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
 
+    // Add account property
+    formObj.account = jsonLogic.apply(wordpress_vars.payment_provider_account_rule, formObj);
+
     return formObj;
 }
 

@@ -116,27 +116,33 @@ function raise_init_donation_form($form, $mode)
     $providerSettings = raise_get($formSettings['payment']['provider'], []);
     $tooltipMap       = function ($value) { return raise_get_localized_value($value['tooltip'], ""); };
     $displayMap       = function ($value) { return true; };
+    $accountMap       = function ($value) { return raise_get($value['account']); };
     $tooltipIf        = [];
     $displayIf        = [];
+    $accountIf        = [];
     foreach ($enabledProviders as $provider) {
         // First level rule (provider)
-        $tooltipIf[] = $displayIf[] = ['===' => [["var" => "payment_provider"], $GLOBALS['pp_key2pp_label'][$provider]]];
+        $tooltipIf[] = $displayIf[] = $accountIf[] = ['===' => [["var" => "payment_provider"], $GLOBALS['pp_key2pp_label'][$provider]]];
         // Second level rule (account)
         if (!is_array($providerSettings[$provider])) {
             $tooltipIf[] = "";
             $displayIf[] = false;
+            $accountIf[] = null;
         } elseif (raise_has_string_keys($providerSettings[$provider])) {
             $tooltipIf[] = raise_get_localized_value(raise_get($providerSettings[$provider]['tooltip'], ""));
             $displayIf[] = true;
+            $accountIf[] = raise_get($providerSettings[$provider]['account']);
         } else {
             $tooltipIf[] = raise_get_jsonlogic_if_rule($providerSettings[$provider], $tooltipMap, "");
             $displayIf[] = raise_get_jsonlogic_if_rule($providerSettings[$provider], $displayMap, false);
+            $accountIf[] = raise_get_jsonlogic_if_rule($providerSettings[$provider], $accountMap);
         }
     }
     $tooltipIf[] = ""; // Default tooltip
     $displayIf[] = false; // Default display mode
     $paymentProviderTooltipRule = ["if" => $tooltipIf];
     $paymentProviderDisplayRule = ["if" => $displayIf];
+    $paymentProviderAccountRule = ["if" => $accountIf];
 
     // Localize script
     wp_localize_script('donation-plugin-form', 'wordpress_vars', array(
@@ -148,6 +154,7 @@ function raise_init_donation_form($form, $mode)
         'post_donation_instructions_rule' => $postDonationInstructionsRule,
         'payment_provider_tooltip_rule'   => $paymentProviderTooltipRule,
         'payment_provider_display_rule'   => $paymentProviderDisplayRule,
+        'payment_provider_account_rule'   => $paymentProviderAccountRule,
         'share_data_rule'                 => $shareDataRule,
         'tax_receipt_rule'                => $taxReceiptRule,
         'bank_account_rule'               => $bankAccountsRule,
