@@ -18,11 +18,7 @@ function raise_form($atts, $content = null)
     extract(shortcode_atts(array(
         'form' => '',        // $form
         'live' => 'true',    // $live
-        'name' => 'default', // $name (legacy) TODO: Remove in next major release
     ), $atts));
-
-    // Backward compatibility
-    $form = $form ?: $name;
 
     // Make sure we have a boolean
     $live = ($live == 'false' || $live == 'no' || $live == '0') ? false : true;
