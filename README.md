@@ -105,9 +105,6 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "site_key": "my_recaptcha_site_key",
           "secret_key": "my_secret_key"
         },
-        "checkbox_defaults": {
-          "mailing_list_checked": true
-        },
         "labels": {
           "purpose": "Purpose",
           "mailing_list": "Subscribe to newsletter",
@@ -273,8 +270,8 @@ To match bank transfers with registrations, you can declare a reference number p
 Requires `secret_key` and `public_key`. The organisation logo used in the checkout modal can be configured on the settings page.
 
 Additional webhook data:
-- `vendor_transaction_id`: Charge ID
-- `vendor_subscription:id`: Subscription ID
+- `vendor_transaction_id`: Charge ID (one-time)
+- `vendor_subscription_id`: Subscription ID (recurring)
 - `vendor_customer_id`: Customer ID
 
 ![Stripe flow](/doc/images/stripe_flow.png?raw=true)
@@ -283,6 +280,11 @@ Additional webhook data:
 
 ### PayPal
 Requires `client_id` and `client_secret`. Generate credentials on PayPal Dashboard > My Apps & Credentials > [REST API apps](https://developer.paypal.com/developer/applications/).
+
+Additional webhook data:
+- `vendor_transaction_id`: Transaction ID (one-time)
+- `vendor_subscription_id`: Agreement/Profile ID (recurring)
+- `vendor_customer_id`: Payer ID
 
 ![PayPal flow](/doc/images/paypal_flow.png?raw=true)
 

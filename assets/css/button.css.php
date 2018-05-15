@@ -1,6 +1,6 @@
 <?php
     header('Content-type: text/css');
-    include_once("../../../../wp-load.php");
+    include_once("../../../../../wp-load.php");
 
     // Button background color
     $backgroundColor       = get_option('raise_button_color_background', '#0078c1');

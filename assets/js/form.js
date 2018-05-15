@@ -15,7 +15,6 @@ var otherAmountPlaceholder      = null;
 var currentStripeKey            = '';
 var frequency                   = 'once';
 var monthlySupport              = ['payment-stripe', 'payment-paypal', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
-var goCardlessSupport           = ['EUR', 'GBP', 'SEK'];
 var raisePopup                  = null;
 var gcPollTimer                 = null;
 var taxDeductionDisabled        = true;
@@ -57,8 +56,8 @@ jQuery(function($) {
     // Stripe setup
     loadStripeHandler();
 
-    // Reload payment provider for current currency
-    reloadPaymentProvidersForCurrentCurrency();
+    // Reload payment providers
+    reloadPaymentProviders();
 
     // Reload dropdowns (can be broken depending on theme)
     $('.dropdown-toggle').dropdown();
@@ -221,8 +220,8 @@ jQuery(function($) {
 
         // Post data and quit on last page
         if (currentItem >= (totalItems - 1)) {
-            // Load tax deduction labels to populate success_text
-            updateTaxDeductionLabels();
+            // Load tax deduction labels to populate post_donation_instructions
+            updateFormLabels();
 
             // Process form
             var provider = null;
@@ -262,8 +261,7 @@ jQuery(function($) {
                     currency: getDonationCurrencyIsoCode(),
                     amount: getDonationAmount(),
                     payment_provider: provider,
-                    purpose: jQuery('input[name=purpose]:checked', '#wizard').val(),
-                    account: jQuery('#raise-form-account').val()
+                    purpose: jQuery('input[name=purpose]:checked', '#wizard').val()
                 }});
                 window.dispatchEvent(ev);
                 checkoutEventDispatched = true;
@@ -287,7 +285,7 @@ jQuery(function($) {
         // If we're not at the end, do the following
         if (currentItem == (totalItems - 2)) {
             // On penultimate page load tax deduction labels
-            updateTaxDeductionLabels();
+            updateFormLabels();
 
             // ... and replace "confirm" with "donate X CHF"
             setTimeout(function() { showLastItem(currentItem) }, 200);
@@ -362,21 +360,14 @@ jQuery(function($) {
         frequency = $(this).siblings('input').val();
 
         // Hide payment options that do not support monthly
-        var paymentOptions = $('#payment-method-providers label');
+        var paymentOptions = $('#payment-providers label');
         if (frequency == 'monthly') {
             var toHide = 'amount-once';
             var toShow = 'amount-monthly';
-            var checked = false;
             paymentOptions.each(function(index) {
-                if (monthlySupport.indexOf($(this).attr('for')) == -1) {
+                if (monthlySupport.indexOf($(this).attr('for')) === -1) {
                     $(this).addClass('hidden');
                     $(this).find('input').prop('checked', false);
-                } else {
-                    // Check first possible option
-                    if (!checked) {
-                        checked = true;
-                        $(this).find('input').prop('checked', true);
-                    }
                 }
             });
         } else {
@@ -387,10 +378,10 @@ jQuery(function($) {
             paymentOptions.each(function(index) {
                 $(this).removeClass('hidden');
             });
-
-            // Except the ones that don't support the current currency
-            reloadPaymentProvidersForCurrentCurrency();
         }
+
+        // Reload payment providers
+        reloadPaymentProviders();
 
         // Switch buttons if necessary
         var buttonsToShow = $('ul#amounts li.' + toShow);
@@ -482,13 +473,13 @@ jQuery(function($) {
         // Reload Stripe handler
         loadStripeHandler();
 
-        // Hide GoCardless option if currency is not supported
-        reloadPaymentProvidersForCurrentCurrency();
+        // Reload payment providers
+        reloadPaymentProviders();
     });
 
-    $('div#payment-method-providers input[type=radio][name=payment_provider]').change(function() {
+    $('div#payment-providers input[type=radio][name=payment_provider]').change(function() {
         // Update tax deduction labels
-        updateTaxDeductionLabels();
+        updateFormLabels();
     });
 
     // Purpose dropdown stuff
@@ -496,8 +487,8 @@ jQuery(function($) {
         $('#selected-purpose').text($(this).siblings('span').text());
 
         // Update tax deduction text
-        updateTaxDeductionLabels();
-    });
+        updateFormLabels();
+    });    
 
     // Country dropdown stuff
     $('select#donor-country').change(function() {
@@ -510,10 +501,10 @@ jQuery(function($) {
 
             // Make sure it's displyed correctly (autocomplete may mess with it)
             $('input#donor-country-auto').val(option.text());
-            $('input[name=country]', '#wizard').val(countryCode);
+            $('input[name=country_code]', '#wizard').val(countryCode);
 
             // Update tax deduction labels
-            updateTaxDeductionLabels();
+            updateFormLabels();
 
             // Reload stripe handlers, trigger later (Chrome bug)
             setTimeout(loadStripeHandler, 10);
@@ -534,6 +525,9 @@ jQuery(function($) {
                 .slideUp()
                 .find('div.optionally-required').removeClass('required');
         }
+
+        // Update form labels
+        updateFormLabels();
 
         // Reload Stripe settings
         loadStripeHandler();
@@ -561,16 +555,15 @@ if (typeof paypal !== 'undefined') {
             // Send form
             return new paypal.Promise(function(resolve, reject) {
                 jQuery('form#donationForm').ajaxSubmit({
-                    success: function(responseText) {
-                        var response = JSON.parse(responseText);
-                        if (!('success' in response) || !response['success']) {
-                            var message = 'error' in response ? response['error'] : responseText;
+                    success: function(response) {
+                        if (!response.hasOwnProperty('success') || !response.success) {
+                            var message =  response.hasOwnProperty('error') ? response.error : responseText;
                             alert(message);
                             return;
                         }
 
                         // Resolve payment / billing agreement
-                        var token = 'paymentID' in response ? response.paymentID : response.token;
+                        var token = response.hasOwnProperty('paymentID') ? response.paymentID : response.token;
                         resolve(token);
                     },
                     error: function(err) {
@@ -593,10 +586,10 @@ if (typeof paypal !== 'undefined') {
 
             // Prepare parameters
             var params = { action: "paypal_execute" };
-            if ('paymentID' in data && 'payerID' in data) {
+            if (data.hasOwnProperty('paymentID') && data.hasOwnProperty('payerID')) {
                 params.paymentID = data.paymentID;
                 params.payerID   = data.payerID;
-            } else if ('paymentToken' in data) {
+            } else if (data.hasOwnProperty('paymentToken')) {
                 params.token = data.paymentToken;
             } else {
                 alert('An error occured. Donation aborted.');
@@ -606,10 +599,9 @@ if (typeof paypal !== 'undefined') {
 
             // Execute payment / billing agreement
             jQuery.post(wordpress_vars.ajax_endpoint, params)
-                .done(function(responseText) {
-                    var response = JSON.parse(responseText);
-                    if (!('success' in response) || !response['success']) {
-                        var message = 'error' in response ? response['error'] : responseText;
+                .done(function(response) {
+                    if (!response.hasOwnProperty('success') || !response.success) {
+                        var message = response.hasOwnProperty('error') ? response.error : responseText;
                         lockLastStep(false);
                         alert(message);
                         return;
@@ -703,11 +695,10 @@ function handlePopupDonation(provider) {
 
     // Get sign up URL
     jQuery('form#donationForm').ajaxSubmit({
-        success: function(responseText, statusText, xhr, form) {
+        success: function(response, statusText, xhr, form) {
             try {
-                var response = JSON.parse(responseText);
-                if (!('success' in response) || !response['success']) {
-                    var message = 'error' in response ? response['error'] : responseText;
+                if (!response.hasOwnProperty('success') || !response.success) {
+                    var message = response.hasOwnProperty('error') ? response.error : responseText;
                     alert(message);
                 }
 
@@ -716,7 +707,7 @@ function handlePopupDonation(provider) {
                     .unbind()
                     .click(function() {
                         // Open popup
-                        openRaisePopup(response['url'], provider);
+                        openRaisePopup(response.url, provider);
 
                         // Show "continue donation in secure" message on modal
                         jQuery('#' + provider + 'Modal .modal-body .raise_popup_closed').addClass('hidden');
@@ -741,13 +732,12 @@ function handlePopupDonation(provider) {
                 lockLastStep(false);
             }
         },
-        error: function(responseText) {
+        error: function(response) {
             // Should only happen on internal server error
-            try {
-                var response = JSON.parse(responseText);
+            if (response && typeof response === "object" && response.hasOwnProperty('error')) {
                 alert(response.error);
-            } catch (err) {
-                alert(responseText);
+            } else {
+                alert(response);
             }
         }
     });
@@ -764,11 +754,10 @@ function handleIFrameDonation(provider) {
 
     // Get sign up URL
     jQuery('form#donationForm').ajaxSubmit({
-        success: function(responseText, statusText, xhr, form) {
+        success: function(response, statusText, xhr, form) {
             try {
-                var response = JSON.parse(responseText);
-                if (!('success' in response) || !response['success']) {
-                    var message = 'error' in response ? response['error'] : responseText;
+                if (!response.hasOwnProperty('success') || !response.success) {
+                    var message = response.hasOwnProperty('error') ? response.error : responseText;
                     throw new Error(message);
                 }
 
@@ -785,13 +774,12 @@ function handleIFrameDonation(provider) {
                 lockLastStep(false);
             }
         },
-        error: function(responseText) {
+        error: function(response) {
             // Should only happen on internal server error
-            try {
-                var response = JSON.parse(responseText);
+            if (response && typeof response === "object" && response.hasOwnProperty('error')) {
                 alert(response.error);
-            } catch (err) {
-                alert(responseText);
+            } else {
+                alert(response);
             }
         }
     });
@@ -850,17 +838,16 @@ function handleBankTransferDonation() {
 function sendBanktransferDonation() {
     // Send form
     jQuery('form#donationForm').ajaxSubmit({
-        success: function(responseText, statusText, xhr, form) {
+        success: function(response, statusText, xhr, form) {
             try {
-                var response = JSON.parse(responseText);
-                if (!('success' in response) || !response['success']) {
-                    var message = 'error' in response ? response['error'] : responseText;
+                if (!response.hasOwnProperty('success') || !response.success) {
+                    var message =  response.hasOwnProperty('error') ? response.error : responseText;
                     throw new Error(message);
                 }
 
                 // Inject reference number in the success text
                 jQuery('div#shortcode-content').html(
-                    jQuery('div#shortcode-content').html().replace(/%reference_number%/g, response['reference'])
+                    jQuery('div#shortcode-content').html().replace(/%reference_number%/g, response.reference)
                 );
 
                 // Everything worked! Display short code content on confirmation page
@@ -900,7 +887,7 @@ function lockLastStep(locked) {
     jQuery('div.donor-info input', '#payment-method-item').prop('disabled', locked);
     jQuery('div.donor-info textarea', '#payment-method-item').prop('disabled', locked);
     jQuery('div.donor-info button', '#payment-method-item').prop('disabled', locked);
-    jQuery('input', '#payment-method-providers').prop('disabled', locked);
+    jQuery('input', '#payment-providers').prop('disabled', locked);
     jQuery('div.checkbox input', '#payment-method-item').prop('disabled', locked);
 
     if (!locked) {
@@ -915,30 +902,6 @@ function lockLastStep(locked) {
 }
 
 function showConfirmation(paymentProvider) {
-    // Hide all payment provider related divs on confirmation page except the ones from paymentProvider
-    jQuery('#payment-method-providers input[name=payment_provider]').each(function(index) {
-        var provider = jQuery(this).val().toLowerCase().replace(/\s+/g, "");
-        if (paymentProvider != provider) {
-            jQuery('#shortcode-content .raise-' + provider).hide();
-        }
-    });
-
-    // Hide all irrelevant country-specific info
-    var countryDivs = jQuery('#shortcode-content .raise-country');
-    if (userCountry != '') {
-        // Hide other countries
-        var userCountryCss = '.raise-country-' + userCountry.toLowerCase();
-        countryDivs.not(userCountryCss).hide();
-
-        // Show raise-country-other if no divs specific for user country were found
-        if (countryDivs.filter(userCountryCss).length == 0) {
-            countryDivs.filter('.raise-country-other').show();
-        }
-    } else {
-        // Show raise-country-other
-        countryDivs.not('.raise-country-other').hide();
-    }
-
     // Hide spinner
     jQuery('button.confirm:last', '#wizard')
         .removeClass('donation-continue')
@@ -953,8 +916,7 @@ function showConfirmation(paymentProvider) {
         currency: getDonationCurrencyIsoCode(),
         amount: getDonationAmount(),
         payment_provider: paymentProvider,
-        purpose: jQuery('input[name=purpose]:checked', '#wizard').val(),
-        account: jQuery('#raise-form-account').val()
+        purpose: jQuery('input[name=purpose]:checked', '#wizard').val()
     }});
     window.dispatchEvent(ev);
 
@@ -966,64 +928,24 @@ function showConfirmation(paymentProvider) {
 
 function loadStripeHandler() {
     // Get best matching key
-    var stripeSettings = wordpress_vars.stripe_public_keys;
-    if (Object.keys(stripeSettings).length == 0) {
+    var stripePublicKeyRule = wordpress_vars.stripe_public_key_rule;
+    if (!stripePublicKeyRule) {
         // No Stripe settings for this form
         return;
     }
 
-    // Lock form
-    lockLastStep(true);
-
-    // Get account and check if it exists
-    var account = jQuery('#raise-form-account').val();
-    if (account && account.toLowerCase() in stripeSettings) {
-        var newStripeKey = stripeSettings[account.toLowerCase()];
-    } else {
-        // Check all possible settings
-        var hasCountrySetting  = userCountry.toLowerCase() in stripeSettings;
-        var hasCurrencySetting = selectedCurrency.toLowerCase() in stripeSettings;
-        var hasDefaultSetting  = 'default' in stripeSettings;
-
-        // Check if there are settings for a country where the chosen currency is used.
-        // This is only relevant if the donor does not need a donation receipt (always related
-        // to specific country) and if there are no currency specific settings
-        var hasCountryOfCurrencySetting = false;
-        var countryOfCurrency           = '';
-        if (!countryCompulsory && !taxReceiptNeeded && !hasCurrencySetting) {
-            var countries = getCountriesByCurrency(selectedCurrency);
-            for (var i = 0; i < countries.length; i++) {
-                if (countries[i].toLowerCase() in stripeSettings) {
-                    hasCountryOfCurrencySetting = true;
-                    countryOfCurrency = countries[i];
-                    break;
-                }
-            }
-        }
-
-        if (hasCountrySetting && (taxReceiptNeeded || countryCompulsory)) {
-            // Use country specific key
-            var newStripeKey = stripeSettings[userCountry.toLowerCase()];
-        } else if (hasCurrencySetting) {
-            // Use currency specific key
-            var newStripeKey = stripeSettings[selectedCurrency.toLowerCase()];
-        } else if (hasCountryOfCurrencySetting) {
-            // Use key of a country where the chosen currency is used
-            var newStripeKey = stripeSettings[countryOfCurrency.toLowerCase()];
-        } else if (hasDefaultSetting) {
-            // Use default key
-            var newStripeKey = stripeSettings['default'];
-        } else {
-            throw new Error('No Stripe settings found');
-        }
-    }
+    // Get form object
+    var formObj      = getFormAsObject();
+    var newStripeKey = jsonLogic.apply(stripePublicKeyRule, formObj)
 
     // Check if the key changed
-    if (currentStripeKey == newStripeKey) {
-        // Unlock form and exit
-        lockLastStep(false);
+    if (currentStripeKey === newStripeKey) {
+        // Nothing to do
         return;
     }
+
+    // Lock form while Stripe gets reloaded
+    lockLastStep(true);
 
     // Create new Stripe handler
     stripeHandler = StripeCheckout.configure({
@@ -1040,11 +962,10 @@ function loadStripeHandler() {
 
             // Send form
             jQuery('form#donationForm').append(tokenInput).append(keyInput).ajaxSubmit({
-                success: function(responseText, statusText, xhr, form) {
+                success: function(response, statusText, xhr, form) {
                     try {
-                        var response = JSON.parse(responseText);
-                        if (!('success' in response) || !response['success']) {
-                            var message = 'error' in response ? response['error'] : responseText;
+                        if (!response.hasOwnProperty('success') || !response.success) {
+                            var message = response.hasOwnProperty('error') ? response.error : responseText;
                             throw new Error(message);
                         }
 
@@ -1164,121 +1085,109 @@ function getCountriesByCurrency(currency) {
 /**
  * Show/hide payment providers
  */
-function reloadPaymentProvidersForCurrentCurrency() {
-    // GoCardless
-    var gcLabel = jQuery('#payment-method-providers label[for=payment-gocardless]');
-    if (goCardlessSupport.indexOf(selectedCurrency) == -1) {
-        gcLabel.addClass('hidden');
-        gcLabel.find('input').prop('checked', false);
-    } else {
-        gcLabel.removeClass('hidden');
-    }
+function reloadPaymentProviders() {
+    // Hide payment providers that don't support the current donation
+    var formObj = getFormAsObject();
+    jQuery('#payment-providers label').each(function() {
+        var providerLabel = jQuery(this).find('input[name="payment_provider"]').val();
+        var tempObj       = Object.assign({}, formObj, {"payment_provider": providerLabel});
+        var display       = jsonLogic.apply(wordpress_vars.payment_provider_display_rule, tempObj);
+        jQuery(this).toggle(display);
+    });
 
     // Pre-select first provider
-    jQuery('#payment-method-providers label:not(.hidden):first input').prop('checked', true);
+    jQuery('#payment-providers label:not(:hidden):first input').prop('checked', true);
 }
 
 /**
- * Get tax deduction labels (nested array: country > payment provider > purpose/charity)
+ * Apply JsonLogic and JSON.parse result. Useful for prvenenting evaluation of `if` statement values
+ * 
+ * @param Object rule 
+ * @param Object data 
  */
-function updateTaxDeductionLabels() {
-    var labels = wordpress_vars.tax_deduction_labels;
+function applyJsonLogicAndParse(rule, data) {
+    var result = jsonLogic.apply(rule, data);
 
-    // Only proceed if defined
-    if (!labels) {
-        return;
-    }
+    return JSON.parse(result);
+}
 
-    var paymentMethod = jQuery('input[name=payment_provider]:checked', '#wizard');
-    if (paymentMethod.length) {
-        var paymentMethodId   = paymentMethod.attr('id').substr(8); // Strip `payment-` prefix
-    } else {
-        var paymentMethodId   = null;
-    }
-    var purpose = jQuery('input[name=purpose]:checked', '#wizard');
-    if (purpose.length) {
-        var purposeId   = purpose.val();
-    } else {
-        var purposeId   = null;
-    }
-
-    // Labels to check
-    var countryCodes   = !userCountry     ? ['default'] : ['default', userCountry.toLowerCase()];
-    var paymentMethods = !paymentMethodId ? ['default'] : ['default', paymentMethodId.toLowerCase()];
-    var purposes       = !purposeId       ? ['default'] : ['default', purposeId];
-    var result         = {};
-
-    // Find best labels, more specific settings override more general settings
-    for (var i = 0; i < countryCodes.length; i++) {
-        for (var j = 0; j < paymentMethods.length; j++) {
-            for (var k = 0; k < purposes.length; k++) {
-                if (checkNestedArray(labels, countryCodes[i], paymentMethods[j], purposes[k])) {
-                    jQuery.extend(result, labels[countryCodes[i]][paymentMethods[j]][purposes[k]]);
-                }
-            }
-        }
-    }
-
+/**
+ * Update form labels (payment provider tooltip, tax receipt checkbox, post donation instructions)
+ */
+function updateFormLabels() {
     // Get all form contents
     var formObj = getFormAsObject();
 
-    // Update deductible
-    var taxReceipt = jQuery('input#tax-receipt');
-    if (result.hasOwnProperty('deductible')) {
-        taxDeductionDisabled = !result.deductible;
+    // Infer properties
+    var paymentProviderTooltips  = jsonLogic.apply(wordpress_vars.payment_provider_tooltip_rule, formObj);
+    var postDonationInstructions = jsonLogic.apply(wordpress_vars.post_donation_instructions_rule, formObj);
+    var shareDataCheckboxState   = applyJsonLogicAndParse(wordpress_vars.share_data_rule, formObj);
+    var taxReceiptCheckboxState  = applyJsonLogicAndParse(wordpress_vars.tax_receipt_rule, formObj);
+    var bankAccount              = applyJsonLogicAndParse(wordpress_vars.bank_account_rule, formObj) || {};
+    var bankAccountProperties    = bankAccount.hasOwnProperty('details') ? bankAccount.details : {};
 
-        // Collapse address details if open
-        if (taxDeductionDisabled && taxReceipt.is(':checked')) {
-            taxReceipt.click();
-        }
-        taxReceipt.prop('disabled', taxDeductionDisabled);
-    }
+    // Update payment provider tooltips
+    jQuery('#payment-providers label').each(function() {
+        var providerLabel = jQuery(this).find('input[name="payment_provider"]').val();
+        var tempObj       = Object.assign({}, formObj, {"payment_provider": providerLabel});
+        var tooltip       = jsonLogic.apply(wordpress_vars.payment_provider_tooltip_rule, tempObj);
+        jQuery(this).find('div[data-toggle="tooltip"]').attr('data-original-title', tooltip);
+    });
 
-    // Update receipt text
-    if ('receipt_text' in result) {
-        taxReceipt.parent().parent().parent().parent().show();
-        result.receipt_text = replaceTaxDeductionPlaceholders(result.receipt_text, formObj);
-        jQuery('span#tax-receipt-text').html(result.receipt_text);
-    } else {
-        // Hide checkbox
-        taxReceipt.prop('checked', false);
-        taxReceipt.parent().parent().parent().parent().hide();
-    }
+    // Update checkbox states
+    updateCheckboxState('share-data', shareDataCheckboxState, formObj);
+    updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
 
-    // Update account
-    var accountData = {};
-    if ('account' in result) {
-        jQuery('#raise-form-account').val(result.account);
-
-        // Add account data
-        if (result.account in wordpress_vars.bank_accounts && typeof wordpress_vars.bank_accounts[result.account] === 'object') {
-            accountData = wordpress_vars.bank_accounts[result.account];
-        }
-    } else {
-        jQuery('#raise-form-account').val('');
-    }
-
-    // Update success text with nl2br
-    if ('success_text' in result) {
-        var taxDeductionSuccessText = nl2br(replaceTaxDeductionPlaceholders(result.success_text, formObj, accountData));
-        jQuery('div#shortcode-content').html(taxDeductionSuccessText);
-        jQuery('input[name=success_text]').val(taxDeductionSuccessText);
-    }
-
-    // Update provider_hover_text
-    var providerLabels = jQuery('#payment-method-providers > label').removeAttr('title');
-    if ('provider_hover_text' in result && typeof result.provider_hover_text === 'object') {
-        var titles = result.provider_hover_text;
-        for (var provider in titles) {
-            providerLabels.filter('[for=payment-' + provider + ']').prop('title', titles[provider]);
-        }
+    // Update post donation instructions with nl2br
+    if (postDonationInstructions !== null) {
+        var postDonationInstructionText = nl2br(replaceDonationPlaceholders(postDonationInstructions, formObj, bankAccountProperties));
+        jQuery('div#shortcode-content').html(postDonationInstructionText);
+        jQuery('input[name=post_donation_instructions]').val(postDonationInstructionText);
     }
 }
 
 /**
- * Add placeholders
+ * Update checkbox state
+ * 
+ * @param string id      ID of form element
+ * @param Object state   Object containing the properties `label` and `disabled`
+ * @param Object formObj Form object
  */
-function replaceTaxDeductionPlaceholders(label, formObj, accountData) {
+function updateCheckboxState(id, state, formObj) {
+    // Enable/disable checkbox
+    var element = jQuery('input#' + id);
+    if (state.hasOwnProperty('disabled')) {
+        taxDeductionDisabled = !!state.disabled;
+
+        // Collapse address details if open
+        if (taxDeductionDisabled && element.is(':checked')) {
+            element.click();
+        }
+        element.prop('disabled', taxDeductionDisabled);
+    } else {
+        // Enable checkbox
+        if (element.prop('disabled')) {
+            taxDeductionDisabled = false;
+            element.prop('disabled', false);
+        }
+    }
+
+    // Update checkbox label
+    if (state.hasOwnProperty('label') && state.label) {
+        element.parent().parent().parent().parent().show();
+        state.label = replaceDonationPlaceholders(state.label, formObj);
+        jQuery('span#' + id + '-text').html(state.label);
+    } else {
+        // Hide checkbox
+        element.prop('checked', false);
+        element.parent().parent().parent().parent().hide();
+    }
+}
+
+/**
+ * Replace donation placeholders
+ */
+function replaceDonationPlaceholders(label, formObj, accountData) {
     // Replace %bank_account_formatted%
     if (!jQuery.isEmptyObject(accountData)) {
         var accountDataString = Object.keys(accountData).map(function(key, index) {
@@ -1307,33 +1216,33 @@ function getFormAsObject() {
         }
     });
 
-    // Delete internal values email-confirm (honey pot), action, form, mode, locale, account
+    // Delete internal values email-confirm (honey pot), action, form, mode, locale
     delete formObj['email-confirm'];
     delete formObj['action'];
     delete formObj['form'];
     delete formObj['mode'];
     delete formObj['locale'];
-    delete formObj['account'];
 
     // Merge amount and amount-other
-    if (!('amount' in formObj)) {
+    if (!formObj.hasOwnProperty('amount')) {
         formObj.amount = formObj.amount_other;
     }
     delete formObj.amount_other;
 
-    // Localize values for frequency, payment_provider, country, purpose
-    formObj.frequency        = jQuery('input[name=frequency][value=' + formObj.frequency + ']').siblings('label').text();
-    formObj.payment_provider = jQuery('input[name=payment_provider][value=' + formObj.payment_provider.replace(' ', '\\ ') + ']').siblings('span').text();
-    if ('country' in formObj) {
-        formObj.country = jQuery('select#donor-country option[value=' + formObj.country.toUpperCase() + ']').text();
+    // Save localized values for frequency, payment_provider, purpose to `*_label` (except `country` for `country_code`)
+    formObj.frequency_label        = jQuery('input[name=frequency][value=' + formObj.frequency + ']').siblings('label').text();
+    formObj.payment_provider_label = jQuery('input[name=payment_provider][value=' + formObj.payment_provider.replace(' ', '\\ ') + ']').siblings('span').text();
+    if (formObj.hasOwnProperty('country_code')) {
+        formObj.country = formObj.country_code ? jQuery('select#donor-country option[value=' + formObj.country_code.toUpperCase() + ']').text() : '';
     }
-    if ('purpose' in formObj) {
-        formObj.purpose = jQuery('input[name=purpose][value=' + formObj.purpose.replace(' ', '\\ ') + ']').siblings('span').text();
+    if (formObj.hasOwnProperty('purpose')) {
+        formObj.purpose_label = jQuery('input[name=purpose][value=' + formObj.purpose.replace(' ', '\\ ') + ']').siblings('span').text();
     }
 
     // Localize booleans
-    formObj.mailinglist = 'mailinglist' in formObj ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
-    formObj.tax_receipt = 'tax_receipt' in formObj ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
+    formObj.share_data_label  = formObj.hasOwnProperty('share_data')  ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
+    formObj.mailinglist_label = formObj.hasOwnProperty('mailinglist') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
+    formObj.tax_receipt_label = formObj.hasOwnProperty('tax_receipt') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
 
     return formObj;
 }
@@ -1364,19 +1273,19 @@ function raiseTriggerFormLoadedEvent() {
  * Show appropriate error message
  */
 function getErrorMessage(errors) {
-    if ('amount' in errors) {
+    if (errors.hasOwnProperty('amount')) {
         var minAmount      = currencyMinimums[selectedCurrency][frequency];
         var currencyAmount = currencies[selectedCurrency].replace('%amount%', minAmount);
         return errors['amount'].replace(/%minimum_amount%/g, currencyAmount);
     }
 
-    if ('amount-other' in errors) {
+    if (errors.hasOwnProperty('amount-other')) {
         var minAmount      = currencyMinimums[selectedCurrency][frequency];
         var currencyAmount = currencies[selectedCurrency].replace('%amount%', minAmount);
         return errors['amount-other'].replace(/%minimum_amount%/g, currencyAmount);
     }
 
-    if ('donor-email' in errors) {
+    if (errors.hasOwnProperty('donor-email')) {
         return errors['donor-email'];
     }
 

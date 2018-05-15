@@ -90,8 +90,7 @@ function raise_form($atts, $content = null)
 <input type="hidden" name="action" value="raise_donate"> <!-- ajax key -->
 <input type="hidden" name="form" value="<?= $form ?>" id="raise-form-name">
 <input type="hidden" name="mode" value="<?= $mode ?>" id="raise-form-mode">
-<input type="hidden" name="account" value="" id="raise-form-account">
-<input type="hidden" name="success_text" value="" id="raise-form-success-text">
+<input type="hidden" name="post_donation_instructions" value="" id="raise-form-post-donation-instructions">
 <input type="hidden" name="locale" value="<?= get_locale() ?>">
 
 <!-- Scrollable root element -->
@@ -121,7 +120,7 @@ function raise_form($atts, $content = null)
                     <div class="col-xs-12" id="donation-currency">
                         <div class="btn-group">
                             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                              <img src="<?php echo plugins_url('images/blank.gif', __FILE__) ?>" id="selected-currency-flag" class="flag flag-<?php echo $preselectedCurrencyFlag ?>" alt="<?php echo $preselectedCurrency ?>">
+                              <img src="<?php echo plugins_url('assets/images/blank.gif', __FILE__) ?>" id="selected-currency-flag" class="flag flag-<?php echo $preselectedCurrencyFlag ?>" alt="<?php echo $preselectedCurrency ?>">
                               <span id="selected-currency"><?php echo $preselectedCurrency ?></span>
                               <span class="caret"></span>
                             </button>
@@ -131,7 +130,7 @@ function raise_form($atts, $content = null)
                                         $currency = strtoupper($lcCurrency);
                                         $flagCss  = isset($currencySettings['country_flag']) ? 'flag-' . $currencySettings['country_flag'] : '';
                                         $checked  = $currency == $preselectedCurrency ? 'checked' : '';
-                                        echo '<li><label for="currency-' . $lcCurrency . '"><input type="radio" id="currency-' . $lcCurrency . '" name="currency" value="' . $currency . '" class="hidden" ' . $checked . '><img src="'. plugins_url("images/blank.gif", __FILE__) . '" class="flag ' . $flagCss . '" alt="' . $currency . '">' . $currency . '</label></li>';
+                                        echo '<li><label for="currency-' . $lcCurrency . '"><input type="radio" id="currency-' . $lcCurrency . '" name="currency" value="' . $currency . '" class="hidden" ' . $checked . '><img src="'. plugins_url("assets/images/blank.gif", __FILE__) . '" class="flag ' . $flagCss . '" alt="' . $currency . '">' . $currency . '</label></li>';
                                     }
                                 ?>
                             </ul>
@@ -207,7 +206,7 @@ function raise_form($atts, $content = null)
                 <div class="sr-only">
                     <h3><?php _e('Choose a payment method', 'raise') ?></h3>
                 </div>
-                <div class="form-group payment-info" id="payment-method-providers">
+                <div class="form-group payment-info" id="payment-providers">
                     <?= raise_print_payment_providers($formSettings, $mode); ?>
                 </div>
 
@@ -253,12 +252,12 @@ function raise_form($atts, $content = null)
                 <div class="form-group required donor-info">
                     <label for="donor-country" class="col-sm-3 control-label"><?php _e('Country', 'raise') ?></label>
                     <div class="col-sm-9">
-                        <select class="combobox form-control" name="country" id="donor-country">
+                        <select class="combobox form-control" name="country_code" id="donor-country">
                             <option></option>
                             <?php
                                 $countries = raise_get_sorted_country_list();
                                 foreach ($countries as $code => $country) {
-                                    $checked = $userCountryCode == $code ? 'selected' : '';
+                                    $checked = $userCountryCode === $code ? 'selected' : '';
                                     echo '<option value="' . $code . '" '  . $checked . '>' . $country[0] . '</option>';
                                 }
                             ?>
@@ -316,6 +315,20 @@ function raise_form($atts, $content = null)
                     </div>
                 <?php endif; endif; ?>
 
+                <!-- Share with charity -->
+                <?php if (!empty($formSettings['payment']['form_elements']['share_data'])): ?>
+                    <div class="form-group donor-info" style="margin-top: -10px">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="share_data" id="share-data" value="1" disabled>
+                                    <span id="share-data-text"><?php _e('Share my data with recipient charity', 'raise'); ?></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <!-- Comment -->
                 <?php if (raise_get($formSettings['payment']['extra_fields']['comment'], false)): ?>
                     <div class="form-group donor-info">
@@ -328,11 +341,11 @@ function raise_form($atts, $content = null)
 
                 <!-- Mailing list -->
                 <?php if (!empty($formSettings['webhook']['mailing_list'][$mode])): ?>
-                    <div class="form-group donor-info">
+                    <div class="form-group donor-info" style="margin-top: -10px">
                         <div class="col-sm-offset-3 col-sm-9">
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1" <?= raise_get($formSettings['payment']['checkbox_defaults']['mailing_list_checked'], false) ? 'checked' : '' ?>>
+                                    <input type="checkbox" name="mailinglist" id="donor-mailinglist" value="1">
                                     <?php
                                         if (!empty($formSettings['payment']['labels']['mailing_list'])) {
                                             echo esc_html(raise_get_localized_value($formSettings['payment']['labels']['mailing_list']));
@@ -347,20 +360,12 @@ function raise_form($atts, $content = null)
                 <?php endif; ?>
 
                 <!-- Tax receipt -->
-                <div class="form-group donor-info" <?= !empty($formSettings['webhook']['mailing_list'][$mode]) ? 'style="margin-top: -15px"' : ''; ?>>
+                <div class="form-group donor-info" style="margin-top: -10px">
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1" disabled="disabled">
-                                <span id="tax-receipt-text">
-                                <?php
-                                    if (!empty($formSettings['payment']['labels']['tax_receipt'])) {
-                                        echo esc_html(raise_get_localized_value($formSettings['payment']['labels']['tax_receipt']));
-                                    } else {
-                                        _e('I need a tax receipt', 'raise');
-                                    }
-                                ?>
-                                </span>
+                                <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1" disabled>
+                                <span id="tax-receipt-text"><?php _e('I need a tax receipt', 'raise'); ?></span>
                             </label>
                         </div>
                     </div>

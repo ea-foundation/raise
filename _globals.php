@@ -30,6 +30,18 @@ __("Bank", "raise");
 __("Purpose", "raise");
 
 /**
+ * Payment provider key to payment provider label mapping
+ */
+$GLOBALS['pp_key2pp_label'] = array(
+    'stripe'       => 'Stripe',
+    'paypal'       => 'PayPal',
+    'gocardless'   => 'GoCardless',
+    'bitpay'       => 'BitPay',
+    'skrill'       => 'Skrill',
+    'banktransfer' => 'Bank Transfer',
+);
+
+/**
  * Currency/country mapping
  */
 $GLOBALS['country2currency'] = array(

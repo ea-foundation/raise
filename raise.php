@@ -93,11 +93,11 @@ function raise_load_textdomain()
 add_action('admin_enqueue_scripts', 'raise_json_settings_editor');
 function raise_json_settings_editor()
 {
-    wp_enqueue_script('donation-jquery-ui', plugins_url('js/jquery-ui.min.js', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_enqueue_script('donation-jquery-ui', plugins_url('assets/js/jquery-ui.min.js', __FILE__), array(), RAISE_ASSET_VERSION);
     wp_enqueue_script('donation-json-settings-editor', plugins_url('js/jsoneditor.min.js', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-json-settings-editor-css', plugins_url('css/jsoneditor.min.css', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-admin-css', plugins_url('css/admin.css', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-jquery-ui-css', plugins_url('css/jquery-ui.min.css', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-json-settings-editor-css', plugins_url('assets/css/jsoneditor.min.css', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-admin-css', plugins_url('assets/css/admin.css', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-jquery-ui-css', plugins_url('assets/css/jquery-ui.min.css', __FILE__), array(), RAISE_ASSET_VERSION);
     wp_enqueue_media();
 }
 
@@ -108,25 +108,26 @@ add_action('wp_enqueue_scripts', 'raise_register_donation_styles');
 function raise_register_donation_styles()
 {
     // Register bootstrap and bootstrap combobox
-    wp_register_style('bootstrap-scoped', plugins_url('css/scoped-bootstrap.min.css', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_register_style('donation-combobox', plugins_url('css/bootstrap-combobox.css', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_register_style('bootstrap-scoped', plugins_url('assets/css/scoped-bootstrap.min.css', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_register_style('donation-combobox', plugins_url('assets/css/bootstrap-combobox.css', __FILE__), array(), RAISE_ASSET_VERSION);
 
     // Enqueue country flag sprites if necessary
     if ($flagSprite = raise_get_best_flag_sprite()) {
-        wp_enqueue_style('donation-plugin-flags', plugins_url('css/flags-' . $flagSprite . '.css', __FILE__), array(), RAISE_ASSET_VERSION);
+        wp_enqueue_style('donation-plugin-flags', plugins_url('assets/css/flags-' . $flagSprite . '.css', __FILE__), array(), RAISE_ASSET_VERSION);
     }
 
     // Enqueue all other styles
-    wp_enqueue_style('donation-plugin', plugins_url('css/form.css', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-button', plugins_url('css/button.css.php', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-plugin', plugins_url('assets/css/form.css', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-button', plugins_url('assets/css/button.css.php', __FILE__), array(), RAISE_ASSET_VERSION);
 
     // Register scripts (enqueue later)
     wp_register_script('donation-plugin-bootstrapjs', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', array('jquery'));
     wp_register_script('donation-plugin-jqueryformjs', '//malsup.github.io/jquery.form.js', array('jquery'));
     wp_register_script('donation-plugin-stripe', '//checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', '//www.paypalobjects.com/api/checkout.js?data-version-4'); // The query string is actually supposed to be a separate attribute without value, see below
-    wp_register_script('donation-combobox', plugins_url('js/bootstrap-combobox.js', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_register_script('donation-plugin-form', plugins_url('js/form.js', __FILE__), array('jquery'), RAISE_ASSET_VERSION);
+    wp_register_script('donation-plugin-json-logic', plugins_url('assets/js/logic.js', __FILE__));
+    wp_register_script('donation-plugin-combobox', plugins_url('assets/js/bootstrap-combobox.js', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_register_script('donation-plugin-form', plugins_url('assets/js/form.js', __FILE__), array('jquery'), RAISE_ASSET_VERSION);
 }
 
 /*

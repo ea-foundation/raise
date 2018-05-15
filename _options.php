@@ -61,7 +61,7 @@ class RaiseOptionsPage
 
         // Load settings
         $settings     = json_decode(get_option('raise_settings'), true);
-        $defaultLogo  = plugin_dir_url(__FILE__) . 'images/logo.png';
+        $defaultLogo  = plugin_dir_url(__FILE__) . 'assets/images/logo.png';
         $logo         = get_option('raise_logo', $defaultLogo);
         $version      = get_option('raise_version');
 
