@@ -68,6 +68,7 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
         },
         "<a href="#payment-methods">provider</a>": {
           "stripe": {
+            "account": "DE",
             "live": {
               "secret_key": "sk_live_mykey",
               "public_key": "pk_live_mykey"
@@ -77,15 +78,89 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
               "public_key": "pk_test_mykey"
             }
           },
-          "<a href="#bank-transfer">banktransfer</a>": {
-            "accounts": {
-              "DE": {
-                "Beneficiary": "My organisation",
-                "IBAN": "DE12500105170648489890",
-                "Purpose": "%reference_number%"
+          "<a href="#bank-transfer">banktransfer</a>": [
+            {
+              "value": {
+                "account": "UK",
+                "details": {
+                  "Beneficiary": "My Organization UK",
+                  "Account number": 1234567,
+                  "Sort code": "12-34-56",
+                  "IBAN": "GB50 1234 1234 1234 1234 A",
+                  "BIC/SWIFT": "LOYDGB2L",
+                  "Bank": "Lloyds Bank Plc",
+                  "Purpose": "%reference_number%"
+                },
+                "tooltip": {
+                  "en": "No fees",
+                  "de": "Gebührenfrei"
+                }
+              },
+              "if": {
+                "and": [
+                  {
+                    "===": [
+                      {
+                        "var": "country_code"
+                      },
+                      "GB"
+                    ]
+                  },
+                  {
+                    "!!": [
+                      {
+                        "var": "tax_receipt"
+                      }
+                    ]
+                  }
+                ]
               }
+            },
+            {
+              "value": {
+                "account": "US",
+                "details": {
+                  "Beneficiary": "My Organization USA",
+                  "Account number": 123456789,
+                  "Routing number": 123456789,
+                  "Bank": "JPMorgan Chase Bank, 188 Spear St, Ste 190, San Francisco, CA 94105, United States",
+                  "Purpose": "%reference_number%"
+                },
+                "tooltip": {
+                  "en": "No fees",
+                  "de": "Gebührenfrei"
+                }
+              },
+              "if": {
+                "===": [
+                  {
+                    "var": "country_code"
+                  },
+                  "US"
+                ]
+              }
+            },
+            {
+              "value": {
+                "account": "DE",
+                "details": {
+                  "Beneficiary": "My Organization Germany",
+                  "IBAN CHF": "DE67 1234 1234 1234 1234 N",
+                  "IBAN EUR": "DE20 1234 1234 1234 1234 D",
+                  "IBAN USD": "DE79 1234 1234 1234 1234 F",
+                  "IBAN GBP": "DE08 1234 1234 1234 1234 T",
+                  "BIC/SWIFT": "DEUTINBBPBC",
+                  "Bank": "Deutsche Bank",
+                  "Purpose": "%reference_number%"
+                },
+                "tooltip": {
+                  "en": "Banks may charge a fee for international transactions.",
+                  "de": "Banken können Gebühren auf internationale Überweisungen erheben."
+                }
+              },
+              "if": true
             }
-          }
+          ]
         },
         "<a href="#reference-numbers">reference_number_prefix</a>": {
           "my_org": "ORG",
@@ -105,33 +180,104 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "site_key": "my_recaptcha_site_key",
           "secret_key": "my_secret_key"
         },
-        "labels": {
-          "purpose": "Purpose",
-          "mailing_list": "Subscribe to newsletter",
-          "tax_receipt": "I need a tax receipt",  # not necessary if tax deduction labels are set
-          "<a href="#tax-deduction">tax_deduction</a>": {
-            "default": { # country
-              "default": { # payment provider
-                "default": { # purpose
-                  "account": "DE",
-                  "deductible": false,
-                  "receipt_text": "We currently do not offer tax deductibility for %country%.",
-                  "success_text": ""
+        "form_elements": {
+          "purpose": {
+            "en": "Charity",
+            "de": "Organisation"
+          },
+          "tax_receipt": [
+            {
+              "info": "DE: tax-deductible", // Label
+              "value": {
+                "label": {
+                  "en": "I need a tax receipt for Germany.",
+                  "de": "Ich benötige eine Steuerbescheinigung für Deutschland."
                 }
               },
-              "banktransfer": {
-                "success_text": "You can now make your transfer using the bank details below.\n\n%bank_account_formatted%"
+              "if": {
+                "===": [
+                  {
+                    "var": "country_code"
+                  },
+                  "DE"
+                ]
               }
+            },
+            {
+              "info": "not supported",
+              "value": {
+                "label": {
+                  "en": "We currently don't offer tax receipts for %country%.",
+                  "de": "Wir können zurzeit leider keine Steuerbescheinigungen für %country% ausstellen."
+                },
+                "disabled": true
+              },
+              "if": true
             }
-          }
+          ],
+          "share_data": [
+            {
+              "value": {
+                "label": null,
+                "disabled": false
+              },
+              "if": {
+                "in": [
+                  {
+                    "var": "purpose"
+                  },
+                  [
+                    "purpose_1",
+                    "purpose_2",
+                    "purpose_3"
+                  ]
+                ]
+              }
+            },
+            {
+              "value": {
+                "label": {
+                  "en": "Share my data with %purpose_label%",
+                  "de": "Meine Daten mit %purpose_label% teilen"
+                },
+                "disabled": false
+              },
+              "if": true
+            }
+          ],
         }
       },
       "finish": {
-        "success_message": "Many thanks for your donation!",  # not necessary if tax deduction labels are set
+        "success_message": {
+          "en": "Thank you very much for your donation!",
+          "de": "Vielen Dank für Ihre Spende!"
+        },
+        "post_donation_instructions": [
+          {
+            "info": "banktransfer",
+            "value": {
+              "en": "You can now make your transfer using the bank details below.\n\n%bank_account_formatted%\n\nIf you would like to make several donations right now, you can transfer the total sum in one payment and include the individual purpose numbers in the bank transfer annotation field.",
+              "de": "Sie können nun Ihre Überweisung anhand der Bankverbindung unten tätigen.\n\n%bank_account_formatted%\n\nFür die Überweisung mehrerer Spenden können Sie eine Sammelüberweisung über die Gesamtsumme aufsetzen und alle Referenznummern im Verwendungszweck vermerken."
+            },
+            "if": {
+              "===": [
+                {
+                  "var": "payment_provider"
+                },
+                "Bank Transfer"
+              ]
+            }
+          },
+          {
+            "info": "show nothing",
+            "value": "",
+            "if": true
+          }
+        ],
         "<a href="#confirmation-email">email</a>": {
           "sender": {
-            "en": "Effective Altruism Foundation",
-            "de": "Stiftung für Effektiven Altruismus"
+            "en": "My Organization",
+            "de": "Meine Organisation"
           },
           "address": "anne.wissemann@ea-foundation.org",
           "subject": {
@@ -182,7 +328,7 @@ Each form can specify a parent form from which to inherit settings. To unset opt
 
 Example: `forms > my_form > inherits: "default"`
 
-:warning: Arrays (such as `forms > my_form > webhook > logging > live`) are treated as literals. Inherited elements aren't merged.
+:warning: The values in arrays (such as `forms > my_form > amount > button`) are prepended to their parent counterpart.
 
 ### Dedicated plugin
 If the plugin is used on several sites, it can be convenient to specify one or several distributed parent forms. Local settings can inherit from these forms. To take advantage of this feature, create a new Wordpress plugin with the function `raise_donation_processor_config`.
@@ -205,7 +351,7 @@ function raise_donation_processor_config() {
       "amount": {
         "button": [
           35,
-          75,
+          75
         ],
 ...
 }
@@ -214,35 +360,99 @@ EOD
 }
 ```
 
+#### JsonLogic
 
+The following properties can be specified in an array format that lets you encode `if ... else if ... else` rules:
+- `forms > my_form > payment > provider > (banktransfer|stripe|paypal|gocardless|bitpay|skrill)`
+- `forms > my_form > payment > form_elements > tax_receipt`
+- `forms > my_form > payment > form_elements > share_data`
+- `forms > my_form > finish > post_donation_instructions`
+
+The following example shows the basic structure.
+
+```json
+"some_string_property": [
+  {
+    "value": "A value",
+    "if": { // if (purpose === "purpose_1")
+      "===": [
+        {
+          "var": "purpose"
+        },
+        "purpose_1"
+      ]
+    }
+  },
+  {
+    "value": {
+      "en": "English value",
+      "de": "German value",
+    },
+    "if": { // else if (country_code in ["CH", "DE", "AT"])
+      "in": [
+        {
+          "var": "country_code"
+        },
+        [
+          "CH",
+          "DE",
+          "AT"
+        ]
+      ]
+    }
+  },
+  ...
+  {
+    "value": "Default value",
+    "if": true // else
+  }
+]
+```
+
+All objects in the array must have a `value` property and an `if` property. `value` has whatever type the property supports. The `if` property contains a [JsonLogic](http://jsonlogic.com/) rule.
+
+The objects are evaluated top down. As soon as one `if` rule matches, the `value` of the corresponding object is returned.
+
+If you leave away the final catch-all node (`"if": true`), the value `null` is returned.
+
+See list of supported [JsonLogic operations](http://jsonlogic.com/operations.html).
+
+### Donation property placeholders
+
+The following placeholder can be used in strings: `%currency%`, `%amount%`, `%frequency%`, `%payment_provider%`, `%email%`, `%name%`, `%purpose%` (key), `%purpose_label%`, `%address%`, `%zip%`, `%city%`, `%country_code%`, `%country` (in English), `%comment%`, `%account%`, `%reference%` (in post_donation_instruction only), `%tax_receipt_label%` (yes/no), `%share_data_label%` (yes/no), `%mailinglist_label%` (yes/no)
 
 ## Payment methods
-Each payment key except bank transfer can be written as `{method}` (= default, always required), `{method}_{xx_country code}` and `{method}_{xxx_currency_code)`. The plugin will select the appropriate key according to this logic:
-
-- If the donor does not need a tax receipt AND country field is not compulsory: currency-specific, country-specific (any country with same currency), default
-
-- If the donor needs a tax receipt OR country field is compulsory: country-specific, currency-specific, default
-
-If you want to be more explicit, you can choose custom suffixes and reference them with the `account` property in `tax_deduction`. E.g. setting it to `foo` will use `{method}_foo` (or the `foo` account in `banktransfer > accounts` for bank transfers, see below).
-
 Each payment method except bank transfer object is further nested into `live` and `sandbox`.
 
 ### Bank transfer
-Consists of an identifier and a list of key-value pairs which will be displayed on the confirmation page. The identifier is also used for the `account` property in `tax_deduction` and sent in the payload.
+Has a `details` property with a object of key-value pairs which can be displayed on the confirmation page using the `%bank_account_formatted%` placeholder in `post_donation_instructions`. The optional `account` property is sent in the webhook payload.
 
 Each key will be printed in bold and translated if a [translation](#translations) is found. Currently translated: "Bank", "Beneficiary", "BIC/SWIFT", "IBAN", "Purpose", "Reference number", "Sort code".
 
 Supports the `%reference_number%` placeholder.
 
 ```json
-"accounts": {
-  "DE": {
+"banktransfer": {
+  "account": "Optional identifier for the bank account",
+  "tooltip": "Something you want the donor to know",
+  "details": {
     "Beneficiary": "My organisation",
     "IBAN": "DE12500105170648489890",
     "Purpose": "%reference_number%"
   }
 }
 ```
+
+The following detail keys are localized:
+- Beneficiary
+- IBAN
+- BIC/SWIFT
+- Sort code
+- Routing number
+- Bank
+- Purpose
+
+You can use other keys as well, but they won't be localized.
 
 ![Bank transfer flow](/doc/images/bank_flow.png?raw=true)
 
@@ -269,6 +479,21 @@ To match bank transfers with registrations, you can declare a reference number p
 ### Stripe
 Requires `secret_key` and `public_key`. The organisation logo used in the checkout modal can be configured on the settings page.
 
+```json
+"stripe": {
+  "account": "Optional identifier for the bank account",
+  "tooltip": "Something you want the donor to know",
+  "live": {
+    "secret_key": "sk_live_mykey",
+    "public_key": "pk_live_mykey"
+  },
+  "sandbox": {
+    "secret_key": "sk_test_mykey",
+    "public_key": "pk_test_mykey"
+  }
+}
+```
+
 Additional webhook data:
 - `vendor_transaction_id`: Charge ID (one-time)
 - `vendor_subscription_id`: Subscription ID (recurring)
@@ -280,6 +505,21 @@ Additional webhook data:
 
 ### PayPal
 Requires `client_id` and `client_secret`. Generate credentials on PayPal Dashboard > My Apps & Credentials > [REST API apps](https://developer.paypal.com/developer/applications/).
+
+```json
+"paypal": {
+  "account": "Optional identifier for the bank account",
+  "tooltip": "Something you want the donor to know",
+  "live": {
+    "client_id": "paypal_live_client_id",
+    "client_secret": "paypal_live_client_secret"
+  },
+  "sandbox": {
+    "client_id": "sandbox",
+    "client_secret": "paypal_sandbox_client_id"
+  }
+}
+```
 
 Additional webhook data:
 - `vendor_transaction_id`: Transaction ID (one-time)
@@ -319,58 +559,6 @@ Requires `merchant_account`. Sandbox account: demoqcoflexible@sun-fish.com
 ![Skrill flow](/doc/images/skrill_flow.png?raw=true)
  
 
-
-
-## Tax deduction
-Can be used to define tax deductibility rules based on country, payment method and purpose. Each level can and should have a `default` value. 
-
-- Level 1: lowercase 2-letter country code (`us`, `gb`, `de`, `fr`, etc. or `default`)
-- Level 2: payment method (`stripe`, `paypal`, `gocardless`, `bitpay`, `skrill`, `banktransfer` or `default`)
-- Level 3: purpose key (keys from `forms > my_form > payment > purpose` like `my_org` or `default`)
-- Level 4: actual rule object
-
-```json
-"tax_deduction": {
-  "default": {
-    "default": {
-      "default": {
-        "deductible": true,
-        "receipt_text": "Your donation is tax-deductible in %country%.",
-        "success_text": "You will receive a tax receipt early next year."
-      }
-    },
-    "paypal": {
-      "SpecialPurpose": {
-        "deductible": false,
-        "receipt_text": "Unfortunately we cannot offer tax deductibility for donations to SpecialPurpose issued via PayPal."
-      }
-    }
-  }
-}
-```
-
-More explicit settings will overwrite general ones in this order:
-
-1. country - method - purpose
-2. country - method - default
-3. country - default - purpose
-4. country - default - default
-5. default - method - purpose
-6. default - method - default
-7. default - default - purpose
-8. default - default - default
-
-The rule object can contain the following parameters:
-
-- `deductible` (boolean): If false, the tax deduction checkbox will be disabled
-- `receipt_text`: Text to show next to the checkbox
-- `success_text`: Text to show upon confirmation in step 3
-- `account`: Account used to populate `account` in the webhook payload and select the appropriate bank details from [bank accounts](#bank-transfer). It can also be used to enforce one particular provider account. E.g. if the account is set to `FOO` and a donor chooses Stripe, the provider `stripe_foo` is used (see `forms > my_form > payment > provider`).
-- `provider_hover_text`: Object with language properties (e.g. "en") if you have several languages. The values are objects with payment provider properties (e.g. "stripe"). The values are strings that are inserted into the title property of the corresponding payment provider labels.
-
-Supports placeholders: `%address%`, `%amount%`, `%bank_account_formatted%` (dumps bank account information referenced by the `acccount` parameter), `%city%`, `%country%`, `%currency%`, `%email%`, `%frequency%`, `%mailinglist%` (yes/no), `%name%`, `%payment_provider%`, `%reference_number%` (for bank transfers), `%tax_receipt%` (yes/no), `%zip%`
-
-
 ## Confirmation email
 
 ```json
@@ -390,7 +578,7 @@ Keys are lowercase 2-letter language codes.
 - `html` will send the email as `text/html` if true, else `text/plain` (Note: In `html` mode new lines (`\n`) are converted to `<br>` tags at runtime.)
 - `text` supports variables via Twig
 
-See the [Twig 1.x documentation](https://twig.symfony.com/doc/1.x/) for placeholders. Available variables: `form`, `mode`, `url`, `language`, `time`, `currency`, `amount`, `frequency`, `payment_provider`, `email`, `name`, `purpose`, `address`, `zip`, `city`, `country` (in English), `comment`, `success_text`, `receipt_text`, `deductible`
+See the [Twig 1.x documentation](https://twig.symfony.com/doc/1.x/) for placeholders. Available variables: `form`, `mode`, `url`, `language`, `time`, `currency`, `amount`, `frequency`, `payment_provider`, `email`, `name`, `purpose`, `address`, `zip`, `city`, `country` (in English), `comment`, `post_donation_instructions`, `receipt_text`, `deductible`
 
 If an `account` is referenced in `tax_deduction`, the `bank_account` variable can be dumped using the `raise.dump` macro.
 
@@ -423,10 +611,10 @@ Note: The possible `payment_provider` values are `Stripe`, `PayPal`, `GoCardless
 ## Webhooks
 Array of webhook URLs. There are currently two options, `logging` and `mailing_list`, the latter of which will only get triggered when the subscribe checkbox was ticked. Upon successful donation a JSON object will be sent to each webhook, containing these parameters for `logging`:
 
-`donation[form]`, `donation[url]`, `donation[mode]` (sandbox/live), `donation[language]` (ISO-639-1), `donation[time]`, `donation[currency]`, `donation[amount]`, `donation[payment_provider]`, `donation[type]` (deprecated, same as `payment_provider`), `donation[email]`, `donation[frequency]`, `donation[purpose]`, `donation[name]`, `donation[address]`, `donation[zip]`, `donation[city]`, `donation[country]` (in English), `donation[country_code]` (ISO-3166-1 alpha-2, e.g. `US`), `donation[comment]`, `donation[anonymous]` (yes/no), `donation[tax_receipt]` (yes/no), `donation[mailinglist]` (yes/no), `donation[account]`, `donation[deductible]` (yes/no), `donation[success_text]` (text on confirmation page), `donation[reference]`, `donation[referrer]`, `donation[vendor_transaction_id]`, `donation[vendor_subscription_id]`, `donation[vendor_customer_id]`
+`form`, `url`, `mode` (sandbox/live), `language` (ISO-639-1), `time`, `currency`, `amount`, `payment_provider`, `email`, `frequency`, `purpose`, `name`, `address`, `zip`, `city`, `country` (in English), `country_code` (ISO-3166-1 alpha-2, e.g. `US`), `comment`, `anonymous` (yes/no), `tax_receipt` (yes/no), `mailinglist` (yes/no), `account`, `deductible` (yes/no), `share_data` (yes/no), `post_donation_instructions` (text on confirmation page), `reference`, `referrer`, `vendor_transaction_id`, `vendor_subscription_id`, `vendor_customer_id`
 
 And these for `mailing_list`:
-`subscription[form]`, `subscription[mode]`, `subscription[email]`, `subscription[name]`, `subscription[language]`
+`form`, `mode`, `email`, `name`, `language`
 
 ## Events
 The following events will get dispatched to the window object. Each event is thrown only once per page impression.
@@ -438,12 +626,19 @@ The following events will get dispatched to the window object. Each event is thr
 
 
 ## Translations
-Each key containing a string displayed to the user can also be specified as an object with multiple languages.
+Each key containing a localizable string displayed to the user can also be specified as an object with multiple languages.
+
+
+```json
+{
+  "organization": "My organization"
+}
+```
 
 ```json
 {
   "organization": {
-    "en": "My organisation",
+    "en": "My organization",
     "de": "Meine Organisation"
   }
 }
