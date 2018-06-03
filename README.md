@@ -4,7 +4,7 @@ Free donation plugin for Wordpress. Supports one-time and monthly payments, conf
 
 Accept donations via [Stripe](#stripe), [PayPal](#paypal), [GoCardless](#gocardless), [BitPay](#bitpay), [Skrill](#skrill) or [bank transfers](#bank-transfer).
 
-![Screenshot of Raise - The Free Donation Plugin for WordPress](/images/screenshot.png?raw=true)
+![Screenshot of Raise - The Free Donation Plugin for WordPress](/assets/images/screenshot.png?raw=true)
 
 ## Prerequisites
 * PHP ≥5.6.3

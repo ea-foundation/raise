@@ -313,7 +313,7 @@ function raise_form($atts, $content = null)
 
                 <!-- Share with charity -->
                 <?php if (!empty($formSettings['payment']['form_elements']['share_data'])): ?>
-                    <div class="form-group donor-info" style="margin-top: -10px" id="share-data-form-group" style="display: none">
+                    <div id="share-data-form-group" class="form-group donor-info" style="margin-top: -10px; display: none">
                         <div class="col-sm-offset-3 col-sm-9">
                             <div class="checkbox">
                                 <label>

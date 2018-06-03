@@ -267,7 +267,7 @@ function raise_rec_load_settings($form, $formsSettings, $childForms = array())
 }
 
 /**
- * Get `if` rule with JSON encoded objects (label, disabled, checked) as return values for checkbox
+ * Get `if` rule with JSON encoded objects (label, disabled) as return values for checkbox
  *
  * @param array|string $settings
  * @return array

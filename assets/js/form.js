@@ -1134,13 +1134,10 @@ function updateFormLabels() {
         jQuery(this).find('div[data-toggle="tooltip"]').attr('data-original-title', tooltip);
     });
 
-    // Update checkbox display
-    jQuery('#share-data-form-group').toggle(
-        !!jQuery('input[name=purpose]:checked', '#wizard').val()
-    );
-
     // Update checkbox states
-    updateCheckboxState('share-data', shareDataCheckboxState, formObj);
+    if (!!jQuery('input[name=purpose]:checked', '#wizard').val()) {
+        updateCheckboxState('share-data', shareDataCheckboxState, formObj);
+    }
     updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
 
     // Update post donation instructions with nl2br
