@@ -374,7 +374,7 @@ The following example shows the basic structure.
 "some_string_property": [
   {
     "value": "A value",
-    "if": { // if (purpose === "purpose_1")
+    "if": {
       "===": [
         {
           "var": "purpose"
@@ -388,7 +388,7 @@ The following example shows the basic structure.
       "en": "English value",
       "de": "German value",
     },
-    "if": { // else if (country_code in ["CH", "DE", "AT"])
+    "if": {
       "in": [
         {
           "var": "country_code"
@@ -401,10 +401,9 @@ The following example shows the basic structure.
       ]
     }
   },
-  ...
   {
     "value": "Default value",
-    "if": true // else
+    "if": true
   }
 ]
 ```

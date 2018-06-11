@@ -149,12 +149,12 @@ function raise_form($atts, $content = null)
                 <div class="row">
                     <ul id="amounts" class="radio">
                         <?php
-                            // Once buttons
+                            // One-time buttons
                             $cols          = min(12, raise_get($formSettings['amount']['columns'], 3));
                             $buttonColSpan = floor(12 / $cols);
                             $tabIndex      = 0;
                             $amounts       = raise_get($formSettings['amount']['button'], array());
-                            foreach ($amounts as $amount) {
+                            foreach (array_filter($amounts) as $amount) {
                                 echo '<li class="col-xs-' . $buttonColSpan . ' amount-once">';
                                 echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndex . '" id="amount-once-' . $amount . '">';
                                 echo '    <label for="amount-once-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
@@ -164,7 +164,7 @@ function raise_form($atts, $content = null)
                             // Monthly buttons (if present)
                             $tabIndexMonthly = $tabIndex;
                             $amountsMonthly  = raise_get($formSettings['amount']['button_monthly'], array());
-                            foreach ($amountsMonthly as $amount) {
+                            foreach (array_filter($amountsMonthly) as $amount) {
                                 echo '<li class="col-xs-' . $buttonColSpan . ' amount-monthly hidden">';
                                 echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndexMonthly . '" id="amount-monthly-' . $amount . '" disabled>';
                                 echo '    <label for="amount-monthly-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
