@@ -88,6 +88,7 @@ function raise_form($atts, $content = null)
 <input type="hidden" name="mode" value="<?= $mode ?>" id="raise-form-mode">
 <input type="hidden" name="post_donation_instructions" value="" id="raise-form-post-donation-instructions">
 <input type="hidden" name="locale" value="<?= get_locale() ?>">
+<input type="hidden" name="share_data_offered" id="share-data-offered" value="0">
 
 <!-- Scrollable root element -->
 <div id="wizard">

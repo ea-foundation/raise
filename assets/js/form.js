@@ -1140,6 +1140,11 @@ function updateFormLabels() {
     }
     updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
 
+    // Update offered share data state
+    jQuery('#share-data-offered').val(
+        jQuery('#share-data-form-group').is(':not(:hidden)') ? 1 : 0
+    );
+
     // Update post donation instructions with nl2br
     if (postDonationInstructions !== null) {
         var postDonationInstructionText = nl2br(replaceDonationPlaceholders(postDonationInstructions, formObj, bankAccountProperties));

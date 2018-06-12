@@ -23,6 +23,7 @@ const RAISE_WEBHOOK_KEYS = [
     'referrer',
     'post_donation_instructions',
     'share_data',
+    'share_data_offered',
     'tax_receipt',
     'time',
     'payment_provider',
@@ -462,6 +463,7 @@ function raise_get_donation_from_post()
         'mailinglist'                => (bool) raise_get($post['mailinglist'], false),
         'tax_receipt'                => (bool) raise_get($post['tax_receipt'], false),
         'share_data'                 => (bool) raise_get($post['share_data'], false),
+        'share_data_offered'         => (bool) raise_get($post['share_data_offered'], false),
     );
 }
 
@@ -1459,6 +1461,7 @@ function raise_get_donation_from_session()
         "frequency"                  => $_SESSION['raise-frequency'],
         "tax_receipt"                => $_SESSION['raise-tax-receipt'],
         "share_data"                 => $_SESSION['raise-share-data'],
+        "share_data_offered"         => $_SESSION['raise-share-data-offered'],
         "payment_provider"           => $_SESSION['raise-payment-provider'],
         "purpose"                    => $_SESSION['raise-purpose'],
         "address"                    => $_SESSION['raise-address'],
@@ -1501,6 +1504,7 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
     $_SESSION['raise-comment']              = raise_get($donation['comment'], '');
     $_SESSION['post_donation_instructions'] = raise_get($donation['post_donation_instructions'], '');
     $_SESSION['raise-share-data']           = (bool) raise_get($donation['share_data'], false);
+    $_SESSION['raise-share-data-offered']   = (bool) raise_get($donation['share_data_offered'], false);
     $_SESSION['raise-tax-receipt']          = (bool) raise_get($donation['tax_receipt'], false);
     $_SESSION['raise-mailinglist']          = (bool) raise_get($donation['mailinglist'], false);
     $_SESSION['raise-anonymous']            = (bool) raise_get($donation['anonymous'], false);
