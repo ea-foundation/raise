@@ -368,12 +368,26 @@ The following properties can be specified in an array format that lets you encod
 - `forms > my_form > payment > form_elements > share_data`
 - `forms > my_form > finish > post_donation_instructions`
 
-The following example shows the basic structure.
+Note: Replace `my_form` with the name of the corresponding form in your config.
+
+Essentially, instead of assigning the usual object to the above properties, you assign an array of objects that each have a condition. So instead of 
 
 ```json
-"some_string_property": [
+"some_obejct_property": {
+  "subproperty1": "foo",
+  "subproperty2": "foo"
+}
+```
+
+you get
+
+```json
+"some_obejct_property": [
   {
-    "value": "A value",
+    "value": {
+      "subproperty1": "foo 1",
+      "subproperty2": "foo 2"
+    },
     "if": {
       "===": [
         {
@@ -385,8 +399,8 @@ The following example shows the basic structure.
   },
   {
     "value": {
-      "en": "English value",
-      "de": "German value",
+      "subproperty1": "foo 3",
+      "subproperty2": "foo 4"
     },
     "if": {
       "in": [
@@ -402,15 +416,18 @@ The following example shows the basic structure.
     }
   },
   {
-    "value": "Default value",
+    "value": {
+      "subproperty1": "foo 5",
+      "subproperty2": "foo 6"
+    },
     "if": true
   }
 ]
 ```
 
-All objects in the array must have a `value` property and an `if` property. `value` has whatever type the property supports. The `if` property contains a [JsonLogic](http://jsonlogic.com/) rule.
+All objects in the array must have a `value` property and an `if` property. `value` has whatever type the corresponding property supports. The `if` property contains a [JsonLogic](http://jsonlogic.com/) rule.
 
-The objects are evaluated top down. As soon as one `if` rule matches, the `value` of the corresponding object is returned.
+The objects are evaluated top down. As soon as one `if` rule matches, the property is assigned the corresponding `value` object.
 
 If you leave away the final catch-all node (`"if": true`), the value `null` is returned.
 
@@ -418,7 +435,7 @@ See list of supported [JsonLogic operations](http://jsonlogic.com/operations.htm
 
 ### Donation property placeholders
 
-The following placeholder can be used in strings: `%currency%`, `%amount%`, `%frequency%`, `%payment_provider%`, `%email%`, `%name%`, `%purpose%` (key), `%purpose_label%`, `%address%`, `%zip%`, `%city%`, `%country_code%`, `%country` (in English), `%comment%`, `%account%`, `%reference%` (in post_donation_instruction only), `%tax_receipt_label%` (yes/no), `%share_data_label%` (yes/no), `%mailinglist_label%` (yes/no)
+The following placeholder can be used in strings: `%currency%`, `%amount%`, `%frequency%`, `%payment_provider%`, `%email%`, `%name%`, `%purpose%` (key), `%purpose_label%`, `%address%`, `%zip%`, `%city%`, `%country_code%`, `%country%` (in English), `%comment%`, `%account%`, `%reference%` (in post_donation_instruction only), `%tax_receipt_label%` (yes/no), `%share_data_label%` (yes/no), `%mailinglist_label%` (yes/no)
 
 ## Payment methods
 Each payment method except bank transfer object is further nested into `live` and `sandbox`.
@@ -432,7 +449,7 @@ Supports the `%reference_number%` placeholder.
 
 ```json
 "banktransfer": {
-  "account": "Optional identifier for the bank account",
+  "account": "Optional identifier for the bank account the donation is eventually transferred to",
   "tooltip": "Something you want the donor to know",
   "details": {
     "Beneficiary": "My organisation",
@@ -480,7 +497,7 @@ Requires `secret_key` and `public_key`. The organisation logo used in the checko
 
 ```json
 "stripe": {
-  "account": "Optional identifier for the bank account",
+  "account": "Optional identifier for the bank account the donation is eventually transferred to",
   "tooltip": "Something you want the donor to know",
   "live": {
     "secret_key": "sk_live_mykey",
@@ -507,7 +524,7 @@ Requires `client_id` and `client_secret`. Generate credentials on PayPal Dashboa
 
 ```json
 "paypal": {
-  "account": "Optional identifier for the bank account",
+  "account": "Optional identifier for the bank account the donation is eventually transferred to",
   "tooltip": "Something you want the donor to know",
   "live": {
     "client_id": "paypal_live_client_id",
@@ -530,7 +547,22 @@ Additional webhook data:
 
 
 ### GoCardless
-Requires `access_token` (read-write access). Generate sandbox credentials [here](https://manage-sandbox.gocardless.com/signup).
+Requires `access_token` (read-write access).
+
+```json
+"gocardless": {
+  "account": "Optional identifier for the bank account the donation is eventually transferred to",
+  "tooltip": "Something you want the donor to know",
+  "live": {
+    "access_token": "gocardless_live_access_token"
+  },
+  "sandbox": {
+    "access_token": "gocardless_sandbox_access_token"
+  }
+}
+```
+
+You can generate sandbox access tokens [here](https://manage-sandbox.gocardless.com/signup).
 
 GoCardless is currently only available in the Eurozone, UK, and Sweden. Beware of [maximum amounts](https://gocardless.com/faq/merchants/).
 
@@ -542,7 +574,22 @@ Additional webhook data:
 
 
 ### BitPay
-Requires `pairing_code`. Get a sandbox account [here](https://test.bitpay.com/get-started).
+Requires `pairing_code`.
+
+```json
+"bitpay": {
+  "account": "Optional identifier for the bank account the donation is eventually transferred to",
+  "tooltip": "Something you want the donor to know",
+  "live": {
+    "pairing_code": "bitpay_live_pairing_code"
+  },
+  "sandbox": {
+    "pairing_code": "bitpay_sandbox_pairing_code"
+  }
+}
+```
+
+You can make a sandbox account [here](https://test.bitpay.com/get-started). Go to Payment Tools > Manage API Tokens > Add New Token to generate a pairing code.
 
 Does not support recurring donations. BitPay donations are registered only if the donor clicks continue in the BitPay modal.
 
@@ -553,7 +600,24 @@ Additional webhook data:
 
 
 ### Skrill
-Requires `merchant_account`. Sandbox account: demoqcoflexible@sun-fish.com
+Requires `merchant_account`.
+
+```json
+"skrill": {
+  "account": "Optional identifier for the bank account the donation is eventually transferred to",
+  "tooltip": "Something you want the donor to know",
+  "live": {
+    "merchant_account": "skrill_live_merchang_account"
+  },
+  "sandbox": {
+    "merchant_account": "skrill_sandbox_merchang_account"
+  }
+}
+```
+
+You the following email as sandbox `merchant_account`: demoqcoflexible@sun-fish.com
+
+The following credit card can be used for testing: 5438311234567890
 
 ![Skrill flow](/doc/images/skrill_flow.png?raw=true)
  
@@ -683,6 +747,7 @@ Requires `phpunit`.
 
 ```
 bash bin/install-wp-tests.sh wordpress_test <mysql_user> <mysql_pass> <mysql_host> latest
+
 phpunit
 ```
 

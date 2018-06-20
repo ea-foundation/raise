@@ -556,22 +556,24 @@ if (typeof paypal !== 'undefined') {
             return new paypal.Promise(function(resolve, reject) {
                 jQuery('form#donationForm').ajaxSubmit({
                     success: function(response) {
-                        if (!response.hasOwnProperty('success') || !response.success) {
-                            var message =  response.hasOwnProperty('error') ? response.error : responseText;
-                            alert(message);
-                            return;
+                        try {
+                            if (!response.success) {
+                                throw response.error || response;
+                            }
+    
+                            // Resolve payment / billing agreement
+                            var token = response.paymentID || response.token;
+                            resolve(token);
+                        } catch(err) {
+                            // Something went wrong
+                            reject(new Error(err));
+                            alertError({error: err});
                         }
-
-                        // Resolve payment / billing agreement
-                        var token = response.hasOwnProperty('paymentID') ? response.paymentID : response.token;
-                        resolve(token);
                     },
                     error: function(err) {
-                        // Should only happen on internal server error
-                        reject(err);
-
-                        // Unlock last step
-                        lockLastStep(false);
+                        // Something went wrong
+                        reject(new Error(err));
+                        alertError({error: err});
                     }
                 });
             });
@@ -600,19 +602,21 @@ if (typeof paypal !== 'undefined') {
             // Execute payment / billing agreement
             jQuery.post(wordpress_vars.ajax_endpoint, params)
                 .done(function(response) {
-                    if (!response.hasOwnProperty('success') || !response.success) {
-                        var message = response.hasOwnProperty('error') ? response.error : responseText;
-                        lockLastStep(false);
-                        alert(message);
-                        return;
-                    }
+                    try {
+                        if (!response.success) {
+                            throw response.error || response;
+                        }
 
-                    // Everything worked. Show confirmation.
-                    showConfirmation('paypal');
+                        // Everything worked. Show confirmation.
+                        showConfirmation('paypal');
+                    } catch(err) {
+                        // Something went wrong
+                        alertError({error: err});
+                    }
                 })
                 .fail(function(err)  {
-                    alert('An error occured: ' + err);
-                    lockLastStep(false);
+                    // Something went wrong
+                    alertError({error: err});
                 });
         },
         onCancel: function(data) {
@@ -697,9 +701,8 @@ function handlePopupDonation(provider) {
     jQuery('form#donationForm').ajaxSubmit({
         success: function(response, statusText, xhr, form) {
             try {
-                if (!response.hasOwnProperty('success') || !response.success) {
-                    var message = response.hasOwnProperty('error') ? response.error : responseText;
-                    alert(message);
+                if (!response.success) {
+                    throw response.error || response;
                 }
 
                 // Open URL in modal
@@ -725,21 +728,10 @@ function handlePopupDonation(provider) {
                 // Show modal
                 jQuery('#' + provider + 'Modal').modal('show');
             } catch (err) {
-                // Something went wrong, show on confirmation page
-                alert(err.message);
-
-                // Enable buttons
-                lockLastStep(false);
+                alertError({error: err});
             }
         },
-        error: function(response) {
-            // Should only happen on internal server error
-            if (response && typeof response === "object" && response.hasOwnProperty('error')) {
-                alert(response.error);
-            } else {
-                alert(response);
-            }
-        }
+        error: alertError
     });
 
     lockLastStep(true);
@@ -756,9 +748,8 @@ function handleIFrameDonation(provider) {
     jQuery('form#donationForm').ajaxSubmit({
         success: function(response, statusText, xhr, form) {
             try {
-                if (!response.hasOwnProperty('success') || !response.success) {
-                    var message = response.hasOwnProperty('error') ? response.error : responseText;
-                    throw new Error(message);
+                if (!response.success) {
+                    throw response.error || response;
                 }
 
                 // Open URL in modal
@@ -767,21 +758,11 @@ function handleIFrameDonation(provider) {
                 // Show modal
                 jQuery('#' + provider + 'Modal').modal('show');
             } catch (err) {
-                // Something went wrong, show on confirmation page
-                alert(err.message);
-
-                // Enable buttons
-                lockLastStep(false);
+                // Something went wrong
+                alertError({error: err});
             }
         },
-        error: function(response) {
-            // Should only happen on internal server error
-            if (response && typeof response === "object" && response.hasOwnProperty('error')) {
-                alert(response.error);
-            } else {
-                alert(response);
-            }
-        }
+        error: alertError
     });
 
     lockLastStep(true);
@@ -840,9 +821,8 @@ function sendBanktransferDonation() {
     jQuery('form#donationForm').ajaxSubmit({
         success: function(response, statusText, xhr, form) {
             try {
-                if (!response.hasOwnProperty('success') || !response.success) {
-                    var message =  response.hasOwnProperty('error') ? response.error : responseText;
-                    throw new Error(message);
+                if (!response.success) {
+                    throw response.error || response;
                 }
 
                 // Inject reference number in the success text
@@ -853,14 +833,12 @@ function sendBanktransferDonation() {
                 // Everything worked! Display short code content on confirmation page
                 // Change glyphicon from "spinner" to "OK" and go to confirmation page
                 showConfirmation('banktransfer');
-            } catch (ex) {
-                // Something went wrong, show on confirmation page
-                alert(ex.message);
-
-                // Enable buttons
-                lockLastStep(false);
+            } catch(err) {
+                // Something went wrong
+                alertError({error: err});
             }
-        }
+        },
+        error: alertError
     });
 
     // Disable submit button, back button, and payment options
@@ -964,21 +942,18 @@ function loadStripeHandler() {
             jQuery('form#donationForm').append(tokenInput).append(keyInput).ajaxSubmit({
                 success: function(response, statusText, xhr, form) {
                     try {
-                        if (!response.hasOwnProperty('success') || !response.success) {
-                            var message = response.hasOwnProperty('error') ? response.error : responseText;
-                            throw new Error(message);
+                        if (!response.success) {
+                            throw response.error || response;
                         }
 
                         // Everything worked! Change glyphicon from "spinner" to "OK" and go to confirmation page
                         showConfirmation('stripe');
-                    } catch (err) {
-                        // Something went wrong, show on confirmation page
-                        alert(err.message);
-
-                        // Enable buttons
-                        lockLastStep(false);
+                    } catch(err) {
+                        // Something went wrong
+                        alertError({error: err});
                     }
-                }
+                },
+                error: alertError
             });
 
             // Disable submit button, back button, and payment options
@@ -992,6 +967,17 @@ function loadStripeHandler() {
     currentStripeKey = newStripeKey;
 
     // Unlock last step
+    lockLastStep(false);
+}
+
+function alertError(response) {
+    if (typeof response === "object" && typeof response.error === 'string') {
+        alert(response.error);
+    } else {
+        alert(wordpress_vars.error_messages.connection_error);
+    }
+
+    // Enable buttons
     lockLastStep(false);
 }
 
@@ -1163,24 +1149,24 @@ function updateFormLabels() {
 function updateCheckboxState(id, state, formObj) {
     // Enable/disable checkbox
     var element = jQuery('input#' + id);
-    if (state.hasOwnProperty('disabled')) {
-        taxDeductionDisabled = !!state.disabled;
+    if (state && state.hasOwnProperty('disabled')) {
+        disabled = !!state.disabled;
 
         // Collapse address details if open
-        if (taxDeductionDisabled && element.is(':checked')) {
+        if (id === 'tax-receipt' && disabled && element.is(':checked')) {
             element.click();
         }
-        element.prop('disabled', taxDeductionDisabled);
+        element.prop('disabled', disabled);
     } else {
         // Enable checkbox
         if (element.prop('disabled')) {
-            taxDeductionDisabled = false;
+            disabled = false;
             element.prop('disabled', false);
         }
     }
 
     // Update checkbox label
-    if (state.hasOwnProperty('label') && state.label) {
+    if (state && state.label) {
         element.parent().parent().parent().parent().show();
         state.label = replaceDonationPlaceholders(state.label, formObj);
         jQuery('span#' + id + '-text').html(state.label);

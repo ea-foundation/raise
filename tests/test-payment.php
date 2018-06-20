@@ -10,345 +10,45 @@
  */
 class PaymentTest extends WP_UnitTestCase {
     /**
-     * Test country account of the country in which the donor lives
+     * Test JSON logic rule for stripe public keys
      */
-    function test_stripe_nl_eur_coutry_compulsory_receipt_needed()
+    function test_raise_get_stripe_public_keys_rule()
     {
         $formSettings = $this->getFormSettings();
-        $settings     = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            true,
-            'EUR',
-            'NL'
-        );
+        $rule         = raise_get_stripe_public_keys_rule($formSettings, 'live');
 
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_nl_live_secret_key",
-            "public_key" => "stripe_nl_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test currency account matching the donation currency because no country account
-     */
-    function test_stripe_de_eur_coutry_compulsory_receipt_needed()
-    {
-        $formSettings = $this->getFormSettings();
-        $settings     = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            true,
-            'EUR',
-            'DE'
-        );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_eur_live_secret_key",
-            "public_key" => "stripe_eur_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test default account because no account for currency or country
-     */
-    function test_stripe_gb_gbp_coutry_compulsory_receipt_needed()
-    {
-        $formSettings = $this->getFormSettings();
-        $settings     = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            true,
-            'GBP',
-            'GB'
-        );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_live_secret_key",
-            "public_key" => "stripe_live_public_key",
-        ]);
-    }
-
-	  /**
-	   * Test country account of the country in which the donor lives
-	   */
-    function test_stripe_nl_eur_coutry_compulsory_receipt_not_needed()
-    {
-        $formSettings = $this->getFormSettings();
-        $settings     = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            false,
-            'EUR',
-            'NL'
-        );
-
-		    $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_nl_live_secret_key",
-            "public_key" => "stripe_nl_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test currency account matching the donation currency because no country account
-     */
-    function test_stripe_de_eur_coutry_compulsory_receipt_not_needed()
-    {
-        $formSettings = $this->getFormSettings();
-        $settings     = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            false,
-            'EUR',
-            'DE'
-        );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_eur_live_secret_key",
-            "public_key" => "stripe_eur_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test default account because no account for currency or country
-     */
-    function test_stripe_gb_gbp_coutry_compulsory_receipt_not_needed()
-    {
-        $formSettings = $this->getFormSettings();
-        $settings     = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            false,
-            'GBP',
-            'GB'
-        );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_live_secret_key",
-            "public_key" => "stripe_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test country account of the country in which the donor lives
-     */
-    function test_stripe_nl_eur_country_optional_receipt_needed()
-    {
-        $formSettings = $this->getFormSettings();
-        $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            true,
-            'EUR',
-            'NL'
-        );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_nl_live_secret_key",
-            "public_key" => "stripe_nl_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test currency account matching the donation currency because no country account
-     */
-    function test_stripe_de_eur_country_optional_receipt_needed()
-    {
-        $formSettings = $this->getFormSettings();
-        $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            true,
-            'EUR',
-            'DE'
-        );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_eur_live_secret_key",
-            "public_key" => "stripe_eur_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test default account because no account for currency or country
-     */
-    function test_stripe_gb_gbp_country_optional_receipt_needed()
-    {
-        $formSettings = $this->getFormSettings();
-        $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            true,
-            'GBP',
-            'GB'
-        );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_live_secret_key",
-            "public_key" => "stripe_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test currency account
-     */
-    function test_stripe_fr_eur_coutry_optional_receipt_not_needed()
-    {
-        $formSettings = $this->getFormSettings();
-        $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            false,
-            'EUR',
-            'FR'
-        );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_eur_live_secret_key",
-            "public_key" => "stripe_eur_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test country account of matching currency because no currency account
-     */
-    function test_stripe_de_chf_coutry_optional_receipt_not_needed()
-    {
-        $formSettings = $this->getFormSettings();
-        $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            false,
-            'CHF',
-            'DE'
-        );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_ch_live_secret_key",
-            "public_key" => "stripe_ch_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test default account
-     */
-    function test_stripe_us_usd_coutry_optional_receipt_not_needed()
-    {
-        $formSettings = $this->getFormSettings();
-        $formSettings['payment']['extra_fields']['country'] = false;
-        $settings = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            false,
-            'USD',
-            'US'
-        );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_live_secret_key",
-            "public_key" => "stripe_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test fake provider
-     * @expectedException \Exception
-     */
-    function test_fake_provider()
-    {
-        $formSettings = $this->getFormSettings();
-        $settings     = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'foobar',
-            'live',
-            true,
-            'EUR',
-            'DE'
+        $this->assertEquals(
+            '{"if":[{"===":[{"var":"currency"},"EUR"]},"pk_live_eur",{"===":[{"var":"country_code"},"CH"]},"pk_live_ch",true,"pk_live_default"]}',
+            json_encode($rule)
         );
     }
 
     /**
-     * Test incomplete provider
-     * @expectedException \Exception
+     * Test JSON logic rule for checkbox settings
      */
-    function test_incomplete_provider()
+    function test_raise_get_checkbox_rule_jsonlogic()
     {
         $formSettings = $this->getFormSettings();
-        unset($formSettings['payment']['provider']['stripe']['live']['secret_key']);
-        $settings = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            true,
-            'USD',
-            'US'
-        );
+        $rule         = raise_get_checkbox_rule($formSettings['payment']['form_elements']['share_data']);
 
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_live_secret_key",
-            "public_key" => "stripe_live_public_key",
-        ]);
+        $this->assertEquals(
+            '{"if":[{"in":[{"var":"purpose"},["external_purpose_1","external_purpose_2","external_purpose_3"]]},"{\"label\":\"Share my data with %purpose_label%\",\"disabled\":false}",null]}',
+            json_encode($rule)
+        );
     }
 
     /**
-     * Test account argument
+     * Test JSON logic rule for checkbox settings with non JsonLogic object
      */
-    function test_stripe_with_explicit_account()
+    function test_raise_get_checkbox_rule_object()
     {
         $formSettings = $this->getFormSettings();
-        $settings     = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            false,
-            'EUR',
-            'NL',
-            'CH'
+        $rule         = raise_get_checkbox_rule($formSettings['payment']['form_elements']['tax_receipt']);
+
+        $this->assertEquals(
+            '"{\"label\":\"I need a tax receipt\"}"', // JSON encoded to avoid evaluation by JsonLogic
+            json_encode($rule)
         );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_ch_live_secret_key",
-            "public_key" => "stripe_ch_live_public_key",
-        ]);
-    }
-
-    /**
-     * Test fallback for non-existing account
-     */
-    function test_stripe_with_fake_account()
-    {
-        $formSettings = $this->getFormSettings();
-        $settings     = raise_get_best_payment_provider_settings(
-            $formSettings,
-            'stripe',
-            'live',
-            false,
-            'USD',
-            'BR',
-            'BR'
-        );
-
-        $this->assertArraySubset($settings, [
-            "secret_key" => "stripe_live_secret_key",
-            "public_key" => "stripe_live_public_key",
-        ]);
     }
 
     /**
@@ -408,21 +108,25 @@ class PaymentTest extends WP_UnitTestCase {
     }
 
     /**
-     * Test all payment providers are selectable
+     * Test all payment providers are configured correctly in live mode
      */
-    function test_payment_providers()
+    function test_payment_providers_complete_in_live_mode()
     {
         $formSettings = $this->getFormSettings();
         $providers    = raise_enabled_payment_providers($formSettings, 'live');
 
-        $this->assertArraySubset($providers, [
-            'stripe',
-            'gocardless',
-            'paypal',
-            'bitpay',
-            'skrill',
-            'banktransfer',
-        ]);
+        $this->assertEquals(count($providers), 6);
+    }
+
+    /**
+     * Test all payment providers are configured correctly except paypal in sandbox mode
+     */
+    function test_payment_providers_complete_except_paypal_in_sandbox()
+    {
+        $formSettings = $this->getFormSettings();
+        $providers    = raise_enabled_payment_providers($formSettings, 'sandbox');
+
+        $this->assertEquals(count($providers), 5);
     }
 
     /**
@@ -444,51 +148,100 @@ class PaymentTest extends WP_UnitTestCase {
         return json_decode(<<<'EOD'
 {
   "payment": {
-    "extra_fields": {
-      "country": true
+    "form_elements": {
+        "tax_receipt": {
+            "label": {
+                "en": "I need a tax receipt",
+                "de": "Ich brauche eine Steuerbescheinigung"
+            }
+        },
+        "share_data": [
+            {
+              "value": {
+                "label": {
+                  "en": "Share my data with %purpose_label%",
+                  "de": "Meine Daten mit %purpose_label% teilen"
+                },
+                "disabled": false
+              },
+              "if": {
+                "in": [
+                  {
+                    "var": "purpose"
+                  },
+                  [
+                    "external_purpose_1",
+                    "external_purpose_2",
+                    "external_purpose_3"
+                  ]
+                ]
+              }
+            }
+        ]
     },
     "provider": {
-      "stripe_ch": {
-        "live": {
-          "secret_key": "stripe_ch_live_secret_key",
-          "public_key": "stripe_ch_live_public_key"
+      "stripe": [
+        {
+          "value": {
+            "account": "EUR",
+            "live": {
+            "secret_key": "sk_live_eur",
+            "public_key": "pk_live_eur"
+            },
+            "sandbox": {
+            "secret_key": "sk_test_eur",
+            "public_key": "pk_test_eur"
+            },
+            "tooltip": ""
+          },
+          "if": {
+            "===": [
+              {
+                "var": "currency"
+              },
+              "EUR"
+            ]
+          }
         },
-        "sandbox": {
-          "secret_key": "stripe_ch_sandbox_secret_key",
-          "public_key": "stripe_ch_sandbox_public_key"
-        }
-      },
-      "stripe_nl": {
-        "live": {
-          "secret_key": "stripe_nl_live_secret_key",
-          "public_key": "stripe_nl_live_public_key"
+        {
+          "value": {
+            "account": "CH",
+            "live": {
+              "secret_key": "sk_live_ch",
+              "public_key": "pk_live_ch"
+            },
+            "sandbox": {
+              "secret_key": "sk_test_ch",
+              "public_key": "pk_test_ch"
+            },
+            "tooltip": ""
+          },
+          "if": {
+            "===": [
+              {
+                "var": "country_code"
+              },
+              "CH"
+            ]
+          }
         },
-        "sandbox": {
-          "secret_key": "stripe_nl_sandbox_secret_key",
-          "public_key": "stripe_nl_sandbox_public_key"
+        {
+          "value": {
+            "account": "default",
+            "live": {
+              "secret_key": "sk_live_default",
+              "public_key": "pk_live_default"
+            },
+            "sandbox": {
+              "secret_key": "sk_test_default",
+              "public_key": "pk_test_default"
+            },
+            "tooltip": ""
+          },
+          "if": true
         }
-      },
-      "stripe_eur": {
-        "live": {
-          "secret_key": "stripe_eur_live_secret_key",
-          "public_key": "stripe_eur_live_public_key"
-        },
-        "sandbox": {
-          "secret_key": "stripe_eur_sandbox_secret_key",
-          "public_key": "stripe_eur_sandbox_public_key"
-        }
-      },
-      "stripe": {
-        "live": {
-          "secret_key": "stripe_live_secret_key",
-          "public_key": "stripe_live_public_key"
-        },
-        "sandbox": {
-          "secret_key": "stripe_sandbox_secret_key",
-          "public_key": "stripe_sandbox_public_key"
-        }
-      },
-      "gocardless_de": {
+      ],
+      "gocardless": {
         "live": {
           "access_token": "gocardless_de_live_access_token"
         },
@@ -511,7 +264,7 @@ class PaymentTest extends WP_UnitTestCase {
         },
         "sandbox": {
           "client_id": "paypal_sandbox_client_id",
-          "client_secret": "paypal_sandbox_client_secret"
+          "client_secret_missing": "paypal_sandbox_client_secret"
         }
       },
       "bitpay": {
@@ -531,47 +284,15 @@ class PaymentTest extends WP_UnitTestCase {
         }
       },
       "banktransfer": {
-        "accounts": {
-          "CH": {
-            "Beneficiary": "Effective Altruism Foundation, Efringerstrasse 25, CH-4057 Basel, Switzerland",
-            "IBAN CHF": "CH67 0023 3233 1775 4501 N",
-            "IBAN EUR": "CH20 0023 3233 1775 4560 D",
-            "IBAN USD": "CH79 0023 3233 1775 4561 F",
-            "IBAN GBP": "CH08 0023 3233 1775 4562 T",
-            "BIC/SWIFT": "UBSWCHZH80A",
-            "Bank": "UBS Switzerland AG, Aeschenvorstadt 1, CH-4051 Basel, Switzerland",
-            "Purpose": "%reference_number%"
-          },
-          "DE": {
-            "Beneficiary": "Stiftung für Effektiven Altruismus e. V., Hardenbergstraße 9, 10623 Berlin, Deutschland",
-            "IBAN": "DE30 1001 0010 0914 6391 05",
-            "BIC/SWIFT": "PBNKDEFF",
-            "Bank": "Postbank, DE-10916 Berlin",
-            "Purpose": "%reference_number%"
-          },
-          "AMF_DE": {
-            "Beneficiary": "Against Malaria Foundation",
-            "IBAN": "DE43502109000216991001",
-            "BIC/SWIFT": "CITIDEFF",
-            "Bank": "Citibank N.A. Frankfurt",
-            "Purpose": "%reference_number%"
-          },
-          "AMF_UK": {
-            "Beneficiary": "Against Malaria Foundation",
-            "Account number": "11193740",
-            "Sort Code": "18-50-08",
-            "IBAN": "GB26CITI18500811193740",
-            "BIC/SWIFT": "CITIGB2L",
-            "Bank": "Citibank N.A. London",
-            "Purpose": "%reference_number%"
-          },
-          "GiveWell_US": {
-            "Beneficiary": "The Clear Fund DBA GiveWell, 182 Howard St #208, San Francisco, CA 94015, United States",
-            "Account number": "732857029",
-            "Routing number": "322271627",
-            "Bank": "JPMorgan Chase Bank, 188 Spear St, Ste 190, San Francisco, CA 94105, United States",
-            "Purpose": "EAF"
-          }
+        "details": {
+          "Beneficiary": "Effective Altruism Foundation, Efringerstrasse 25, CH-4057 Basel, Switzerland",
+          "IBAN CHF": "CH67 0023 3233 1775 4501 N",
+          "IBAN EUR": "CH20 0023 3233 1775 4560 D",
+          "IBAN USD": "CH79 0023 3233 1775 4561 F",
+          "IBAN GBP": "CH08 0023 3233 1775 4562 T",
+          "BIC/SWIFT": "UBSWCHZH80A",
+          "Bank": "UBS Switzerland AG, Aeschenvorstadt 1, CH-4051 Basel, Switzerland",
+          "Purpose": "%reference_number%"
         }
       }
     }

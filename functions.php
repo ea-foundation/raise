@@ -173,6 +173,7 @@ function raise_init_donation_form($form, $mode)
             'missing_fields'              => __('Please fill out all required fields.', 'raise'),
             'invalid_email'               => __('Invalid email.', 'raise'),
             'below_minimum_amount'        => __('The minimum donation is %minimum_amount%.', 'raise'),
+            'connection_error'            => __('Error establishing a connection. Please try again.', 'raise'),
             'below_minimum_amount_custom' => $belowMinimumAmountMessages,
         ],
     ));
@@ -340,6 +341,7 @@ function raise_enabled_payment_providers($formSettings, $mode)
 function raise_payment_provider_settings_complete($provider, array $properties)
 {
     $requiredProperties = raise_get_payment_provider_properties($provider);
+
     return array_reduce($requiredProperties, function ($carry, $item) use ($properties) {
         return $carry && !empty($properties[$item]);
     }, true);
@@ -392,6 +394,7 @@ function raise_print_payment_providers($formSettings, $mode)
                 break;
             default:
                 // Do nothing
+                continue 2;
         }
 
         // Print radio box
@@ -507,11 +510,8 @@ function raise_prepare_redirect()
 
         // Return response
         wp_send_json($response);
-    } catch (\Exception $e) {
-        wp_send_json([
-            'success' => false,
-            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
-        ]);
+    } catch (\Exception $ex) {
+        wp_send_json(raise_rest_exception_response($ex));
     }
 }
 
@@ -567,11 +567,8 @@ function raise_process_donation()
         }
 
         wp_send_json($response);
-    } catch (\Exception $e) {
-        wp_send_json([
-            'success' => false,
-            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
-        ]);
+    } catch (\Exception $ex) {
+        wp_send_json(raise_rest_exception_response($ex));
     }
 }
 
@@ -938,11 +935,22 @@ function raise_prepare_gocardless_donation(array $donation)
             'url'     => $redirectFlow->redirect_url,
         );
     } catch (\Exception $ex) {
-        return array(
-            'success' => false,
-            'error'   => "An error occured and your donation could not be processed (" .  $ex->getMessage() . "). Please contact us.",
-        );
+        return raise_rest_exception_response($ex);
     }
+}
+
+/**
+ * Return exception response
+ *
+ * @param \Exception $ex
+ * @return array
+ */
+function raise_rest_exception_response($ex)
+{
+    return array(
+        'success' => false,
+        'error'   => "An error occured and your donation could not be processed.\n\n" .  $ex->getMessage() . "\n\nPlease contact us.",
+    );
 }
 
 /**
@@ -1202,11 +1210,8 @@ function raise_prepare_skrill_donation(array $donation)
             'success' => true,
             'url'     => $url,
         );
-    } catch (\Exception $e) {
-        return array(
-            'success' => false,
-            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
-        );
+    } catch (\Exception $ex) {
+        return raise_rest_exception_response($ex);
     }
 }
 
@@ -1333,11 +1338,8 @@ function raise_prepare_bitpay_donation(array $donation)
             'success' => true,
             'url'     => $invoice->getUrl(),
         );
-    } catch (\Exception $e) {
-        return array(
-            'success' => false,
-            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
-        );
+    } catch (\Exception $ex) {
+        return raise_rest_exception_response($ex);
     }
 }
 
@@ -1664,10 +1666,7 @@ function raise_prepare_paypal_donation(array $donation)
             'error'   => "An error occured and your donation could not be processed (" .  $ex->getData() . "). Please contact us.",
         );
     } catch (\Exception $ex) {
-        return array(
-            'success' => false,
-            'error'   => "An error occured and your donation could not be processed (" .  $ex->getMessage() . "). Please contact us.",
-        );
+        return raise_rest_exception_response($ex);
     }
 }
 

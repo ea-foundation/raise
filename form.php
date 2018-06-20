@@ -164,7 +164,7 @@ function raise_form($atts, $content = null)
 
                             // Monthly buttons (if present)
                             $tabIndexMonthly = $tabIndex;
-                            $amountsMonthly  = raise_get($formSettings['amount']['button_monthly'], array());
+                            $amountsMonthly  = raise_get($formSettings['amount']['button_monthly'], []);
                             foreach (array_filter($amountsMonthly) as $amount) {
                                 echo '<li class="col-xs-' . $buttonColSpan . ' amount-monthly hidden">';
                                 echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndexMonthly . '" id="amount-monthly-' . $amount . '" disabled>';
