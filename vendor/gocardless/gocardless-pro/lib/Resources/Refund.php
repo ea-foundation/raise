@@ -8,7 +8,7 @@
 namespace GoCardlessPro\Resources;
 
 /**
- * A thin wrapper around a refund, providing access to it's
+ * A thin wrapper around a refund, providing access to its
  * attributes
  *
  * @property-read $amount
@@ -29,7 +29,7 @@ class Refund extends BaseResource
     protected $amount;
 
     /**
-     * Fixed [timestamp](#overview-time-zones-dates), recording when this
+     * Fixed [timestamp](#api-usage-time-zones--dates), recording when this
      * resource was created.
      */
     protected $created_at;
@@ -59,8 +59,9 @@ class Refund extends BaseResource
 
     /**
      * An optional refund reference, displayed on your customer's bank
-     * statement. This can be up to 18 characters long for Bacs payments, 140
-     * characters for SEPA payments, or 25 characters for Autogiro payments.
+     * statement. This can be up to 18 characters long for Bacs or BECS
+     * payments, 140 characters for SEPA payments, or 25 characters for Autogiro
+     * payments.
      */
     protected $reference;
 

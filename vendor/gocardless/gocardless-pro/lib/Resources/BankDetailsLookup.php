@@ -8,7 +8,7 @@
 namespace GoCardlessPro\Resources;
 
 /**
- * A thin wrapper around a bank_details_lookup, providing access to it's
+ * A thin wrapper around a bank_details_lookup, providing access to its
  * attributes
  *
  * @property-read $available_debit_schemes
@@ -32,7 +32,10 @@ class BankDetailsLookup extends BaseResource
     protected $bank_name;
 
     /**
-     * ISO 9362 SWIFT BIC of the bank with which the account is held.
+     * ISO 9362 SWIFT BIC of the bank with which the account is held. <p
+     * class="notice">Even if no BIC is returned for an account, GoCardless may
+     * still be able to collect payments from it - you should refer to the
+     * `available_debit_schemes` attribute to determine reachability.</p>
      */
     protected $bic;
 

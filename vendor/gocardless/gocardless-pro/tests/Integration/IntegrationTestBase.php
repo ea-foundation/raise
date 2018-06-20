@@ -7,13 +7,24 @@
 namespace GoCardlessPro\Integration;
 
 use GoCardlessPro\Environment;
+use GoCardlessPro\Support\TestFixtures;
 
 abstract class IntegrationTestBase extends \PHPUnit_Framework_TestCase
 {
+    use TestFixtures;
 
     public function setUp()
     {
-        $this->mock_http_client = $this->getMock('\GuzzleHttp\ClientInterface');
+        $this->mock = new \GuzzleHttp\Handler\MockHandler([]);
+        $this->history = array();
+        $historyMiddleware = \GuzzleHttp\Middleware::history($this->history);
+        $handler = \GuzzleHttp\HandlerStack::create($this->mock);
+        $handler->push($historyMiddleware);
+
+        $this->mock_http_client = new \GuzzleHttp\Client([
+            'handler' => $handler,
+            'http_errors' => false
+        ]);
         $this->client = new \GoCardlessPro\Client(
             array(
                 'access_token' => 'foobar',
@@ -27,21 +38,19 @@ abstract class IntegrationTestBase extends \PHPUnit_Framework_TestCase
     {
     }
 
-    public function load_fixture($filename)
-    {
-        $json_fixture_path = "./tests/fixtures/$filename.json";
-        return json_decode(file_get_contents($json_fixture_path));
-    }
-
     public function stub_request($resource_fixture)
     {
         $path = preg_replace("/:(\w+)/", "\w+", $resource_fixture->path_template);
         $path_regexp = "|" . str_replace("\\\\w\+", "\w+", preg_quote($path)) . "|";
         $json_body = json_encode($resource_fixture->body);
         $response = new \GuzzleHttp\Psr7\Response(200, [], $json_body);
-        $this->mock_http_client
-            ->method('request')//$resource_fixture->method)
-            ->with($resource_fixture->method, $this->matchesRegularExpression($path_regexp), $this->anything())
-            ->willReturn($response);
+
+        $this->mock->append($response);
+    }
+
+    public function extract_resource_fixture_path_regex($resource_fixture)
+    {
+        $path = preg_replace("/:(\w+)/", "\w+", $resource_fixture->path_template);
+        return "|" . str_replace("\\\\w\+", "\w+", preg_quote($path)) . "|";
     }
 }

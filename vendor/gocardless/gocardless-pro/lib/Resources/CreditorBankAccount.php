@@ -8,7 +8,7 @@
 namespace GoCardlessPro\Resources;
 
 /**
- * A thin wrapper around a creditor_bank_account, providing access to it's
+ * A thin wrapper around a creditor_bank_account, providing access to its
  * attributes
  *
  * @property-read $account_holder_name
@@ -29,8 +29,8 @@ class CreditorBankAccount extends BaseResource
     /**
      * Name of the account holder, as known by the bank. Usually this is the
      * same as the name stored with the linked
-     * [creditor](#whitelabel-partner-endpoints-creditors). This field will be
-     * transliterated, upcased and truncated to 18 characters.
+     * [creditor](#core-endpoints-creditors). This field will be transliterated,
+     * upcased and truncated to 18 characters.
      */
     protected $account_holder_name;
 
@@ -53,7 +53,7 @@ class CreditorBankAccount extends BaseResource
     protected $country_code;
 
     /**
-     * Fixed [timestamp](#overview-time-zones-dates), recording when this
+     * Fixed [timestamp](#api-usage-time-zones--dates), recording when this
      * resource was created.
      */
     protected $created_at;
