@@ -136,7 +136,7 @@
 
 #wizard .scrollable-menu {
     height: auto;
-    max-height: 200px;
+    max-height: 300px;
     overflow-x: hidden;
 }
 
@@ -255,7 +255,6 @@ div#amount-item span.form-control-feedback {
 
 #wizard div#donor-extra-info .dropdown-menu,
 #wizard div.donor-info .dropdown-menu {
-    max-height: 132px;
     overflow-y: auto;
 }
 
@@ -372,7 +371,11 @@ div#secure-transaction {
 
 #wizard .dropdown-menu>li>a, #wizard .dropdown-menu>li>a:hover{
     text-decoration: none !important;
-} 
+}
+
+#wizard .carousel-inner {
+    overflow: visible;
+}
 
 div#amount-item .form-control::-webkit-input-placeholder { color: white; font-weight: 100 }
 div#amount-item .form-control:-moz-placeholder { color: white; font-weight: 100 }
