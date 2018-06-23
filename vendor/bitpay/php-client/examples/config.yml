@@ -5,6 +5,5 @@
 #
 bitpay:
     network: testnet
-    public_key: /tmp/bitpay.pub
-    private_key: /tmp/bitpay.pri
-    key_storage_password: YourTopSecretPassword
+    adapter: mock
+    key_storage_password: satoshi

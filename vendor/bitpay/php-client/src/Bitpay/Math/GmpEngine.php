@@ -30,9 +30,9 @@ class GmpEngine implements EngineInterface
      * @param String $a Numeric String
      * @param String $b Numeric String
      */
-    public function div($a, $b, $round = GMP_ROUND_ZERO)
+    public function div($a, $b)
     {
-        return gmp_strval(gmp_div_q($a, $b, $round));
+        return gmp_strval(gmp_div($a, $b));
     }
 
     /**

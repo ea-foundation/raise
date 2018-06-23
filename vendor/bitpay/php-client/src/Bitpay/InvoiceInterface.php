@@ -1,14 +1,12 @@
 <?php
 /**
- * @license Copyright 2011-2014 BitPay Inc., MIT License
+ * @license Copyright 2011-2015 BitPay Inc., MIT License
  * see https://github.com/bitpay/php-bitpay-client/blob/master/LICENSE
  */
 
 namespace Bitpay;
 
 /**
- * Invoice
- *
  * @package Bitpay
  */
 interface InvoiceInterface
@@ -80,7 +78,7 @@ interface InvoiceInterface
      * specified in a currency other than BTC, the price will be converted into BTC at
      * market exchange rates to determine the amount collected from the buyer.
      *
-     * @return string
+     * @return float
      */
     public function getPrice();
 
@@ -94,6 +92,10 @@ interface InvoiceInterface
     public function getCurrency();
 
     /**
+     * If there is not an item already set, we need to use a default item
+     * so that some methods do not throw errors about methods and
+     * non-objects.
+     *
      * @return ItemInterface
      */
     public function getItem();
@@ -166,7 +168,7 @@ interface InvoiceInterface
     public function getStatus();
 
     /**
-     * default value: true
+     * default value: false
      * ● true: Notifications will be sent on every status change.
      * ● false: Notifications are only sent when an invoice is confirmed (according
      *   to the “transactionSpeed” setting).
@@ -174,15 +176,6 @@ interface InvoiceInterface
      * @return boolean
      */
     public function isFullNotifications();
-
-    /**
-     * default value: false
-     * ● true: Notifications will also be sent for expired invoices and refunds.
-     * ● false: Notifications will not be sent for expired invoices and refunds
-     *
-     * @return boolean
-     */
-    public function isExtendedNotifications();
 
     /**
      * The unique id of the invoice assigned by bitpay.com
@@ -202,7 +195,7 @@ interface InvoiceInterface
      * The amount of bitcoins being requested for payment of this invoice (same as the
      * price if the merchant set the price in BTC).
      *
-     * @return string
+     * @return float
      */
     public function getBtcPrice();
 
@@ -351,30 +344,29 @@ interface InvoiceInterface
     public function getBuyerPhone();
 
     /**
+     * Returns exception status.
      */
     public function getExceptionStatus();
 
     /**
+     * Returns the amount of BTC paid.
      */
     public function getBtcPaid();
 
     /**
+     * Returns the exchange rate.
      */
     public function getRate();
 
     /**
+     * Returns the token for this resource.
      */
     public function getToken();
 
     /**
-     * An array containing all bitcoin addresses linked to the invoice. 
-     * Only filled when doing a getInvoice using the Merchant facade.
-     * The array contains
-     *  [refundAddress] => Array
-     *       [type] => string (e.g. "PaymentProtocol")
-     *       [date] => datetime string
+     * Returns a set of payment urls.
      *
-     * @return array|object
+     * @return PaymentUrlInterface
      */
-    public function getRefundAddresses();
+    public function getPaymentUrls();
 }

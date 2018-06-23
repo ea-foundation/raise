@@ -6,6 +6,8 @@
 
 namespace Bitpay;
 
+date_default_timezone_set('UTC');
+
 /**
  * Class Payout
  * @package Bitpay

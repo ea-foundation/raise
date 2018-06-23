@@ -5,6 +5,7 @@
 
 /**
  * WARNING - This example will NOT work until you have generated your public
+ * and private keys. Please see the example documentation on generating your
  * keys and also see the documentation on how to save those keys.
  *
  * Also please be aware that you CANNOT create an invoice until you have paired
@@ -18,43 +19,52 @@ $time = gmdate("Y-m-d\TH:i:s\.", 1414691179)."000Z";
 $token = new \Bitpay\Token();
 $token
 	->setFacade('payroll')
-	->setToken('<your payroll facade-enable token>'); //this is a special api that requires a explicit payroll relationship with BitPay
-
+	->setToken('your token here');
+	
 $instruction1 = new \Bitpay\PayoutInstruction();
 $instruction1
-	->setAmount(100)
-	->setAddress('2NA5EVH9HHHhM5RxSEWf54gP4v397EmFTxi')
-	->setLabel('Paying Chris');
+	->setAmount(990)
+	->setAddress('n3Sx4askJeykUYk24sS5rQoCEm8BpwVrNg')
+	->setLabel('Paying Tom');
+	
+$instruction2 = new \Bitpay\PayoutInstruction();
+$instruction2
+	->setAmount(1490)
+	->setAddress('mxRN6AQJaDi5R6KmvMaEmZGe3n5ScV9u33')
+	->setLabel('Paying Harry');
 
 $payout = new \Bitpay\Payout();
 $payout
 	->setEffectiveDate($time)
-	->setAmount(100)
 	->setCurrency(new \Bitpay\Currency('USD'))
 	->setPricingMethod('bitcoinbestbuy')
 	->setReference('a reference, can be json')
-	->setNotificationEmail('me@example.com')
-	->setNotificationUrl('https://example.com/ipn.php')
+	->setNotificationEmail('your@email.com')
+	->setNotificationUrl('https://yoursite.com/callback')
 	->setToken($token)
-	->addInstruction($instruction1);
-
-$private = new \Bitpay\PrivateKey();
-$private->setHex('662be90968bc659873d723374213fa5bf7a30c24f0f0713aa798eb7daa7230fc'); //this is your private key in some form (see GetKeys.php)
-
-$public = new \Bitpay\PublicKey();
-$public->generate($private);
-
-$network = new \Bitpay\Network\Testnet();
-$adapter = new \Bitpay\Client\Adapter\CurlAdapter();
+	->addInstruction($instruction1)
+	->addInstruction($instruction2);	
 
 
-$bitpay = new \Bitpay\Bitpay();
+/**
+ * Create a new client. You can see the example of how to configure this using
+ * a yml file as well.
+ */
+$bitpay = new \Bitpay\Bitpay(
+    array(
+        'bitpay' => array(
+            'network'     => 'testnet', // testnet or livenet, default is livenet
+            'public_key'  => getenv('HOME').'/.bitpayphp/api.pub',
+            'private_key' => getenv('HOME').'/.bitpayphp/api.key',
+            'key_storage' => 'Bitpay\Storage\FilesystemStorage',
+        )
+    )
+);
 
-$client = new \Bitpay\Client\Client();
-$client->setPrivateKey($private);
-$client->setPublicKey($public);
-$client->setNetwork($network);
-$client->setAdapter($adapter);
+/**
+ * Create the client that will be used to send requests to BitPay's API
+ */
+$client = $bitpay->get('client');
 
 $client->createPayout($payout);
 

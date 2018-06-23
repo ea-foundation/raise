@@ -2,10 +2,10 @@
     "require": {
         "stripe/stripe-php": "^6.8",
         "gocardless/gocardless-pro": "^1.7",
-        "bitpay/php-client": "^2.2",
         "twig/twig": "^1.35",
         "paypal/rest-api-sdk-php": "*",
         "google/recaptcha": "~1.1",
-        "jwadhams/json-logic-php": "^1.3"
+        "jwadhams/json-logic-php": "^1.3",
+        "bitpay/php-client": "^3.0"
     }
 }

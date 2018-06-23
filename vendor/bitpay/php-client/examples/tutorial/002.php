@@ -5,7 +5,7 @@
  * 002 - Pairing
  *
  * Requirements:
- *   - Basic PHP Knowledge
+ *   - Baisic PHP Knowledge
  *   - Private and Public keys from 001.php
  *   - Account on https://test.bitpay.com
  *   - Pairing code
@@ -33,9 +33,7 @@ $client = new \Bitpay\Client\Client();
  * own as long as it implements the NetworkInterface. In this example
  * we will use testnet
  */
-//$network = new \Bitpay\Network\Testnet();
-$network = new \Bitpay\Network\Livenet();
-
+$network = new \Bitpay\Network\Testnet();
 
 /**
  * The adapter is what will make the calls to BitPay and return the response
@@ -81,9 +79,6 @@ try {
      * decided that it makes more sense to allow your application to handle
      * this exception since each app is different and has different requirements.
      */
-    echo "Exception occured: " . $e->getMessage().PHP_EOL;
-
-    echo "Pairing failed. Please check whether you're trying to pair a production pairing code on test.".PHP_EOL;
     $request  = $client->getRequest();
     $response = $client->getResponse();
     /**

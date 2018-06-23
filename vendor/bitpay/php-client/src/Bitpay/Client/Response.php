@@ -1,13 +1,13 @@
 <?php
 /**
- * @license Copyright 2011-2014 BitPay Inc., MIT License
+ * @license Copyright 2011-2015 BitPay Inc., MIT License
  * see https://github.com/bitpay/php-bitpay-client/blob/master/LICENSE
  */
 
 namespace Bitpay\Client;
 
 /**
- * Generic Response object used to parse a response from a server
+ * Generic Response class used to parse a response from a server.
  *
  * @package Bitpay
  */
@@ -33,8 +33,6 @@ class Response implements ResponseInterface
      */
     protected $statusCode;
 
-    /**
-     */
     public function __construct($raw = null)
     {
         $this->headers = array();
@@ -48,24 +46,15 @@ class Response implements ResponseInterface
      */
     public function __toString()
     {
-        return (string) $this->raw;
+        return (string)$this->raw;
     }
 
     /**
-     * @param string $rawResponse
-     * @return Response
+     * @param Response
      */
     public static function createFromRawResponse($rawResponse)
     {
         $response = new self($rawResponse);
-        //remove HTTP 100 responses
-        $delimiter = "\r\n\r\n";// HTTP header delimiter
-        //check if the 100 Continue header exists
-        while (preg_match('#^HTTP/[0-9\\.]+\s+100\s+Continue#i', $rawResponse)) {
-            $tmp = explode($delimiter, $rawResponse, 2);// grab the 100 Continue header
-            $rawResponse = $tmp[1];// update the response, purging the most recent 100 Continue header
-        }// repeat
-        
         $lines    = preg_split('/(\\r?\\n)/', $rawResponse);
         $linesLen = count($lines);
 
@@ -85,7 +74,7 @@ class Response implements ResponseInterface
                 break;
             }
 
-            if (strpos($lines[$i], ':') !== false) {
+            if (strpos($lines[$i], ':')) {
                 $headerParts = explode(':', $lines[$i]);
                 $response->setHeader($headerParts[0], $headerParts[1]);
             }
@@ -104,12 +93,11 @@ class Response implements ResponseInterface
 
     /**
      * @param integer
-     *
-     * @return ResponseInterface
+     * @return Response
      */
     public function setStatusCode($statusCode)
     {
-        $this->statusCode = (integer) $statusCode;
+        $this->statusCode = (integer)$statusCode;
 
         return $this;
     }
@@ -126,6 +114,7 @@ class Response implements ResponseInterface
      * Set the body of the response
      *
      * @param string $body
+     * @return Response
      */
     public function setBody($body)
     {
@@ -145,6 +134,7 @@ class Response implements ResponseInterface
     /**
      * @param string $header
      * @param string $value
+     * @return Response
      */
     public function setHeader($header, $value)
     {

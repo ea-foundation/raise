@@ -1,6 +1,6 @@
 <?php
 /**
- * @license Copyright 2011-2014 BitPay Inc., MIT License 
+ * @license Copyright 2011-2015 BitPay Inc., MIT License 
  * see https://github.com/bitpay/php-bitpay-client/blob/master/LICENSE
  */
 
@@ -18,14 +18,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 /**
- * Setups container and is ready for some dependency injection action
+ * Sets up container and prepares for dependency injection.
  *
  * @package Bitpay
  */
 class Bitpay
 {
     /**
-     * @var ContainerInterface
+     * @var ContainerBuilder
      */
     protected $container;
 
@@ -37,9 +37,9 @@ class Bitpay
      * The second argument is the container if you want to build one by hand.
      *
      * @param array|string       $config
-     * @param ContainerInterface $container
+     * @param null|ContainerBuilder $container
      */
-    public function __construct($config = array(), ContainerInterface $container = null)
+    public function __construct($config = array(), ContainerBuilder $container = null)
     {
         $this->container = $container;
 
@@ -50,6 +50,8 @@ class Bitpay
 
     /**
      * Initialize the container
+     *
+     * @param array|string $config
      */
     protected function initializeContainer($config)
     {
@@ -58,7 +60,10 @@ class Bitpay
     }
 
     /**
-     * Build the container of services and parameters
+     * Build the container of services and parameters.
+     * 
+     * @param array|string $config
+     * @return ContainerBuilder
      */
     protected function buildContainer($config)
     {
@@ -70,16 +75,20 @@ class Bitpay
         return $container;
     }
 
+    /**
+     * @return array<string,string>
+     */
     protected function getParameters()
     {
         return array(
-            'bitpay.root_dir' => realpath(__DIR__.'/..'),
+            'bitpay.root_dir' => realpath(__DIR__ . '/..'),
         );
     }
 
     /**
+     * @param ContainerBuilder $container
      */
-    private function prepareContainer(ContainerInterface $container)
+    private function prepareContainer(ContainerBuilder $container)
     {
         foreach ($this->getDefaultExtensions() as $ext) {
             $container->registerExtension($ext);
@@ -88,10 +97,10 @@ class Bitpay
     }
 
     /**
-     * @param  ContainerInterface $container
-     * @return LoaderInterface
+     * @param  ContainerBuilder $container
+     * @return DelegatingLoader
      */
-    private function getContainerLoader(ContainerInterface $container)
+    private function getContainerLoader(ContainerBuilder $container)
     {
         $locator  = new FileLocator();
         $resolver = new LoaderResolver(
@@ -105,9 +114,9 @@ class Bitpay
     }
 
     /**
-     * Returns an array of the default extensions
+     * Returns an array of the default extensions.
      *
-     * @return array
+     * @return BitpayExtension[]
      */
     private function getDefaultExtensions()
     {
@@ -117,7 +126,7 @@ class Bitpay
     }
 
     /**
-     * @return ContainerInterface
+     * @return ContainerBuilder
      */
     public function getContainer()
     {
@@ -125,7 +134,7 @@ class Bitpay
     }
 
     /**
-     * @return mixed
+     * @return object|null
      */
     public function get($service)
     {

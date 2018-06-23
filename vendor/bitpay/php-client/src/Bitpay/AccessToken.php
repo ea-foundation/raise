@@ -27,24 +27,20 @@ class AccessToken implements AccessTokenInterface
     protected $label;
 
     /**
-     * @var boolean
+     * Set various defaults for this object.
      */
-    protected $useNonce;
-
-    /**
-     */
-    public function __construct()
+    public function __construct($id = null, $email = null, $label = null)
     {
-        /**
-         * Set various defaults for this object.
-         */
-        $this->useNonce = true;
+        $this->id    = $id;
+        $this->email = $email;
+        $this->label = $label;
     }
 
     /**
-     * @param string $id
+     * Setter for the id.
      *
-     * @return AccessTokenInterface
+     * @param string $id
+     * @return AccessToken
      */
     public function setId($id)
     {
@@ -64,9 +60,10 @@ class AccessToken implements AccessTokenInterface
     }
 
     /**
-     * @param string $email
+     * Setter for the email address.
      *
-     * @return AccessTokenInterface
+     * @param string $email
+     * @return AccessToken
      */
     public function setEmail($email)
     {
@@ -86,9 +83,10 @@ class AccessToken implements AccessTokenInterface
     }
 
     /**
-     * @param string $label
+     * Setter for the label.
      *
-     * @return AccessTokenInterface
+     * @param string $label
+     * @return AccessToken
      */
     public function setLabel($label)
     {
@@ -105,37 +103,5 @@ class AccessToken implements AccessTokenInterface
     public function getLabel()
     {
         return $this->label;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isNonceDisabled()
-    {
-        return !($this->useNonce);
-    }
-
-    /**
-     * Enable nonce usage
-     *
-     * @return AccessTokenInterface
-     */
-    public function nonceEnable()
-    {
-        $this->useNonce = true;
-
-        return $this;
-    }
-
-    /**
-     * Disable nonce usage
-     *
-     * @return AccessTokenInterface
-     */
-    public function nonceDisable()
-    {
-        $this->useNonce = false;
-
-        return $this;
     }
 }

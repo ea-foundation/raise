@@ -1,6 +1,6 @@
 <?php
 /**
- * @license Copyright 2011-2014 BitPay Inc., MIT License
+ * @license Copyright 2011-2015 BitPay Inc., MIT License
  * see https://github.com/bitpay/php-bitpay-client/blob/master/LICENSE
  */
 
@@ -31,7 +31,7 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testSendRequestWithException()
     {
-        $this->setExpectedException('Bitpay\Client\ConnectionException');
+        $this->setExpectedException('\Exception');
         
         $curl_options = array(
             CURLOPT_URL            => "www.example.com",
@@ -55,5 +55,4 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
         $response = $adapter->sendRequest($this->request);
         $this->assertNotNull($response);
     }
-
 }

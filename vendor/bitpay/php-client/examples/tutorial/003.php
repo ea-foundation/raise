@@ -6,7 +6,7 @@
  *
  * Requirements:
  *   - Account on https://test.bitpay.com
- *   - Basic PHP Knowledge
+ *   - Baisic PHP Knowledge
  *   - Private and Public keys from 001.php
  *   - Token value obtained from 002.php
  */
@@ -17,8 +17,7 @@ $storageEngine = new \Bitpay\Storage\EncryptedFilesystemStorage('YourTopSecretPa
 $privateKey    = $storageEngine->load('/tmp/bitpay.pri');
 $publicKey     = $storageEngine->load('/tmp/bitpay.pub');
 $client        = new \Bitpay\Client\Client();
-//$network       = new \Bitpay\Network\Testnet();
-$network       = new \Bitpay\Network\Livenet();
+$network       = new \Bitpay\Network\Testnet();
 $adapter       = new \Bitpay\Client\Adapter\CurlAdapter();
 $client->setPrivateKey($privateKey);
 $client->setPublicKey($publicKey);
@@ -43,13 +42,6 @@ $client->setToken($token);
  */
 $invoice = new \Bitpay\Invoice();
 
-$buyer = new \Bitpay\Buyer();
-$buyer
-    ->setEmail('buyeremail@test.com');
-
-// Add the buyers info to invoice
-$invoice->setBuyer($buyer);
-
 /**
  * Item is used to keep track of a few things
  */
@@ -70,22 +62,13 @@ $invoice->setItem($item);
  */
 $invoice->setCurrency(new \Bitpay\Currency('USD'));
 
-// Configure the rest of the invoice
-$invoice
-    ->setOrderId('OrderIdFromYourSystem')
-    // You will receive IPN's at this URL, should be HTTPS for security purposes!
-    ->setNotificationUrl('https://store.example.com/bitpay/callback');
-
-
 /**
  * Updates invoice with new information such as the invoice id and the URL where
  * a customer can view the invoice.
  */
 try {
-    echo "Creating invoice at BitPay now.".PHP_EOL;
     $client->createInvoice($invoice);
 } catch (\Exception $e) {
-    echo "Exception occured: " . $e->getMessage().PHP_EOL;
     $request  = $client->getRequest();
     $response = $client->getResponse();
     echo (string) $request.PHP_EOL.PHP_EOL.PHP_EOL;
@@ -94,5 +77,3 @@ try {
 }
 
 echo 'Invoice "'.$invoice->getId().'" created, see '.$invoice->getUrl().PHP_EOL;
-echo "Verbose details.".PHP_EOL;
-print_r($invoice);

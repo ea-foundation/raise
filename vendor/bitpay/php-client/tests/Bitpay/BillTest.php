@@ -1,6 +1,6 @@
 <?php
 /**
- * @license Copyright 2011-2014 BitPay Inc., MIT License
+ * @license Copyright 2011-2015 BitPay Inc., MIT License
  * see https://github.com/bitpay/php-bitpay-client/blob/master/LICENSE
  */
 
@@ -35,7 +35,7 @@ class BillTest extends \PHPUnit_Framework_TestCase
     public function testGetCurrency()
     {
         $this->assertNotNull($this->bill);
-        $this->assertInstanceOf('Bitpay\CurrencyInterface', $this->bill->getCurrency());
+        $this->assertInstanceOf('Bitpay\Currency', $this->bill->getCurrency());
     }
 
     /**
@@ -45,7 +45,7 @@ class BillTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertNotNull($this->bill);
         $this->bill->setCurrency($this->getMockCurrency());
-        $this->assertInstanceOf('Bitpay\CurrencyInterface', $this->bill->getCurrency());
+        $this->assertInstanceOf('Bitpay\Currency', $this->bill->getCurrency());
     }
 
     public function testGetName()
@@ -162,8 +162,8 @@ class BillTest extends \PHPUnit_Framework_TestCase
     public function testSetEmail()
     {
         $this->assertNotNull($this->bill);
-        $this->bill->setEmail('support@bitpay.com');
-        $this->assertSame('support@bitpay.com', $this->bill->getEmail());
+        $this->bill->setEmail('integrations@bitpay.com');
+        $this->assertSame('integrations@bitpay.com', $this->bill->getEmail());
     }
 
     public function testGetPhone()
@@ -232,11 +232,11 @@ class BillTest extends \PHPUnit_Framework_TestCase
 
     private function getMockItem()
     {
-        return $this->getMock('Bitpay\ItemInterface');
+        return $this->getMock('Bitpay\Item');
     }
 
     private function getMockCurrency()
     {
-        return $this->getMock('Bitpay\CurrencyInterface');
+        return $this->getMock('Bitpay\Currency');
     }
 }

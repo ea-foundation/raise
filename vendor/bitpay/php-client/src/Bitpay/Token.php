@@ -1,10 +1,12 @@
 <?php
 /**
- * @license Copyright 2011-2014 BitPay Inc., MIT License 
+ * @license Copyright 2011-2015 BitPay Inc., MIT License
  * see https://github.com/bitpay/php-bitpay-client/blob/master/LICENSE
  */
 
 namespace Bitpay;
+
+date_default_timezone_set('UTC');
 
 /**
  * @package Bitpay
@@ -46,8 +48,6 @@ class Token implements TokenInterface
      */
     protected $pairingExpiration;
 
-    /**
-     */
     public function __construct()
     {
         $this->policies = array();
@@ -58,7 +58,7 @@ class Token implements TokenInterface
      */
     public function __toString()
     {
-        return (string) $this->getToken();
+        return (string)$this->getToken();
     }
 
     /**
@@ -69,6 +69,10 @@ class Token implements TokenInterface
         return $this->token;
     }
 
+    /**
+     * @param string
+     * @return Token
+     */
     public function setToken($token)
     {
         $this->token = $token;
@@ -84,6 +88,10 @@ class Token implements TokenInterface
         return $this->resource;
     }
 
+    /**
+     * @param string
+     * @return Token
+     */
     public function setResource($resource)
     {
         $this->resource = $resource;
@@ -99,6 +107,10 @@ class Token implements TokenInterface
         return $this->facade;
     }
 
+    /**
+     * @param string
+     * @return Token
+     */
     public function setFacade($facade)
     {
         $this->facade = $facade;
@@ -114,6 +126,10 @@ class Token implements TokenInterface
         return $this->createdAt;
     }
 
+    /**
+     * @param \DateTime
+     * @return Token
+     */
     public function setCreatedAt(\DateTime $createdAt)
     {
         $this->createdAt = $createdAt;
@@ -129,6 +145,10 @@ class Token implements TokenInterface
         return $this->policies;
     }
 
+    /**
+     * @param string
+     * @return Token
+     */
     public function setPolicies($policies)
     {
         $this->policies = $policies;
@@ -143,11 +163,15 @@ class Token implements TokenInterface
     {
         return $this->pairingCode;
     }
-    
+
+    /**
+     * @param string
+     * @return Token
+     */
     public function setPairingCode($pairingCode)
     {
         $this->pairingCode = $pairingCode;
-        
+
         return $this;
     }
 
@@ -159,6 +183,10 @@ class Token implements TokenInterface
         return $this->pairingExpiration;
     }
 
+    /**
+     * @param \DateTime
+     * @return Token
+     */
     public function setPairingExpiration(\DateTime $pairingExpiration)
     {
         $this->pairingExpiration = $pairingExpiration;

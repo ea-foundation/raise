@@ -1,6 +1,6 @@
 <?php
 /**
- * @license Copyright 2011-2014 BitPay Inc., MIT License
+ * @license Copyright 2011-2015 BitPay Inc., MIT License
  * see https://github.com/bitpay/php-bitpay-client/blob/master/LICENSE
  */
 
@@ -18,7 +18,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetPrice()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getPrice());
+        $this->assertSame($this->invoice->getPrice(), 0.0);
     }
 
     /**
@@ -34,7 +34,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetCurrency()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getCurrency());
+        $this->assertInstanceOf('Bitpay\Currency', $this->invoice->getCurrency());
     }
 
     /**
@@ -85,7 +85,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetTransactionSpeed()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertSame(Invoice::TRANSACTION_SPEED_MEDIUM, $this->invoice->getTransactionSpeed());
+        $this->assertSame(Invoice::TRANSACTION_SPEED_LOW, $this->invoice->getTransactionSpeed());
     }
 
     /**
@@ -101,7 +101,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetNotificationEmail()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getNotificationEmail());
+        $this->assertSame($this->invoice->getNotificationEmail(), '');
     }
 
     /**
@@ -110,14 +110,14 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testSetNotificationEmail()
     {
         $this->assertNotNull($this->invoice);
-        $this->invoice->setNotificationEmail('support@bitpay.com');
-        $this->assertSame('support@bitpay.com', $this->invoice->getNotificationEmail());
+        $this->invoice->setNotificationEmail('integrations@bitpay.com');
+        $this->assertSame('integrations@bitpay.com', $this->invoice->getNotificationEmail());
     }
 
     public function testGetNotificationUrl()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getNotificationUrl());
+        $this->assertSame($this->invoice->getNotificationUrl(), '');
     }
 
     /**
@@ -133,7 +133,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetRedirectUrl()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getRedirectUrl());
+        $this->assertSame($this->invoice->getRedirectUrl(), '');
     }
 
     /**
@@ -149,7 +149,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetPosData()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getPosData());
+        $this->assertSame($this->invoice->getPosData(), '');
     }
 
     /**
@@ -165,7 +165,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetStatus()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getStatus());
+        $this->assertSame($this->invoice->getStatus(), '');
     }
 
     /**
@@ -181,13 +181,13 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testIsFullNotifications()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertTrue($this->invoice->isFullNotifications());
+        $this->assertFalse($this->invoice->isFullNotifications());
     }
 
     public function testGetId()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getId());
+        $this->assertSame($this->invoice->getId(), '');
     }
 
     /**
@@ -203,7 +203,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetUrl()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getUrl());
+        $this->assertSame($this->invoice->getUrl(), '');
     }
 
     /**
@@ -219,7 +219,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetBtcPrice()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getBtcPrice());
+        $this->assertSame($this->invoice->getBtcPrice(), 0.0);
     }
 
     /**
@@ -244,7 +244,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testSetInvoiceTime()
     {
         $this->assertNotNull($this->invoice);
-        $date = new \DateTime('now', new \DateTimeZone("UTC"));
+        $date = new \DateTime();
         $this->invoice->setInvoiceTime($date);
         $this->assertSame($date, $this->invoice->getInvoiceTime());
     }
@@ -262,7 +262,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertNotNull($this->invoice);
 
-        $date = new \DateTime('now',new \DateTimeZone("UTC"));
+        $date = new \DateTime();
 
         $this->assertNotNull($date);
 
@@ -283,7 +283,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertNotNull($this->invoice);
 
-        $date = new \DateTime('now',new \DateTimeZone("UTC"));
+        $date = new \DateTime();
 
         $this->assertNotNull($date);
 
@@ -294,7 +294,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetOrderId()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getOrderId());
+        $this->assertSame($this->invoice->getOrderId(), '');
     }
 
     /**
@@ -313,24 +313,10 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($this->invoice->getItemDesc());
     }
 
-    public function testSetItemDesc()
-    {
-        $this->assertNotNull($this->invoice);
-
-        // TODO: add a test for setting the item description...
-    }
-
     public function testGetItemCode()
     {
         $this->assertNotNull($this->invoice);
         $this->assertNull($this->invoice->getItemCode());
-    }
-
-    public function testSetItemCode()
-    {
-        $this->assertNotNull($this->invoice);
-
-        // TODO: add a test for setting the item code...
     }
 
     public function testIsPhysical()
@@ -345,24 +331,10 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
         $this->assertEmpty($this->invoice->getBuyerName());
     }
 
-    public function testSetBuyerName()
-    {
-        $this->assertNotNull($this->invoice);
-
-        // TODO: add a test for setting the buyer name...
-    }
-
     public function testGetBuyerAddress1()
     {
         $this->assertNotNull($this->invoice);
         $this->assertNull($this->invoice->getBuyerAddress1());
-    }
-
-    public function testSetBuyerAddress1()
-    {
-        $this->assertNotNull($this->invoice);
-
-        // TODO: add a test for setting the buyer address1...
     }
 
     public function testGetBuyerAddress2()
@@ -371,24 +343,10 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($this->invoice->getBuyerAddress2());
     }
 
-    public function testSetBuyerAddress2()
-    {
-        $this->assertNotNull($this->invoice);
-
-        // TODO: add a test for setting the buyer address2...
-    }
-
     public function testGetBuyerCity()
     {
         $this->assertNotNull($this->invoice);
         $this->assertNull($this->invoice->getBuyerCity());
-    }
-
-    public function testSetBuyerCity()
-    {
-        $this->assertNotNull($this->invoice);
-
-        // TODO: add a test for setting the buyer city...
     }
 
     public function testGetBuyerState()
@@ -397,24 +355,10 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($this->invoice->getBuyerState());
     }
 
-    public function testSetBuyerState()
-    {
-        $this->assertNotNull($this->invoice);
-
-        // TODO: add a test for setting the buyer state...
-    }
-
     public function testGetBuyerZip()
     {
         $this->assertNotNull($this->invoice);
         $this->assertNull($this->invoice->getBuyerZip());
-    }
-
-    public function testSetBuyerZip()
-    {
-        $this->assertNotNull($this->invoice);
-
-        // TODO: add a test for setting the buyer zip...
     }
 
     public function testGetBuyerCountry()
@@ -423,24 +367,10 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($this->invoice->getBuyerCountry());
     }
 
-    public function testSetBuyerCountry()
-    {
-        $this->assertNotNull($this->invoice);
-
-        // TODO: add a test for setting the buyer country...
-    }
-
     public function testGetBuyerEmail()
     {
         $this->assertNotNull($this->invoice);
         $this->assertNull($this->invoice->getBuyerEmail());
-    }
-
-    public function testSetBuyerEmail()
-    {
-        $this->assertNotNull($this->invoice);
-
-        // TODO: add a test for setting the buyer email...
     }
 
     public function testGetBuyerPhone()
@@ -449,17 +379,10 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($this->invoice->getBuyerPhone());
     }
 
-    public function testSetBuyerPhone()
-    {
-        $this->assertNotNull($this->invoice);
-
-        // TODO: add a test for setting the buyer phone...
-    }
-
     public function testGetExceptionStatus()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getExceptionStatus());
+        $this->assertSame($this->invoice->getExceptionStatus(), '');
     }
 
     /**
@@ -475,7 +398,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetBtcPaid()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getBtcPaid());
+        $this->assertSame($this->invoice->getBtcPaid(), 0.0);
     }
 
     /**
@@ -491,7 +414,7 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
     public function testGetRate()
     {
         $this->assertNotNull($this->invoice);
-        $this->assertNull($this->invoice->getRate());
+        $this->assertSame($this->invoice->getRate(), 0.0);
     }
 
     /**
@@ -523,9 +446,9 @@ class InvoiceTest extends \PHPUnit_Framework_TestCase
 
     public function testSetFullNotifications()
     {
-        $this->assertTrue($this->invoice->isFullNotifications());
-        $this->invoice->setFullNotifications(false);
         $this->assertFalse($this->invoice->isFullNotifications());
+        $this->invoice->setFullNotifications(true);
+        $this->assertTrue($this->invoice->isFullNotifications());
     }
 
     private function getMockItem()

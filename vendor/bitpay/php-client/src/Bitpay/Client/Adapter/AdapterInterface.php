@@ -1,6 +1,6 @@
 <?php
 /**
- * @license Copyright 2011-2014 BitPay Inc., MIT License 
+ * @license Copyright 2011-2015 BitPay Inc., MIT License
  * see https://github.com/bitpay/php-bitpay-client/blob/master/LICENSE
  */
 
@@ -18,11 +18,10 @@ use Bitpay\Client\ResponseInterface;
 interface AdapterInterface
 {
     /**
-     * Send request to BitPay
+     * Send a request to BitPay.
      *
-     * @param RequestInterface $request
-     *
-     * @return ResponseInterface
+     * @param \Bitpay\Client\Request $request
+     * @return \Bitpay\Client\Response
      */
-    public function sendRequest(RequestInterface $request);
+    public function sendRequest(\Bitpay\Client\Request $request);
 }

@@ -7,7 +7,6 @@
 namespace Bitpay;
 
 /**
- *
  * @package Bitpay
  */
 class Application implements ApplicationInterface
@@ -22,8 +21,6 @@ class Application implements ApplicationInterface
      */
     protected $orgs;
 
-    /**
-     */
     public function __construct()
     {
         $this->users = array();
@@ -49,11 +46,10 @@ class Application implements ApplicationInterface
     /**
      * Add user to stack
      *
-     * @param UserInterface $user
-     *
-     * @return ApplicationInterface
+     * @param User $user
+     * @return Application
      */
-    public function addUser(UserInterface $user)
+    public function addUser(User $user)
     {
         if (!empty($user)) {
             $this->users[] = $user;
@@ -65,11 +61,10 @@ class Application implements ApplicationInterface
     /**
      * Add org to stack
      *
-     * @param OrgInterface $org
-     *
-     * @return ApplicationInterface
+     * @param Org $org
+     * @return Application
      */
-    public function addOrg(OrgInterface $org)
+    public function addOrg(Org $org)
     {
         if (!empty($org)) {
             $this->orgs[] = $org;
