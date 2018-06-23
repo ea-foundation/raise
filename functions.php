@@ -869,10 +869,11 @@ function raise_get_gocardless_client(array $donation)
 {
     // Get GoCardless account settings
     $settings = raise_get_payment_provider_account_settings('gocardless', $donation);
+    $mode     = raise_get($donation['mode']);
 
     return new \GoCardlessPro\Client([
         'access_token' => $settings['access_token'],
-        'environment'  => $mode == 'live' ? \GoCardlessPro\Environment::LIVE : \GoCardlessPro\Environment::SANDBOX,
+        'environment'  => $mode === 'live' ? \GoCardlessPro\Environment::LIVE : \GoCardlessPro\Environment::SANDBOX,
     ]);
 }
 
@@ -1150,7 +1151,8 @@ function raise_get_bitpay_client(array $donation)
     }
 
     // Get network
-    $network = $mode == 'live' ? new \Bitpay\Network\Livenet() : new \Bitpay\Network\Testnet();
+    $mode    = raise_get($donation['mode']);
+    $network = $mode === 'live' ? new \Bitpay\Network\Livenet() : new \Bitpay\Network\Testnet();
 
     // Get adapter
     $adapter = new \Bitpay\Client\Adapter\CurlAdapter();
@@ -2769,7 +2771,8 @@ function raise_get_paypal_api_context(array $donation)
         )
     );
 
-    if ($mode == 'live') {
+    $mode = raise_get($donation['mode']);
+    if ($mode === 'live') {
         $apiContext->setConfig(array('mode' => 'live'));
     }
 
