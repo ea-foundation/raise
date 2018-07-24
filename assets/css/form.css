@@ -601,3 +601,16 @@ input[type='number'] {
     height: 16px;
     width: 45px;
 }
+
+#tipping-form-group label {
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-right: 10px;
+    padding-left: 30px;
+    margin-left: -10px;
+    color: #31708f;
+    background-color: #d9edf7;
+    border-color: #bce8f1;
+}

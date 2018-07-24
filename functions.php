@@ -26,6 +26,8 @@ const RAISE_WEBHOOK_KEYS = [
     'share_data_offered',
     'tax_receipt',
     'time',
+    'tipping',
+    'tipping_offered',
     'payment_provider',
     'url',
     'vendor_customer_id',
@@ -97,6 +99,10 @@ function raise_init_donation_form($form, $mode)
     $shareDataSettings = raise_get($formSettings['payment']['form_elements']['share_data'], "");
     $shareDataRule     = raise_get_checkbox_rule($shareDataSettings);
 
+    // Get tipping rule and localize labels
+    $tippingSettings = raise_get($formSettings['payment']['form_elements']['tipping'], "");
+    $tippingRule     = raise_get_checkbox_rule($tippingSettings);
+
     // Get bank accounts and localize their labels
     $bankAccounts = raise_get($formSettings['payment']['provider']['banktransfer']);
     if (is_array($bankAccounts) && !raise_has_string_keys($bankAccounts)) {
@@ -157,6 +163,7 @@ function raise_init_donation_form($form, $mode)
         'payment_provider_display_rule'   => $paymentProviderDisplayRule,
         'payment_provider_account_rule'   => $paymentProviderAccountRule,
         'share_data_rule'                 => $shareDataRule,
+        'tipping_rule'                    => $tippingRule,
         'tax_receipt_rule'                => $taxReceiptRule,
         'bank_account_rule'               => $bankAccountsRule,
         'organization'                    => $GLOBALS['raiseOrganization'],
