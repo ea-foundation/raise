@@ -185,6 +185,29 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
             "en": "Charity",
             "de": "Organisation"
           },
+          "tip": [
+            {
+              "value": {
+                "label": {
+                  "en": "Add 5% tip",
+                  "de": "5% Trinkgeld hinzufügen"
+                },
+                "tip_percentage": 5,
+                "checked": true
+              },
+              "if": {
+                "in": [
+                  {
+                    "var": "purpose"
+                  },
+                  [
+                    "purpose_1",
+                    "purpose_2"
+                  ]
+                ]
+              }
+            }
+          ],
           "tax_receipt": [
             {
               "info": "DE: tax-deductible", // Label
@@ -366,7 +389,15 @@ The following properties can be specified in an array format that lets you encod
 - `forms > my_form > payment > provider > (banktransfer|stripe|paypal|gocardless|bitpay|skrill)`
 - `forms > my_form > payment > form_elements > tax_receipt`
 - `forms > my_form > payment > form_elements > share_data`
+- `forms > my_form > payment > form_elements > `tip`
 - `forms > my_form > finish > post_donation_instructions`
+
+The `value` objects for the checkbox form elements (`forms > my_form > form_elements > *`) can take the following properties:
+- `label`: Checkbox label (string or object)
+- `disabled`: Checkbox disabled (boolean). Default is `false`.
+- `checked`: Checkbox checked by default (boolean). Default is `false`.
+
+The `value` objects for `forms > my_form > form_elements > tip` also take `tip_percentage`.
 
 Note: Replace `my_form` with the name of the corresponding form in your config.
 
@@ -674,7 +705,7 @@ Note: The possible `payment_provider` values are `Stripe`, `PayPal`, `GoCardless
 ## Webhooks
 Array of webhook URLs. There are currently two options, `logging` and `mailing_list`, the latter of which will only get triggered when the subscribe checkbox was ticked. Upon successful donation a JSON object will be sent to each webhook, containing these parameters for `logging`:
 
-`form`, `url`, `mode` (sandbox/live), `language` (ISO-639-1), `time`, `currency`, `amount`, `payment_provider`, `email`, `frequency`, `purpose`, `name`, `address`, `zip`, `city`, `country` (in English), `country_code` (ISO-3166-1 alpha-2, e.g. `US`), `comment`, `anonymous` (yes/no), `tax_receipt` (yes/no), `mailinglist` (yes/no), `account`, `deductible` (yes/no), `share_data` (yes/no), `post_donation_instructions` (text on confirmation page), `reference`, `referrer`, `vendor_transaction_id`, `vendor_subscription_id`, `vendor_customer_id`
+`form`, `url`, `mode` (sandbox/live), `language` (ISO-639-1), `time`, `currency`, `amount`, `payment_provider`, `email`, `frequency`, `purpose`, `name`, `address`, `zip`, `city`, `country` (in English), `country_code` (ISO-3166-1 alpha-2, e.g. `US`), `comment`, `anonymous` (yes/no), `tax_receipt` (yes/no), `mailinglist` (yes/no), `account`, `deductible` (yes/no), `share_data` (yes/no), `share_data_offered` (yes/no), `tip` (yes/no), `tip_offered` (yes/no), `tip_amount`, `tip_percentage`, `post_donation_instructions` (text on confirmation page), `reference`, `referrer`, `vendor_transaction_id`, `vendor_subscription_id`, `vendor_customer_id`
 
 And these for `mailing_list`:
 `form`, `mode`, `email`, `name`, `language`

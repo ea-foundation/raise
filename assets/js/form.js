@@ -540,13 +540,7 @@ jQuery(function($) {
     });
 
     // Tipping toggle
-    $('#tip').change(function() {
-        // Update tip fields
-        updateTip();
-
-        // Update button
-        jQuery('button.confirm:last', '#wizard').html(getLastButtonText());
-    });
+    $('#tip').change(updateTip);
 }); // End jQuery(function($) {})
 
 /**
@@ -657,6 +651,9 @@ function updateTip() {
     } else {
         jQuery('#tip-amount').val(0);
     }
+
+    // Update button
+    jQuery('button.confirm:last', '#wizard').html(getLastButtonText());
 }
 
 function isValidEmail(email) {
