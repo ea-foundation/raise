@@ -26,8 +26,10 @@ const RAISE_WEBHOOK_KEYS = [
     'share_data_offered',
     'tax_receipt',
     'time',
-    'tipping',
-    'tipping_offered',
+    'tip',
+    'tip_amount',
+    'tip_offered',
+    'tip_percentage',
     'payment_provider',
     'url',
     'vendor_customer_id',
@@ -99,9 +101,9 @@ function raise_init_donation_form($form, $mode)
     $shareDataSettings = raise_get($formSettings['payment']['form_elements']['share_data'], "");
     $shareDataRule     = raise_get_checkbox_rule($shareDataSettings);
 
-    // Get tipping rule and localize labels
-    $tippingSettings = raise_get($formSettings['payment']['form_elements']['tipping'], "");
-    $tippingRule     = raise_get_checkbox_rule($tippingSettings);
+    // Get tip rule and localize labels
+    $tipSettings = raise_get($formSettings['payment']['form_elements']['tip'], "");
+    $tipRule     = raise_get_checkbox_rule($tipSettings);
 
     // Get bank accounts and localize their labels
     $bankAccounts = raise_get($formSettings['payment']['provider']['banktransfer']);
@@ -163,7 +165,7 @@ function raise_init_donation_form($form, $mode)
         'payment_provider_display_rule'   => $paymentProviderDisplayRule,
         'payment_provider_account_rule'   => $paymentProviderAccountRule,
         'share_data_rule'                 => $shareDataRule,
-        'tipping_rule'                    => $tippingRule,
+        'tip_rule'                        => $tipRule,
         'tax_receipt_rule'                => $taxReceiptRule,
         'bank_account_rule'               => $bankAccountsRule,
         'organization'                    => $GLOBALS['raiseOrganization'],
@@ -440,12 +442,14 @@ function raise_get_donation_from_post()
     }
     unset($post['amount_other']);
 
-    // Convert amount to cents
+    // Add tip to amount
     if (is_numeric($post['amount'])) {
-        $post['amountInt'] = (int)($post['amount'] * 100);
+        $amountInt         = (int)($post['amount'] * 100);
+        $tipInt            = (int)($post['tip_amount'] * 100);
+        $post['amountInt'] = $amountInt + $tipInt;
         $post['amount']    = money_format('%i', $post['amountInt'] / 100);
     } else {
-        throw new \Exception('Invalid amount.');
+        throw new \Exception('Invalid amount');
     }
 
     return array(
@@ -456,6 +460,8 @@ function raise_get_donation_from_post()
         'time'                       => date('c'),
         'currency'                   => $post['currency'],
         'amount'                     => $post['amount'],
+        'tip_amount'                 => $post['tip_amount'],
+        'tip_percentage'             => $post['tip_percentage'],
         'frequency'                  => $post['frequency'],
         'payment_provider'           => $post['payment_provider'],
         'email'                      => $post['email'],
@@ -474,6 +480,8 @@ function raise_get_donation_from_post()
         'tax_receipt'                => (bool) raise_get($post['tax_receipt'], false),
         'share_data'                 => (bool) raise_get($post['share_data'], false),
         'share_data_offered'         => (bool) raise_get($post['share_data_offered'], false),
+        'tip'                        => (bool) raise_get($post['tip'], false),
+        'tip_offered'                => (bool) raise_get($post['tip_offered'], false),
     );
 }
 
@@ -493,6 +501,16 @@ function raise_prepare_redirect()
             $post['amount'] = $post['amount_other'];
         }
         unset($post['amount_other']);
+
+        // Add tip to amount
+        if (is_numeric($post['amount'])) {
+            $amountInt      = (int)($post['amount'] * 100);
+            $tipInt         = (int)($post['tip_amount'] * 100);
+            $amountInt      = $amountInt + $tipInt;
+            $post['amount'] = money_format('%i', $amountInt / 100);
+        } else {
+            throw new \Exception('Invalid amount');
+        }
 
         // Set language
         $post['language'] = substr($post['locale'], 0, 2);
@@ -1469,6 +1487,10 @@ function raise_get_donation_from_session()
         "currency"                   => $_SESSION['raise-currency'],
         "country_code"               => $_SESSION['raise-country_code'],
         "amount"                     => $_SESSION['raise-amount'],
+        "tip"                        => $_SESSION['raise-tip'],
+        "tip_amount"                 => $_SESSION['raise-tip-amount'],
+        "tip_offered"                => $_SESSION['raise-tip-offered'],
+        "tip_percentage"             => $_SESSION['raise-tip-percentage'],
         "frequency"                  => $_SESSION['raise-frequency'],
         "tax_receipt"                => $_SESSION['raise-tax-receipt'],
         "share_data"                 => $_SESSION['raise-share-data'],
@@ -1504,6 +1526,8 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
     $_SESSION['raise-currency']         = $donation['currency'];
     $_SESSION['raise-country_code']     = $donation['country_code'];
     $_SESSION['raise-amount']           = money_format('%i', $donation['amount']);
+    $_SESSION['raise-tip-amount']       = money_format('%i', $donation['tip_amount']);
+    $_SESSION['raise-tip-percentage']   = $donation['tip_percentage'];
     $_SESSION['raise-frequency']        = $donation['frequency'];
     $_SESSION['raise-payment-provider'] = $donation['payment_provider'];
 
@@ -1516,6 +1540,8 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
     $_SESSION['post_donation_instructions'] = raise_get($donation['post_donation_instructions'], '');
     $_SESSION['raise-share-data']           = (bool) raise_get($donation['share_data'], false);
     $_SESSION['raise-share-data-offered']   = (bool) raise_get($donation['share_data_offered'], false);
+    $_SESSION['raise-tip']                  = (bool) raise_get($donation['tip'], false);
+    $_SESSION['raise-tip-offered']          = (bool) raise_get($donation['tip_offered'], false);
     $_SESSION['raise-tax-receipt']          = (bool) raise_get($donation['tax_receipt'], false);
     $_SESSION['raise-mailinglist']          = (bool) raise_get($donation['mailinglist'], false);
     $_SESSION['raise-anonymous']            = (bool) raise_get($donation['anonymous'], false);

@@ -602,7 +602,7 @@ input[type='number'] {
     width: 45px;
 }
 
-#tipping-form-group label {
+#tip-form-group label {
     border: 1px solid transparent;
     border-radius: 4px;
     padding-top: 5px;

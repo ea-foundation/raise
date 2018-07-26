@@ -89,8 +89,9 @@ function raise_form($atts, $content = null)
 <input type="hidden" name="post_donation_instructions" value="" id="raise-form-post-donation-instructions">
 <input type="hidden" name="locale" value="<?= get_locale() ?>">
 <input type="hidden" name="share_data_offered" id="share-data-offered" value="0">
-<input type="hidden" name="tipping_offered" id="tipping-offered" value="0">
-<input type="hidden" name="tipping_amount" id="tipping-amount" value="0">
+<input type="hidden" name="tip_offered" id="tip-offered" value="0">
+<input type="hidden" name="tip_amount" id="tip-amount" value="0">
+<input type="hidden" name="tip_percentage" id="tip-percentage" value="0">
 
 <!-- Scrollable root element -->
 <div id="wizard">
@@ -359,13 +360,13 @@ function raise_form($atts, $content = null)
                 <?php endif; ?>
 
                 <!-- Tipping -->
-                <?php if (!empty($formSettings['payment']['form_elements']['tipping'])): ?>
-                    <div id="tipping-form-group" class="form-group donor-info" style="margin-top: -10px; display: none">
+                <?php if (!empty($formSettings['payment']['form_elements']['tip'])): ?>
+                    <div id="tip-form-group" class="form-group donor-info" style="margin-top: -10px; display: none">
                         <div class="col-sm-offset-3 col-sm-9">
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" name="tipping" id="tipping" value="1" class="precheckable">
-                                    <span id="tipping-text"><?php _e('Add a 5% tip', 'raise'); ?></span>
+                                    <input type="checkbox" name="tip" id="tip" value="1" class="precheckable">
+                                    <span id="tip-text"><?php _e('Add a 5% tip', 'raise'); ?></span>
                                 </label>
                             </div>
                         </div>

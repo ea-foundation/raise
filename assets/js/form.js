@@ -260,7 +260,7 @@ jQuery(function($) {
                 var ev = new CustomEvent('raise_initiated_donation', { detail: {
                     form: jQuery('#raise-form-name').val(),
                     currency: getDonationCurrencyIsoCode(),
-                    amount: getDonationAmount(),
+                    amount: getTotalAmount(),
                     payment_provider: provider,
                     purpose: jQuery('input[name=purpose]:checked', '#wizard').val()
                 }});
@@ -540,18 +540,9 @@ jQuery(function($) {
     });
 
     // Tipping toggle
-    $('#tipping').change(function() {
-        var addTip = $(this).is(':checked');
-
-        // Change tipping amount
-        if (addTip) {
-            // Get amount
-            var amount = getDonationAmount();
-            var tipPercentage = 5;
-            $('#tipping-amount').val(Math.floor(amount * tipPercentage) / 100);
-        } else {
-            $('#tipping-amount').val(0);
-        }
+    $('#tip').change(function() {
+        // Update tip fields
+        updateTip();
 
         // Update button
         jQuery('button.confirm:last', '#wizard').html(getLastButtonText());
@@ -654,6 +645,20 @@ if (typeof paypal !== 'undefined') {
  * Auxiliary functions
  */
 
+function updateTip() {
+    var addTip = jQuery('#tip').is(':checked');
+
+    // Change tip amount
+    if (addTip) {
+        // Get amount
+        var amount        = getDonationAmount();
+        var tipPercentage = jQuery('#tip-percentage').val();
+        jQuery('#tip-amount').val(Math.floor(amount * tipPercentage) / 100);
+    } else {
+        jQuery('#tip-amount').val(0);
+    }
+}
+
 function isValidEmail(email) {
     var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,10})+$/;
     return regex.test(email);
@@ -668,9 +673,7 @@ function disableConfirmButton(n) {
 }
 
 function getLastButtonText() {
-    var amount           = getDonationAmount();
-    var tip              = getTippingAmount();
-    var total            = +amount + +tip;
+    var total            = getTotalAmount();
     var currencyCode     = getDonationCurrencyIsoCode();
     var currencyAmount   = currencies[currencyCode].replace('%amount%', total);
     var buttonFinalText  = frequency == 'monthly' ? wordpress_vars.labels.donate_button_monthly : wordpress_vars.labels.donate_button_once;
@@ -685,19 +688,28 @@ function showLastItem(currentItem) {
     carouselNext();
 }
 
+function getTotalAmount()
+{
+    var donation = getDonationAmount();
+    var tip      = getTippingAmount();
+    var total    = +donation + +tip;
+
+    return (total % 1 == 0) ? total.toFixed(0) : total.toFixed(2);
+}
+
 function getDonationAmount() {
     var amount = jQuery('input[name=amount]:radio:checked', '#wizard').val();
     if (amount) {
         return amount.replace('.00', '');
     } else {
         amount = parseInt(jQuery('input#amount-other', '#wizard').val() * 100) / 100;
-        return (amount % 1 == 0) ? amount : amount.toFixed(2);
+        return (amount % 1 == 0) ? amount.toFixed(0) : amount.toFixed(2);
     }
 }
 
 function getTippingAmount() {
-    var amount = parseInt(jQuery('#tipping-amount').val() * 100) / 100;
-    return (amount % 1 == 0) ? amount : amount.toFixed(2);
+    var amount = parseInt(jQuery('#tip-amount').val() * 100) / 100;
+    return (amount % 1 == 0) ? amount.toFixed(0) : amount.toFixed(2);
 }
 
 function getDonationCurrencyIsoCode() {
@@ -715,7 +727,7 @@ function handleStripeDonation() {
     stripeHandler.open({
         name: wordpress_vars.organization,
         description: wordpress_vars.labels.donation,
-        amount: getDonationAmount() * 100,
+        amount: getTotalAmount() * 100,
         currency: getDonationCurrencyIsoCode(),
         email: getDonorInfo('email')
     });
@@ -923,7 +935,7 @@ function showConfirmation(paymentProvider) {
     var ev = new CustomEvent('raise_completed_donation', { detail: {
         form: jQuery('#raise-form-name').val(),
         currency: getDonationCurrencyIsoCode(),
-        amount: getDonationAmount(),
+        amount: getTotalAmount(),
         payment_provider: paymentProvider,
         purpose: jQuery('input[name=purpose]:checked', '#wizard').val()
     }});
@@ -1139,7 +1151,7 @@ function updateFormLabels() {
     var paymentProviderTooltips  = jsonLogic.apply(wordpress_vars.payment_provider_tooltip_rule, formObj);
     var postDonationInstructions = jsonLogic.apply(wordpress_vars.post_donation_instructions_rule, formObj);
     var shareDataCheckboxState   = applyJsonLogicAndParse(wordpress_vars.share_data_rule, formObj);
-    var tippingCheckboxState     = applyJsonLogicAndParse(wordpress_vars.tipping_rule, formObj);
+    var tipCheckboxState         = applyJsonLogicAndParse(wordpress_vars.tip_rule, formObj);
     var taxReceiptCheckboxState  = applyJsonLogicAndParse(wordpress_vars.tax_receipt_rule, formObj);
     var bankAccount              = applyJsonLogicAndParse(wordpress_vars.bank_account_rule, formObj) || {};
     var bankAccountProperties    = bankAccount.hasOwnProperty('details') ? bankAccount.details : {};
@@ -1155,7 +1167,7 @@ function updateFormLabels() {
     // Update checkbox states
     if (!!jQuery('input[name=purpose]:checked', '#wizard').val()) {
         updateCheckboxState('share-data', shareDataCheckboxState, formObj);
-        updateCheckboxState('tipping', tippingCheckboxState, formObj);
+        updateCheckboxState('tip', tipCheckboxState, formObj);
     }
     updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
 
@@ -1164,9 +1176,9 @@ function updateFormLabels() {
         jQuery('#share-data-form-group').is(':not(:hidden)') ? 1 : 0
     );
 
-    // Update offered tipping state
-    jQuery('#tipping-offered').val(
-        jQuery('#tipping-form-group').is(':not(:hidden)') ? 1 : 0
+    // Update offered tip state
+    jQuery('#tip-offered').val(
+        jQuery('#tip-form-group').is(':not(:hidden)') ? 1 : 0
     );
 
     // Update post donation instructions with nl2br
@@ -1175,6 +1187,9 @@ function updateFormLabels() {
         jQuery('div#shortcode-content').html(postDonationInstructionText);
         jQuery('input[name=post_donation_instructions]').val(postDonationInstructionText);
     }
+
+    // Update tip
+    updateTip();
 }
 
 /**
@@ -1187,6 +1202,11 @@ function updateFormLabels() {
 function updateCheckboxState(id, state, formObj) {
     var element = jQuery('input#' + id);
 
+    // Update tip percentage
+    if (id === 'tip' && state && state.hasOwnProperty('tip_percentage')) {
+        jQuery('#tip-percentage').val(state.tip_percentage);
+    }
+
     // Update checkbox state
     if (state && state.hasOwnProperty('checked')) {
         if (!checkboxPreCheck[id] && !element.is(':checked') && state.checked) {
@@ -1194,7 +1214,7 @@ function updateCheckboxState(id, state, formObj) {
         }
     } else {
         // Uncheck
-        if (id === 'tipping' && element.is(':checked')) {
+        if (id === 'tip' && element.is(':checked')) {
             element.prop('checked', false).change();
         }
     }
