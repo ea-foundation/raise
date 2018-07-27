@@ -389,7 +389,7 @@ The following properties can be specified in an array format that lets you encod
 - `forms > my_form > payment > provider > (banktransfer|stripe|paypal|gocardless|bitpay|skrill)`
 - `forms > my_form > payment > form_elements > tax_receipt`
 - `forms > my_form > payment > form_elements > share_data`
-- `forms > my_form > payment > form_elements > `tip`
+- `forms > my_form > payment > form_elements > tip`
 - `forms > my_form > finish > post_donation_instructions`
 
 The `value` objects for the checkbox form elements (`forms > my_form > form_elements > *`) can take the following properties:
