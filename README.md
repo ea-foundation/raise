@@ -466,7 +466,7 @@ See list of supported [JsonLogic operations](http://jsonlogic.com/operations.htm
 
 ### Donation property placeholders
 
-The following placeholder can be used in strings: `%currency%`, `%amount%`, `%frequency%`, `%payment_provider%`, `%email%`, `%name%`, `%purpose%` (key), `%purpose_label%`, `%address%`, `%zip%`, `%city%`, `%country_code%`, `%country%` (in English), `%comment%`, `%account%`, `%reference%` (in post_donation_instruction only), `%tax_receipt_label%` (yes/no), `%share_data_label%` (yes/no), `%mailinglist_label%` (yes/no)
+The following placeholder can be used in strings: `%currency%`, `%amount%`, `%frequency%`, `%frequency_label%` (localized), `%payment_provider%`, `%payment_provider_label%` (localized), `%email%`, `%name%`, `%purpose%` (key), `%purpose_label%`, `%address%`, `%zip%`, `%city%`, `%country_code%`, `%country%` (in English), `%comment%`, `%account%`, `%reference%` (in post_donation_instruction only), `%tax_receipt_label%` (yes/no, localized), `%share_data_label%` (yes/no, localized), `%tip_label%` (yes/no, localized), `%mailinglist_label%` (yes/no, localized)
 
 ## Payment methods
 Each payment method except bank transfer object is further nested into `live` and `sandbox`.

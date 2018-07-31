@@ -1301,6 +1301,7 @@ function getFormAsObject() {
     }
 
     // Localize booleans
+    formObj.tip_label         = formObj.hasOwnProperty('tip')         ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.share_data_label  = formObj.hasOwnProperty('share_data')  ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.mailinglist_label = formObj.hasOwnProperty('mailinglist') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.tax_receipt_label = formObj.hasOwnProperty('tax_receipt') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
