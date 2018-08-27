@@ -196,6 +196,9 @@ function raise_init_donation_form($form, $mode)
     if (in_array('paypal', $enabledProviders)) {
         wp_enqueue_script('donation-plugin-paypal');
     }
+    if (in_array('coinbase', $enabledProviders)) {
+        wp_enqueue_script('donation-plugin-coinbase');
+    }
     wp_enqueue_script('donation-plugin-json-logic');
     wp_enqueue_script('donation-plugin-form');
     wp_enqueue_script('donation-plugin-combobox');
@@ -386,6 +389,11 @@ function raise_print_payment_providers($formSettings, $mode)
                 $text   = '<div class="payment-method-name sr-only">Bitcoin</div>';
                 $images = ['pp bitcoin'];
                 break;
+            case 'coinbase':
+                $value  = 'Coinbase';
+                $text   = '<span class="payment-method-name sr-only">Coinbase</span>';
+                $images = ['pp coinbase'];
+                break;
             case 'skrill':
                 $value  = 'Skrill';
                 $text   = '<div class="payment-method-name sr-only">Skrill</div>';
@@ -528,6 +536,9 @@ function raise_prepare_redirect()
                 break;
             case "BitPay":
                 $response = raise_prepare_bitpay_donation($post);
+                break;
+            case "Coinbase":
+                $response = raise_prepare_coinbase_donation($post);
                 break;
             default:
                 throw new \Exception('Payment method ' . $post['payment_provider'] . ' is invalid');
@@ -919,6 +930,8 @@ function raise_get_payment_provider_properties($provider)
             return array("access_token");
         case "bitpay":
             return array("pairing_code");
+        case "coinbase":
+            return array("api_key");
         case "skrill":
             return array("merchant_account");
         default:
@@ -1368,6 +1381,74 @@ function raise_prepare_bitpay_donation(array $donation)
     } catch (\Exception $ex) {
         return raise_rest_exception_response($ex);
     }
+}
+
+/**
+ * AJAX endpoint that returns the Coinbase URL. It stores
+ * user input in session until user is forwarded back from Coinbase
+ *
+ * @param array $donation
+ * @return array
+ */
+function raise_prepare_coinbase_donation(array $donation)
+{
+    try {
+        $form       = $donation['form'];
+        $mode       = $donation['mode'];
+        $email      = $donation['email'];
+        $name       = $donation['name'];
+        $amount     = $donation['amount'];
+        $currency   = $donation['currency'];
+        $country    = $donation['country'];
+        $taxReceipt = raise_get($donation['tax_receipt'], false);
+        $account    = raise_get($donation['account']);
+
+        // Get client
+        $client = raise_get_coinbase_client($donation);
+
+        // Create checkout
+        $res = $client->request('POST', $GLOBALS['CoinbaseApiEndpoint'] . '/checkouts', [
+            "json" => [
+                "name"         => "Donation",
+                "description"  => "$name ($email)",
+                "local_price"  => [
+                    "amount"   => $amount,
+                    "currency" => $currency,
+                ],
+                "pricing_type" => "fixed_price",
+            ],
+        ]);
+        $checkoutId = $res->getBody()['id'];
+
+        // Return URL
+        return array(
+            'success' => true,
+            'url'     => $GLOBALS['CoinbaseCheckoutEndpoint'] . $code,
+        );
+    } catch (\Exception $e) {
+        return array(
+            'success' => false,
+            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
+        );
+    }
+}
+
+/**
+ * Get Coinbase client (Guzzle)
+ *
+ * @param array $donation
+ * @return \GuzzleHttp\Client
+ */
+function raise_get_coinbase_client(array $donation)
+{
+    $settings = raise_get_payment_provider_account_settings('coinbase', $donation);
+
+    return new \GuzzleHttp\Client([
+        'headers' => [
+            'X-CC-Version' => '2018-03-22',
+            'X-CC-Api-Key' => $settings['api_key'],
+        ],
+    ]);
 }
 
 /**

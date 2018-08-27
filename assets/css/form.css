@@ -601,3 +601,9 @@ input[type='number'] {
     height: 16px;
     width: 45px;
 }
+
+.pp-images .pp.coinbase {
+    background: url(../images/coinbase.svg) no-repeat 0 2px;
+    background-size: 70px;
+    width: 70px;
+}

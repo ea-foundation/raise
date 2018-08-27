@@ -243,6 +243,10 @@ jQuery(function($) {
                     provider = 'bitpay';
                     handlePopupDonation('BitPay');
                     break;
+                case 'payment-coinbase':
+                    provider = 'coinbase';
+                    handlePopupDonation('Coinbase');
+                    break;
                 case 'payment-skrill':
                     provider = 'skrill';
                     handleIFrameDonation('Skrill');
@@ -1116,7 +1120,7 @@ function reloadPaymentProviders() {
     var formObj = getFormAsObject();
     jQuery('#payment-providers label').each(function() {
         var providerLabel = jQuery(this).find('input[name="payment_provider"]').val();
-        var tempObj       = Object.assign({}, formObj, {"payment_provider": providerLabel});
+        var tempObj       = jQuery.extend({}, formObj, {"payment_provider": providerLabel});
         var display       = jsonLogic.apply(wordpress_vars.payment_provider_display_rule, tempObj);
         jQuery(this).toggle(display);
     });
@@ -1156,7 +1160,7 @@ function updateFormLabels() {
     // Update payment provider tooltips
     jQuery('#payment-providers label').each(function() {
         var providerLabel = jQuery(this).find('input[name="payment_provider"]').val();
-        var tempObj       = Object.assign({}, formObj, {"payment_provider": providerLabel});
+        var tempObj       = jQuery.extend({}, formObj, {"payment_provider": providerLabel});
         var tooltip       = jsonLogic.apply(wordpress_vars.payment_provider_tooltip_rule, tempObj);
         jQuery(this).find('div[data-toggle="tooltip"]').attr('data-original-title', tooltip);
     });
