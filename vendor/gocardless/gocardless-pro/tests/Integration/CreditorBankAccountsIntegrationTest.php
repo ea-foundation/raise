@@ -16,7 +16,7 @@ class CreditorBankAccountsIntegrationTest extends IntegrationTestBase
     
     public function testCreditorBankAccountsCreate()
     {
-        $fixture = $this->load_fixture('creditor_bank_accounts')->create;
+        $fixture = $this->loadJsonFixture('creditor_bank_accounts')->create;
         $this->stub_request($fixture);
 
         $service = $this->client->creditorBankAccounts();
@@ -37,11 +37,54 @@ class CreditorBankAccountsIntegrationTest extends IntegrationTestBase
         $this->assertEquals($body->links, $response->links);
         $this->assertEquals($body->metadata, $response->metadata);
     
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
+    }
+
+    public function testCreditorBankAccountsCreateWithIdempotencyConflict()
+    {
+        $fixture = $this->loadJsonFixture('creditor_bank_accounts')->create;
+
+        $idempotencyConflictResponseFixture = $this->loadFixture('idempotent_creation_conflict_invalid_state_error');
+
+        // The POST request responds with a 409 to our original POST, due to an idempotency conflict
+        $this->mock->append(new \GuzzleHttp\Psr7\Response(409, [], $idempotencyConflictResponseFixture));
+
+        // The client makes a second request to fetch the resource that was already
+        // created using our idempotency key. It responds with the created resource,
+        // which looks just like the response for a successful POST request.
+        $this->mock->append(new \GuzzleHttp\Psr7\Response(200, [], json_encode($fixture->body)));
+
+        $service = $this->client->creditorBankAccounts();
+        $response = call_user_func_array(array($service, 'create'), (array)$fixture->url_params);
+        $body = $fixture->body->creditor_bank_accounts;
+
+        $this->assertInstanceOf('\GoCardlessPro\Resources\CreditorBankAccount', $response);
+
+        $this->assertEquals($body->account_holder_name, $response->account_holder_name);
+        $this->assertEquals($body->account_number_ending, $response->account_number_ending);
+        $this->assertEquals($body->bank_name, $response->bank_name);
+        $this->assertEquals($body->country_code, $response->country_code);
+        $this->assertEquals($body->created_at, $response->created_at);
+        $this->assertEquals($body->currency, $response->currency);
+        $this->assertEquals($body->enabled, $response->enabled);
+        $this->assertEquals($body->id, $response->id);
+        $this->assertEquals($body->links, $response->links);
+        $this->assertEquals($body->metadata, $response->metadata);
+        
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $conflictRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $conflictRequest->getUri()->getPath());
+        $getRequest = $this->history[1]['request'];
+        $this->assertEquals($getRequest->getUri()->getPath(), '/creditor_bank_accounts/ID123');
     }
     
     public function testCreditorBankAccountsList()
     {
-        $fixture = $this->load_fixture('creditor_bank_accounts')->list;
+        $fixture = $this->loadJsonFixture('creditor_bank_accounts')->list;
         $this->stub_request($fixture);
 
         $service = $this->client->creditorBankAccounts();
@@ -72,11 +115,16 @@ class CreditorBankAccountsIntegrationTest extends IntegrationTestBase
             $this->assertEquals($body[$num]->metadata, $record->metadata);
             
         }
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
     }
+
     
     public function testCreditorBankAccountsGet()
     {
-        $fixture = $this->load_fixture('creditor_bank_accounts')->get;
+        $fixture = $this->loadJsonFixture('creditor_bank_accounts')->get;
         $this->stub_request($fixture);
 
         $service = $this->client->creditorBankAccounts();
@@ -97,11 +145,16 @@ class CreditorBankAccountsIntegrationTest extends IntegrationTestBase
         $this->assertEquals($body->links, $response->links);
         $this->assertEquals($body->metadata, $response->metadata);
     
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
     }
+
     
     public function testCreditorBankAccountsDisable()
     {
-        $fixture = $this->load_fixture('creditor_bank_accounts')->disable;
+        $fixture = $this->loadJsonFixture('creditor_bank_accounts')->disable;
         $this->stub_request($fixture);
 
         $service = $this->client->creditorBankAccounts();
@@ -122,6 +175,49 @@ class CreditorBankAccountsIntegrationTest extends IntegrationTestBase
         $this->assertEquals($body->links, $response->links);
         $this->assertEquals($body->metadata, $response->metadata);
     
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
+    }
+
+    public function testCreditorBankAccountsDisableWithIdempotencyConflict()
+    {
+        $fixture = $this->loadJsonFixture('creditor_bank_accounts')->disable;
+
+        $idempotencyConflictResponseFixture = $this->loadFixture('idempotent_creation_conflict_invalid_state_error');
+
+        // The POST request responds with a 409 to our original POST, due to an idempotency conflict
+        $this->mock->append(new \GuzzleHttp\Psr7\Response(409, [], $idempotencyConflictResponseFixture));
+
+        // The client makes a second request to fetch the resource that was already
+        // created using our idempotency key. It responds with the created resource,
+        // which looks just like the response for a successful POST request.
+        $this->mock->append(new \GuzzleHttp\Psr7\Response(200, [], json_encode($fixture->body)));
+
+        $service = $this->client->creditorBankAccounts();
+        $response = call_user_func_array(array($service, 'disable'), (array)$fixture->url_params);
+        $body = $fixture->body->creditor_bank_accounts;
+
+        $this->assertInstanceOf('\GoCardlessPro\Resources\CreditorBankAccount', $response);
+
+        $this->assertEquals($body->account_holder_name, $response->account_holder_name);
+        $this->assertEquals($body->account_number_ending, $response->account_number_ending);
+        $this->assertEquals($body->bank_name, $response->bank_name);
+        $this->assertEquals($body->country_code, $response->country_code);
+        $this->assertEquals($body->created_at, $response->created_at);
+        $this->assertEquals($body->currency, $response->currency);
+        $this->assertEquals($body->enabled, $response->enabled);
+        $this->assertEquals($body->id, $response->id);
+        $this->assertEquals($body->links, $response->links);
+        $this->assertEquals($body->metadata, $response->metadata);
+        
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $conflictRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $conflictRequest->getUri()->getPath());
+        $getRequest = $this->history[1]['request'];
+        $this->assertEquals($getRequest->getUri()->getPath(), '/creditor_bank_accounts/ID123');
     }
     
 }

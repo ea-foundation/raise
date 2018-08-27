@@ -16,7 +16,7 @@ class BankDetailsLookupsIntegrationTest extends IntegrationTestBase
     
     public function testBankDetailsLookupsCreate()
     {
-        $fixture = $this->load_fixture('bank_details_lookups')->create;
+        $fixture = $this->loadJsonFixture('bank_details_lookups')->create;
         $this->stub_request($fixture);
 
         $service = $this->client->bankDetailsLookups();
@@ -30,6 +30,11 @@ class BankDetailsLookupsIntegrationTest extends IntegrationTestBase
         $this->assertEquals($body->bank_name, $response->bank_name);
         $this->assertEquals($body->bic, $response->bic);
     
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
     }
+
     
 }

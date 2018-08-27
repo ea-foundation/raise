@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "521d0616c743fee034214731b9f6b195",
+    "content-hash": "17bb9f31deaba2c54f8728f3c2792da1",
     "packages": [
         {
             "name": "bitpay/php-client",
@@ -78,16 +78,16 @@
         },
         {
             "name": "gocardless/gocardless-pro",
-            "version": "0.9.4",
+            "version": "1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gocardless/gocardless-pro-php.git",
-                "reference": "324830ce2ae502558aeec6bb74e6f5f3d56dbfe0"
+                "reference": "39413c73a6a798a62c855833e85b65c8cb9b3fbf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gocardless/gocardless-pro-php/zipball/324830ce2ae502558aeec6bb74e6f5f3d56dbfe0",
-                "reference": "324830ce2ae502558aeec6bb74e6f5f3d56dbfe0",
+                "url": "https://api.github.com/repos/gocardless/gocardless-pro-php/zipball/39413c73a6a798a62c855833e85b65c8cb9b3fbf",
+                "reference": "39413c73a6a798a62c855833e85b65c8cb9b3fbf",
                 "shasum": ""
             },
             "require": {
@@ -99,7 +99,7 @@
             },
             "require-dev": {
                 "phpdocumentor/phpdocumentor": "2.*",
-                "phpunit/phpunit": "~4.8",
+                "phpunit/phpunit": "4.6.*",
                 "satooshi/php-coveralls": "~0.6.1",
                 "squizlabs/php_codesniffer": "~2.0"
             },
@@ -126,7 +126,7 @@
                 "direct debit",
                 "gocardless"
             ],
-            "time": "2016-08-02T11:32:07+00:00"
+            "time": "2018-05-22T12:28:03+00:00"
         },
         {
             "name": "google/recaptcha",
@@ -589,27 +589,27 @@
         },
         {
             "name": "stripe/stripe-php",
-            "version": "v4.13.0",
+            "version": "v6.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/stripe/stripe-php.git",
-                "reference": "834681b9cdfa68d88a27e36ec9e356b598a5f0e6"
+                "reference": "8094ae22db6ce887f073f456127175837a35b2b1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/stripe/stripe-php/zipball/834681b9cdfa68d88a27e36ec9e356b598a5f0e6",
-                "reference": "834681b9cdfa68d88a27e36ec9e356b598a5f0e6",
+                "url": "https://api.github.com/repos/stripe/stripe-php/zipball/8094ae22db6ce887f073f456127175837a35b2b1",
+                "reference": "8094ae22db6ce887f073f456127175837a35b2b1",
                 "shasum": ""
             },
             "require": {
                 "ext-curl": "*",
                 "ext-json": "*",
                 "ext-mbstring": "*",
-                "php": ">=5.3.3"
+                "php": ">=5.4.0"
             },
             "require-dev": {
+                "php-coveralls/php-coveralls": "1.*",
                 "phpunit/phpunit": "~4.0",
-                "satooshi/php-coveralls": "~0.6.1",
                 "squizlabs/php_codesniffer": "~2.0"
             },
             "type": "library",
@@ -640,7 +640,7 @@
                 "payment processing",
                 "stripe"
             ],
-            "time": "2017-06-20T01:39:06+00:00"
+            "time": "2018-08-23T08:19:12+00:00"
         },
         {
             "name": "symfony/config",

@@ -8,7 +8,7 @@
 namespace GoCardlessPro\Resources;
 
 /**
- * A thin wrapper around a customer, providing access to it's
+ * A thin wrapper around a customer, providing access to its
  * attributes
  *
  * @property-read $address_line1
@@ -18,6 +18,7 @@ namespace GoCardlessPro\Resources;
  * @property-read $company_name
  * @property-read $country_code
  * @property-read $created_at
+ * @property-read $danish_identity_number
  * @property-read $email
  * @property-read $family_name
  * @property-read $given_name
@@ -66,10 +67,17 @@ class Customer extends BaseResource
     protected $country_code;
 
     /**
-     * Fixed [timestamp](#overview-time-zones-dates), recording when this
+     * Fixed [timestamp](#api-usage-time-zones--dates), recording when this
      * resource was created.
      */
     protected $created_at;
+
+    /**
+     * For Danish customers only. The civic/company number (CPR or CVR) of the
+     * customer. Must be supplied if the customer's bank account is denominated
+     * in Danish krone (DKK).
+     */
+    protected $danish_identity_number;
 
     /**
      * Customer's email address.
@@ -96,9 +104,9 @@ class Customer extends BaseResource
      * Used as the language for notification emails sent by GoCardless if your
      * organisation does not send its own (see [compliance
      * requirements](#appendix-compliance-requirements)). Currently only "en",
-     * "fr", "de", "pt", "es", "it", "nl", "sv" are supported. If this is not
-     * provided, the language will be chosen based on the `country_code` (if
-     * supplied) or default to "en".
+     * "fr", "de", "pt", "es", "it", "nl", "da", "nb", "sl", "sv" are supported.
+     * If this is not provided, the language will be chosen based on the
+     * `country_code` (if supplied) or default to "en".
      */
     protected $language;
 
@@ -122,9 +130,7 @@ class Customer extends BaseResource
      * For Swedish customers only. The civic/company number (personnummer,
      * samordningsnummer, or organisationsnummer) of the customer. Must be
      * supplied if the customer's bank account is denominated in Swedish krona
-     * (SEK). This field cannot be changed once it has been set. <p
-     * class="beta-notice"><strong>Beta</strong>: this field is only used for
-     * Autogiro, which is currently in beta.</p>
+     * (SEK). This field cannot be changed once it has been set.
      */
     protected $swedish_identity_number;
 

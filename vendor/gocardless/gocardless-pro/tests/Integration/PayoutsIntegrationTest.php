@@ -16,7 +16,7 @@ class PayoutsIntegrationTest extends IntegrationTestBase
     
     public function testPayoutsList()
     {
-        $fixture = $this->load_fixture('payouts')->list;
+        $fixture = $this->loadJsonFixture('payouts')->list;
         $this->stub_request($fixture);
 
         $service = $this->client->payouts();
@@ -42,15 +42,21 @@ class PayoutsIntegrationTest extends IntegrationTestBase
             $this->assertEquals($body[$num]->deducted_fees, $record->deducted_fees);
             $this->assertEquals($body[$num]->id, $record->id);
             $this->assertEquals($body[$num]->links, $record->links);
+            $this->assertEquals($body[$num]->payout_type, $record->payout_type);
             $this->assertEquals($body[$num]->reference, $record->reference);
             $this->assertEquals($body[$num]->status, $record->status);
             
         }
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
     }
+
     
     public function testPayoutsGet()
     {
-        $fixture = $this->load_fixture('payouts')->get;
+        $fixture = $this->loadJsonFixture('payouts')->get;
         $this->stub_request($fixture);
 
         $service = $this->client->payouts();
@@ -67,9 +73,15 @@ class PayoutsIntegrationTest extends IntegrationTestBase
         $this->assertEquals($body->deducted_fees, $response->deducted_fees);
         $this->assertEquals($body->id, $response->id);
         $this->assertEquals($body->links, $response->links);
+        $this->assertEquals($body->payout_type, $response->payout_type);
         $this->assertEquals($body->reference, $response->reference);
         $this->assertEquals($body->status, $response->status);
     
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
     }
+
     
 }

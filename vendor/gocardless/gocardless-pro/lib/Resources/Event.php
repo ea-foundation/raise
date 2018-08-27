@@ -8,7 +8,7 @@
 namespace GoCardlessPro\Resources;
 
 /**
- * A thin wrapper around a event, providing access to it's
+ * A thin wrapper around a event, providing access to its
  * attributes
  *
  * @property-read $action
@@ -29,7 +29,7 @@ class Event extends BaseResource
     protected $action;
 
     /**
-     * Fixed [timestamp](#overview-time-zones-dates), recording when this
+     * Fixed [timestamp](#api-usage-time-zones--dates), recording when this
      * resource was created.
      */
     protected $created_at;
@@ -59,12 +59,10 @@ class Event extends BaseResource
     /**
      * The resource type for this event. One of:
      * <ul>
-     *
      * <li>`payments`</li>
      * <li>`mandates`</li>
      * <li>`payouts`</li>
-
-     *     * <li>`refunds`</li>
+     * <li>`refunds`</li>
      * <li>`subscriptions`</li>
      * </ul>
      */

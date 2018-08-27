@@ -16,7 +16,7 @@ class PaymentsIntegrationTest extends IntegrationTestBase
     
     public function testPaymentsCreate()
     {
-        $fixture = $this->load_fixture('payments')->create;
+        $fixture = $this->loadJsonFixture('payments')->create;
         $this->stub_request($fixture);
 
         $service = $this->client->payments();
@@ -38,11 +38,55 @@ class PaymentsIntegrationTest extends IntegrationTestBase
         $this->assertEquals($body->reference, $response->reference);
         $this->assertEquals($body->status, $response->status);
     
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
+    }
+
+    public function testPaymentsCreateWithIdempotencyConflict()
+    {
+        $fixture = $this->loadJsonFixture('payments')->create;
+
+        $idempotencyConflictResponseFixture = $this->loadFixture('idempotent_creation_conflict_invalid_state_error');
+
+        // The POST request responds with a 409 to our original POST, due to an idempotency conflict
+        $this->mock->append(new \GuzzleHttp\Psr7\Response(409, [], $idempotencyConflictResponseFixture));
+
+        // The client makes a second request to fetch the resource that was already
+        // created using our idempotency key. It responds with the created resource,
+        // which looks just like the response for a successful POST request.
+        $this->mock->append(new \GuzzleHttp\Psr7\Response(200, [], json_encode($fixture->body)));
+
+        $service = $this->client->payments();
+        $response = call_user_func_array(array($service, 'create'), (array)$fixture->url_params);
+        $body = $fixture->body->payments;
+
+        $this->assertInstanceOf('\GoCardlessPro\Resources\Payment', $response);
+
+        $this->assertEquals($body->amount, $response->amount);
+        $this->assertEquals($body->amount_refunded, $response->amount_refunded);
+        $this->assertEquals($body->charge_date, $response->charge_date);
+        $this->assertEquals($body->created_at, $response->created_at);
+        $this->assertEquals($body->currency, $response->currency);
+        $this->assertEquals($body->description, $response->description);
+        $this->assertEquals($body->id, $response->id);
+        $this->assertEquals($body->links, $response->links);
+        $this->assertEquals($body->metadata, $response->metadata);
+        $this->assertEquals($body->reference, $response->reference);
+        $this->assertEquals($body->status, $response->status);
+        
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $conflictRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $conflictRequest->getUri()->getPath());
+        $getRequest = $this->history[1]['request'];
+        $this->assertEquals($getRequest->getUri()->getPath(), '/payments/ID123');
     }
     
     public function testPaymentsList()
     {
-        $fixture = $this->load_fixture('payments')->list;
+        $fixture = $this->loadJsonFixture('payments')->list;
         $this->stub_request($fixture);
 
         $service = $this->client->payments();
@@ -74,11 +118,16 @@ class PaymentsIntegrationTest extends IntegrationTestBase
             $this->assertEquals($body[$num]->status, $record->status);
             
         }
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
     }
+
     
     public function testPaymentsGet()
     {
-        $fixture = $this->load_fixture('payments')->get;
+        $fixture = $this->loadJsonFixture('payments')->get;
         $this->stub_request($fixture);
 
         $service = $this->client->payments();
@@ -100,11 +149,16 @@ class PaymentsIntegrationTest extends IntegrationTestBase
         $this->assertEquals($body->reference, $response->reference);
         $this->assertEquals($body->status, $response->status);
     
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
     }
+
     
     public function testPaymentsUpdate()
     {
-        $fixture = $this->load_fixture('payments')->update;
+        $fixture = $this->loadJsonFixture('payments')->update;
         $this->stub_request($fixture);
 
         $service = $this->client->payments();
@@ -126,11 +180,16 @@ class PaymentsIntegrationTest extends IntegrationTestBase
         $this->assertEquals($body->reference, $response->reference);
         $this->assertEquals($body->status, $response->status);
     
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
     }
+
     
     public function testPaymentsCancel()
     {
-        $fixture = $this->load_fixture('payments')->cancel;
+        $fixture = $this->loadJsonFixture('payments')->cancel;
         $this->stub_request($fixture);
 
         $service = $this->client->payments();
@@ -152,11 +211,55 @@ class PaymentsIntegrationTest extends IntegrationTestBase
         $this->assertEquals($body->reference, $response->reference);
         $this->assertEquals($body->status, $response->status);
     
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
+    }
+
+    public function testPaymentsCancelWithIdempotencyConflict()
+    {
+        $fixture = $this->loadJsonFixture('payments')->cancel;
+
+        $idempotencyConflictResponseFixture = $this->loadFixture('idempotent_creation_conflict_invalid_state_error');
+
+        // The POST request responds with a 409 to our original POST, due to an idempotency conflict
+        $this->mock->append(new \GuzzleHttp\Psr7\Response(409, [], $idempotencyConflictResponseFixture));
+
+        // The client makes a second request to fetch the resource that was already
+        // created using our idempotency key. It responds with the created resource,
+        // which looks just like the response for a successful POST request.
+        $this->mock->append(new \GuzzleHttp\Psr7\Response(200, [], json_encode($fixture->body)));
+
+        $service = $this->client->payments();
+        $response = call_user_func_array(array($service, 'cancel'), (array)$fixture->url_params);
+        $body = $fixture->body->payments;
+
+        $this->assertInstanceOf('\GoCardlessPro\Resources\Payment', $response);
+
+        $this->assertEquals($body->amount, $response->amount);
+        $this->assertEquals($body->amount_refunded, $response->amount_refunded);
+        $this->assertEquals($body->charge_date, $response->charge_date);
+        $this->assertEquals($body->created_at, $response->created_at);
+        $this->assertEquals($body->currency, $response->currency);
+        $this->assertEquals($body->description, $response->description);
+        $this->assertEquals($body->id, $response->id);
+        $this->assertEquals($body->links, $response->links);
+        $this->assertEquals($body->metadata, $response->metadata);
+        $this->assertEquals($body->reference, $response->reference);
+        $this->assertEquals($body->status, $response->status);
+        
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $conflictRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $conflictRequest->getUri()->getPath());
+        $getRequest = $this->history[1]['request'];
+        $this->assertEquals($getRequest->getUri()->getPath(), '/payments/ID123');
     }
     
     public function testPaymentsRetry()
     {
-        $fixture = $this->load_fixture('payments')->retry;
+        $fixture = $this->loadJsonFixture('payments')->retry;
         $this->stub_request($fixture);
 
         $service = $this->client->payments();
@@ -178,6 +281,50 @@ class PaymentsIntegrationTest extends IntegrationTestBase
         $this->assertEquals($body->reference, $response->reference);
         $this->assertEquals($body->status, $response->status);
     
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $dispatchedRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $dispatchedRequest->getUri()->getPath());
+    }
+
+    public function testPaymentsRetryWithIdempotencyConflict()
+    {
+        $fixture = $this->loadJsonFixture('payments')->retry;
+
+        $idempotencyConflictResponseFixture = $this->loadFixture('idempotent_creation_conflict_invalid_state_error');
+
+        // The POST request responds with a 409 to our original POST, due to an idempotency conflict
+        $this->mock->append(new \GuzzleHttp\Psr7\Response(409, [], $idempotencyConflictResponseFixture));
+
+        // The client makes a second request to fetch the resource that was already
+        // created using our idempotency key. It responds with the created resource,
+        // which looks just like the response for a successful POST request.
+        $this->mock->append(new \GuzzleHttp\Psr7\Response(200, [], json_encode($fixture->body)));
+
+        $service = $this->client->payments();
+        $response = call_user_func_array(array($service, 'retry'), (array)$fixture->url_params);
+        $body = $fixture->body->payments;
+
+        $this->assertInstanceOf('\GoCardlessPro\Resources\Payment', $response);
+
+        $this->assertEquals($body->amount, $response->amount);
+        $this->assertEquals($body->amount_refunded, $response->amount_refunded);
+        $this->assertEquals($body->charge_date, $response->charge_date);
+        $this->assertEquals($body->created_at, $response->created_at);
+        $this->assertEquals($body->currency, $response->currency);
+        $this->assertEquals($body->description, $response->description);
+        $this->assertEquals($body->id, $response->id);
+        $this->assertEquals($body->links, $response->links);
+        $this->assertEquals($body->metadata, $response->metadata);
+        $this->assertEquals($body->reference, $response->reference);
+        $this->assertEquals($body->status, $response->status);
+        
+
+        $expectedPathRegex = $this->extract_resource_fixture_path_regex($fixture);
+        $conflictRequest = $this->history[0]['request'];
+        $this->assertRegExp($expectedPathRegex, $conflictRequest->getUri()->getPath());
+        $getRequest = $this->history[1]['request'];
+        $this->assertEquals($getRequest->getUri()->getPath(), '/payments/ID123');
     }
     
 }
