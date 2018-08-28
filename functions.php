@@ -196,9 +196,6 @@ function raise_init_donation_form($form, $mode)
     if (in_array('paypal', $enabledProviders)) {
         wp_enqueue_script('donation-plugin-paypal');
     }
-    if (in_array('coinbase', $enabledProviders)) {
-        wp_enqueue_script('donation-plugin-coinbase');
-    }
     wp_enqueue_script('donation-plugin-json-logic');
     wp_enqueue_script('donation-plugin-form');
     wp_enqueue_script('donation-plugin-combobox');
@@ -1393,37 +1390,38 @@ function raise_prepare_bitpay_donation(array $donation)
 function raise_prepare_coinbase_donation(array $donation)
 {
     try {
-        $form       = $donation['form'];
-        $mode       = $donation['mode'];
-        $email      = $donation['email'];
-        $name       = $donation['name'];
-        $amount     = $donation['amount'];
-        $currency   = $donation['currency'];
-        $country    = $donation['country'];
-        $taxReceipt = raise_get($donation['tax_receipt'], false);
-        $account    = raise_get($donation['account']);
+        $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
+        $returnUrl  = raise_get_ajax_endpoint() . '?action=coinbase_log&req=' . $reqId;
 
         // Get client
         $client = raise_get_coinbase_client($donation);
 
         // Create checkout
-        $res = $client->request('POST', $GLOBALS['CoinbaseApiEndpoint'] . '/checkouts', [
+        $res = $client->request('POST', $GLOBALS['CoinbaseApiEndpoint'] . '/charges', [
             "json" => [
                 "name"         => "Donation",
-                "description"  => "$name ($email)",
+                "description"  => $donation['name'] . ' (' . $donation['email'] . ')',
                 "local_price"  => [
-                    "amount"   => $amount,
-                    "currency" => $currency,
+                    "amount"   => $donation['amount'],
+                    "currency" => $donation['currency'],
                 ],
                 "pricing_type" => "fixed_price",
+                "redirect_url" => $returnUrl,
             ],
         ]);
-        $checkoutId = $res->getBody()['id'];
+        $body       = json_decode($res->getBody(), true);
+        $chargeCode = $body['data']['code'];
+
+        // Save charge code to session
+        $_SESSION['raise-vendor-transaction-id'] = $chargeCode;
+
+        // Save user data to session
+        raise_set_donation_data_to_session($donation, $reqId);
 
         // Return URL
         return array(
             'success' => true,
-            'url'     => $GLOBALS['CoinbaseCheckoutEndpoint'] . $code,
+            'url'     => $GLOBALS['CoinbaseChargeEndpoint'] . '/' . $chargeCode,
         );
     } catch (\Exception $e) {
         return array(
@@ -1458,7 +1456,7 @@ function raise_get_coinbase_client(array $donation)
  */
 function raise_verify_session()
 {
-    if (!isset($_GET['req']) || $_GET['req'] != $_SESSION['raise-req-id']) {
+    if (!isset($_GET['req']) || $_GET['req'] !== $_SESSION['raise-req-id']) {
         throw new \Exception('Invalid request');
     }
 
@@ -1515,12 +1513,7 @@ function raise_process_bitpay_log()
         raise_verify_session();
 
         // Get donation from session
-        $donation   = raise_get_donation_from_session();
-        $form       = $donation['form'];
-        $mode       = $donation['mode'];
-        $taxReceipt = $donation['tax_receipt'];
-        $currency   = $donation['currency'];
-        $country    = $donation['country'];
+        $donation = raise_get_donation_from_session();
 
         // Add vendor transaction ID (BitPay invoice ID)
         $donation['vendor_transaction_id'] = $_SESSION['raise-vendor-transaction-id'];
@@ -1547,6 +1540,45 @@ function raise_process_bitpay_log()
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
          <body><script>var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation("bitpay"); mainWindow.hideModal();</script></body></html>');
+}
+
+/**
+ * AJAX endpoint for handling donation logging for Coinbase.
+ * Takes user data from session and triggers the web hooks.
+ *
+ * @return string HTML with script that terminates the BitPay flow and shows the thank you step
+ */
+function raise_process_coinbase_log()
+{
+    try {
+        // Verify session and purge reqId
+        raise_verify_session();
+
+        // Get donation from session
+        $donation = raise_get_donation_from_session();
+
+        // Add vendor transaction ID (Coinbase charge code)
+        $chargeCode = $_SESSION['raise-vendor-transaction-id'];
+        $donation['vendor_transaction_id'] = $chargeCode;
+
+        // Make sure the payment is paid
+        $client       = raise_get_coinbase_client($donation);
+        $res          = $client->request('GET', $GLOBALS['CoinbaseApiEndpoint'] . '/charges/' . $chargeCode);
+        $body         = json_decode($res->getBody(), true);
+        $coinfirmedAt = $body['data']['confirmed_at'];
+        if (!$coinfirmedAt) {
+            throw new \Exception("Charge isn't confirmed");
+        }
+
+        // Do post donation actions
+        raise_do_post_donation_actions($donation);
+    } catch (\Exception $e) {
+        // No need to say anything. Just show confirmation.
+    }
+
+    die('<!doctype html>
+         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <body><script>var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation("coinbase"); mainWindow.hideModal();</script></body></html>');
 }
 
 /**

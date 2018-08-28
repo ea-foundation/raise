@@ -21,8 +21,8 @@ $GLOBALS['SkrillApiEndpoint'] = 'https://pay.skrill.com';
 /**
  * Coinbase
  */
-$GLOBALS['CoinbaseApiEndpoint']      = 'https://api.commerce.coinbase.com';
-$GLOBALS['CoinbaseCheckoutEndpoint'] = 'https://commerce.coinbase.com/checkout/';
+$GLOBALS['CoinbaseApiEndpoint']    = 'https://api.commerce.coinbase.com';
+$GLOBALS['CoinbaseChargeEndpoint'] = 'https://commerce.coinbase.com/charges';
 
 /**
  * Supported bank account labels (listed here for automatic detection by Poedit)
