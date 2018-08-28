@@ -581,6 +581,24 @@ input[type='number'] {
     width: 23px;
 }
 
+.pp-images .pp.bitcoin_cash {
+    background: url(../images/bitcoin_cash.svg) no-repeat 2px 0;
+    background-size: 37px;
+    width: 39px;
+}
+
+.pp-images .pp.ethereum {
+    background: url(../images/ethereum.svg) no-repeat 5px 0;
+    background-size: 14px;
+    width: 23px;
+}
+
+.pp-images .pp.litecoin {
+    background: url(../images/litecoin.svg) no-repeat;
+    background-size: 23px;
+    width: 23px;
+}
+
 .pp-images .pp.coinbase {
     background: url(../images/coinbase.svg) no-repeat 0 2px;
     background-size: 70px;
