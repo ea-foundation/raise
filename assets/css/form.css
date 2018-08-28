@@ -581,6 +581,12 @@ input[type='number'] {
     width: 23px;
 }
 
+.pp-images .pp.coinbase {
+    background: url(../images/coinbase.svg) no-repeat 0 2px;
+    background-size: 70px;
+    width: 70px;
+}
+
 .pp-images .pp.skrill {
     background: url(../images/skrill.svg) no-repeat 0 4px;
     background-size: 38px;
@@ -602,10 +608,12 @@ input[type='number'] {
     width: 45px;
 }
 
-.pp-images .pp.coinbase {
-    background: url(../images/coinbase.svg) no-repeat 0 2px;
-    background-size: 70px;
-    width: 70px;
+#CoinbaseModal .pp.coinbase {
+    display: inline-block;
+    background: url(../images/coinbase.svg) no-repeat 0 0;
+    background-size: 80px 15px;
+    height: 15px;
+    width: 80px;
 }
 
 #CoinbaseModal .coinbase_notice {
