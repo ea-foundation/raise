@@ -1,5 +1,8 @@
 = 1.6 TBD =
 * NEW: Coinbase integration
+* FIX: Broken tax receipt checkbox
+* FIX: Replace Object.assign by jQuery.extend
+* IMPROVED: Update SDKs (Stripe and GoCardless)
 
 = 1.5 July, 2018 =
 * NEW: Tipping feature
