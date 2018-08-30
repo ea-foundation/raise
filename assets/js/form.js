@@ -17,10 +17,10 @@ var frequency                   = 'once';
 var monthlySupport              = ['payment-stripe', 'payment-paypal', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
 var raisePopup                  = null;
 var gcPollTimer                 = null;
-var taxDeductionDisabled        = true;
+var taxReceiptDisabled          = true;
 var interactionEventDispatched  = false;
 var checkoutEventDispatched     = false;
-var checkboxPreCheck           = {};
+var checkboxPreCheck            = {};
 
 
 // Preload Stripe image
@@ -242,6 +242,10 @@ jQuery(function($) {
                 case 'payment-bitpay':
                     provider = 'bitpay';
                     handlePopupDonation('BitPay');
+                    break;
+                case 'payment-coinbase':
+                    provider = 'coinbase';
+                    handlePopupDonation('Coinbase');
                     break;
                 case 'payment-skrill':
                     provider = 'skrill';
@@ -910,7 +914,7 @@ function lockLastStep(locked) {
 
     if (!locked) {
         // Make sure tax deduction stays disabled when not possible
-        jQuery('#tax-receipt').prop('disabled', taxDeductionDisabled);
+        jQuery('#tax-receipt').prop('disabled', taxReceiptDisabled);
 
         // Restore submit button
         jQuery('button.confirm:last', '#wizard')
@@ -1116,7 +1120,7 @@ function reloadPaymentProviders() {
     var formObj = getFormAsObject();
     jQuery('#payment-providers label').each(function() {
         var providerLabel = jQuery(this).find('input[name="payment_provider"]').val();
-        var tempObj       = Object.assign({}, formObj, {"payment_provider": providerLabel});
+        var tempObj       = jQuery.extend({}, formObj, {"payment_provider": providerLabel});
         var display       = jsonLogic.apply(wordpress_vars.payment_provider_display_rule, tempObj);
         jQuery(this).toggle(display);
     });
@@ -1156,7 +1160,7 @@ function updateFormLabels() {
     // Update payment provider tooltips
     jQuery('#payment-providers label').each(function() {
         var providerLabel = jQuery(this).find('input[name="payment_provider"]').val();
-        var tempObj       = Object.assign({}, formObj, {"payment_provider": providerLabel});
+        var tempObj       = jQuery.extend({}, formObj, {"payment_provider": providerLabel});
         var tooltip       = jsonLogic.apply(wordpress_vars.payment_provider_tooltip_rule, tempObj);
         jQuery(this).find('div[data-toggle="tooltip"]').attr('data-original-title', tooltip);
     });
@@ -1217,21 +1221,17 @@ function updateCheckboxState(id, state, formObj) {
     }
 
     // Enable/disable checkbox
-    if (state && state.hasOwnProperty('disabled')) {
-        disabled = !!state.disabled;
+    var disabled = state && state.hasOwnProperty('disabled') && !!state.disabled;
+    if (id === 'tax-receipt') {
+        // Update global tax deduction variable
+        taxReceiptDisabled = disabled;
 
         // Collapse address details if open
-        if (id === 'tax-receipt' && disabled && element.is(':checked')) {
+        if (disabled && element.is(':checked')) {
             element.click();
         }
-        element.prop('disabled', disabled);
-    } else {
-        // Enable checkbox
-        if (element.prop('disabled')) {
-            disabled = false;
-            element.prop('disabled', false);
-        }
     }
+    element.prop('disabled', disabled);
 
     // Update checkbox label
     if (state && state.label) {

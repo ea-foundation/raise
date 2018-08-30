@@ -8,11 +8,11 @@
 namespace GoCardlessPro\Resources;
 
 /**
- * A thin wrapper around a subscription, providing access to it's
+ * A thin wrapper around a subscription, providing access to its
  * attributes
  *
  * @property-read $amount
- * @property-read $count
+ * @property-read $app_fee
  * @property-read $created_at
  * @property-read $currency
  * @property-read $day_of_month
@@ -34,26 +34,26 @@ class Subscription extends BaseResource
     protected $model_name = "Subscription";
 
     /**
-     * Amount in pence or cents.
+     * Amount in pence (GBP), cents (AUD/EUR), öre (SEK), or øre (DKK).
      */
     protected $amount;
 
     /**
-     * An alternative way to set `end_date`. The total number of payments that
-     * should be taken by this subscription. This will set `end_date`
-     * automatically.
+     * The amount to be deducted from each payment as an app fee, to be paid to
+     * the partner integration which created the subscription, in pence (GBP),
+     * cents (AUD/EUR), öre (SEK), or øre (DKK).
      */
-    protected $count;
+    protected $app_fee;
 
     /**
-     * Fixed [timestamp](#overview-time-zones-dates), recording when this
+     * Fixed [timestamp](#api-usage-time-zones--dates), recording when this
      * resource was created.
      */
     protected $created_at;
 
     /**
      * [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217) currency code.
-     * Currently only `GBP` and `EUR` are supported.
+     * Currently `GBP`, `EUR`, `SEK`, and `DKK` are supported.
      */
     protected $currency;
 
@@ -64,10 +64,12 @@ class Subscription extends BaseResource
     protected $day_of_month;
 
     /**
-     * Date after which no further payments should be charged. If a payment
-     * falls on this date, it **will not** be charged. If blank, the
-     * subscription will continue forever. Alternatively, `count` can be set to
-     * achieve a specific number of payments.
+     * Date on or after which no further payments should be created. If this
+     * field is blank and `count` is not specified, the subscription will
+     * continue forever. <p
+     * class='deprecated-notice'><strong>Deprecated</strong>: This field will be
+     * removed in a future API version. Use `count` to specify a number of
+     * payments instead. </p>
      */
     protected $end_date;
 
@@ -131,20 +133,17 @@ class Subscription extends BaseResource
     /**
      * One of:
      * <ul>
-     * <li>`pending_customer_approval`: the
-     * subscription is waiting for customer approval before becoming
-     * active</li>
-     * <li>`customer_approval_denied`: the customer did not
-     * approve the subscription</li>
-     * <li>`active`: the subscription is
-     * currently active and will continue to create payments</li>
-     *
+     * <li>`pending_customer_approval`: the subscription is waiting for customer
+     * approval before becoming active</li>
+     * <li>`customer_approval_denied`: the customer did not approve the
+     * subscription</li>
+     * <li>`active`: the subscription is currently active and will continue to
+     * create payments</li>
      * <li>`finished`: all of the payments scheduled for creation under this
      * subscription have been created</li>
-     * <li>`cancelled`: the
-     * subscription has been cancelled and will no longer create payments</li>
- 
-     *    * </ul>
+     * <li>`cancelled`: the subscription has been cancelled and will no longer
+     * create payments</li>
+     * </ul>
      */
     protected $status;
 

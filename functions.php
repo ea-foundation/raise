@@ -386,6 +386,11 @@ function raise_print_payment_providers($formSettings, $mode)
                 $text   = '<div class="payment-method-name sr-only">Bitcoin</div>';
                 $images = ['pp bitcoin'];
                 break;
+            case 'coinbase':
+                $value  = 'Coinbase';
+                $text   = '<span class="payment-method-name sr-only">Coinbase</span>';
+                $images = ['pp bitcoin', 'pp bitcoin_cash', 'pp ethereum', 'pp litecoin'];
+                break;
             case 'skrill':
                 $value  = 'Skrill';
                 $text   = '<div class="payment-method-name sr-only">Skrill</div>';
@@ -528,6 +533,9 @@ function raise_prepare_redirect()
                 break;
             case "BitPay":
                 $response = raise_prepare_bitpay_donation($post);
+                break;
+            case "Coinbase":
+                $response = raise_prepare_coinbase_donation($post);
                 break;
             default:
                 throw new \Exception('Payment method ' . $post['payment_provider'] . ' is invalid');
@@ -919,6 +927,8 @@ function raise_get_payment_provider_properties($provider)
             return array("access_token");
         case "bitpay":
             return array("pairing_code");
+        case "coinbase":
+            return array("api_key");
         case "skrill":
             return array("merchant_account");
         default:
@@ -1371,13 +1381,82 @@ function raise_prepare_bitpay_donation(array $donation)
 }
 
 /**
+ * AJAX endpoint that returns the Coinbase URL. It stores
+ * user input in session until user is forwarded back from Coinbase
+ *
+ * @param array $donation
+ * @return array
+ */
+function raise_prepare_coinbase_donation(array $donation)
+{
+    try {
+        $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
+        $returnUrl  = raise_get_ajax_endpoint() . '?action=coinbase_log&req=' . $reqId;
+
+        // Get client
+        $client = raise_get_coinbase_client($donation);
+
+        // Create checkout
+        $res = $client->request('POST', $GLOBALS['CoinbaseApiEndpoint'] . '/charges', [
+            "json" => [
+                "name"         => "Donation",
+                "description"  => $donation['name'] . ' (' . $donation['email'] . ')',
+                "local_price"  => [
+                    "amount"   => $donation['amount'],
+                    "currency" => $donation['currency'],
+                ],
+                "pricing_type" => "fixed_price",
+                "redirect_url" => $returnUrl,
+            ],
+        ]);
+        $body       = json_decode($res->getBody(), true);
+        $chargeCode = $body['data']['code'];
+
+        // Save charge code to session
+        $_SESSION['raise-vendor-transaction-id'] = $chargeCode;
+
+        // Save user data to session
+        raise_set_donation_data_to_session($donation, $reqId);
+
+        // Return URL
+        return array(
+            'success' => true,
+            'url'     => $GLOBALS['CoinbaseChargeEndpoint'] . '/' . $chargeCode,
+        );
+    } catch (\Exception $e) {
+        return array(
+            'success' => false,
+            'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
+        );
+    }
+}
+
+/**
+ * Get Coinbase client (Guzzle)
+ *
+ * @param array $donation
+ * @return \GuzzleHttp\Client
+ */
+function raise_get_coinbase_client(array $donation)
+{
+    $settings = raise_get_payment_provider_account_settings('coinbase', $donation);
+
+    return new \GuzzleHttp\Client([
+        'headers' => [
+            'X-CC-Version' => '2018-03-22',
+            'X-CC-Api-Key' => $settings['api_key'],
+        ],
+    ]);
+}
+
+/**
  * Verify session and reset request ID
  *
  * @throws \Exception
  */
 function raise_verify_session()
 {
-    if (!isset($_GET['req']) || $_GET['req'] != $_SESSION['raise-req-id']) {
+    if (!isset($_GET['req']) || $_GET['req'] !== $_SESSION['raise-req-id']) {
         throw new \Exception('Invalid request');
     }
 
@@ -1434,12 +1513,7 @@ function raise_process_bitpay_log()
         raise_verify_session();
 
         // Get donation from session
-        $donation   = raise_get_donation_from_session();
-        $form       = $donation['form'];
-        $mode       = $donation['mode'];
-        $taxReceipt = $donation['tax_receipt'];
-        $currency   = $donation['currency'];
-        $country    = $donation['country'];
+        $donation = raise_get_donation_from_session();
 
         // Add vendor transaction ID (BitPay invoice ID)
         $donation['vendor_transaction_id'] = $_SESSION['raise-vendor-transaction-id'];
@@ -1466,6 +1540,45 @@ function raise_process_bitpay_log()
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
          <body><script>var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation("bitpay"); mainWindow.hideModal();</script></body></html>');
+}
+
+/**
+ * AJAX endpoint for handling donation logging for Coinbase.
+ * Takes user data from session and triggers the web hooks.
+ *
+ * @return string HTML with script that terminates the BitPay flow and shows the thank you step
+ */
+function raise_process_coinbase_log()
+{
+    try {
+        // Verify session and purge reqId
+        raise_verify_session();
+
+        // Get donation from session
+        $donation = raise_get_donation_from_session();
+
+        // Add vendor transaction ID (Coinbase charge code)
+        $chargeCode = $_SESSION['raise-vendor-transaction-id'];
+        $donation['vendor_transaction_id'] = $chargeCode;
+
+        // Make sure the payment is paid
+        $client       = raise_get_coinbase_client($donation);
+        $res          = $client->request('GET', $GLOBALS['CoinbaseApiEndpoint'] . '/charges/' . $chargeCode);
+        $body         = json_decode($res->getBody(), true);
+        $coinfirmedAt = $body['data']['confirmed_at'];
+        if (!$coinfirmedAt) {
+            throw new \Exception("Charge isn't confirmed");
+        }
+
+        // Do post donation actions
+        raise_do_post_donation_actions($donation);
+    } catch (\Exception $e) {
+        // No need to say anything. Just show confirmation.
+    }
+
+    die('<!doctype html>
+         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <body><script>var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation("coinbase"); mainWindow.hideModal();</script></body></html>');
 }
 
 /**

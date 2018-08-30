@@ -40,6 +40,9 @@ class Client
         if (isset($config['http_client'])) {
             $http_client = $config['http_client'];
         } else {
+            $stack = \GuzzleHttp\HandlerStack::create();
+            $stack->push(RetryMiddlewareFactory::buildMiddleware());
+
             $http_client = new \GuzzleHttp\Client(
                 [
                 'base_uri' => $endpoint_url,
@@ -48,10 +51,13 @@ class Client
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
                 'Authorization' => "Bearer " . $access_token,
+                'GoCardless-Client-Library' => 'gocardless-pro-php',
+                'GoCardless-Client-Version' => '1.7.0',
                 'User-Agent' => $this->getUserAgent()
                 ),
                 'http_errors' => false,
-                'verify' => $this->getCACertPath()
+                'verify' => $this->getCACertPath(),
+                'handler' => $stack
                 ]
             );
         }
@@ -152,6 +158,32 @@ class Client
     }
     
     /**
+     * Service for interacting with mandate imports
+     * @return Services\MandateImportsService
+     */
+    public function mandateImports()
+    {
+        if (!isset($this->mandate_imports)) {
+            $this->mandate_imports = new Services\MandateImportsService($this->api_client);
+        }
+
+        return $this->mandate_imports;
+    }
+    
+    /**
+     * Service for interacting with mandate import entries
+     * @return Services\MandateImportEntriesService
+     */
+    public function mandateImportEntries()
+    {
+        if (!isset($this->mandate_import_entries)) {
+            $this->mandate_import_entries = new Services\MandateImportEntriesService($this->api_client);
+        }
+
+        return $this->mandate_import_entries;
+    }
+    
+    /**
      * Service for interacting with mandate pdfs
      * @return Services\MandatePdfsService
      */
@@ -188,6 +220,19 @@ class Client
         }
 
         return $this->payouts;
+    }
+    
+    /**
+     * Service for interacting with payout items
+     * @return Services\PayoutItemsService
+     */
+    public function payoutItems()
+    {
+        if (!isset($this->payout_items)) {
+            $this->payout_items = new Services\PayoutItemsService($this->api_client);
+        }
+
+        return $this->payout_items;
     }
     
     /**
@@ -272,7 +317,7 @@ class Client
     {
         $curlinfo = curl_version();
         $uagent = array();
-        $uagent[] = 'gocardless-pro/0.9.4';
+        $uagent[] = 'gocardless-pro-php/1.7.0';
         $uagent[] = 'schema-version/2015-07-06';
         $uagent[] = 'GuzzleHttp/' . \GuzzleHttp\Client::VERSION;
         $uagent[] = 'php/' . phpversion();

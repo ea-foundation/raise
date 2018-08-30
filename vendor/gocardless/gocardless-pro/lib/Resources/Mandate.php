@@ -8,7 +8,7 @@
 namespace GoCardlessPro\Resources;
 
 /**
- * A thin wrapper around a mandate, providing access to it's
+ * A thin wrapper around a mandate, providing access to its
  * attributes
  *
  * @property-read $created_at
@@ -26,7 +26,7 @@ class Mandate extends BaseResource
     protected $model_name = "Mandate";
 
     /**
-     * Fixed [timestamp](#overview-time-zones-dates), recording when this
+     * Fixed [timestamp](#api-usage-time-zones--dates), recording when this
      * resource was created.
      */
     protected $created_at;
@@ -61,39 +61,34 @@ class Mandate extends BaseResource
 
     /**
      * Unique reference. Different schemes have different length and [character
-     * set](#character-sets) requirements. GoCardless will generate a unique
-     * reference satisfying the different scheme requirements if this field is
-     * left blank.
+     * set](#appendix-character-sets) requirements. GoCardless will generate a
+     * unique reference satisfying the different scheme requirements if this
+     * field is left blank.
      */
     protected $reference;
 
     /**
      * <a name="mandates_scheme"></a>Direct Debit scheme to which this mandate
      * and associated payments are submitted. Can be supplied or automatically
-     * detected from the customer's bank account. Currently only "autogiro",
-     * "bacs", "sepa_core", and "sepa_cor1" are supported.
+     * detected from the customer's bank account. Currently "autogiro", "bacs",
+     * "becs", "betalingsservice", and "sepa_core" are supported.
      */
     protected $scheme;
 
     /**
      * One of:
      * <ul>
-     * <li>`pending_customer_approval`: the mandate
-     * has not yet been signed by the second customer</li>
-     *
+     * <li>`pending_customer_approval`: the mandate has not yet been signed by
+     * the second customer</li>
      * <li>`pending_submission`: the mandate has not yet been submitted to the
      * customer's bank</li>
-     * <li>`submitted`: the mandate has been
-     * submitted to the customer's bank but has not been processed yet</li>
-    
-     * * <li>`active`: the mandate has been successfully set up by the
-     * customer's bank</li>
-     * <li>`failed`: the mandate could not be
-     * created</li>
+     * <li>`submitted`: the mandate has been submitted to the customer's bank
+     * but has not been processed yet</li>
+     * <li>`active`: the mandate has been successfully set up by the customer's
+     * bank</li>
+     * <li>`failed`: the mandate could not be created</li>
      * <li>`cancelled`: the mandate has been cancelled</li>
-
-     *     * <li>`expired`: the mandate has expired due to dormancy</li>
-     *
+     * <li>`expired`: the mandate has expired due to dormancy</li>
      * </ul>
      */
     protected $status;

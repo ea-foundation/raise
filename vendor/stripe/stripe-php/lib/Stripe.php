@@ -12,8 +12,14 @@ class Stripe
     // @var string The Stripe API key to be used for requests.
     public static $apiKey;
 
+    // @var string The Stripe client_id to be used for Connect requests.
+    public static $clientId;
+
     // @var string The base URL for the Stripe API.
     public static $apiBase = 'https://api.stripe.com';
+
+    // @var string The base URL for the OAuth API.
+    public static $connectBase = 'https://connect.stripe.com';
 
     // @var string The base URL for the Stripe API uploads endpoint.
     public static $apiUploadBase = 'https://uploads.stripe.com';
@@ -23,6 +29,9 @@ class Stripe
 
     // @var string|null The account ID for connected accounts requests.
     public static $accountId = null;
+
+    // @var string Path to the CA bundle used to verify SSL certificates
+    public static $caBundlePath = null;
 
     // @var boolean Defaults to true.
     public static $verifySslCerts = true;
@@ -34,7 +43,16 @@ class Stripe
     //   produce messages.
     public static $logger = null;
 
-    const VERSION = '4.13.0';
+    // @var int Maximum number of request retries
+    public static $maxNetworkRetries = 0;
+
+    // @var float Maximum delay between retries, in seconds
+    private static $maxNetworkRetryDelay = 2.0;
+
+    // @var float Initial delay between retries, in seconds
+    private static $initialNetworkRetryDelay = 0.5;
+
+    const VERSION = '6.16.0';
 
     /**
      * @return string The API key used for requests.
@@ -42,6 +60,14 @@ class Stripe
     public static function getApiKey()
     {
         return self::$apiKey;
+    }
+
+    /**
+     * @return string The client_id used for Connect requests.
+     */
+    public static function getClientId()
+    {
+        return self::$clientId;
     }
 
     /**
@@ -76,6 +102,16 @@ class Stripe
     }
 
     /**
+     * Sets the client_id to be used for Connect requests.
+     *
+     * @param string $clientId
+     */
+    public static function setClientId($clientId)
+    {
+        self::$clientId = $clientId;
+    }
+
+    /**
      * @return string The API version used for requests. null if we're using the
      *    latest version.
      */
@@ -90,6 +126,30 @@ class Stripe
     public static function setApiVersion($apiVersion)
     {
         self::$apiVersion = $apiVersion;
+    }
+
+    /**
+     * @return string
+     */
+    private static function getDefaultCABundlePath()
+    {
+        return realpath(dirname(__FILE__) . '/../data/ca-certificates.crt');
+    }
+
+    /**
+     * @return string
+     */
+    public static function getCABundlePath()
+    {
+        return self::$caBundlePath ?: self::getDefaultCABundlePath();
+    }
+
+    /**
+     * @param string $caBundlePath
+     */
+    public static function setCABundlePath($caBundlePath)
+    {
+        self::$caBundlePath = $caBundlePath;
     }
 
     /**
@@ -139,13 +199,44 @@ class Stripe
      * @param string $appVersion The application's version
      * @param string $appUrl The application's URL
      */
-    public static function setAppInfo($appName, $appVersion = null, $appUrl = null)
+    public static function setAppInfo($appName, $appVersion = null, $appUrl = null, $appPartnerId = null)
     {
-        if (self::$appInfo === null) {
-            self::$appInfo = array();
-        }
+        self::$appInfo = self::$appInfo ?: [];
         self::$appInfo['name'] = $appName;
-        self::$appInfo['version'] = $appVersion;
+        self::$appInfo['partner_id'] = $appPartnerId;
         self::$appInfo['url'] = $appUrl;
+        self::$appInfo['version'] = $appVersion;
+    }
+
+    /**
+     * @return int Maximum number of request retries
+     */
+    public static function getMaxNetworkRetries()
+    {
+        return self::$maxNetworkRetries;
+    }
+
+    /**
+     * @param int $maxNetworkRetries Maximum number of request retries
+     */
+    public static function setMaxNetworkRetries($maxNetworkRetries)
+    {
+        self::$maxNetworkRetries = $maxNetworkRetries;
+    }
+
+    /**
+     * @return float Maximum delay between retries, in seconds
+     */
+    public static function getMaxNetworkRetryDelay()
+    {
+        return self::$maxNetworkRetryDelay;
+    }
+
+    /**
+     * @return float Initial delay between retries, in seconds
+     */
+    public static function getInitialNetworkRetryDelay()
+    {
+        return self::$initialNetworkRetryDelay;
     }
 }

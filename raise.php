@@ -18,13 +18,13 @@ define('RAISE_PRIORITY', 12838790321);
 define('RAISE_ASSET_VERSION', '0.46');
 
 // Load other files
-require_once "vendor/autoload.php";
-require_once "_globals.php";
-require_once "_options.php";
-require_once "bitpay/EncryptedWPOptionStorage.php";
-require_once "functions.php";
-require_once "updates.php";
-require_once "form.php";
+require "vendor/autoload.php";
+require "_globals.php";
+require "_options.php";
+require "bitpay/EncryptedWPOptionStorage.php";
+require "functions.php";
+require "updates.php";
+require "form.php";
 
 // Add shortcode for donation form
 add_shortcode('raise_form','raise_form');
@@ -77,6 +77,10 @@ add_action("wp_ajax_gocardless_debit", "raise_process_gocardless_donation");
 // Log BitPay donation
 add_action("wp_ajax_nopriv_bitpay_log", "raise_process_bitpay_log");
 add_action("wp_ajax_bitpay_log", "raise_process_bitpay_log");
+
+// Log Coinbase donation
+add_action("wp_ajax_nopriv_coinbase_log", "raise_process_coinbase_log");
+add_action("wp_ajax_coinbase_log", "raise_process_coinbase_log");
 
 // Log Skrill donation
 add_action("wp_ajax_nopriv_skrill_log", "raise_process_skrill_log");

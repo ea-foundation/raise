@@ -2,7 +2,7 @@
 
 Free donation plugin for Wordpress. Supports one-time and monthly payments, confirmation and notification-emails, webhooks, a newsletter checkbox, a tax deductibility checkbox, multiple purposes, custom colors, Javascript events, single form inheritance, sandbox mode, centralized settings and translations.
 
-Accept donations via [Stripe](#stripe), [PayPal](#paypal), [GoCardless](#gocardless), [BitPay](#bitpay), [Skrill](#skrill) or [bank transfers](#bank-transfer).
+Accept donations via [Stripe](#stripe), [PayPal](#paypal), [GoCardless](#gocardless), [BitPay](#bitpay), [Coinbase](#coinbase), [Skrill](#skrill) or [bank transfers](#bank-transfer).
 
 ![Screenshot of Raise - The Free Donation Plugin for WordPress](/assets/images/screenshot.png?raw=true)
 
@@ -386,7 +386,7 @@ EOD
 #### JsonLogic
 
 The following properties can be specified in an array format that lets you encode `if ... else if ... else` rules:
-- `forms > my_form > payment > provider > (banktransfer|stripe|paypal|gocardless|bitpay|skrill)`
+- `forms > my_form > payment > provider > (banktransfer|stripe|paypal|gocardless|bitpay|coinbase|skrill)`
 - `forms > my_form > payment > form_elements > tax_receipt`
 - `forms > my_form > payment > form_elements > share_data`
 - `forms > my_form > payment > form_elements > tip`
@@ -620,14 +620,39 @@ Requires `pairing_code`.
 }
 ```
 
+Bitpay does not support recurring donations.
+
 You can make a sandbox account [here](https://test.bitpay.com/get-started). Go to Payment Tools > Manage API Tokens > Add New Token to generate a pairing code.
 
-Does not support recurring donations. BitPay donations are registered only if the donor clicks continue in the BitPay modal.
+**Note:** Donations are registered only if the donor clicks continue in the BitPay modal.
 
 Additional webhook data:
 - `vendor_transaction_id`: Invoice ID
 
 ![Bitpay flow](/doc/images/bitpay_flow.png?raw=true)
+
+
+### Coinbase
+Requires `api_key`.
+
+```json
+"coinbase": {
+  "account": "Optional identifier for the bank account the donation is eventually transferred to",
+  "tooltip": "Something you want the donor to know",
+  "live": {
+    "api_key": "coinbase_sandbox_api_key"
+  }
+}
+```
+
+Coinbase does not support recurring donations. Also, it does not have a sandbox environment for testing.
+
+**Note:** Donations are registered only if the donor waits until the transaction is fully verified without closing the popup.
+
+Additional webhook data:
+- `vendor_transaction_id`: Charge code
+
+![Coinbase flow](/doc/images/coinbase_flow.png?raw=true)
 
 
 ### Skrill
@@ -699,7 +724,7 @@ Send a notification email whenever a donation was completed. Can be a comma-sepa
 
 All keys sent in webhooks can be used as rule conditions. If at least one condition does not match, the notification email is skipped. An empty object will always pass.
 
-Note: The possible `payment_provider` values are `Stripe`, `PayPal`, `GoCardless`, `Skrill`, `BitPay` and `Bank Transfer`
+Note: The possible `payment_provider` values are `Stripe`, `PayPal`, `GoCardless`, `Skrill`, `BitPay`, `Coinbase` and `Bank Transfer`
 
 
 ## Webhooks

@@ -581,6 +581,30 @@ input[type='number'] {
     width: 23px;
 }
 
+.pp-images .pp.bitcoin_cash {
+    background: url(../images/bitcoin_cash.svg) no-repeat 2px 0;
+    background-size: 37px;
+    width: 39px;
+}
+
+.pp-images .pp.ethereum {
+    background: url(../images/ethereum.svg) no-repeat 5px 0;
+    background-size: 14px;
+    width: 23px;
+}
+
+.pp-images .pp.litecoin {
+    background: url(../images/litecoin.svg) no-repeat;
+    background-size: 23px;
+    width: 23px;
+}
+
+.pp-images .pp.coinbase {
+    background: url(../images/coinbase.svg) no-repeat 0 2px;
+    background-size: 70px;
+    width: 70px;
+}
+
 .pp-images .pp.skrill {
     background: url(../images/skrill.svg) no-repeat 0 4px;
     background-size: 38px;
@@ -600,4 +624,16 @@ input[type='number'] {
     background-size: 84px 32px;
     height: 16px;
     width: 45px;
+}
+
+#CoinbaseModal .pp.coinbase {
+    display: inline-block;
+    background: url(../images/coinbase.svg) no-repeat 0 0;
+    background-size: 80px 15px;
+    height: 15px;
+    width: 80px;
+}
+
+#CoinbaseModal .coinbase_notice {
+    margin-bottom: 35px;
 }

@@ -366,7 +366,7 @@ function raise_form($atts, $content = null)
                             <div class="checkbox">
                                 <label>
                                     <input type="checkbox" name="tip" id="tip" value="1" class="precheckable">
-                                    <span id="tip-text"><?php _e('Add a 5% tip', 'raise'); ?></span>
+                                    <span id="tip-text"></span>
                                 </label>
                             </div>
                         </div>
@@ -532,6 +532,32 @@ function raise_form($atts, $content = null)
                     </div>
                     <div class="raise_popup_closed">
                         <button id="BitPayPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Pay by Bitcoin", "raise") ?></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php if (in_array('coinbase', $enabledProviders)): ?>
+    <!-- Coinbase modal -->
+    <div id="CoinbaseModal" class="modal raise-modal raise-popup-modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="pp coinbase"></div>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="raise_popup_open hidden">
+                        <p><?php _e("Please continue the donation in the secure window that you've already opened.", "raise") ?></p>
+                        <button class="btn btn-primary" onclick="raisePopup.focus()">OK</button>
+                    </div>
+                    <div class="raise_popup_closed">
+                        <p class="coinbase_notice">
+                            <?php _e("<strong>Important:</strong> Do not close the popup window until the transaction has been <strong>verified</strong>. This can take <strong>up to 10 minutes</strong>. Once the transaction is verified, click on <strong>Continue</strong> or wait until the popup is closed automatically.", 'raise'); ?>
+                        </p>
+                        <button id="CoinbasePopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Donate with Crypto", "raise") ?></button>
                     </div>
                 </div>
             </div>
