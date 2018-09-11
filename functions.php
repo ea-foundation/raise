@@ -470,11 +470,11 @@ function raise_get_donation_from_post()
         'frequency'                  => $post['frequency'],
         'payment_provider'           => $post['payment_provider'],
         'email'                      => $post['email'],
-        'name'                       => $post['name'],
+        'name'                       => stripslashes($post['name']),
         'purpose'                    => raise_get($post['purpose'], ''),
-        'address'                    => raise_get($post['address'], ''),
+        'address'                    => stripslashes(raise_get($post['address'], '')),
         'zip'                        => raise_get($post['zip'], ''),
-        'city'                       => raise_get($post['city'], ''),
+        'city'                       => stripslashes(raise_get($post['city'], '')),
         'country_code'               => raise_get($post['country_code'], ''),
         'comment'                    => raise_get($post['comment'], ''),
         'account'                    => raise_get($post['account'], ''),
@@ -1635,7 +1635,7 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
     $_SESSION['raise-url']              = $_SERVER['HTTP_REFERER'];
     $_SESSION['raise-req-id']           = $reqId;
     $_SESSION['raise-email']            = $donation['email'];
-    $_SESSION['raise-name']             = $donation['name'];
+    $_SESSION['raise-name']             = stripslashes($donation['name']);
     $_SESSION['raise-currency']         = $donation['currency'];
     $_SESSION['raise-country_code']     = $donation['country_code'];
     $_SESSION['raise-amount']           = money_format('%i', $donation['amount']);
@@ -1646,9 +1646,9 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
 
     // Optional fields
     $_SESSION['raise-purpose']              = raise_get($donation['purpose'], '');
-    $_SESSION['raise-address']              = raise_get($donation['address'], '');
+    $_SESSION['raise-address']              = stripslashes(raise_get($donation['address'], ''));
     $_SESSION['raise-zip']                  = raise_get($donation['zip'], '');
-    $_SESSION['raise-city']                 = raise_get($donation['city'], '');
+    $_SESSION['raise-city']                 = stripslashes(raise_get($donation['city'], ''));
     $_SESSION['raise-comment']              = raise_get($donation['comment'], '');
     $_SESSION['post_donation_instructions'] = raise_get($donation['post_donation_instructions'], '');
     $_SESSION['raise-share-data']           = (bool) raise_get($donation['share_data'], false);
