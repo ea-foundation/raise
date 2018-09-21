@@ -1,6 +1,11 @@
 <?php if (!defined('ABSPATH')) exit;
 
 /**
+ * Recurring payments
+ */
+$GLOBALS['monthlySupport'] = ['stripe', 'paypal', 'banktransfer', 'gocardless', 'skrill'];
+
+/**
  * Paypal
  */
 $GLOBALS['paypalPayKeyEndpoint'] = array(

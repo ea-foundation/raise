@@ -170,6 +170,7 @@ function raise_init_donation_form($form, $mode)
         'bank_account_rule'               => $bankAccountsRule,
         'organization'                    => $GLOBALS['raiseOrganization'],
         'currency2country'                => $GLOBALS['currency2country'],
+        'monthly_support'                 => $GLOBALS['monthlySupport'],
         'labels'                          => [
             'yes'                   => __("yes", "raise"),
             'no'                    => __("no", "raise"),
@@ -3088,4 +3089,17 @@ function raise_get_best_flag_sprite()
     }
 
     return $flagSprite;
+}
+
+/**
+ * Does the current form have a payment provider with monthly support?
+ *
+ * @param array $enabledProviders
+ * @return bool
+ */
+function raise_monthly_frequency_supported(array $enabledProviders)
+{
+    return array_reduce($GLOBALS['monthlySupport'], function ($carry, $item) use ($enabledProviders) {
+        return $carry || in_array($item, $enabledProviders);
+    }, false);
 }

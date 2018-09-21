@@ -14,7 +14,7 @@ var slideTransitionInAction     = false;
 var otherAmountPlaceholder      = null;
 var currentStripeKey            = '';
 var frequency                   = 'once';
-var monthlySupport              = ['payment-stripe', 'payment-paypal', 'payment-banktransfer', 'payment-gocardless', 'payment-skrill'];
+var monthlySupport              = wordpress_vars.monthly_support.map(function(val) { return 'payment-' + val });
 var raisePopup                  = null;
 var gcPollTimer                 = null;
 var taxReceiptDisabled          = true;
@@ -345,10 +345,11 @@ jQuery(function($) {
     // Other amount formatting 2: Only 0-9 and '.' are valid symbols
     $('input#amount-other').keypress(function(event) {
         var keyCode = event.which;
-        if (!(48 <= keyCode && keyCode <= 57) && keyCode != 190 && keyCode != 46 && keyCode != 13) {
+        if (!(48 <= keyCode && keyCode <= 57) && keyCode != 190 && keyCode != 8 && keyCode != 46 && keyCode != 13) {
             // Only accept numbers, dot, backspace, and enter
             return false;
         }
+        console.log(keyCode);
 
         // Validate input (workaround for Safari)
         if (keyCode == 13) {
