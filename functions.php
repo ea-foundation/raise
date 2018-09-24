@@ -170,6 +170,7 @@ function raise_init_donation_form($form, $mode)
         'bank_account_rule'               => $bankAccountsRule,
         'organization'                    => $GLOBALS['raiseOrganization'],
         'currency2country'                => $GLOBALS['currency2country'],
+        'monthly_support'                 => $GLOBALS['monthlySupport'],
         'labels'                          => [
             'yes'                   => __("yes", "raise"),
             'no'                    => __("no", "raise"),
@@ -470,11 +471,11 @@ function raise_get_donation_from_post()
         'frequency'                  => $post['frequency'],
         'payment_provider'           => $post['payment_provider'],
         'email'                      => $post['email'],
-        'name'                       => $post['name'],
+        'name'                       => stripslashes($post['name']),
         'purpose'                    => raise_get($post['purpose'], ''),
-        'address'                    => raise_get($post['address'], ''),
+        'address'                    => stripslashes(raise_get($post['address'], '')),
         'zip'                        => raise_get($post['zip'], ''),
-        'city'                       => raise_get($post['city'], ''),
+        'city'                       => stripslashes(raise_get($post['city'], '')),
         'country_code'               => raise_get($post['country_code'], ''),
         'comment'                    => raise_get($post['comment'], ''),
         'account'                    => raise_get($post['account'], ''),
@@ -1635,7 +1636,7 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
     $_SESSION['raise-url']              = $_SERVER['HTTP_REFERER'];
     $_SESSION['raise-req-id']           = $reqId;
     $_SESSION['raise-email']            = $donation['email'];
-    $_SESSION['raise-name']             = $donation['name'];
+    $_SESSION['raise-name']             = stripslashes($donation['name']);
     $_SESSION['raise-currency']         = $donation['currency'];
     $_SESSION['raise-country_code']     = $donation['country_code'];
     $_SESSION['raise-amount']           = money_format('%i', $donation['amount']);
@@ -1646,9 +1647,9 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
 
     // Optional fields
     $_SESSION['raise-purpose']              = raise_get($donation['purpose'], '');
-    $_SESSION['raise-address']              = raise_get($donation['address'], '');
+    $_SESSION['raise-address']              = stripslashes(raise_get($donation['address'], ''));
     $_SESSION['raise-zip']                  = raise_get($donation['zip'], '');
-    $_SESSION['raise-city']                 = raise_get($donation['city'], '');
+    $_SESSION['raise-city']                 = stripslashes(raise_get($donation['city'], ''));
     $_SESSION['raise-comment']              = raise_get($donation['comment'], '');
     $_SESSION['post_donation_instructions'] = raise_get($donation['post_donation_instructions'], '');
     $_SESSION['raise-share-data']           = (bool) raise_get($donation['share_data'], false);
@@ -2150,35 +2151,32 @@ function raise_has_string_keys(array $array) {
 }
 
 /**
- * Get user country from freegeoip.net, e.g. as ['code' => 'CH', 'name' => 'Switzerland']
+ * Get user country from ipstack.com, e.g. as ['code' => 'CH', 'name' => 'Switzerland']
  *
+ * @param string $accessKey Access key from ipstack.com
  * @param string $userIp
  * @param array  $default
  * @return array
  */
-function raise_get_user_country($userIp = null, array $default = array())
+function raise_get_user_country($accessKey, $userIp = null, array $default = array())
 {
     if (!$userIp) {
         $userIp = $_SERVER['REMOTE_ADDR'];
     }
 
     try {
-        if (!empty($userIp)) {
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, "http://freegeoip.net/json/" . $userIp);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            $output = curl_exec($curl);
-            curl_close($curl);
+        if (!empty($accessKey) && !empty($userIp)) {
+            $client   = new \GuzzleHttp\Client();
+            $response = $client->get('http://api.ipstack.com/' . $userIp . '?access_key=' . $accessKey);
+            $body     = json_decode($response->getBody(), true);
 
-            $response = json_decode($output, true);
-
-            if (empty($response['country_name']) || empty($response['country_code'])) {
+            if (empty($body['country_name']) || empty($body['country_code'])) {
                 throw new \Exception('Invalid response');
             }
 
             return array(
-                'code' => $response['country_code'],
-                'name' => $response['country_name'],
+                'code' => $body['country_code'],
+                'name' => $body['country_name'],
             );
         } else {
             return $default;
@@ -2196,24 +2194,26 @@ function raise_get_user_country($userIp = null, array $default = array())
  */
 function raise_get_initial_country(array $formSettings)
 {
-    $initialCountry = strtoupper(raise_get($formSettings['payment']['country']['initial'], 'geoip'));
+    $initialCountry   = strtoupper(raise_get($formSettings['payment']['country']['initial'], 'ipstack'));
+    $ipstackAccessKey = raise_get($formSettings['payment']['country']['ipstack_access_key']);
 
-    if (empty($initialCountry) || $initialCountry == 'GEOIP') {
-        // Do GeoIP call
-        $fallbackCode = strtoupper(raise_get($formSettings['payment']['country']['fallback'], ''));
-        $fallbackName = raise_get($GLOBALS['code2country'][$fallbackCode]);
-        $fallback     = !empty($fallbackName) ? array(
+    if (!empty($ipstackAccessKey) && ($initialCountry == 'IPSTACK' || $initialCountry === 'GEOIP')) {
+        // Do IP lookup
+        $legacyFallbackCode = raise_get($formSettings['payment']['country']['fallback'], '');
+        $fallbackCode       = strtoupper(raise_get($formSettings['payment']['country']['ipstack_fallback'], $legacyFallbackCode));
+        $fallbackName       = raise_get($GLOBALS['code2country'][$fallbackCode]);
+        $fallback           = !empty($fallbackName) ? [
             'code' => $fallbackCode,
             'name' => $fallbackName,
-        ) : array();
+        ] : [];
 
-        return raise_get_user_country($_SERVER['REMOTE_ADDR'], $fallback);
+        return raise_get_user_country($ipstackAccessKey, $_SERVER['REMOTE_ADDR'], $fallback);
     } else {
         // Return predefined country
-        return isset($GLOBALS['code2country'][$initialCountry]) ? array(
+        return isset($GLOBALS['code2country'][$initialCountry]) ? [
             'code' => $initialCountry,
             'name' => $GLOBALS['code2country'][$initialCountry],
-        ) : array();
+        ] : [];
     }
 }
 
@@ -2226,7 +2226,8 @@ function raise_get_initial_country(array $formSettings)
 function raise_get_user_currency($countryCode = null)
 {
     if (!$countryCode) {
-        $userCountry = raise_get_user_country();
+        $ipstackAccessKey = raise_get($formSettings['payment']['country']['ipstack_access_key'], '');
+        $userCountry      = raise_get_user_country($ipstackAccessKey);
         if (!$userCountry) {
             return null;
         }
@@ -3088,4 +3089,17 @@ function raise_get_best_flag_sprite()
     }
 
     return $flagSprite;
+}
+
+/**
+ * Does the current form have a payment provider with monthly support?
+ *
+ * @param array $enabledProviders
+ * @return bool
+ */
+function raise_monthly_frequency_supported(array $enabledProviders)
+{
+    return array_reduce($GLOBALS['monthlySupport'], function ($carry, $item) use ($enabledProviders) {
+        return $carry || in_array($item, $enabledProviders);
+    }, false);
 }

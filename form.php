@@ -138,7 +138,11 @@ function raise_form($atts, $content = null)
                     </div>
                 </div>
 
-                <div class="row">
+                <?php
+                    $enabledProviders = raise_enabled_payment_providers($formSettings, $mode);
+                    $monthlyDisplay   = raise_monthly_frequency_supported($enabledProviders) ? '' : 'hidden'; 
+                ?>
+                <div class="row <?= $monthlyDisplay ?>">
                     <ul id="frequency" class="col-xs-12">
                         <li>
                             <input type="radio" class="radio" name="frequency" value="once" id="frequency-once" checked>
@@ -476,7 +480,6 @@ function raise_form($atts, $content = null)
 </form>
 
 <?php 
-    $enabledProviders = raise_enabled_payment_providers($formSettings, $mode);
     if (in_array('paypal', $enabledProviders)): ?>
     <!-- PayPal modal -->
     <div id="PayPalModal" class="modal raise-modal raise-popup-modal fade" role="dialog" data-backdrop="static">

@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/raise
  * GitHub Plugin URI: ea-foundation/raise
  * Description: The Free Donation Plugin for WordPress
- * Version: 1.6.0
+ * Version: 2.0.0
  * Author: Naoki Peter
  * License: GPLv3 or later
  */
@@ -18,13 +18,13 @@ define('RAISE_PRIORITY', 12838790321);
 define('RAISE_ASSET_VERSION', '0.46');
 
 // Load other files
-require "vendor/autoload.php";
-require "_globals.php";
-require "_options.php";
-require "bitpay/EncryptedWPOptionStorage.php";
-require "functions.php";
-require "updates.php";
-require "form.php";
+require_once "vendor/autoload.php";
+require_once "_globals.php";
+require_once "_options.php";
+require_once "bitpay/EncryptedWPOptionStorage.php";
+require_once "functions.php";
+require_once "updates.php";
+require_once "form.php";
 
 // Add shortcode for donation form
 add_shortcode('raise_form','raise_form');
