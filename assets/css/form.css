@@ -292,7 +292,7 @@ input#donor-country-auto {
 }
 
 #donation-currency div {
-    margin: 5px 0 10px 0;
+    margin: 5px 0 20px 0;
 }
 
 #donation-currency img.flag {
@@ -427,7 +427,7 @@ ul#frequency label {
     border: none;
     color: #999;
     font-weight: 700;
-    margin-top: 10px;
+    margin-top: 0;
     margin-bottom: 5px !important; /* theme compatibility hack */
     padding: 0;
     outline: 0;
