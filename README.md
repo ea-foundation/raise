@@ -173,8 +173,9 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "comment": false # add comment textarea
         },
         "country": {
-          "initial": "geoip",  # Initial value for country dropdown, e.g. "US"
-          "fallback": "US"  # Fallback value if GeoIP is not available
+          "initial": "ipstack",  # Initial value for country dropdown, e.g. "US". Default is "ipstack"
+          "ipstack_access_key": "abc1234", # Necessary if initial is "ipstack". See ipstack.com
+          "ipstack_fallback": "US" # Fallback country if ipstack API is not available
         },
         "recaptcha": {
           "site_key": "my_recaptcha_site_key",

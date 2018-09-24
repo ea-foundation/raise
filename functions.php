@@ -2150,35 +2150,32 @@ function raise_has_string_keys(array $array) {
 }
 
 /**
- * Get user country from freegeoip.net, e.g. as ['code' => 'CH', 'name' => 'Switzerland']
+ * Get user country from ipstack.com, e.g. as ['code' => 'CH', 'name' => 'Switzerland']
  *
+ * @param string $accessKey Access key from ipstack.com
  * @param string $userIp
  * @param array  $default
  * @return array
  */
-function raise_get_user_country($userIp = null, array $default = array())
+function raise_get_user_country($accessKey, $userIp = null, array $default = array())
 {
     if (!$userIp) {
         $userIp = $_SERVER['REMOTE_ADDR'];
     }
 
     try {
-        if (!empty($userIp)) {
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, "http://freegeoip.net/json/" . $userIp);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            $output = curl_exec($curl);
-            curl_close($curl);
+        if (!empty($accessKey) && !empty($userIp)) {
+            $client   = new \GuzzleHttp\Client();
+            $response = $client->get('http://api.ipstack.com/' . $userIp . '?access_key=' . $accessKey);
+            $body     = json_decode($response->getBody(), true);
 
-            $response = json_decode($output, true);
-
-            if (empty($response['country_name']) || empty($response['country_code'])) {
+            if (empty($body['country_name']) || empty($body['country_code'])) {
                 throw new \Exception('Invalid response');
             }
 
             return array(
-                'code' => $response['country_code'],
-                'name' => $response['country_name'],
+                'code' => $body['country_code'],
+                'name' => $body['country_name'],
             );
         } else {
             return $default;
@@ -2196,24 +2193,26 @@ function raise_get_user_country($userIp = null, array $default = array())
  */
 function raise_get_initial_country(array $formSettings)
 {
-    $initialCountry = strtoupper(raise_get($formSettings['payment']['country']['initial'], 'geoip'));
+    $initialCountry   = strtoupper(raise_get($formSettings['payment']['country']['initial'], 'ipstack'));
+    $ipstackAccessKey = raise_get($formSettings['payment']['country']['ipstack_access_key']);
 
-    if (empty($initialCountry) || $initialCountry == 'GEOIP') {
-        // Do GeoIP call
-        $fallbackCode = strtoupper(raise_get($formSettings['payment']['country']['fallback'], ''));
-        $fallbackName = raise_get($GLOBALS['code2country'][$fallbackCode]);
-        $fallback     = !empty($fallbackName) ? array(
+    if (!empty($ipstackAccessKey) && ($initialCountry == 'IPSTACK' || $initialCountry === 'GEOIP')) {
+        // Do IP lookup
+        $legacyFallbackCode = raise_get($formSettings['payment']['country']['fallback'], '');
+        $fallbackCode       = strtoupper(raise_get($formSettings['payment']['country']['ipstack_fallback'], $legacyFallbackCode));
+        $fallbackName       = raise_get($GLOBALS['code2country'][$fallbackCode]);
+        $fallback           = !empty($fallbackName) ? [
             'code' => $fallbackCode,
             'name' => $fallbackName,
-        ) : array();
+        ] : [];
 
-        return raise_get_user_country($_SERVER['REMOTE_ADDR'], $fallback);
+        return raise_get_user_country($ipstackAccessKey, $_SERVER['REMOTE_ADDR'], $fallback);
     } else {
         // Return predefined country
-        return isset($GLOBALS['code2country'][$initialCountry]) ? array(
+        return isset($GLOBALS['code2country'][$initialCountry]) ? [
             'code' => $initialCountry,
             'name' => $GLOBALS['code2country'][$initialCountry],
-        ) : array();
+        ] : [];
     }
 }
 
@@ -2226,7 +2225,8 @@ function raise_get_initial_country(array $formSettings)
 function raise_get_user_currency($countryCode = null)
 {
     if (!$countryCode) {
-        $userCountry = raise_get_user_country();
+        $ipstackAccessKey = raise_get($formSettings['payment']['country']['ipstack_access_key'], '');
+        $userCountry      = raise_get_user_country($ipstackAccessKey);
         if (!$userCountry) {
             return null;
         }
