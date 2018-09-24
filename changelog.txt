@@ -1,4 +1,7 @@
-= 2.0 TBD =
+= 2.0.1 September, 2018 =
+* FIX: Increment asset number and remove legacy shortcode
+
+= 2.0 September, 2018 =
 * NEW: Coinbase integration
 * FIX: Broken tax receipt checkbox
 * FIX: Replace Object.assign by jQuery.extend
