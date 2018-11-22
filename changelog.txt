@@ -1,3 +1,6 @@
+= 2.1.0 November 22, 2018 =
+* NEW: Russian translation
+
 = 2.0.1 September, 2018 =
 * FIX: Increment asset number and remove legacy shortcode
 
