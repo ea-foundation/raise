@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eas-donation-processor\n"
-"POT-Creation-Date: 2019-01-08 18:56+0100\n"
+"POT-Creation-Date: 2019-01-08 19:13+0100\n"
 "PO-Revision-Date: 2016-08-26 15:39+0200\n"
 "Last-Translator: \n"
 "Language-Team: EA Stiftung <info@ea-stiftung.org>\n"
@@ -219,7 +219,7 @@ msgid "monthly"
 msgstr ""
 
 #: functions.php:956
-msgid "Monhtly payment mandate of %currency% %amount%"
+msgid "Monthly payment mandate of %currency% %amount%"
 msgstr ""
 
 #: functions.php:957

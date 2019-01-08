@@ -953,7 +953,7 @@ function raise_prepare_gocardless_donation(array $donation)
         $monthly      = $donation['frequency'] == 'monthly' ? ", " . __("monthly", "raise") : "";
         $client       = raise_get_gocardless_client($donation);
         $description  = $donation['frequency'] == 'monthly' ?
-          __("Monhtly payment mandate of %currency% %amount%", "raise") :
+          __("Monthly payment mandate of %currency% %amount%", "raise") :
           __("One-time payment mandate of %currency% %amount%", "raise");
         $redirectFlow = $client->redirectFlows()->create([
             "params" => [

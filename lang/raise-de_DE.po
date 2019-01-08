@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eas-donation-processor\n"
-"POT-Creation-Date: 2019-01-08 18:57+0100\n"
-"PO-Revision-Date: 2019-01-08 18:57+0100\n"
+"POT-Creation-Date: 2019-01-08 19:13+0100\n"
+"PO-Revision-Date: 2019-01-08 19:13+0100\n"
 "Last-Translator: \n"
 "Language-Team: EA Stiftung <info@ea-stiftung.org>\n"
 "Language: de\n"
@@ -234,7 +234,9 @@ msgid "monthly"
 msgstr "monatlich"
 
 #: functions.php:956
-msgid "Monhtly payment mandate of %currency% %amount%"
+#, fuzzy
+#| msgid "Monhtly payment mandate of %currency% %amount%"
+msgid "Monthly payment mandate of %currency% %amount%"
 msgstr "Monatliches Zahlungsmandat von %currency% %amount%"
 
 #: functions.php:957
