@@ -511,6 +511,7 @@ function raise_form($atts, $content = null)
                         <button class="btn btn-primary" onclick="raisePopup.focus()">OK</button>
                     </div>
                     <div class="raise_popup_closed">
+                        <p id="GoCardlessNote" class="hidden"><strong><?php _e("Note: GoCardless requires a mandate of type “recurrent”, but we will only collect once.", "raise") ?></strong></p>
                         <button id="GoCardlessPopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Set up Direct Debit", "raise") ?></button>
                     </div>
                 </div>

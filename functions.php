@@ -952,11 +952,17 @@ function raise_prepare_gocardless_donation(array $donation)
         $returnUrl    = raise_get_ajax_endpoint() . '?action=gocardless_debit&req=' . $reqId;
         $monthly      = $donation['frequency'] == 'monthly' ? ", " . __("monthly", "raise") : "";
         $client       = raise_get_gocardless_client($donation);
+        $description  = $donation['frequency'] == 'monthly' ?
+          __("Monhtly payment mandate of %currency% %amount%", "raise") :
+          __("One-time payment mandate of %currency% %amount%", "raise");
         $redirectFlow = $client->redirectFlows()->create([
             "params" => [
-                "description"          => __("Donation", "raise") . " (" . $donation['currency'] . " " . money_format('%i', $donation['amount']) . $monthly . ")",
+                "description"          => str_replace('%currency%', $donation['currency'], str_replace('%amount%', money_format('%i', $donation['amount']), $description)),
                 "session_token"        => $reqId,
                 "success_redirect_url" => $returnUrl,
+                "prefilled_customer"   => [
+                    "email" => $donation['email'],
+                ],
             ]
         ]);
 
