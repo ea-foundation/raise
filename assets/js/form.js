@@ -406,6 +406,7 @@ jQuery(function($) {
             buttonsToShow
                 .removeClass('hidden')
                 .find('input')
+                .prop('checked', false)
                 .prop('disabled', false);
 
             // Diable next button unless custom field is selected
@@ -750,8 +751,11 @@ function handlePopupDonation(provider) {
                     throw response.error || response;
                 }
 
+                // Show or hide note
+                jQuery('#' + provider + 'Note').toggleClass("hidden", frequency === 'monthly');
+
                 // Open URL in modal
-                jQuery('#' + provider +'PopupButton')
+                jQuery('#' + provider + 'PopupButton')
                     .unbind()
                     .click(function() {
                         // Open popup
