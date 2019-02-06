@@ -8,7 +8,7 @@ use GuzzleHttp\Psr7\Response;
  * @covers GuzzleHttp\Psr7\MessageTrait
  * @covers GuzzleHttp\Psr7\Response
  */
-class ResponseTest extends \PHPUnit_Framework_TestCase
+class ResponseTest extends BaseTest
 {
     public function testDefaultConstructor()
     {
@@ -248,5 +248,25 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
             $this->assertSame('Foo', $r->getHeaderLine('OWS'));
             $this->assertSame(['Foo'], $r->getHeader('OWS'));
         }
+    }
+
+    /**
+     * @dataProvider responseInitializedWithNonIntegerStatusCodeProvider
+     * @param mixed $invalidValues
+     */
+    public function testResponseInitializedWithNonIntegerStatusCodeProvider($invalidValues)
+    {
+        $this->expectException('InvalidArgumentException', 'Status code must be an integer value.');
+        new Response($invalidValues);
+    }
+
+    public function responseInitializedWithNonIntegerStatusCodeProvider()
+    {
+        return [
+            ['whatever'],
+            ['1.01'],
+            [1.01],
+            [new \stdClass()],
+        ];
     }
 }

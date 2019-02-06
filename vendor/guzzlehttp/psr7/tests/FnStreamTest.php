@@ -7,7 +7,7 @@ use GuzzleHttp\Psr7\FnStream;
 /**
  * @covers GuzzleHttp\Psr7\FnStream
  */
-class FnStreamTest extends \PHPUnit_Framework_TestCase
+class FnStreamTest extends BaseTest
 {
     /**
      * @expectedException \BadMethodCallException
@@ -46,6 +46,7 @@ class FnStreamTest extends \PHPUnit_Framework_TestCase
     {
         $s = new FnStream([]);
         unset($s);
+        $this->assertTrue(true); // strict mode requires an assertion
     }
 
     public function testDecoratesStream()
@@ -86,5 +87,13 @@ class FnStreamTest extends \PHPUnit_Framework_TestCase
         ]);
         $this->assertEquals('foo', $b->read(3));
         $this->assertTrue($called);
+    }
+
+    public function testDoNotAllowUnserialization()
+    {
+        $a = new FnStream([]);
+        $b = serialize($a);
+        $this->expectException('\LogicException', 'FnStream should never be unserialized');
+        unserialize($b);
     }
 }

@@ -25,13 +25,13 @@ abstract class BaseNode implements NodeInterface
 {
     protected $name;
     protected $parent;
-    protected $normalizationClosures = array();
-    protected $finalValidationClosures = array();
+    protected $normalizationClosures = [];
+    protected $finalValidationClosures = [];
     protected $allowOverwrite = true;
     protected $required = false;
     protected $deprecationMessage = null;
-    protected $equivalentValues = array();
-    protected $attributes = array();
+    protected $equivalentValues = [];
+    protected $attributes = [];
 
     /**
      * @param string|null        $name   The name of the node
@@ -127,7 +127,7 @@ abstract class BaseNode implements NodeInterface
      */
     public function addEquivalentValue($originalValue, $equivalentValue)
     {
-        $this->equivalentValues[] = array($originalValue, $equivalentValue);
+        $this->equivalentValues[] = [$originalValue, $equivalentValue];
     }
 
     /**
@@ -211,7 +211,7 @@ abstract class BaseNode implements NodeInterface
      */
     public function getDeprecationMessage($node, $path)
     {
-        return strtr($this->deprecationMessage, array('%node%' => $node, '%path%' => $path));
+        return strtr($this->deprecationMessage, ['%node%' => $node, '%path%' => $path]);
     }
 
     /**
@@ -242,12 +242,7 @@ abstract class BaseNode implements NodeInterface
     final public function merge($leftSide, $rightSide)
     {
         if (!$this->allowOverwrite) {
-            throw new ForbiddenOverwriteException(sprintf(
-                'Configuration path "%s" cannot be overwritten. You have to '
-               .'define all options for this path, and any of its sub-paths in '
-               .'one configuration section.',
-                $this->getPath()
-            ));
+            throw new ForbiddenOverwriteException(sprintf('Configuration path "%s" cannot be overwritten. You have to define all options for this path, and any of its sub-paths in one configuration section.', $this->getPath()));
         }
 
         $this->validateType($leftSide);
@@ -287,7 +282,7 @@ abstract class BaseNode implements NodeInterface
      *
      * @param $value
      *
-     * @return $value The normalized array value
+     * @return The normalized array value
      */
     protected function preNormalize($value)
     {

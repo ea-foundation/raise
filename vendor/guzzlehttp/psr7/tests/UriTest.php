@@ -6,7 +6,7 @@ use GuzzleHttp\Psr7\Uri;
 /**
  * @covers GuzzleHttp\Psr7\Uri
  */
-class UriTest extends \PHPUnit_Framework_TestCase
+class UriTest extends BaseTest
 {
     public function testParsesProvidedUri()
     {
@@ -221,7 +221,7 @@ class UriTest extends \PHPUnit_Framework_TestCase
      */
     public function testIsDefaultPort($scheme, $port, $isDefaultPort)
     {
-        $uri = $this->getMock('Psr\Http\Message\UriInterface');
+        $uri = $this->getMockBuilder('Psr\Http\Message\UriInterface')->getMock();
         $uri->expects($this->any())->method('getScheme')->will($this->returnValue($scheme));
         $uri->expects($this->any())->method('getPort')->will($this->returnValue($port));
 
@@ -324,6 +324,33 @@ class UriTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('a=b', $uri->getQuery());
         $uri = Uri::withoutQueryValue($uri, 'a');
         $this->assertSame('', $uri->getQuery());
+    }
+
+    public function testWithQueryValues()
+    {
+        $uri = new Uri();
+        $uri = Uri::withQueryValues($uri, [
+            'key1' => 'value1',
+            'key2' => 'value2'
+        ]);
+
+        $this->assertSame('key1=value1&key2=value2', $uri->getQuery());
+    }
+
+    public function testWithQueryValuesReplacesSameKeys()
+    {
+        $uri = new Uri();
+
+        $uri = Uri::withQueryValues($uri, [
+            'key1' => 'value1',
+            'key2' => 'value2'
+        ]);
+
+        $uri = Uri::withQueryValues($uri, [
+            'key2' => 'newvalue'
+        ]);
+
+        $this->assertSame('key1=value1&key2=newvalue', $uri->getQuery());
     }
 
     public function testWithQueryValueReplacesSameKeys()
@@ -594,7 +621,7 @@ class UriTest extends \PHPUnit_Framework_TestCase
 
         $uri = $uri->withScheme('');
         $this->assertSame('//example.org//path-not-host.com', (string) $uri); // This is still valid
-        $this->setExpectedException('\InvalidArgumentException');
+        $this->expectException('\InvalidArgumentException');
         $uri->withHost(''); // Now it becomes invalid
     }
 
@@ -612,7 +639,7 @@ class UriTest extends \PHPUnit_Framework_TestCase
         $uri = (new Uri('urn:/mailto:foo'))->withScheme('');
         $this->assertSame('/mailto:foo', $uri->getPath());
 
-        $this->setExpectedException('\InvalidArgumentException');
+        $this->expectException('\InvalidArgumentException');
         (new Uri('urn:mailto:foo'))->withScheme('');
     }
 

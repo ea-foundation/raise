@@ -1,4 +1,10 @@
 {
+    "name": "ea-foundation/raise",
+    "config": {
+        "platform": {
+            "php": "5.6.3"
+        }
+    },
     "require": {
         "stripe/stripe-php": "^6.8",
         "gocardless/gocardless-pro": "^1.7",

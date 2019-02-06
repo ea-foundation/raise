@@ -158,9 +158,9 @@ class XmlUtils
     {
         $prefix = (string) $element->prefix;
         $empty = true;
-        $config = array();
+        $config = [];
         foreach ($element->attributes as $name => $node) {
-            if ($checkPrefix && !\in_array((string) $node->prefix, array('', $prefix), true)) {
+            if ($checkPrefix && !\in_array((string) $node->prefix, ['', $prefix], true)) {
                 continue;
             }
             $config[$name] = static::phpize($node->value);
@@ -182,7 +182,7 @@ class XmlUtils
                 $key = $node->localName;
                 if (isset($config[$key])) {
                     if (!\is_array($config[$key]) || !\is_int(key($config[$key]))) {
-                        $config[$key] = array($config[$key]);
+                        $config[$key] = [$config[$key]];
                     }
                     $config[$key][] = $value;
                 } else {
@@ -240,7 +240,7 @@ class XmlUtils
                 return '0x' === $value[0].$value[1] ? hexdec($value) : (float) $value;
             case preg_match('/^0x[0-9a-f]++$/i', $value):
                 return hexdec($value);
-            case preg_match('/^(-|\+)?[0-9]+(\.[0-9]+)?$/', $value):
+            case preg_match('/^[+-]?[0-9]+(\.[0-9]+)?$/', $value):
                 return (float) $value;
             default:
                 return $value;
@@ -249,7 +249,7 @@ class XmlUtils
 
     protected static function getXmlErrors($internalErrors)
     {
-        $errors = array();
+        $errors = [];
         foreach (libxml_get_errors() as $error) {
             $errors[] = sprintf('[%s %s] %s (in %s - line %d, column %d)',
                 LIBXML_ERR_WARNING == $error->level ? 'WARNING' : 'ERROR',

@@ -8,7 +8,7 @@ use GuzzleHttp\Psr7\Uri;
 /**
  * @covers GuzzleHttp\Psr7\ServerRequest
  */
-class ServerRequestTest extends \PHPUnit_Framework_TestCase
+class ServerRequestTest extends BaseTest
 {
     public function dataNormalizeFiles()
     {
@@ -266,8 +266,7 @@ class ServerRequestTest extends \PHPUnit_Framework_TestCase
 
     public function testNormalizeFilesRaisesException()
     {
-        $this->setExpectedException('InvalidArgumentException', 'Invalid value in files specification');
-
+        $this->expectException('InvalidArgumentException', 'Invalid value in files specification');
         ServerRequest::normalizeFiles(['test' => 'something']);
     }
 
@@ -312,6 +311,10 @@ class ServerRequestTest extends \PHPUnit_Framework_TestCase
                 'https://217.112.82.20/blog/article.php?id=10&user=foo',
                 array_merge($server, ['HTTP_HOST' => null, 'SERVER_NAME' => null]),
             ],
+            'Query string with ?' => [
+                'https://www.example.org/path?continue=https://example.com/path?param=1',
+                array_merge($server, ['REQUEST_URI' => '/path?continue=https://example.com/path?param=1', 'QUERY_STRING' => '']),
+            ],
             'No query String' => [
                 'https://www.example.org/blog/article.php',
                 array_merge($server, ['REQUEST_URI' => '/blog/article.php', 'QUERY_STRING' => '']),
@@ -319,6 +322,14 @@ class ServerRequestTest extends \PHPUnit_Framework_TestCase
             'Host header with port' => [
                 'https://www.example.org:8324/blog/article.php?id=10&user=foo',
                 array_merge($server, ['HTTP_HOST' => 'www.example.org:8324']),
+            ],
+            'IPv6 local loopback address' => [
+                'https://[::1]:8000/blog/article.php?id=10&user=foo',
+                array_merge($server, ['HTTP_HOST' => '[::1]:8000']),
+            ],
+            'Invalid host' => [
+                'https://localhost/blog/article.php?id=10&user=foo',
+                array_merge($server, ['HTTP_HOST' => 'a:b']),
             ],
             'Different port with SERVER_PORT' => [
                 'https://www.example.org:8324/blog/article.php?id=10&user=foo',
@@ -356,7 +367,11 @@ class ServerRequestTest extends \PHPUnit_Framework_TestCase
             'REQUEST_METHOD' => 'POST',
             'QUERY_STRING' => 'id=10&user=foo',
             'DOCUMENT_ROOT' => '/path/to/your/server/root/',
+            'CONTENT_TYPE' => 'text/plain',
             'HTTP_HOST' => 'www.example.org',
+            'HTTP_ACCEPT' => 'text/html',
+            'HTTP_REFERRER' => 'https://example.com',
+            'HTTP_USER_AGENT' => 'My User Agent',
             'HTTPS' => 'on',
             'REMOTE_ADDR' => '193.60.168.69',
             'REMOTE_PORT' => '5390',
@@ -392,7 +407,13 @@ class ServerRequestTest extends \PHPUnit_Framework_TestCase
         $server = ServerRequest::fromGlobals();
 
         $this->assertSame('POST', $server->getMethod());
-        $this->assertEquals(['Host' => ['www.example.org']], $server->getHeaders());
+        $this->assertEquals([
+            'Host' => ['www.example.org'],
+            'Content-Type' => ['text/plain'],
+            'Accept' => ['text/html'],
+            'Referrer' => ['https://example.com'],
+            'User-Agent' => ['My User Agent'],
+        ], $server->getHeaders());
         $this->assertSame('', (string) $server->getBody());
         $this->assertSame('1.1', $server->getProtocolVersion());
         $this->assertEquals($_COOKIE, $server->getCookieParams());
