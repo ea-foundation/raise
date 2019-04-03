@@ -561,7 +561,7 @@ function raise_process_donation()
         $donation = raise_get_donation_from_post();
 
         // Output
-        if ($donation['payment_provider'] == "Stripe") {
+        if ($donation['payment_provider'] === "Stripe") {
             // Make sure we have the Stripe token
             if (empty($_POST['stripeToken']) || empty($_POST['stripePublicKey'])) {
                 throw new \Exception("No Stripe token sent");
@@ -572,7 +572,7 @@ function raise_process_donation()
 
             // Prepare response
             $response = array('success' => true);
-        } else if ($donation['payment_provider'] == "Bank Transfer") {
+        } else if ($donation['payment_provider'] === "Bank Transfer") {
             // Check honey pot (confirm email)
             raise_check_honey_pot($_POST);
 
@@ -602,7 +602,7 @@ function raise_process_donation()
 
         wp_send_json($response);
     } catch (\Exception $ex) {
-        wp_send_json(raise_rest_exception_response($ex));
+        wp_send_json(raise_rest_exception_response($ex), 400);
     }
 }
 
@@ -637,7 +637,7 @@ function raise_handle_stripe_payment($donation, $token, $publicKey)
 
         // Make charge/subscription
         $amountInt = (int)($donation['amount'] * 100);
-        if ($donation['frequency'] == 'monthly') {
+        if ($donation['frequency'] === 'monthly') {
             // Get plan
             $plan = raise_get_stripe_plan($amountInt, $donation['currency']);
 
@@ -736,7 +736,7 @@ function raise_handle_banktransfer_payment(array $donation)
         $donation['post_donation_instructions'] = str_replace('%reference_number%', $reference, $donation['post_donation_instructions']);
     }
    
-    // // Do post donation actions
+    // Do post donation actions
     raise_do_post_donation_actions($donation);
 
     return $reference;
@@ -756,7 +756,7 @@ function raise_trigger_webhooks(array $donation)
     raise_trigger_logging_webhooks($filteredDonation);
 
     // Mailing list
-    if ($donation['mailinglist'] == 'yes') {
+    if ($donation['mailinglist'] === 'yes') {
         raise_trigger_mailinglist_webhooks($filteredDonation);
     }
 }
@@ -950,9 +950,9 @@ function raise_prepare_gocardless_donation(array $donation)
         // Make GoCardless redirect flow
         $reqId        = uniqid(); // Secret request ID. Needed to prevent replay attack
         $returnUrl    = raise_get_ajax_endpoint() . '?action=gocardless_debit&req=' . $reqId;
-        $monthly      = $donation['frequency'] == 'monthly' ? ", " . __("monthly", "raise") : "";
+        $monthly      = $donation['frequency'] === 'monthly' ? ", " . __("monthly", "raise") : "";
         $client       = raise_get_gocardless_client($donation);
-        $description  = $donation['frequency'] == 'monthly' ?
+        $description  = $donation['frequency'] === 'monthly' ?
           __("Monthly payment mandate of %currency% %amount%", "raise") :
           __("One-time payment mandate of %currency% %amount%", "raise");
         $redirectFlow = $client->redirectFlows()->create([
@@ -1059,7 +1059,7 @@ function raise_process_gocardless_donation()
         ];
 
         // Add subscription fields if necessary and execute payment
-        if ($frequency == 'monthly') {
+        if ($frequency === 'monthly') {
             // Start paying in a week, unless it's the 29th, 30th, or 31st day of the month.
             // If that's the case, start on the first day of the following month.
             $startDate                          = new \DateTime('+7 days');
@@ -1287,7 +1287,7 @@ function raise_get_skrill_url($reqId, $donation)
     );
 
     // Add parameters for monthly donations
-    if ($donation['frequency'] == 'monthly') {
+    if ($donation['frequency'] === 'monthly') {
         $recStartDate = new \DateTime('+1 month');
         $params['rec_amount']     = $donation['amount'];
         $params['rec_start_date'] = $recStartDate->format('d/m/Y');
@@ -1305,7 +1305,7 @@ function raise_get_skrill_url($reqId, $donation)
     );
 
     //FIXME Remove this when XAMPP problem is fixed
-    if ($donation['mode'] == 'sandbox') {
+    if ($donation['mode'] === 'sandbox') {
         // Disable verify peer for local development
         $options['ssl'] = array('verify_peer' => false);
     }
@@ -1790,7 +1790,7 @@ function raise_create_paypal_billing_agreement(array $donation)
 function raise_prepare_paypal_donation(array $donation)
 {
     try {
-        if ($donation['frequency'] == 'monthly') {
+        if ($donation['frequency'] === 'monthly') {
             $billingAgreement = raise_create_paypal_billing_agreement($donation);
 
             // Save doantion to session
@@ -1954,7 +1954,7 @@ function raise_save_custom_posts(array $donation)
 function raise_save_fundraiser_donation_post(array $donation)
 {
     $form      = $donation['form'];
-    $name      = $donation['anonymous'] == 'yes' ? 'Anonymous' : $donation['name'];
+    $name      = $donation['anonymous'] === 'yes' ? 'Anonymous' : $donation['name'];
     $currency  = $donation['currency'];
     $amount    = $donation['amount'];
     $frequency = $donation['frequency'];
@@ -2080,7 +2080,7 @@ function raise_send_notification_email(array $donation)
     }
 
     // Prepare email
-    $freq    = !empty($donation['frequency']) && $donation['frequency'] == 'monthly' ? ' (monthly)' : '';
+    $freq    = !empty($donation['frequency']) && $donation['frequency'] === 'monthly' ? ' (monthly)' : '';
     $subject = $form
                . ' : ' . raise_get($donation['currency'], '') . ' ' . raise_get($donation['amount'], '') . $freq
                . ' : ' . raise_get($donation['name'], '');
@@ -2203,7 +2203,7 @@ function raise_get_initial_country(array $formSettings)
     $initialCountry   = strtoupper(raise_get($formSettings['payment']['country']['initial'], 'ipstack'));
     $ipstackAccessKey = raise_get($formSettings['payment']['country']['ipstack_access_key']);
 
-    if (!empty($ipstackAccessKey) && ($initialCountry == 'IPSTACK' || $initialCountry === 'GEOIP')) {
+    if (!empty($ipstackAccessKey) && ($initialCountry === 'IPSTACK' || $initialCountry === 'GEOIP')) {
         // Do IP lookup
         $legacyFallbackCode = raise_get($formSettings['payment']['country']['fallback'], '');
         $fallbackCode       = strtoupper(raise_get($formSettings['payment']['country']['ipstack_fallback'], $legacyFallbackCode));
