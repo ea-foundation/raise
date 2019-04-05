@@ -1,5 +1,6 @@
 {
     "name": "ea-foundation/raise",
+    "description": "Free donation plugin for WordPress",
     "config": {
         "platform": {
             "php": "5.6.3"

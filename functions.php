@@ -2229,15 +2229,10 @@ function raise_get_initial_country(array $formSettings)
  * @param string $countryCode E.g. 'CH'
  * @return string|null
  */
-function raise_get_user_currency($countryCode = null)
+function raise_get_user_currency($countryCode)
 {
     if (!$countryCode) {
-        $ipstackAccessKey = raise_get($formSettings['payment']['country']['ipstack_access_key'], '');
-        $userCountry      = raise_get_user_country($ipstackAccessKey);
-        if (!$userCountry) {
-            return null;
-        }
-        $countryCode = $userCountry['code'];
+        return null;
     }
 
     $mapping = $GLOBALS['country2currency'];
