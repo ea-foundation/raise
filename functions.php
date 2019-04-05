@@ -109,8 +109,8 @@ function raise_init_donation_form($form, $mode)
     $bankAccounts = raise_get($formSettings['payment']['provider']['banktransfer']);
     if (is_array($bankAccounts) && !raise_has_string_keys($bankAccounts)) {
         $bankAccounts = array_map(function($item) {
-            if (!empty($item['value']['account']) && is_array($item['value']['account'])) {
-                $item['value']['account'] = raise_localize_array_keys($item['value']['account']);
+            if (!empty($item['value']['details']) && is_array($item['value']['details'])) {
+                $item['value']['details'] = raise_localize_array_keys($item['value']['details']);
             }
             if (!empty($item['value']['tooltip']) && is_array($item['value']['tooltip'])) {
                 $item['value']['tooltip'] = raise_get_localized_value($item['value']['tooltip']);

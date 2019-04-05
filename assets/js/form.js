@@ -1256,7 +1256,7 @@ function updateCheckboxState(id, state, formObj) {
 function replaceDonationPlaceholders(label, formObj, accountData) {
     // Replace %bank_account_formatted%
     if (!jQuery.isEmptyObject(accountData)) {
-        var accountDataString = Object.keys(accountData).map(function(key, index) {
+        var accountDataString = Object.keys(accountData).map(function(key) {
             return '<strong>' + key + '</strong>: ' + accountData[key];
         }).join("\n");
         label = label.replace('%bank_account_formatted%', accountDataString);
