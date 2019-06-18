@@ -543,9 +543,7 @@ Requires `secret_key` and `public_key`. The organisation logo used in the checko
 ```
 
 Additional webhook data:
-- `vendor_transaction_id`: Charge ID (one-time)
-- `vendor_subscription_id`: Subscription ID (recurring)
-- `vendor_customer_id`: Customer ID
+- `vendor_customer_id`: Client Reference ID
 
 ![Stripe flow](/doc/images/stripe_flow.png?raw=true)
 

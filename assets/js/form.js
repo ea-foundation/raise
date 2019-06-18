@@ -1,6 +1,7 @@
 /**
  * Settings
  */
+var carousel                    = null;
 var raiseMode                   = raiseDonationConfig.mode;
 var userCountry                 = raiseDonationConfig.userCountry;
 var selectedCurrency            = raiseDonationConfig.selectedCurrency;
@@ -45,6 +46,17 @@ if (!Object.keys) {
  * Setup form when DOM ready
  */
 jQuery(function($) {
+    // Make carousel
+    carousel = $('#donation-carousel');
+    carousel.slick({
+        adaptiveHeight: true,
+        arrows: false,
+        draggable: false,
+        swipe: false,
+        touchMove: false,
+        infinite: false,
+    });
+
     // Make sure cookies are enabled
     if (!navigator.cookieEnabled) {
         $('<div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span><span class="sr-only">Error:</span> ' + wordpress_vars.labels.cookie_warning + '</div>')
@@ -85,7 +97,7 @@ jQuery(function($) {
             return false;
         }
 
-        var currentItem = $('#wizard div.active').index();
+        var currentItem = carousel.slick('slickCurrentSlide');
 
         if (currentItem  < 1) {
             return false;
@@ -96,10 +108,10 @@ jQuery(function($) {
     });
 
     // Prevent interaction during carousel slide
-    $('#donation-carousel').on('slide.bs.carousel', function () {
+    carousel.on('beforeChange', function () {
         slideTransitionInAction = true;
     });
-    $('#donation-carousel').on('slid.bs.carousel', function () {
+    carousel.on('afterChange', function () {
         slideTransitionInAction = false;
     });
 
@@ -137,7 +149,7 @@ jQuery(function($) {
             return false;
         }
 
-        var currentItem = $('div.active', '#wizard').index() + 1;
+        var currentItem = carousel.slick('slickCurrentSlide') + 1;
 
         // Check contents
         if (currentItem <= totalItems) {
@@ -724,16 +736,14 @@ function getDonationCurrencyIsoCode() {
  */
 function handleStripeDonation() {
     // Change action input
-    jQuery('form#donationForm input[name=action]').val('raise_donate');
+    jQuery('form#donationForm input[name=action]').val('raise_redirect_html');
 
-    // Open handler
-    stripeHandler.open({
-        name: wordpress_vars.organization,
-        description: wordpress_vars.labels.donation,
-        amount: getTotalAmount() * 100,
-        currency: getDonationCurrencyIsoCode(),
-        email: getDonorInfo('email')
-    });
+    raisePopup = window.open('', 'stripe-window');
+
+    // Add form target and submit
+    var form = document.querySelector('#donationForm');
+    form.setAttribute('target', 'stripe-window');
+    form.submit();
 }
 
 function handlePopupDonation(provider) {
@@ -759,6 +769,7 @@ function handlePopupDonation(provider) {
                     .unbind()
                     .click(function() {
                         // Open popup
+                        console.log(response);
                         openRaisePopup(response.url, provider);
 
                         // Show "continue donation in secure" message on modal
@@ -851,7 +862,7 @@ function handleBankTransferDonation() {
     showSpinnerOnLastButton();
 
     // Change action input
-    jQuery('form#donationForm input[name=action]').val('raise_donate');
+    jQuery('form#donationForm input[name=action]').val('process_banktransfer');
 
     // Clear confirmation email (honey pot)
     jQuery('#donor-email-confirm').val('');
@@ -955,68 +966,68 @@ function showConfirmation(paymentProvider) {
 
 function loadStripeHandler() {
     // Get best matching key
-    var stripePublicKeyRule = wordpress_vars.stripe_public_key_rule;
-    if (!stripePublicKeyRule) {
-        // No Stripe settings for this form
-        return;
-    }
+    // var stripePublicKeyRule = wordpress_vars.stripe_public_key_rule;
+    // if (!stripePublicKeyRule) {
+    //     // No Stripe settings for this form
+    //     return;
+    // }
 
-    // Get form object
-    var formObj      = getFormAsObject();
-    var newStripeKey = jsonLogic.apply(stripePublicKeyRule, formObj)
+    // // Get form object
+    // var formObj      = getFormAsObject();
+    // var newStripeKey = jsonLogic.apply(stripePublicKeyRule, formObj)
 
-    // Check if the key changed
-    if (currentStripeKey === newStripeKey) {
-        // Nothing to do
-        return;
-    }
+    // // Check if the key changed
+    // if (currentStripeKey === newStripeKey) {
+    //     // Nothing to do
+    //     return;
+    // }
 
-    // Lock form while Stripe gets reloaded
-    lockLastStep(true);
+    // // Lock form while Stripe gets reloaded
+    // lockLastStep(true);
 
-    // Create new Stripe handler
-    stripeHandler = StripeCheckout.configure({
-        key: newStripeKey,
-        image: wordpress_vars.logo,
-        color: '#255A8E',
-        locale: 'auto',
-        token: function(token) {
-            var tokenInput = jQuery('<input type="hidden" name="stripeToken">').val(token.id);
-            var keyInput   = jQuery('<input type="hidden" name="stripePublicKey">').val(newStripeKey);
+    // // Create new Stripe handler
+    // stripeHandler = StripeCheckout.configure({
+    //     key: newStripeKey,
+    //     image: wordpress_vars.logo,
+    //     color: '#255A8E',
+    //     locale: 'auto',
+    //     token: function(token) {
+    //         var tokenInput = jQuery('<input type="hidden" name="stripeToken">').val(token.id);
+    //         var keyInput   = jQuery('<input type="hidden" name="stripePublicKey">').val(newStripeKey);
 
-            // Show spinner
-            showSpinnerOnLastButton();
+    //         // Show spinner
+    //         showSpinnerOnLastButton();
 
-            // Send form
-            jQuery('form#donationForm').append(tokenInput).append(keyInput).ajaxSubmit({
-                success: function(response, statusText, xhr, form) {
-                    try {
-                        if (!response.success) {
-                            throw response.error || response;
-                        }
+    //         // Send form
+    //         jQuery('form#donationForm').append(tokenInput).append(keyInput).ajaxSubmit({
+    //             success: function(response, statusText, xhr, form) {
+    //                 try {
+    //                     if (!response.success) {
+    //                         throw response.error || response;
+    //                     }
 
-                        // Everything worked! Change glyphicon from "spinner" to "OK" and go to confirmation page
-                        showConfirmation('stripe');
-                    } catch(err) {
-                        // Something went wrong
-                        alertError({error: err});
-                    }
-                },
-                error: alertError
-            });
+    //                     // Everything worked! Change glyphicon from "spinner" to "OK" and go to confirmation page
+    //                     showConfirmation('stripe');
+    //                 } catch(err) {
+    //                     // Something went wrong
+    //                     alertError({error: err});
+    //                 }
+    //             },
+    //             error: alertError
+    //         });
 
-            // Disable submit button, back button, and payment options
-            lockLastStep(true);
+    //         // Disable submit button, back button, and payment options
+    //         lockLastStep(true);
 
-            return false;
-        }
-    });
+    //         return false;
+    //     }
+    // });
 
-    // Update currentStripeKey
-    currentStripeKey = newStripeKey;
+    // // Update currentStripeKey
+    // currentStripeKey = newStripeKey;
 
-    // Unlock last step
-    lockLastStep(false);
+    // // Unlock last step
+    // lockLastStep(false);
 }
 
 function alertError(response) {
@@ -1038,7 +1049,7 @@ function carouselNext() {
     }
 
     // Move carousel
-    jQuery('#donation-carousel').carousel('next');
+    carousel.slick('slickNext');
     
     // Update progress bar
     updateProgressBar(nextItem);
@@ -1046,14 +1057,14 @@ function carouselNext() {
 
 
 function carouselPrev() {
-    var prevItem = jQuery('#wizard div.active').index() - 1;
+    var prevItem = carousel.slick('slickCurrentSlide') - 1;
 
-    if (prevItem  < 0) {
+    if (prevItem < 0) {
         return false;
     }
 
     // Move carousel
-    jQuery('#donation-carousel').carousel('prev');
+    carousel.slick('slickPrev');
     
     // Update progress bar
     updateProgressBar(prevItem);
@@ -1073,7 +1084,7 @@ function updateProgressBar(currentItem) {
                 .addClass('clickable')
                 .click(function() {
                     // Move carousel
-                    jQuery('#donation-carousel').carousel(index);
+                    carousel.slick('slickGoTo', index);
 
                     // Update progress bar
                     updateProgressBar(index);
