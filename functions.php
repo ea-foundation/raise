@@ -78,9 +78,6 @@ function raise_init_donation_form($form, $mode)
         array_change_key_case(raise_get($formSettings['amount']['currency'], []), CASE_UPPER)
     )));
 
-    // Get Stripe public keys
-    $stripeKeys = raise_get_stripe_public_keys_rule($formSettings, $mode);
-
     // Get post_donation_instructions and localize labels
     $postDonationInstructions = raise_get($formSettings['finish']['post_donation_instructions'], "");
     if (is_array($postDonationInstructions) && !raise_has_string_keys($postDonationInstructions)) {
@@ -159,7 +156,6 @@ function raise_init_donation_form($form, $mode)
         'ajax_endpoint'                   => admin_url('admin-ajax.php'),
         'amount_patterns'                 => $amountPatterns,
         'amount_minimums'                 => $amountMinimums,
-        'stripe_public_key_rule'          => $stripeKeys,
         'post_donation_instructions_rule' => $postDonationInstructionsRule,
         'payment_provider_tooltip_rule'   => $paymentProviderTooltipRule,
         'payment_provider_display_rule'   => $paymentProviderDisplayRule,
@@ -2634,46 +2630,6 @@ function raise_get_countries_by_currency($currency)
     $mapping = $GLOBALS['currency2country'];
 
     return raise_get($mapping[strtoupper($currency)], array());
-}
-
-/**
- * Get JsonLogic rule for Stripe public keys for the form
- *
- * E.g.
- * { "if" : [
- *     { "===" : [{"var": "country_code"}, "CH"] },
- *     "ch_special_public_key",
- *     { "===" : [{"var": "currency"}, "USD"] },
- *     "usd_special_public_key",
- *     true,
- *     "default_public_key"
- * ]}
- *
- * @param array  $formSettings
- * @param string $mode sandbox/live
- * @return array
- */
-function raise_get_stripe_public_keys_rule(array $formSettings, $mode)
-{
-    // Get all enabled Stripe accounts with a public key for the given mode
-    $stripeSettings = raise_get($formSettings['payment']['provider']['stripe']);
-
-    if (empty($stripeSettings) || !is_array($stripeSettings)) {
-        return null;
-    }
-
-    if (raise_has_string_keys($stripeSettings)) {
-        // Regular settings
-        return raise_get($stripeSettings[$mode]['public_key']);
-    } else {
-        // JsonLogic rule
-        return ["if" => array_reduce($stripeSettings, function($carry, $item) use ($mode) {
-            $carry[] = raise_get($item['if'], false);
-            $carry[] = raise_get($item['value'][$mode]['public_key']);
-
-            return $carry;
-        }, [])];
-    }
 }
 
 /**

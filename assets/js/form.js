@@ -66,9 +66,6 @@ jQuery(function($) {
     // Dispatch raise_loaded_donation_form event
     raiseTriggerFormLoadedEvent();
 
-    // Stripe setup
-    loadStripeHandler();
-
     // Reload payment providers
     reloadPaymentProviders();
 
@@ -489,9 +486,6 @@ jQuery(function($) {
         var minAmount = currencyMinimums[selectedCurrency][frequency];
         jQuery('input#amount-other', '#wizard').prop('min', minAmount);
 
-        // Reload Stripe handler
-        loadStripeHandler();
-
         // Reload payment providers
         reloadPaymentProviders();
     });
@@ -524,9 +518,6 @@ jQuery(function($) {
 
             // Update tax deduction labels
             updateFormLabels();
-
-            // Reload stripe handlers, trigger later (Chrome bug)
-            setTimeout(loadStripeHandler, 10);
         }
     });
 
@@ -537,19 +528,16 @@ jQuery(function($) {
         // Toggle donor form display and required class
         if (taxReceiptNeeded) {
             $('div#donor-extra-info')
-                .slideDown()
+                .slideDown(400, resizeCarousel)
                 .find('div.optionally-required').addClass('required');
         } else {
             $('div#donor-extra-info')
-                .slideUp()
+                .slideUp(400, resizeCarousel)
                 .find('div.optionally-required').removeClass('required');
         }
 
         // Update form labels
         updateFormLabels();
-
-        // Reload Stripe settings
-        loadStripeHandler();
     });
 
     // Disable precheck state defined in settings on first click
@@ -560,6 +548,14 @@ jQuery(function($) {
     // Tipping toggle
     $('#tip').change(updateTip);
 }); // End jQuery(function($) {})
+
+/**
+ * Resize carousel
+ */
+function resizeCarousel() {
+    // Workaround to resize carousel
+    carousel.slick('slickSetOption', 'draggable', false, true);
+}
 
 /**
  * PayPal checkout.js
@@ -962,72 +958,6 @@ function showConfirmation(paymentProvider) {
     if (typeof updateFundraiser === 'function') {
         updateFundraiser();
     }
-}
-
-function loadStripeHandler() {
-    // Get best matching key
-    // var stripePublicKeyRule = wordpress_vars.stripe_public_key_rule;
-    // if (!stripePublicKeyRule) {
-    //     // No Stripe settings for this form
-    //     return;
-    // }
-
-    // // Get form object
-    // var formObj      = getFormAsObject();
-    // var newStripeKey = jsonLogic.apply(stripePublicKeyRule, formObj)
-
-    // // Check if the key changed
-    // if (currentStripeKey === newStripeKey) {
-    //     // Nothing to do
-    //     return;
-    // }
-
-    // // Lock form while Stripe gets reloaded
-    // lockLastStep(true);
-
-    // // Create new Stripe handler
-    // stripeHandler = StripeCheckout.configure({
-    //     key: newStripeKey,
-    //     image: wordpress_vars.logo,
-    //     color: '#255A8E',
-    //     locale: 'auto',
-    //     token: function(token) {
-    //         var tokenInput = jQuery('<input type="hidden" name="stripeToken">').val(token.id);
-    //         var keyInput   = jQuery('<input type="hidden" name="stripePublicKey">').val(newStripeKey);
-
-    //         // Show spinner
-    //         showSpinnerOnLastButton();
-
-    //         // Send form
-    //         jQuery('form#donationForm').append(tokenInput).append(keyInput).ajaxSubmit({
-    //             success: function(response, statusText, xhr, form) {
-    //                 try {
-    //                     if (!response.success) {
-    //                         throw response.error || response;
-    //                     }
-
-    //                     // Everything worked! Change glyphicon from "spinner" to "OK" and go to confirmation page
-    //                     showConfirmation('stripe');
-    //                 } catch(err) {
-    //                     // Something went wrong
-    //                     alertError({error: err});
-    //                 }
-    //             },
-    //             error: alertError
-    //         });
-
-    //         // Disable submit button, back button, and payment options
-    //         lockLastStep(true);
-
-    //         return false;
-    //     }
-    // });
-
-    // // Update currentStripeKey
-    // currentStripeKey = newStripeKey;
-
-    // // Unlock last step
-    // lockLastStep(false);
 }
 
 function alertError(response) {

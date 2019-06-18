@@ -10,20 +10,6 @@
  */
 class PaymentTest extends WP_UnitTestCase {
     /**
-     * Test JSON logic rule for stripe public keys
-     */
-    function test_raise_get_stripe_public_keys_rule()
-    {
-        $formSettings = $this->getFormSettings();
-        $rule         = raise_get_stripe_public_keys_rule($formSettings, 'live');
-
-        $this->assertEquals(
-            '{"if":[{"===":[{"var":"currency"},"EUR"]},"pk_live_eur",{"===":[{"var":"country_code"},"CH"]},"pk_live_ch",true,"pk_live_default"]}',
-            json_encode($rule)
-        );
-    }
-
-    /**
      * Test JSON logic rule for checkbox settings
      */
     function test_raise_get_checkbox_rule_jsonlogic()
