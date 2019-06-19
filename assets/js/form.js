@@ -142,6 +142,7 @@ jQuery(function($) {
     // Validation logic is done inside the onBeforeSeek callback
     $('button.confirm').click(function(event) {
         event.preventDefault();
+
         if (slideTransitionInAction) {
             return false;
         }
@@ -151,14 +152,14 @@ jQuery(function($) {
         // Check contents
         if (currentItem <= totalItems) {
             // Get all fields inside the page, except honey pot (#donor-email-confirm)
-            var inputs = $('div.item.active :input', '#wizard').not('#donor-email-confirm');
+            var inputs = $('div.slick-active :input', '#wizard').not('#donor-email-confirm');
 
             // Remove errors
             inputs.siblings('span.raise-error').remove();
             inputs.parent().parent().removeClass('has-error');
 
             // Get all required fields inside the page, except honey pot (#donor-email-confirm)
-            var reqInputs = $('div.item.active .required :input:not(:radio):not(:button)', '#wizard').not('#donor-email-confirm');
+            var reqInputs = $('div.slick-active .required :input:not(:radio):not(:button)', '#wizard').not('#donor-email-confirm');
             // ... which are empty or invalid
             var errors  = {};
             var empty   = reqInputs.filter(function() {
@@ -194,7 +195,7 @@ jQuery(function($) {
             }
 
             // Unchecked radio groups (bootstrap drop downs). Add button instead.
-            var emptyRadios = $('div.item.active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
+            var emptyRadios = $('div.slick-active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
             if (emptyRadios.find('button').length) {
                 empty = $.merge(empty, emptyRadios.find('button'));
             }
@@ -324,7 +325,7 @@ jQuery(function($) {
         }
     });
 
-    // Click on other amount
+    // Focus on other amount
     $('input#amount-other').focus(function() {
         if ($(this).hasClass("active")) {
             return;
@@ -354,11 +355,6 @@ jQuery(function($) {
     // Other amount formatting 2: Only 0-9 and '.' are valid symbols
     $('input#amount-other').keypress(function(event) {
         var keyCode = event.which;
-        if (!(48 <= keyCode && keyCode <= 57) && keyCode != 190 && keyCode != 8 && keyCode != 46 && keyCode != 13) {
-            // Only accept numbers, dot, backspace, and enter
-            return false;
-        }
-        console.log(keyCode);
 
         // Validate input (workaround for Safari)
         if (keyCode == 13) {
@@ -527,6 +523,11 @@ jQuery(function($) {
 
         // Toggle donor form display and required class
         if (taxReceiptNeeded) {
+            var list = carousel.find('.slick-list');
+            var newHeight = list.height() + 147;
+            carousel.height(newHeight);
+            list.height(newHeight);
+
             $('div#donor-extra-info')
                 .slideDown(400, resizeCarousel)
                 .find('div.optionally-required').addClass('required');
@@ -555,6 +556,7 @@ jQuery(function($) {
 function resizeCarousel() {
     // Workaround to resize carousel
     carousel.slick('slickSetOption', 'draggable', false, true);
+    carousel.removeAttr('style');
 }
 
 /**
