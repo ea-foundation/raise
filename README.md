@@ -652,7 +652,7 @@ Requires `api_key` and `webhook_shared_serect`.
 
 Coinbase Commerce does not support recurring donations. Also, it does not have a sandbox environment for testing, so you can only test using real crypto currencies.
 
-**Note:** The Raise webhooks are only triggered if you [set up a webhook in Coinbase Commerce](https://commerce.coinbase.com/dashboard/settings). Point it to `https://your-page.com/wp-json/raise/v1/coinbase/log/<form>` where `<form>` is to be replaced by the name of your form (add a query parameter `?mode=sandbox` for triggering the sandbox webhooks). Also, make sure you **disable all events** for the webhook except for `charge:confirmed` and copy the shared secret correctly into your Raise configuration.
+**Note:** The Raise webhooks are only triggered if you [set up a webhook in Coinbase Commerce](https://commerce.coinbase.com/dashboard/settings). Point it to `https://your-page.com/wp-json/raise/v1/coinbase/log/<form>` where `<form>` is to be replaced by the URL encoded name of your form (add a query parameter `?mode=sandbox` for triggering the sandbox webhooks). Also, make sure you **disable all events** for the webhook except for `charge:confirmed` and copy the shared secret correctly into your Raise configuration.
 
 Additional webhook data:
 - `vendor_transaction_id`: Charge code
