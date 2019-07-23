@@ -439,56 +439,63 @@ function raise_print_payment_providers($formSettings, $mode)
  */
 function raise_get_donation_from_post()
 {
+    return raise_sanitize_donation($_POST);
+}
+
+function raise_sanitize_donation(array $donation) {
     // Trim the data
-    $post = array_map('trim', $_POST);
+    $d = array_map('trim', $donation);
 
     // Replace amount-other
-    if (!empty($post['amount_other'])) {
-        $post['amount'] = $post['amount_other'];
+    if (!empty($d['amount_other'])) {
+        $d['amount'] = $d['amount_other'];
     }
-    unset($post['amount_other']);
+    unset($d['amount_other']);
 
     // Add tip to amount
-    if (is_numeric($post['amount'])) {
-        $amountInt         = (int)($post['amount'] * 100);
-        $tipInt            = (int)($post['tip_amount'] * 100);
-        $post['amountInt'] = $amountInt + $tipInt;
-        $post['amount']    = money_format('%i', $post['amountInt'] / 100);
+    if (is_numeric($d['amount'])) {
+        $amountInt      = (int)($d['amount'] * 100);
+        $tipInt         = (int)($d['tip_amount'] * 100);
+        $d['amountInt'] = $amountInt + $tipInt;
+        $d['amount']    = money_format('%i', $d['amountInt'] / 100);
     } else {
         throw new \Exception('Invalid amount');
     }
 
-    return array(
-        'form'                       => $post['form'],
-        'mode'                       => $post['mode'],
+    return [
+        'form'                       => $d['form'],
+        'mode'                       => $d['mode'],
         'url'                        => $_SERVER['HTTP_REFERER'],
-        'language'                   => substr($post['locale'], 0, 2),
+        'language'                   => substr($d['locale'], 0, 2),
         'time'                       => date('c'),
-        'currency'                   => $post['currency'],
-        'amount'                     => $post['amount'],
-        'tip_amount'                 => $post['tip_amount'],
-        'tip_percentage'             => $post['tip_percentage'],
-        'frequency'                  => $post['frequency'],
-        'payment_provider'           => $post['payment_provider'],
-        'email'                      => $post['email'],
-        'name'                       => stripslashes($post['name']),
-        'purpose'                    => raise_get($post['purpose'], ''),
-        'address'                    => stripslashes(raise_get($post['address'], '')),
-        'zip'                        => raise_get($post['zip'], ''),
-        'city'                       => stripslashes(raise_get($post['city'], '')),
-        'country_code'               => raise_get($post['country_code'], ''),
-        'comment'                    => raise_get($post['comment'], ''),
-        'account'                    => raise_get($post['account'], ''),
-        'post_donation_instructions' => raise_get($post['post_donation_instructions'], ''),
-        'g-recaptcha-response'       => raise_get($post['g-recaptcha-response'], ''),
-        'anonymous'                  => (bool) raise_get($post['anonymous'], false),
-        'mailinglist'                => (bool) raise_get($post['mailinglist'], false),
-        'tax_receipt'                => (bool) raise_get($post['tax_receipt'], false),
-        'share_data'                 => (bool) raise_get($post['share_data'], false),
-        'share_data_offered'         => (bool) raise_get($post['share_data_offered'], false),
-        'tip'                        => (bool) raise_get($post['tip'], false),
-        'tip_offered'                => (bool) raise_get($post['tip_offered'], false),
-    );
+        'currency'                   => $d['currency'],
+        'amount'                     => $d['amount'],
+        'tip_amount'                 => $d['tip_amount'],
+        'tip_percentage'             => $d['tip_percentage'],
+        'frequency'                  => $d['frequency'],
+        'payment_provider'           => $d['payment_provider'],
+        'email'                      => $d['email'],
+        'name'                       => stripslashes($d['name']),
+        'purpose'                    => raise_get($d['purpose'], ''),
+        'address'                    => stripslashes(raise_get($d['address'], '')),
+        'zip'                        => raise_get($d['zip'], ''),
+        'city'                       => stripslashes(raise_get($d['city'], '')),
+        'country_code'               => raise_get($d['country_code'], ''),
+        'comment'                    => raise_get($d['comment'], ''),
+        'account'                    => raise_get($d['account'], ''),
+        'post_donation_instructions' => raise_get($d['post_donation_instructions'], ''),
+        'vendor_transaction_id'      => raise_get($d['vendor_transaction_id'], ''),
+        'vendor_subscription_id'     => raise_get($d['vendor_subscription_id'], ''),
+        'vendor_customer_id'         => raise_get($d['vendor_customer_id'], ''),
+        'g-recaptcha-response'       => raise_get($d['g-recaptcha-response'], ''),
+        'anonymous'                  => (bool) raise_get($d['anonymous'], false),
+        'mailinglist'                => (bool) raise_get($d['mailinglist'], false),
+        'tax_receipt'                => (bool) raise_get($d['tax_receipt'], false),
+        'share_data'                 => (bool) raise_get($d['share_data'], false),
+        'share_data_offered'         => (bool) raise_get($d['share_data_offered'], false),
+        'tip'                        => (bool) raise_get($d['tip'], false),
+        'tip_offered'                => (bool) raise_get($d['tip_offered'], false),
+    ];
 }
 
 /**
@@ -1397,8 +1404,8 @@ function raise_prepare_bitpay_donation(array $donation)
 function raise_prepare_coinbase_donation(array $donation)
 {
     try {
-        $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
-        $returnUrl  = raise_get_ajax_endpoint() . '?action=coinbase_log&req=' . $reqId;
+        $reqId     = uniqid(); // Secret request ID. Needed to prevent replay attack
+        $returnUrl = raise_get_ajax_endpoint() . '?action=coinbase_log&req=' . $reqId;
 
         // Get client
         $client = raise_get_coinbase_client($donation);
@@ -1419,22 +1426,22 @@ function raise_prepare_coinbase_donation(array $donation)
         $body       = json_decode($res->getBody(), true);
         $chargeCode = $body['data']['code'];
 
-        // Save charge code to session
-        $_SESSION['raise-vendor-transaction-id'] = $chargeCode;
+        // Save charge code
+        $donation['vendor_transaction_id'] = $chargeCode;
 
-        // Save user data to session
-        raise_set_donation_data_to_session($donation, $reqId);
+        // Save donation as transient (for 1h)
+        set_site_transient($chargeCode, raise_sanitize_donation($donation), 60*60);
 
         // Return URL
-        return array(
+        return [
             'success' => true,
             'url'     => $GLOBALS['CoinbaseChargeEndpoint'] . '/' . $chargeCode,
-        );
+        ];
     } catch (\Exception $e) {
-        return array(
+        return [
             'success' => false,
             'error'   => "An error occured and your donation could not be processed (" .  $e->getMessage() . "). Please contact us.",
-        );
+        ];
     }
 }
 
@@ -1550,39 +1557,15 @@ function raise_process_bitpay_log()
 }
 
 /**
- * AJAX endpoint for handling donation logging for Coinbase.
- * Takes user data from session and triggers the web hooks.
+ * AJAX endpoint for closing popup and showing thank you page (at the moment only used for Coinbase donations)
+ * The actually logging happens over webhooks.
+ * 
+ * @see raise_log_coinbase_donation
  *
  * @return string HTML with script that terminates the BitPay flow and shows the thank you step
  */
-function raise_process_coinbase_log()
+function raise_close_popup_and_show_thank_you_slide()
 {
-    try {
-        // Verify session and purge reqId
-        raise_verify_session();
-
-        // Get donation from session
-        $donation = raise_get_donation_from_session();
-
-        // Add vendor transaction ID (Coinbase charge code)
-        $chargeCode = $_SESSION['raise-vendor-transaction-id'];
-        $donation['vendor_transaction_id'] = $chargeCode;
-
-        // Make sure the payment is paid
-        $client       = raise_get_coinbase_client($donation);
-        $res          = $client->request('GET', $GLOBALS['CoinbaseApiEndpoint'] . '/charges/' . $chargeCode);
-        $body         = json_decode($res->getBody(), true);
-        $coinfirmedAt = $body['data']['confirmed_at'];
-        if (!$coinfirmedAt) {
-            throw new \Exception("Charge isn't confirmed");
-        }
-
-        // Do post donation actions
-        raise_do_post_donation_actions($donation);
-    } catch (\Exception $e) {
-        // No need to say anything. Just show confirmation.
-    }
-
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
          <body><script>var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation("coinbase"); mainWindow.hideModal();</script></body></html>');
@@ -3103,4 +3086,59 @@ function raise_monthly_frequency_supported(array $enabledProviders)
     return array_reduce($GLOBALS['monthlySupport'], function ($carry, $item) use ($enabledProviders) {
         return $carry || in_array($item, $enabledProviders);
     }, false);
+}
+
+/**
+ * Log coinbase donation
+ *
+ * @param WP_REST_Request $request
+ * @return void
+ */
+function raise_log_coinbase_donation(WP_REST_Request $request)
+{
+    try {
+        $providedSignature = $request->get_header('x_cc_webhook_signature');
+        if (!$providedSignature) {
+            throw new \Exception('Missing X-CC-Webhook-Signature header');
+        }
+
+        // Get form and mode
+        try {
+            $form     = urldecode($request->get_param('form'));
+            $settings = raise_load_settings($form);
+            $mode     = $request->get_param('mode') ?: 'live';
+            if (!in_array($mode, ['live', 'sandbox'])) {
+                throw new \Exception('Invalid mode ' . $mode);
+            }
+        } catch (\Exception $ex) {
+            throw new \Exception('Invalid form or mode: ' . $ex->getMessage());
+        }
+
+        // Check hash to make sure it comes from Coinbase
+        $sharedSecret = raise_get($settings['payment']['provider']['coinbase'][$mode]['webhook_shared_secret'], '');
+        if (!hash_equals(hash_hmac("sha256", $request->get_body(), $sharedSecret), $providedSignature)) {
+            throw new \Exception('Invalid X-CC-Webhook-Signature header');
+        }
+
+        // Get donation
+        $chargeCode = raise_get($request['event']['data']['code']);
+        $donation   = get_site_transient('raise_coinbase_' . $chargeCode);
+        if (!$donation) {
+            throw new \Exception('Code not found');
+        }
+
+        // Do post donation actions
+        raise_do_post_donation_actions($donation);
+
+        // Make response
+        $response = new WP_REST_Response(['success' => true]);
+        $response->set_status(201);
+
+        // Delete transient
+        delete_site_transient('raise_coinbase_' . $chargeCode);
+
+        return $response;
+    } catch (\Exception $ex) {
+        return new WP_Error('invalid_request', $ex->getMessage());
+    }
 }

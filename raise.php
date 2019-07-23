@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/raise
  * GitHub Plugin URI: ea-foundation/raise
  * Description: The Free Donation Plugin for WordPress
- * Version: 2.1.4
+ * Version: 2.2.0
  * Author: Naoki Peter
  * License: GPLv3 or later
  */
@@ -74,9 +74,9 @@ add_action("wp_ajax_gocardless_debit", "raise_process_gocardless_donation");
 add_action("wp_ajax_nopriv_bitpay_log", "raise_process_bitpay_log");
 add_action("wp_ajax_bitpay_log", "raise_process_bitpay_log");
 
-// Log Coinbase donation
-add_action("wp_ajax_nopriv_coinbase_log", "raise_process_coinbase_log");
-add_action("wp_ajax_coinbase_log", "raise_process_coinbase_log");
+// Show thank you page at thend end of Coinbase donation
+add_action("wp_ajax_nopriv_coinbase_log", "raise_close_popup_and_show_thank_you_slide");
+add_action("wp_ajax_coinbase_log", "raise_close_popup_and_show_thank_you_slide");
 
 // Log Skrill donation
 add_action("wp_ajax_nopriv_skrill_log", "raise_process_skrill_log");
@@ -216,3 +216,13 @@ function raise_get_plugin_version() {
 
     return $GLOBALS['raisePluginVersion'];
 }
+
+/**
+ * Endpoint for Coinbase webhook
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('raise/v1', '/coinbase/log/(?P<form>[\w%]+(?:/mode=(?P<mode>\w+))?)', [
+        'methods'  => 'POST',
+        'callback' => 'raise_log_coinbase_donation',
+    ]);
+});

@@ -634,21 +634,25 @@ Additional webhook data:
 
 
 ### Coinbase
-Requires `api_key`.
+
+See [Coinbase Commerce website](https://commerce.coinbase.com/).
+
+Requires `api_key` and `webhook_shared_serect`.
 
 ```json
 "coinbase": {
   "account": "Optional identifier for the bank account the donation is eventually transferred to",
   "tooltip": "Something you want the donor to know",
   "live": {
-    "api_key": "coinbase_sandbox_api_key"
+    "api_key": "coinbase_sandbox_api_key",
+    "webhook_shared_serect": "coinbase_webhook_shared_secret"
   }
 }
 ```
 
-Coinbase does not support recurring donations. Also, it does not have a sandbox environment for testing.
+Coinbase Commerce does not support recurring donations. Also, it does not have a sandbox environment for testing, so you can only test using real crypto currencies.
 
-**Note:** Donations are registered only if the donor waits until the transaction is fully verified without closing the popup.
+**Note:** The Raise webhooks are only triggered if you [set up a webhook in Coinbase Commerce](https://commerce.coinbase.com/dashboard/settings). Point it to `https://your-page.com/wp-json/raise/v1/coinbase/log/<form>` where `<form>` is to be replaced by the name of your form (add a query parameter `?mode=sandbox` for triggering the sandbox webhooks). Also, make sure you copy the shared secret correctly.
 
 Additional webhook data:
 - `vendor_transaction_id`: Charge code
