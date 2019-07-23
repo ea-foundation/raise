@@ -18,13 +18,13 @@ define('RAISE_PRIORITY', 12838790321);
 define('RAISE_ASSET_VERSION', '0.48');
 
 // Load other files
-require_once "vendor/autoload.php";
-require_once "_globals.php";
-require_once "_options.php";
-require_once "bitpay/EncryptedWPOptionStorage.php";
-require_once "functions.php";
-require_once "updates.php";
-require_once "form.php";
+require "vendor/autoload.php";
+require "_globals.php";
+require "_options.php";
+require "bitpay/EncryptedWPOptionStorage.php";
+require "functions.php";
+require "updates.php";
+require "form.php";
 
 // Add shortcode for donation form
 add_shortcode('raise_form','raise_form');
@@ -221,7 +221,7 @@ function raise_get_plugin_version() {
  * Endpoint for Coinbase webhook
  */
 add_action('rest_api_init', function () {
-    register_rest_route('raise/v1', '/coinbase/log/(?P<form>[\w%]+(?:/mode=(?P<mode>\w+))?)', [
+    register_rest_route('raise/v1', '/coinbase/log/(?P<form>[\w%\-+]+(?:/mode=(?P<mode>\w+))?)', [
         'methods'  => 'POST',
         'callback' => 'raise_log_coinbase_donation',
     ]);
