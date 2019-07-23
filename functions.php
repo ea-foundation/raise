@@ -3092,7 +3092,7 @@ function raise_monthly_frequency_supported(array $enabledProviders)
  * Log coinbase donation
  *
  * @param WP_REST_Request $request
- * @return void
+ * @return WP_REST_Response|WP_Error
  */
 function raise_log_coinbase_donation(WP_REST_Request $request)
 {
@@ -3118,6 +3118,14 @@ function raise_log_coinbase_donation(WP_REST_Request $request)
         $sharedSecret = raise_get($settings['payment']['provider']['coinbase'][$mode]['webhook_shared_secret'], '');
         if (!hash_equals(hash_hmac("sha256", $request->get_body(), $sharedSecret), $providedSignature)) {
             throw new \Exception('Invalid X-CC-Webhook-Signature header');
+        }
+
+        // Make sure it's the charge:confirmed event
+        if (raise_get($request['event']['type']) !== 'charge:confirmed') {
+            $response = new WP_REST_Response(['success' => false]);
+            $response->set_status(202);
+
+            return $response;
         }
 
         // Get donation
