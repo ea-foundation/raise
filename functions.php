@@ -1430,7 +1430,7 @@ function raise_prepare_coinbase_donation(array $donation)
         $donation['vendor_transaction_id'] = $chargeCode;
 
         // Save donation as transient (for 1h)
-        set_site_transient($chargeCode, raise_sanitize_donation($donation), 60*60);
+        set_site_transient('raise_coinbase_' . $chargeCode, raise_sanitize_donation($donation), 60*60);
 
         // Return URL
         return [
@@ -3096,6 +3096,14 @@ function raise_monthly_frequency_supported(array $enabledProviders)
  */
 function raise_log_coinbase_donation(WP_REST_Request $request)
 {
+    $body = '{"id":"00000000-0000-0000-0000-000000000000","scheduled_for":"2018-01-01T00:40:00Z","attempt_number":1,"event":{"id":"00000000-0000-0000-0000-000000000000","resource":"event","type":"charge:confirmed","api_version":"2018-03-22","created_at":"2018-01-01T00:40:00Z","data":{"code":"AAAAAAAA","id":"00000000-0000-0000-0000-000000000000","resource":"charge","name":"The Sovereign Individual","description":"Mastering the Transition to the Information Age","hosted_url":"https://commerce.coinbase.com/charges/AAAAAAAA","created_at":"2018-01-01T00:00:00Z","confirmed_at":"2018-01-01T00:40:00Z","expires_at":"2018-01-01T01:00:00Z","timeline":[{"time":"2018-01-01T00:00:00Z","status":"NEW"},{"status":"PENDING","payment":{"network":"ethereum","transaction_id":"0x0000000000000000000000000000000000000000000000000000000000000000"},"time":"2018-01-01T00:30:00Z"},{"status":"COMPLETED","payment":{"network":"ethereum","transaction_id":"0x0000000000000000000000000000000000000000000000000000000000000000"},"time":"2018-01-01T00:40:00Z"}],"metadata":{},"pricing":{"local":{"amount":"100.00","currency":"USD"},"bitcoin":{"amount":"1.00000000","currency":"BTC"},"ethereum":{"amount":"10.000000000","currency":"ETH"},"bitcoincash":{"amount":"5.00000000","currency":"BCH"},"litecoin":{"amount":"2.00000000","currency":"LTC"}},"pricing_type":"fixed_price","payments":[{"network":"ethereum","transaction_id":"0x0000000000000000000000000000000000000000000000000000000000000000","status":"CONFIRMED","detected_at":"2018-01-01T00:30:00Z","value":{"local":{"amount":"100.0","currency":"USD"},"crypto":{"amount":"10.00","currency":"ETH"}},"block":{"height":100,"hash":"0x0000000000000000000000000000000000000000000000000000000000000000","confirmations_accumulated":8,"confirmations_required":2}}],"addresses":{"bitcoin":"1000000000000000000000000000000000","ethereum":"0x0000000000000000000000000000000000000000","litecoin":"3000000000000000000000000000000000","bitcoincash":"bitcoincash:000000000000000000000000000000000000000000"},"pwcb_enabled":false}}}';
+    $providedSignature = '366b5f088078ff25ed28e17c8e7d83b02570ffab773be883482158dfc3c6ef7e';
+    $sharedSecret = 'f6f8e46f-9fb9-4022-ba2d-71f01057da0b';
+    if (!hash_equals(hash_hmac("sha256", $body, $sharedSecret), $providedSignature)) {
+        throw new \Exception('Invalid X-CC-Webhook-Signature header');
+    }
+    return new WP_REST_Response(['success' => 'foo']);
+
     try {
         $providedSignature = $request->get_header('x_cc_webhook_signature');
         if (!$providedSignature) {
