@@ -1158,8 +1158,8 @@ function raise_generate_bitpay_credentials($pairingCode)
 /**
  * Get payment provider account settings
  *
- * @param string $name
- * @param array  $donation
+ * @param string $name     Payment provider name
+ * @param array  $donation Donation
  * @return array
  */
 function raise_get_payment_provider_account_settings($name, $donation)
@@ -3102,20 +3102,20 @@ function raise_log_coinbase_donation(WP_REST_Request $request)
             throw new \Exception('Missing X-CC-Webhook-Signature header');
         }
 
-        // Get form and mode
-        try {
-            $form     = urldecode($request->get_param('form'));
-            $settings = raise_load_settings($form);
-            $mode     = $request->get_param('mode') ?: 'live';
-            if (!in_array($mode, ['live', 'sandbox'])) {
-                throw new \Exception('Invalid mode ' . $mode);
-            }
-        } catch (\Exception $ex) {
-            throw new \Exception('Invalid form or mode: ' . $ex->getMessage());
+        // Get donation
+        $chargeCode = raise_get($request['event']['data']['code'], '');
+        $donation   = get_site_transient('raise_coinbase_' . $chargeCode);
+        if (!$donation) {
+            // Probably donation was made on different WordPress instance
+            $response = new WP_REST_Response(['success' => false]);
+            $response->set_status(202);
+
+            return $response;
         }
 
         // Check hash to make sure it comes from Coinbase
-        $sharedSecret = raise_get($settings['payment']['provider']['coinbase'][$mode]['webhook_shared_secret'], '');
+        $accountSettings = raise_get_payment_provider_account_settings('coinbase', $donation);
+        $sharedSecret    = raise_get($accountSettings['webhook_shared_secret'], '');
         if (!hash_equals(hash_hmac("sha256", $request->get_body(), $sharedSecret), $providedSignature)) {
             throw new \Exception('Invalid X-CC-Webhook-Signature header');
         }
@@ -3126,13 +3126,6 @@ function raise_log_coinbase_donation(WP_REST_Request $request)
             $response->set_status(202);
 
             return $response;
-        }
-
-        // Get donation
-        $chargeCode = raise_get($request['event']['data']['code']);
-        $donation   = get_site_transient('raise_coinbase_' . $chargeCode);
-        if (!$donation) {
-            throw new \Exception('Code not found');
         }
 
         // Do post donation actions

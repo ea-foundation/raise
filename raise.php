@@ -221,7 +221,7 @@ function raise_get_plugin_version() {
  * Endpoint for Coinbase webhook
  */
 add_action('rest_api_init', function () {
-    register_rest_route('raise/v1', '/coinbase/log/(?P<form>[\w%\-+]+(?:/mode=(?P<mode>\w+))?)', [
+    register_rest_route('raise/v1', '/coinbase/log', [
         'methods'  => 'POST',
         'callback' => 'raise_log_coinbase_donation',
     ]);
