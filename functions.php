@@ -1429,8 +1429,8 @@ function raise_prepare_coinbase_donation(array $donation)
         // Save charge code
         $donation['vendor_transaction_id'] = $chargeCode;
 
-        // Save donation as transient (for 1h)
-        set_site_transient('raise_coinbase_' . $chargeCode, raise_sanitize_donation($donation), 60*60);
+        // Save donation as transient (for 2h)
+        set_site_transient('raise_coinbase_' . $chargeCode, raise_sanitize_donation($donation), 60*60*2);
 
         // Return URL
         return [
