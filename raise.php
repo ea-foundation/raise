@@ -74,9 +74,9 @@ add_action("wp_ajax_gocardless_debit", "raise_process_gocardless_donation");
 add_action("wp_ajax_nopriv_bitpay_log", "raise_process_bitpay_log");
 add_action("wp_ajax_bitpay_log", "raise_process_bitpay_log");
 
-// Show thank you page at thend end of Coinbase donation
-add_action("wp_ajax_nopriv_coinbase_log", "raise_close_popup_and_show_thank_you_slide");
-add_action("wp_ajax_coinbase_log", "raise_close_popup_and_show_thank_you_slide");
+// Finish Coinbase donation flow
+add_action("wp_ajax_nopriv_coinbase_log", "raise_finish_coinbase_donation_flow");
+add_action("wp_ajax_coinbase_log", "raise_finish_coinbase_donation_flow");
 
 // Log Skrill donation
 add_action("wp_ajax_nopriv_skrill_log", "raise_process_skrill_log");

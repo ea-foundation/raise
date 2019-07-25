@@ -1557,14 +1557,14 @@ function raise_process_bitpay_log()
 }
 
 /**
- * AJAX endpoint for closing popup and showing thank you page (at the moment only used for Coinbase donations)
- * The actually logging happens over webhooks.
+ * AJAX endpoint for closing the Coinbase popup and showing the thank you slide.
+ * The actual logging is triggered by an incoming webhook from Coinbase.
  * 
  * @see raise_log_coinbase_donation
  *
  * @return string HTML with script that terminates the BitPay flow and shows the thank you step
  */
-function raise_close_popup_and_show_thank_you_slide()
+function raise_finish_coinbase_donation_flow()
 {
     die('<!doctype html>
          <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
