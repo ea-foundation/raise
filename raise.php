@@ -59,8 +59,8 @@ add_action("wp_ajax_nopriv_process_banktransfer", "raise_process_banktransfer");
 add_action("wp_ajax_process_banktransfer", "raise_process_banktransfer");
 
 // Log Stripe donation
-add_action("wp_ajax_nopriv_stripe_log", "raise_log_stripe_donation");
-add_action("wp_ajax_stripe_log", "raise_log_stripe_donation");
+add_action("wp_ajax_nopriv_stripe_log", "raise_finish_stripe_donation_flow");
+add_action("wp_ajax_stripe_log", "raise_finish_stripe_donation_flow");
 
 // Log Stripe donation
 add_action("wp_ajax_nopriv_cancel_payment", "raise_cancel_payment");
@@ -197,17 +197,15 @@ function raise_redefine_locale($locale) {
     return $locale;
 }
 
-// Set attribute data-version-4 for PayPal Checkout.js
-// Enable when data-version-5 is out
-/*add_filter('clean_url', 'unclean_url', 10, 3);
-function unclean_url($good_protocol_url, $original_url, $_context){
-    if (false !== strpos($original_url, '?data-version-4')){
-        remove_filter('clean_url', 'unclean_url', 10, 3);
-        $url_parts = parse_url($good_protocol_url);
-        return '//' . $url_parts['host'] . $url_parts['path'] . "' data-version-4 charset='UTF-8";
-    }
-    return $good_protocol_url;
-}*/
+/**
+ * Endpoint for Stripe webhook
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('raise/v1', '/stripe/log', [
+        'methods'  => 'POST',
+        'callback' => 'raise_log_stripe_donation',
+    ]);
+});
 
 /**
  * Returns current plugin version

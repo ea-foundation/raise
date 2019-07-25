@@ -525,7 +525,7 @@ To match bank transfers with registrations, you can declare a reference number p
 
 
 ### Stripe
-Requires `secret_key` and `public_key`. The organisation logo used in the checkout modal can be configured on the settings page.
+Requires `secret_key`, `public_key` and `signing_secret` (see `Developers` page in dashboard).
 
 ```json
 "stripe": {
@@ -533,17 +533,23 @@ Requires `secret_key` and `public_key`. The organisation logo used in the checko
   "tooltip": "Something you want the donor to know",
   "live": {
     "secret_key": "sk_live_mykey",
-    "public_key": "pk_live_mykey"
+    "public_key": "pk_live_mykey",
+    "signing_secret": "whsec_mysecret"
   },
   "sandbox": {
     "secret_key": "sk_test_mykey",
-    "public_key": "pk_test_mykey"
+    "public_key": "pk_test_mykey",
+    "signing_secret": "whsec_mysecret"
   }
 }
 ```
 
+Note: The Raise webhooks for logging and adding donors to mailinglists are only triggered if you also set up a webhook in your Stripe dashboard. Point it to https://your-site.com/wp-json/raise/v1/stripe/log. Make sure it only fires on the `checkout.session.completed` event and copy the signing secret correctly into your Raise configuration.
+
 Additional webhook data:
-- `vendor_customer_id`: Client Reference ID
+- `vendor_transaction_id`: Stripe charge ID (for one-time donations)
+- `vendor_subscription_id`: Stripe subscription ID (for recurring donations)
+- `vendor_customer_id`: Stripe customer ID
 
 ![Stripe flow](/doc/images/stripe_flow.png?raw=true)
 
