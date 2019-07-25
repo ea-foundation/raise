@@ -544,7 +544,7 @@ Requires `secret_key`, `public_key` and `signing_secret` (see `Developers` page 
 }
 ```
 
-Note: The Raise webhooks for logging and adding donors to mailinglists are only triggered if you also set up a webhook in your Stripe dashboard. Point it to https://your-site.com/wp-json/raise/v1/stripe/log. Make sure it only fires on the `checkout.session.completed` event and copy the signing secret correctly into your Raise configuration.
+Note: The Raise webhooks for logging and adding donors to mailinglists are only triggered if you also [set up a webhook in Stripe](https://dashboard.stripe.com/webhooks). Make it fire  on the `checkout.session.completed` event and point it to https://your-site.com/wp-json/raise/v1/stripe/log. Make sure you copy the signing secret correctly into your Raise configuration.
 
 Additional webhook data:
 - `vendor_transaction_id`: Stripe charge ID (for one-time donations)
