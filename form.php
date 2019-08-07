@@ -559,7 +559,7 @@ function raise_form($atts, $content = null)
                     </div>
                     <div class="raise_popup_closed">
                         <p class="coinbase_notice">
-                            <?php _e("<strong>Note:</strong> When sending a small amount your transaction can take a while to get verified by the network.", 'raise'); ?>
+                            <?php _e("<strong>Note:</strong> Your transaction can take an hour or more to get verified by the network. You can safely close the popup and the donation form as soon as you see the \"Payment detected\" screen.", 'raise'); ?>
                         </p>
                         <button id="CoinbasePopupButton" class="btn btn-primary"><span class="glyphicon glyphicon-lock" style="margin-right: 5px" aria-hidden="true"></span><?php _e("Donate with Crypto", "raise") ?></button>
                     </div>

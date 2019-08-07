@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: eas-donation-processor\n"
-"POT-Creation-Date: 2019-07-24 17:49+0200\n"
-"PO-Revision-Date: 2019-07-24 17:50+0200\n"
+"POT-Creation-Date: 2019-08-07 14:42+0200\n"
+"PO-Revision-Date: 2019-08-07 14:46+0200\n"
 "Last-Translator: \n"
 "Language-Team: EA Stiftung <info@ea-stiftung.org>\n"
 "Language: de\n"
@@ -162,11 +162,14 @@ msgstr "Mit Bitcoin bezahlen"
 
 #: form.php:562
 msgid ""
-"<strong>Note:</strong> When sending a small amount your transaction can take "
-"a while to get verified by the network."
+"<strong>Note:</strong> Your transaction can take an hour or more to get "
+"verified by the network. You can safely close the popup and the donation "
+"form as soon as you see the \"Payment detected\" screen."
 msgstr ""
-"<strong>Wichtig:</strong> Bei kleinen Beträgen kann die Verifizierung Ihrer "
-"Transaktion durch das Netzwerk eine Weile dauern."
+"<strong>Wichtig:</strong> Es kann über eine Stunde dauern, bis Ihre "
+"Transaktion vom Netzwerk verifiziert wird. Sobald Sie die Nachricht „Payment "
+"detected“ sehen, können Sie jedoch das Popup-Fenster und das Spendenformular "
+"schließen."
 
 #: form.php:564
 msgid "Donate with Crypto"
@@ -1249,6 +1252,13 @@ msgstr "Neues Spenden-Log"
 #: raise.php:173
 msgid "Settings"
 msgstr "Einstellungen"
+
+#~ msgid ""
+#~ "<strong>Note:</strong> When sending a small amount your transaction can "
+#~ "take a while to get verified by the network."
+#~ msgstr ""
+#~ "<strong>Wichtig:</strong> Bei kleinen Beträgen kann die Verifizierung "
+#~ "Ihrer Transaktion durch das Netzwerk eine Weile dauern."
 
 #~ msgid ""
 #~ "<strong>Important:</strong> Do not close the popup window until the "
