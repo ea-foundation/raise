@@ -349,7 +349,6 @@ jQuery(function($) {
             // Only accept numbers, dot, backspace, and enter
             return false;
         }
-        console.log(keyCode);
 
         // Validate input (workaround for Safari)
         if (keyCode == 13) {
@@ -1154,7 +1153,6 @@ function updateFormLabels() {
     var formObj = getFormAsObject();
 
     // Infer properties
-    var paymentProviderTooltips  = jsonLogic.apply(wordpress_vars.payment_provider_tooltip_rule, formObj);
     var postDonationInstructions = jsonLogic.apply(wordpress_vars.post_donation_instructions_rule, formObj);
     var shareDataCheckboxState   = applyJsonLogicAndParse(wordpress_vars.share_data_rule, formObj);
     var tipCheckboxState         = applyJsonLogicAndParse(wordpress_vars.tip_rule, formObj);
@@ -1256,9 +1254,17 @@ function updateCheckboxState(id, state, formObj) {
 function replaceDonationPlaceholders(label, formObj, accountData) {
     // Replace %bank_account_formatted%
     if (!jQuery.isEmptyObject(accountData)) {
-        var accountDataString = Object.keys(accountData).map(function(key) {
+        // Get amount string
+        var amount = currencies.hasOwnProperty(formObj.currency)
+            ? currencies[formObj.currency].replace('%amount%', formObj.amount)
+            : formObj.currency + ' ' + formObj.amount;
+        var accountDataString = '<strong>' + wordpress_vars.labels.amount + '</strong>: ' + amount + "\n";
+
+        // Add bank details
+        accountDataString += Object.keys(accountData).map(function(key) {
             return '<strong>' + key + '</strong>: ' + accountData[key];
         }).join("\n");
+
         label = label.replace('%bank_account_formatted%', accountDataString);
     }
 
