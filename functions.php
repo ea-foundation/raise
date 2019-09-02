@@ -173,6 +173,7 @@ function raise_init_donation_form($form, $mode)
             'donate_button_once'    => __("Donate %currency-amount%", "raise"),
             'donate_button_monthly' => __("Donate %currency-amount% per month", "raise"),
             'donation'              => __("Donation", "raise"),
+            'amount'                => __("Amount", "raise"),
             'cookie_warning'        => __("Please enable cookies before you proceed with your donation.", "raise"),
         ],
         'error_messages'       => [
