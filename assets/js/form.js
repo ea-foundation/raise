@@ -1,6 +1,7 @@
 /**
  * Settings
  */
+var carousel                    = null;
 var raiseMode                   = raiseDonationConfig.mode;
 var userCountry                 = raiseDonationConfig.userCountry;
 var selectedCurrency            = raiseDonationConfig.selectedCurrency;
@@ -45,6 +46,17 @@ if (!Object.keys) {
  * Setup form when DOM ready
  */
 jQuery(function($) {
+    // Make carousel
+    carousel = $('#donation-carousel');
+    carousel.slick({
+        adaptiveHeight: true,
+        arrows: false,
+        draggable: false,
+        swipe: false,
+        touchMove: false,
+        infinite: false,
+    });
+
     // Make sure cookies are enabled
     if (!navigator.cookieEnabled) {
         $('<div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span><span class="sr-only">Error:</span> ' + wordpress_vars.labels.cookie_warning + '</div>')
@@ -53,9 +65,6 @@ jQuery(function($) {
 
     // Dispatch raise_loaded_donation_form event
     raiseTriggerFormLoadedEvent();
-
-    // Stripe setup
-    loadStripeHandler();
 
     // Reload payment providers
     reloadPaymentProviders();
@@ -85,7 +94,7 @@ jQuery(function($) {
             return false;
         }
 
-        var currentItem = $('#wizard div.active').index();
+        var currentItem = carousel.slick('slickCurrentSlide');
 
         if (currentItem  < 1) {
             return false;
@@ -96,10 +105,10 @@ jQuery(function($) {
     });
 
     // Prevent interaction during carousel slide
-    $('#donation-carousel').on('slide.bs.carousel', function () {
+    carousel.on('beforeChange', function () {
         slideTransitionInAction = true;
     });
-    $('#donation-carousel').on('slid.bs.carousel', function () {
+    carousel.on('afterChange', function () {
         slideTransitionInAction = false;
     });
 
@@ -133,23 +142,24 @@ jQuery(function($) {
     // Validation logic is done inside the onBeforeSeek callback
     $('button.confirm').click(function(event) {
         event.preventDefault();
+
         if (slideTransitionInAction) {
             return false;
         }
 
-        var currentItem = $('div.active', '#wizard').index() + 1;
+        var currentItem = carousel.slick('slickCurrentSlide') + 1;
 
         // Check contents
         if (currentItem <= totalItems) {
             // Get all fields inside the page, except honey pot (#donor-email-confirm)
-            var inputs = $('div.item.active :input', '#wizard').not('#donor-email-confirm');
+            var inputs = $('div.slick-active :input', '#wizard').not('#donor-email-confirm');
 
             // Remove errors
             inputs.siblings('span.raise-error').remove();
             inputs.parent().parent().removeClass('has-error');
 
             // Get all required fields inside the page, except honey pot (#donor-email-confirm)
-            var reqInputs = $('div.item.active .required :input:not(:radio):not(:button)', '#wizard').not('#donor-email-confirm');
+            var reqInputs = $('div.slick-active .required :input:not(:radio):not(:button)', '#wizard').not('#donor-email-confirm');
             // ... which are empty or invalid
             var errors  = {};
             var empty   = reqInputs.filter(function() {
@@ -185,7 +195,7 @@ jQuery(function($) {
             }
 
             // Unchecked radio groups (bootstrap drop downs). Add button instead.
-            var emptyRadios = $('div.item.active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
+            var emptyRadios = $('div.slick-active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
             if (emptyRadios.find('button').length) {
                 empty = $.merge(empty, emptyRadios.find('button'));
             }
@@ -315,7 +325,7 @@ jQuery(function($) {
         }
     });
 
-    // Click on other amount
+    // Focus on other amount
     $('input#amount-other').focus(function() {
         if ($(this).hasClass("active")) {
             return;
@@ -345,10 +355,6 @@ jQuery(function($) {
     // Other amount formatting 2: Only 0-9 and '.' are valid symbols
     $('input#amount-other').keypress(function(event) {
         var keyCode = event.which;
-        if (!(48 <= keyCode && keyCode <= 57) && keyCode != 190 && keyCode != 8 && keyCode != 46 && keyCode != 13) {
-            // Only accept numbers, dot, backspace, and enter
-            return false;
-        }
 
         // Validate input (workaround for Safari)
         if (keyCode == 13) {
@@ -476,9 +482,6 @@ jQuery(function($) {
         var minAmount = currencyMinimums[selectedCurrency][frequency];
         jQuery('input#amount-other', '#wizard').prop('min', minAmount);
 
-        // Reload Stripe handler
-        loadStripeHandler();
-
         // Reload payment providers
         reloadPaymentProviders();
     });
@@ -511,9 +514,6 @@ jQuery(function($) {
 
             // Update tax deduction labels
             updateFormLabels();
-
-            // Reload stripe handlers, trigger later (Chrome bug)
-            setTimeout(loadStripeHandler, 10);
         }
     });
 
@@ -523,20 +523,22 @@ jQuery(function($) {
 
         // Toggle donor form display and required class
         if (taxReceiptNeeded) {
+            var list = carousel.find('.slick-list');
+            var newHeight = list.height() + 147;
+            carousel.height(newHeight);
+            list.height(newHeight);
+
             $('div#donor-extra-info')
-                .slideDown()
+                .slideDown(400, resizeCarousel)
                 .find('div.optionally-required').addClass('required');
         } else {
             $('div#donor-extra-info')
-                .slideUp()
+                .slideUp(400, resizeCarousel)
                 .find('div.optionally-required').removeClass('required');
         }
 
         // Update form labels
         updateFormLabels();
-
-        // Reload Stripe settings
-        loadStripeHandler();
     });
 
     // Disable precheck state defined in settings on first click
@@ -547,6 +549,15 @@ jQuery(function($) {
     // Tipping toggle
     $('#tip').change(updateTip);
 }); // End jQuery(function($) {})
+
+/**
+ * Resize carousel
+ */
+function resizeCarousel() {
+    // Workaround to resize carousel
+    carousel.slick('slickSetOption', 'draggable', false, true);
+    carousel.removeAttr('style');
+}
 
 /**
  * PayPal checkout.js
@@ -723,16 +734,14 @@ function getDonationCurrencyIsoCode() {
  */
 function handleStripeDonation() {
     // Change action input
-    jQuery('form#donationForm input[name=action]').val('raise_donate');
+    jQuery('form#donationForm input[name=action]').val('raise_redirect_html');
 
-    // Open handler
-    stripeHandler.open({
-        name: wordpress_vars.organization,
-        description: wordpress_vars.labels.donation,
-        amount: getTotalAmount() * 100,
-        currency: getDonationCurrencyIsoCode(),
-        email: getDonorInfo('email')
-    });
+    raisePopup = window.open('', 'stripe-window');
+
+    // Add form target and submit
+    var form = document.querySelector('#donationForm');
+    form.setAttribute('target', 'stripe-window');
+    form.submit();
 }
 
 function handlePopupDonation(provider) {
@@ -758,6 +767,7 @@ function handlePopupDonation(provider) {
                     .unbind()
                     .click(function() {
                         // Open popup
+                        console.log(response);
                         openRaisePopup(response.url, provider);
 
                         // Show "continue donation in secure" message on modal
@@ -850,7 +860,7 @@ function handleBankTransferDonation() {
     showSpinnerOnLastButton();
 
     // Change action input
-    jQuery('form#donationForm input[name=action]').val('raise_donate');
+    jQuery('form#donationForm input[name=action]').val('process_banktransfer');
 
     // Clear confirmation email (honey pot)
     jQuery('#donor-email-confirm').val('');
@@ -952,72 +962,6 @@ function showConfirmation(paymentProvider) {
     }
 }
 
-function loadStripeHandler() {
-    // Get best matching key
-    var stripePublicKeyRule = wordpress_vars.stripe_public_key_rule;
-    if (!stripePublicKeyRule) {
-        // No Stripe settings for this form
-        return;
-    }
-
-    // Get form object
-    var formObj      = getFormAsObject();
-    var newStripeKey = jsonLogic.apply(stripePublicKeyRule, formObj)
-
-    // Check if the key changed
-    if (currentStripeKey === newStripeKey) {
-        // Nothing to do
-        return;
-    }
-
-    // Lock form while Stripe gets reloaded
-    lockLastStep(true);
-
-    // Create new Stripe handler
-    stripeHandler = StripeCheckout.configure({
-        key: newStripeKey,
-        image: wordpress_vars.logo,
-        color: '#255A8E',
-        locale: 'auto',
-        token: function(token) {
-            var tokenInput = jQuery('<input type="hidden" name="stripeToken">').val(token.id);
-            var keyInput   = jQuery('<input type="hidden" name="stripePublicKey">').val(newStripeKey);
-
-            // Show spinner
-            showSpinnerOnLastButton();
-
-            // Send form
-            jQuery('form#donationForm').append(tokenInput).append(keyInput).ajaxSubmit({
-                success: function(response, statusText, xhr, form) {
-                    try {
-                        if (!response.success) {
-                            throw response.error || response;
-                        }
-
-                        // Everything worked! Change glyphicon from "spinner" to "OK" and go to confirmation page
-                        showConfirmation('stripe');
-                    } catch(err) {
-                        // Something went wrong
-                        alertError({error: err});
-                    }
-                },
-                error: alertError
-            });
-
-            // Disable submit button, back button, and payment options
-            lockLastStep(true);
-
-            return false;
-        }
-    });
-
-    // Update currentStripeKey
-    currentStripeKey = newStripeKey;
-
-    // Unlock last step
-    lockLastStep(false);
-}
-
 function alertError(response) {
     if (typeof response === "object" && typeof response.error === 'string') {
         alert(response.error);
@@ -1037,7 +981,7 @@ function carouselNext() {
     }
 
     // Move carousel
-    jQuery('#donation-carousel').carousel('next');
+    carousel.slick('slickNext');
     
     // Update progress bar
     updateProgressBar(nextItem);
@@ -1045,14 +989,14 @@ function carouselNext() {
 
 
 function carouselPrev() {
-    var prevItem = jQuery('#wizard div.active').index() - 1;
+    var prevItem = carousel.slick('slickCurrentSlide') - 1;
 
-    if (prevItem  < 0) {
+    if (prevItem < 0) {
         return false;
     }
 
     // Move carousel
-    jQuery('#donation-carousel').carousel('prev');
+    carousel.slick('slickPrev');
     
     // Update progress bar
     updateProgressBar(prevItem);
@@ -1072,7 +1016,7 @@ function updateProgressBar(currentItem) {
                 .addClass('clickable')
                 .click(function() {
                     // Move carousel
-                    jQuery('#donation-carousel').carousel(index);
+                    carousel.slick('slickGoTo', index);
 
                     // Update progress bar
                     updateProgressBar(index);

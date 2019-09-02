@@ -78,9 +78,6 @@ function raise_init_donation_form($form, $mode)
         array_change_key_case(raise_get($formSettings['amount']['currency'], []), CASE_UPPER)
     )));
 
-    // Get Stripe public keys
-    $stripeKeys = raise_get_stripe_public_keys_rule($formSettings, $mode);
-
     // Get post_donation_instructions and localize labels
     $postDonationInstructions = raise_get($formSettings['finish']['post_donation_instructions'], "");
     if (is_array($postDonationInstructions) && !raise_has_string_keys($postDonationInstructions)) {
@@ -159,7 +156,6 @@ function raise_init_donation_form($form, $mode)
         'ajax_endpoint'                   => admin_url('admin-ajax.php'),
         'amount_patterns'                 => $amountPatterns,
         'amount_minimums'                 => $amountMinimums,
-        'stripe_public_key_rule'          => $stripeKeys,
         'post_donation_instructions_rule' => $postDonationInstructionsRule,
         'payment_provider_tooltip_rule'   => $paymentProviderTooltipRule,
         'payment_provider_display_rule'   => $paymentProviderDisplayRule,
@@ -192,6 +188,7 @@ function raise_init_donation_form($form, $mode)
     // Enqueue previously registered scripts and styles (to prevent them loading on every page load)
     wp_enqueue_script('donation-plugin-bootstrapjs');
     wp_enqueue_script('donation-plugin-jqueryformjs');
+    wp_enqueue_script('donation-plugin-jquery-slick');
     if (in_array('stripe', $enabledProviders)) {
         wp_enqueue_script('donation-plugin-stripe');
     }
@@ -493,34 +490,131 @@ function raise_get_donation_from_post()
 }
 
 /**
- * AJAX endpoint that creates redirect response (PayPal, Skrill, GoCardless, BitPay)
+ * Get form data from $_POST
+ *
+ * @return array
+ */
+function raise_get_form_data()
+{
+    // Trim the data
+    $post = array_map('trim', $_POST);
+
+    // Replace amount_other
+    if (!empty($post['amount_other'])) {
+        $post['amount'] = $post['amount_other'];
+    }
+    unset($post['amount_other']);
+
+    // Add tip to amount
+    if (is_numeric($post['amount'])) {
+        $amountInt      = (int)($post['amount'] * 100);
+        $tipInt         = (int)($post['tip_amount'] * 100);
+        $amountInt      = $amountInt + $tipInt;
+        $post['amount'] = money_format('%i', $amountInt / 100);
+    } else {
+        throw new \Exception('Invalid amount');
+    }
+
+    // Set language
+    $post['language'] = substr($post['locale'], 0, 2);
+
+    return $post;
+}
+
+/**
+ * Sanitize donation
+ *
+ * @param array $donation
+ * @return array Sanitized donation
+ */
+function raise_sanitize_donation(array $donation) {
+    // Trim the data
+    $d = array_map('trim', $donation);
+    // Replace amount-other
+    if (!empty($d['amount_other'])) {
+        $d['amount'] = $d['amount_other'];
+    }
+    unset($d['amount_other']);
+    // Add tip to amount
+    if (is_numeric($d['amount'])) {
+        $amountInt      = (int)($d['amount'] * 100);
+        $tipInt         = (int)($d['tip_amount'] * 100);
+        $d['amountInt'] = $amountInt + $tipInt;
+        $d['amount']    = money_format('%i', $d['amountInt'] / 100);
+    } else {
+        throw new \Exception('Invalid amount');
+    }
+    return [
+        'form'                       => $d['form'],
+        'mode'                       => $d['mode'],
+        'url'                        => $_SERVER['HTTP_REFERER'],
+        'language'                   => substr($d['locale'], 0, 2),
+        'time'                       => date('c'),
+        'currency'                   => $d['currency'],
+        'amount'                     => $d['amount'],
+        'tip_amount'                 => $d['tip_amount'],
+        'tip_percentage'             => $d['tip_percentage'],
+        'frequency'                  => $d['frequency'],
+        'payment_provider'           => $d['payment_provider'],
+        'email'                      => $d['email'],
+        'name'                       => stripslashes($d['name']),
+        'purpose'                    => raise_get($d['purpose'], ''),
+        'address'                    => stripslashes(raise_get($d['address'], '')),
+        'zip'                        => raise_get($d['zip'], ''),
+        'city'                       => stripslashes(raise_get($d['city'], '')),
+        'country_code'               => raise_get($d['country_code'], ''),
+        'comment'                    => raise_get($d['comment'], ''),
+        'account'                    => raise_get($d['account'], ''),
+        'post_donation_instructions' => raise_get($d['post_donation_instructions'], ''),
+        'vendor_transaction_id'      => raise_get($d['vendor_transaction_id'], ''),
+        'vendor_subscription_id'     => raise_get($d['vendor_subscription_id'], ''),
+        'vendor_customer_id'         => raise_get($d['vendor_customer_id'], ''),
+        'g-recaptcha-response'       => raise_get($d['g-recaptcha-response'], ''),
+        'anonymous'                  => (bool) raise_get($d['anonymous'], false),
+        'mailinglist'                => (bool) raise_get($d['mailinglist'], false),
+        'tax_receipt'                => (bool) raise_get($d['tax_receipt'], false),
+        'share_data'                 => (bool) raise_get($d['share_data'], false),
+        'share_data_offered'         => (bool) raise_get($d['share_data_offered'], false),
+        'tip'                        => (bool) raise_get($d['tip'], false),
+        'tip_offered'                => (bool) raise_get($d['tip_offered'], false),
+    ];
+}
+
+/**
+ * AJAX endpoint that creates redirect response in HTML (Stripe)
+ *
+ * @return string JSON response
+ */
+function raise_prepare_redirect_html()
+{
+    try {
+        $post = raise_get_form_data();
+
+        // Output
+        switch ($post['payment_provider']) {
+            case "Stripe":
+                $response = raise_prepare_stripe_donation($post);
+                break;
+            default:
+                throw new \Exception('Payment method ' . $post['payment_provider'] . ' is invalid');
+        }
+
+        // Return response
+        die($response);
+    } catch (\Exception $ex) {
+        die($ex->getMessage());
+    }
+}
+
+/**
+ * AJAX endpoint that creates redirect response in JSON (PayPal, Skrill, GoCardless, BitPay)
  *
  * @return string JSON response
  */
 function raise_prepare_redirect()
 {
     try {
-        // Trim the data
-        $post = array_map('trim', $_POST);
-
-        // Replace amount_other
-        if (!empty($post['amount_other'])) {
-            $post['amount'] = $post['amount_other'];
-        }
-        unset($post['amount_other']);
-
-        // Add tip to amount
-        if (is_numeric($post['amount'])) {
-            $amountInt      = (int)($post['amount'] * 100);
-            $tipInt         = (int)($post['tip_amount'] * 100);
-            $amountInt      = $amountInt + $tipInt;
-            $post['amount'] = money_format('%i', $amountInt / 100);
-        } else {
-            throw new \Exception('Invalid amount');
-        }
-
-        // Set language
-        $post['language'] = substr($post['locale'], 0, 2);
+        $post = raise_get_form_data();
 
         // Output
         switch ($post['payment_provider']) {
@@ -551,55 +645,39 @@ function raise_prepare_redirect()
 }
 
 /**
- * AJAX endpoint that deals with submitted donation data (Bank Tarnsfer and Stripe)
+ * AJAX endpoint that deals with submitted donation data (bank tarnsfer only)
  *
  * @return string JSON response
  */
-function raise_process_donation()
+function raise_process_banktransfer()
 {
     try {
         // Get donation
         $donation = raise_get_donation_from_post();
 
-        // Output
-        if ($donation['payment_provider'] === "Stripe") {
-            // Make sure we have the Stripe token
-            if (empty($_POST['stripeToken']) || empty($_POST['stripePublicKey'])) {
-                throw new \Exception("No Stripe token sent");
+        // Check honey pot (confirm email)
+        raise_check_honey_pot($_POST);
+
+        // Check reCAPTCHA
+        $formSettings = raise_load_settings($donation['form']);
+        $secret       = raise_get($formSettings['payment']['recaptcha']['secret_key']);
+        if (!empty($secret)) {
+            $recaptcha          = new \ReCaptcha\ReCaptcha($secret);
+            $gRecaptchaResponse = $donation['g-recaptcha-response'];
+            $resp               = $recaptcha->verify($gRecaptchaResponse, $_SERVER['REMOTE_ADDR']);
+            if (!$resp->isSuccess()) {
+                throw new \Exception('Invalid reCAPTCHA');
             }
-
-            // Handle payment
-            raise_handle_stripe_payment($donation, $_POST['stripeToken'], $_POST['stripePublicKey']);
-
-            // Prepare response
-            $response = array('success' => true);
-        } else if ($donation['payment_provider'] === "Bank Transfer") {
-            // Check honey pot (confirm email)
-            raise_check_honey_pot($_POST);
-
-            // Check reCAPTCHA
-            $formSettings = raise_load_settings($donation['form']);
-            $secret       = raise_get($formSettings['payment']['recaptcha']['secret_key']);
-            if (!empty($secret)) {
-                $recaptcha          = new \ReCaptcha\ReCaptcha($secret);
-                $gRecaptchaResponse = $donation['g-recaptcha-response'];
-                $resp               = $recaptcha->verify($gRecaptchaResponse, $_SERVER['REMOTE_ADDR']);
-                if (!$resp->isSuccess()) {
-                    throw new \Exception('Invalid reCAPTCHA');
-                }
-            }
-
-            // Handle payment
-            $reference = raise_handle_banktransfer_payment($donation);
-
-            // Prepare response
-            $response = array(
-                'success'   => true,
-                'reference' => $reference,
-            );
-        } else {
-            throw new \Exception('Payment method is invalid');
         }
+
+        // Handle payment
+        $reference = raise_handle_banktransfer_payment($donation);
+
+        // Prepare response
+        $response = array(
+            'success'   => true,
+            'reference' => $reference,
+        );
 
         wp_send_json($response);
     } catch (\Exception $ex) {
@@ -608,92 +686,20 @@ function raise_process_donation()
 }
 
 /**
- * Process Stripe payment
- *
- * @param array $donation Donation data from donation form
- * @param string $token
- * @param string $publicKey
- * @throws \Exception On error from Stripe API
- */
-function raise_handle_stripe_payment($donation, $token, $publicKey)
-{
-    // Create the charge on Stripe's servers - this will charge the user's card
-    try {
-        // Get Stripe account settings
-        $settings = raise_get_payment_provider_account_settings('stripe', $donation);
-
-        if ($settings['public_key'] != $publicKey) {
-            throw new \Exception("Key mismatch");
-        }
-
-        // Load secret key
-        \Stripe\Stripe::setApiKey($settings['secret_key']);
-
-        // Make customer
-        $customer = \Stripe\Customer::create(array(
-            'source'      => $token,
-            'email'       => $donation['email'],
-            'description' => $donation['name'],
-        ));
-
-        // Make charge/subscription
-        $amountInt = (int)($donation['amount'] * 100);
-        if ($donation['frequency'] === 'monthly') {
-            // Get plan
-            $plan = raise_get_stripe_plan($amountInt, $donation['currency']);
-
-            // Subscribe customer to plan
-            $subscription = \Stripe\Subscription::create(array(
-                'customer' => $customer->id,
-                'plan'     => $plan,
-                'metadata' => array(
-                    'url'     => $_SERVER['HTTP_REFERER'],
-                    'purpose' => $donation['purpose'],
-                ),
-            ));
-
-            // Add vendor reference ID
-            $donation['vendor_subscription_id'] = $subscription->id;
-        } else {
-            // Make one-time charge
-            $charge = \Stripe\Charge::create(array(
-                'customer'    => $customer->id,
-                'amount'      => $amountInt, // !!! in cents !!!
-                'currency'    => $donation['currency'],
-                'description' => 'Donation from ' . $donation['name'],
-                'metadata'    => array(
-                    'url'     => $_SERVER['HTTP_REFERER'],
-                    'purpose' => $donation['purpose'],
-                ),
-            ));
-
-            // Add vendor transaction ID
-            $donation['vendor_transaction_id'] = $charge->id;
-        }
-
-        // Add customer ID
-        $donation['vendor_customer_id'] = $customer->id;
-
-        // Do post donation actions
-        raise_do_post_donation_actions($donation);
-    } catch (\Stripe\Error\InvalidRequest $e) {
-        // The card has been declined
-        throw new \Exception($e->getMessage() . " " . $e->getStripeParam()); // . " : $form : $mode : $email : $amount : $currency");
-    } catch (\Exception $e) {
-        throw new \Exception($e->getMessage()); // . " : $form : $mode : $email : $amount : $currency");
-    }
-}
-
-/**
  * Get monthly Stripe plan
  *
- * @param int $amount Plan amount in cents
- * @param int $currency Plan currency
+ * @param int    $amount       Plan amount in cents
+ * @param int    $currency     Plan currency
+ * @param string $purpose      Plan purpose, e.g. AMF
+ * @param string $purposeLabel Plan purpose label, e.g. Against Malaria Foundation
  * @return array
  */
-function raise_get_stripe_plan($amount, $currency)
+function raise_get_stripe_plan($amount, $currency, $purpose = null, $purposeLabel = null)
 {
-    $planId = 'donation-month-' . $currency . '-' . money_format('%i', $amount / 100);
+    $purposeSuffix      = $purpose ? '-' . $purpose : '';
+    $purposeLabelSuffix = $purposeLabel ? ' to ' . $purposeLabel : '';
+
+    $planId = 'donation-month-' . $currency . '-' . str_replace('.', '_', money_format('%i', $amount / 100)) . $purposeSuffix;
 
     try {
         // Try fetching an existing plan
@@ -703,7 +709,9 @@ function raise_get_stripe_plan($amount, $currency)
         $params = array(
             'amount'   => $amount,
             'interval' => 'month',
-            'name'     => 'Monthly donation of ' . $currency . ' ' . money_format('%i', $amount / 100),
+            'product'  => [
+                'name' => 'monthly donations' . $purposeLabelSuffix,
+            ],
             'currency' => $currency,
             'id'       => $planId,
         );
@@ -949,13 +957,12 @@ function raise_prepare_gocardless_donation(array $donation)
 {
     try {
         // Make GoCardless redirect flow
-        $reqId        = uniqid(); // Secret request ID. Needed to prevent replay attack
-        $returnUrl    = raise_get_ajax_endpoint() . '?action=gocardless_debit&req=' . $reqId;
-        $monthly      = $donation['frequency'] === 'monthly' ? ", " . __("monthly", "raise") : "";
-        $client       = raise_get_gocardless_client($donation);
-        $description  = $donation['frequency'] === 'monthly' ?
-          __("Monthly payment mandate of %currency% %amount%", "raise") :
-          __("One-time payment mandate of %currency% %amount%", "raise");
+        $reqId       = uniqid(); // Secret request ID. Needed to prevent replay attack
+        $returnUrl   = raise_get_ajax_endpoint() . '?action=gocardless_debit&req=' . $reqId;
+        $client      = raise_get_gocardless_client($donation);
+        $description = $donation['frequency'] === 'monthly'
+            ? __("Monthly payment mandate of %currency% %amount%", "raise")
+            : __("One-time payment mandate of %currency% %amount%", "raise");
         $redirectFlow = $client->redirectFlows()->create([
             "params" => [
                 "description"          => str_replace('%currency%', $donation['currency'], str_replace('%amount%', money_format('%i', $donation['amount']), $description)),
@@ -977,6 +984,7 @@ function raise_prepare_gocardless_donation(array $donation)
         return array(
             'success' => true,
             'url'     => $redirectFlow->redirect_url,
+            'reqId'   => $reqId,
         );
     } catch (\Exception $ex) {
         return raise_rest_exception_response($ex);
@@ -1011,13 +1019,8 @@ function raise_process_gocardless_donation()
         raise_verify_session();
 
         // Get client
-        $form       = $donation['form'];
-        $mode       = $donation['mode'];
-        $taxReceipt = $donation['tax_receipt'];
-        $currency   = $donation['currency'];
-        $country    = $donation['country'];
-        $reqId      = $donation['reqId'];
-        $client     = raise_get_gocardless_client($donation);
+        $reqId  = $donation['reqId'];
+        $client = raise_get_gocardless_client($donation);
 
         if (!isset($_GET['redirect_flow_id']) || $_GET['redirect_flow_id'] != $_SESSION['raise-gocardless-flow-id']) {
             throw new \Exception('Invalid flow ID');
@@ -1032,12 +1035,11 @@ function raise_process_gocardless_donation()
         );
 
         // Get other parameters
-        $language  = $donation['language'];
+        $form      = $donation['form'];
+        $currency  = $donation['currency'];
         $url       = $donation['url'];
         $amount    = $donation['amount'];
         $amountInt = floor($amount * 100);
-        $name      = $donation['name'];
-        $email     = $donation['email'];
         $frequency = $donation['frequency'];
         $purpose   = $donation['purpose'];
 
@@ -1085,7 +1087,7 @@ function raise_process_gocardless_donation()
 
     // Die and send script to close flow
     die('<!doctype html>
-         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <html><head><meta charset="utf-8"><title>Closing flow...</title></head>
          <body><script>' . $script . '</script></body></html>');
 }
 
@@ -1329,17 +1331,14 @@ function raise_prepare_bitpay_donation(array $donation)
     try {
         $form       = $donation['form'];
         $mode       = $donation['mode'];
-        $language   = $donation['language'];
         $email      = $donation['email'];
         $name       = $donation['name'];
         $amount     = $donation['amount'];
         $currency   = $donation['currency'];
-        $taxReceipt = raise_get($donation['tax_receipt'], false);
-        $country    = $donation['country'];
         $frequency  = $donation['frequency'];
         $reqId      = uniqid(); // Secret request ID. Needed to prevent replay attack
         $returnUrl  = raise_get_ajax_endpoint() . '?action=bitpay_log&req=' . $reqId;
-        //$returnUrl       = raise_get_ajax_endpoint() . '?action=bitpay_confirm';
+        // $returnUrl  = raise_get_ajax_endpoint() . '?action=bitpay_confirm';
 
         // Get BitPay object and token
         $client = raise_get_bitpay_client($donation);
@@ -1480,6 +1479,38 @@ function raise_reset_request_id()
     $_SESSION['raise-req-id'] = uniqid();
 }
 
+function raise_process_log($paymentProvider)
+{
+    try {
+        // Get donation from session
+        $donation = raise_get_donation_from_session();
+
+        // Verify session and purge reqId
+        raise_verify_session();
+
+        // Do post donation actions
+        raise_do_post_donation_actions($donation);
+    } catch (\Exception $e) {
+        // No need to say anything. Just show confirmation.
+    }
+
+    die('<!doctype html>
+         <html><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <body><script>parent.showConfirmation("' . $paymentProvider . '"); parent.hideModal();</script></body></html>');
+}
+
+/**
+ * AJAX endpoint for handling donation logging for Stripe.
+ * User is forwarded here after successful Stripe transaction.
+ * Takes user data from session and triggers the web hooks.
+ *
+ * @return string HTML with script that terminates the Stripe flow and shows the thank you step
+ */
+function raise_process_stripe_log()
+{
+    raise_process_log('stripe');
+}
+
 /**
  * AJAX endpoint for handling donation logging for Skrill.
  * User is forwarded here after successful Skrill transaction.
@@ -1489,22 +1520,7 @@ function raise_reset_request_id()
  */
 function raise_process_skrill_log()
 {
-    try {
-        // Verify session and purge reqId
-        raise_verify_session();
-
-        // Get donation from session
-        $donation = raise_get_donation_from_session();
-
-        // Do post donation actions
-        raise_do_post_donation_actions($donation);
-    } catch (\Exception $e) {
-        // No need to say anything. Just show confirmation.
-    }
-
-    die('<!doctype html>
-         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
-         <body><script>parent.showConfirmation("skrill"); parent.hideModal();</script></body></html>');
+    raise_process_log('skrill');
 }
 
 /**
@@ -1546,7 +1562,7 @@ function raise_process_bitpay_log()
     }
 
     die('<!doctype html>
-         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <html><head><meta charset="utf-8"><title>Closing flow...</title></head>
          <body><script>var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation("bitpay"); mainWindow.hideModal();</script></body></html>');
 }
 
@@ -1559,11 +1575,11 @@ function raise_process_bitpay_log()
 function raise_process_coinbase_log()
 {
     try {
-        // Verify session and purge reqId
-        raise_verify_session();
-
         // Get donation from session
         $donation = raise_get_donation_from_session();
+
+        // Verify session and purge reqId
+        raise_verify_session();
 
         // Add vendor transaction ID (Coinbase charge code)
         $chargeCode = $_SESSION['raise-vendor-transaction-id'];
@@ -1585,7 +1601,7 @@ function raise_process_coinbase_log()
     }
 
     die('<!doctype html>
-         <html lang="en"><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <html><head><meta charset="utf-8"><title>Closing flow...</title></head>
          <body><script>var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation("coinbase"); mainWindow.hideModal();</script></body></html>');
 }
 
@@ -1596,7 +1612,7 @@ function raise_process_coinbase_log()
  */
 function raise_get_donation_from_session()
 {
-    return array(
+    return [
         "time"                       => date('c'), // new
         "form"                       => $_SESSION['raise-form'],
         "mode"                       => $_SESSION['raise-mode'],
@@ -1625,7 +1641,7 @@ function raise_get_donation_from_session()
         "comment"                    => $_SESSION['raise-comment'],
         "post_donation_instructions" => $_SESSION['post_donation_instructions'],
         "anonymous"                  => $_SESSION['raise-anonymous'],
-    );
+    ];
 }
 
 /**
@@ -1779,6 +1795,188 @@ function raise_create_paypal_billing_agreement(array $donation)
         ->setPayer($payer);
 
     return $agreement->create($apiContext);
+}
+
+/**
+ * Returns Stripe session ID for donation. It stores
+ * user input in session until user is forwarded back from Stripe
+ *
+ * @param array $donation
+ * @return array
+ */
+function raise_prepare_stripe_donation(array $donation)
+{
+    $reqId     = uniqid(); // Secret request ID. Needed to prevent replay attack
+    $returnUrl = raise_get_ajax_endpoint() . '?action=stripe_log&req=' . $reqId;
+    $cancelUrl = raise_get_ajax_endpoint() . '?action=cancel_payment';
+
+    $settings = raise_get_payment_provider_account_settings('stripe', $donation);
+
+    \Stripe\Stripe::setApiKey($settings['secret_key']);
+
+    // Add custom purpose label if purpose is defined
+    $recipient    = __('Donation', 'raise');
+    $purposeLabel = '';
+    if ($purpose = raise_get($donation['purpose'])) {
+        $formSettings = raise_load_settings($donation['form']);
+        $purposeLabel = raise_get_localized_value(raise_get($formSettings['payment']['purpose'][$purpose], ''));
+        $recipient    = str_replace(
+            '%recipient%',
+            $purposeLabel,
+            __('Donation to %recipient%', 'raise')
+        );
+    }
+
+    // Session params
+    $sessionParams = [
+        'customer_email'       => $donation['email'],
+        'payment_method_types' => ['card'],
+        'success_url'          => $returnUrl,
+        'cancel_url'           => $cancelUrl,
+    ];
+
+    // Make charge/subscription
+    $amountInt = floor($donation['amount'] * 100); // cents
+    if ($donation['frequency'] === 'monthly') {
+        // Get plan
+        $plan = raise_get_stripe_plan($amountInt, $donation['currency'], $purpose, $purposeLabel);
+
+        // Define subscription
+        $sessionParams['subscription_data'] = [
+            'items' => [[
+                'plan'     => $plan,
+                'quantity' => 1,
+            ]],
+        ];
+    } else {
+        // Define one-time charge
+        $sessionParams['line_items'] = [[
+            'name'     => $recipient,
+            'amount'   => $amountInt,
+            'currency' => $donation['currency'],
+            'quantity' => 1,
+            'images'   => [get_option('raise_logo')],
+        ]];
+    }
+
+    $session = \Stripe\Checkout\Session::create($sessionParams);
+
+    // Save donation as transient for 2h
+    set_site_transient('raise_stripe_' . $session->id, raise_sanitize_donation($donation), 60*60*2);
+
+    $script = 'var stripe = Stripe("' . $settings['public_key'] . '");
+      stripe.redirectToCheckout({
+        sessionId: "' . $session->id . '",
+      }).then(function (result) {
+        alert(result.error.message);
+      });';
+    
+    return '<!doctype html>
+            <html><head>
+            <meta charset="utf-8"><title>Forwarding to Stripe...</title>
+            <script src="https://js.stripe.com/v3/"></script></head>
+            <body><script>' . $script . '</script></body></html>';
+}
+
+function raise_cancel_payment()
+{
+    $script = "var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.raisePopup.close();";
+    // Die and send script to close flow
+    die('<!doctype html>
+         <html><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <body><script>opener.close()</script></body></html>');
+}
+
+/**
+ * AJAX endpoint for finish Stripe donation flow.
+ * User is forwarded here after finishing donation.
+ *
+ * @return string HTML with script that terminates the PayPal flow and shows the thank you step
+ */
+function raise_finish_stripe_donation_flow()
+{
+    // Just close popup and show confirmation
+    die('<!doctype html>
+         <html><head><meta charset="utf-8"><title>Closing flow...</title></head>
+         <body><script>var mainWindow = (window == top) ? /* mobile */ opener : /* desktop */ parent; mainWindow.showConfirmation("stripe"); mainWindow.raisePopup.close();</script></body></html>');
+}
+
+/**
+ * Log Stripe donation
+ * Endpoint for webhooks from Stripe
+ *
+ * @param WP_REST_Request $request
+ * @return WP_REST_Response|WP_Error
+ */
+function raise_log_stripe_donation(WP_REST_Request $request)
+{
+    try {
+        $providedSignature = $request->get_header('stripe_signature');
+        if (!$providedSignature) {
+            throw new \Exception('Missing stripe-signature header');
+        }
+
+        // Get donation
+        $sessionId = raise_get($request['data']['object']['id'], '');
+        $donation  = get_site_transient('raise_stripe_' . $sessionId);
+        if (!$donation) {
+            // Probably donation was made on different WordPress instance
+            $response = new WP_REST_Response(['success' => $sessionId]);
+            $response->set_status(202);
+            return $response;
+        }
+
+        // Check hash to make sure it comes from Stripe
+        $settings      = raise_get_payment_provider_account_settings('stripe', $donation);
+        $signingSecret = raise_get($settings['signing_secret'], '');
+        \Stripe\Stripe::setApiKey($settings['secret_key']);
+
+        // Verify signature
+        $payload = @file_get_contents('php://input');
+        $event   = \Stripe\Webhook::constructEvent(
+            $payload, $providedSignature, $signingSecret
+        );
+
+        // Make sure it's the checkout.session.completed event
+        if ($event->type !== 'checkout.session.completed') {
+            // Irrelevant event
+            $response = new WP_REST_Response(['success' => false]);
+            $response->set_status(202);
+            return $response;
+        }
+
+        // Set some vendor IDs
+        $customerId = raise_get($request['data']['object']['customer']);
+        $donation['vendor_customer_id'] = $customerId;
+        if ($donation['frequency'] === 'once') {
+            // Get charge ID
+            $paymentIntent = \Stripe\PaymentIntent::retrieve($event->data->object->payment_intent);
+            $charges       = $paymentIntent->charges->data;
+            if ($charge = reset($charges)) {
+                $donation['vendor_transaction_id'] = $charge->id;
+            }
+        } else {
+            // Get subscription ID
+            $donation['vendor_subscription_id'] = raise_get($request['data']['object']['subscription']);
+        }
+
+        // Do post donation actions
+        raise_do_post_donation_actions($donation);
+
+        // Make response
+        $response = new WP_REST_Response(['success' => true]);
+        $response->set_status(201);
+
+        // Delete transient
+        // delete_site_transient('raise_stripe_' . $sessionId);
+
+        return $response;
+    } catch (\Exception $ex) {
+        $response = new WP_REST_Response(['success' => false, 'message' => $ex->getMessage()]);
+        $response->set_status(400);
+
+        return $response;
+    }
 }
 
 /**
@@ -2552,46 +2750,6 @@ function raise_get_countries_by_currency($currency)
     $mapping = $GLOBALS['currency2country'];
 
     return raise_get($mapping[strtoupper($currency)], array());
-}
-
-/**
- * Get JsonLogic rule for Stripe public keys for the form
- *
- * E.g.
- * { "if" : [
- *     { "===" : [{"var": "country_code"}, "CH"] },
- *     "ch_special_public_key",
- *     { "===" : [{"var": "currency"}, "USD"] },
- *     "usd_special_public_key",
- *     true,
- *     "default_public_key"
- * ]}
- *
- * @param array  $formSettings
- * @param string $mode sandbox/live
- * @return array
- */
-function raise_get_stripe_public_keys_rule(array $formSettings, $mode)
-{
-    // Get all enabled Stripe accounts with a public key for the given mode
-    $stripeSettings = raise_get($formSettings['payment']['provider']['stripe']);
-
-    if (empty($stripeSettings) || !is_array($stripeSettings)) {
-        return null;
-    }
-
-    if (raise_has_string_keys($stripeSettings)) {
-        // Regular settings
-        return raise_get($stripeSettings[$mode]['public_key']);
-    } else {
-        // JsonLogic rule
-        return ["if" => array_reduce($stripeSettings, function($carry, $item) use ($mode) {
-            $carry[] = raise_get($item['if'], false);
-            $carry[] = raise_get($item['value'][$mode]['public_key']);
-
-            return $carry;
-        }, [])];
-    }
 }
 
 /**

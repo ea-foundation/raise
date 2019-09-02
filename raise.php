@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/raise
  * GitHub Plugin URI: ea-foundation/raise
  * Description: The Free Donation Plugin for WordPress
- * Version: 2.1.4
+ * Version: 2.2.0
  * Author: Naoki Peter
  * License: GPLv3 or later
  */
@@ -54,13 +54,25 @@ function raise_start_session()
     }
 }
 
-// Process donation (Bank Transfer and Stripe)
-add_action("wp_ajax_nopriv_raise_donate", "raise_process_donation");
-add_action("wp_ajax_raise_donate", "raise_process_donation");
+// Process donation (Bank Transfer only)
+add_action("wp_ajax_nopriv_process_banktransfer", "raise_process_banktransfer");
+add_action("wp_ajax_process_banktransfer", "raise_process_banktransfer");
+
+// Log Stripe donation
+add_action("wp_ajax_nopriv_stripe_log", "raise_finish_stripe_donation_flow");
+add_action("wp_ajax_stripe_log", "raise_finish_stripe_donation_flow");
+
+// Log Stripe donation
+add_action("wp_ajax_nopriv_cancel_payment", "raise_cancel_payment");
+add_action("wp_ajax_cancel_payment", "raise_cancel_payment");
 
 // Prepare redirect (PayPal, Skrill, GoCardless, BitPay)
 add_action("wp_ajax_nopriv_raise_redirect", "raise_prepare_redirect");
 add_action("wp_ajax_raise_redirect", "raise_prepare_redirect");
+
+// Prepare redirect HTML (Stripe)
+add_action("wp_ajax_nopriv_raise_redirect_html", "raise_prepare_redirect_html");
+add_action("wp_ajax_raise_redirect_html", "raise_prepare_redirect_html");
 
 // Execute and log Paypal transaction
 add_action("wp_ajax_nopriv_paypal_execute", "raise_execute_paypal_donation");
@@ -93,11 +105,11 @@ function raise_load_textdomain()
 add_action('admin_enqueue_scripts', 'raise_json_settings_editor');
 function raise_json_settings_editor()
 {
-    wp_enqueue_script('donation-jquery-ui', plugins_url('assets/js/jquery-ui.min.js', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_script('donation-json-settings-editor', plugins_url('assets/js/jsoneditor.min.js', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-json-settings-editor-css', plugins_url('assets/css/jsoneditor.min.css', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-admin-css', plugins_url('assets/css/admin.css', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-jquery-ui-css', plugins_url('assets/css/jquery-ui.min.css', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_enqueue_script('donation-jquery-ui', plugins_url('assets/js/jquery-ui.min.js', __FILE__), [], RAISE_ASSET_VERSION);
+    wp_enqueue_script('donation-json-settings-editor', plugins_url('assets/js/jsoneditor.min.js', __FILE__), [], RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-json-settings-editor-css', plugins_url('assets/css/jsoneditor.min.css', __FILE__), [], RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-admin-css', plugins_url('assets/css/admin.css', __FILE__), [], RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-jquery-ui-css', plugins_url('assets/css/jquery-ui.min.css', __FILE__), [], RAISE_ASSET_VERSION);
     wp_enqueue_media();
 }
 
@@ -108,25 +120,26 @@ add_action('wp_enqueue_scripts', 'raise_register_donation_styles');
 function raise_register_donation_styles()
 {
     // Register bootstrap and bootstrap combobox
-    wp_register_style('bootstrap-scoped', plugins_url('assets/css/scoped-bootstrap.min.css', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_register_style('donation-combobox', plugins_url('assets/css/bootstrap-combobox.css', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_register_style('bootstrap-scoped', plugins_url('assets/css/scoped-bootstrap.min.css', __FILE__), [], RAISE_ASSET_VERSION);
+    wp_register_style('donation-combobox', plugins_url('assets/css/bootstrap-combobox.css', __FILE__), [], RAISE_ASSET_VERSION);
 
     // Enqueue country flag sprites if necessary
     if ($flagSprite = raise_get_best_flag_sprite()) {
-        wp_enqueue_style('donation-plugin-flags', plugins_url('assets/css/flags-' . $flagSprite . '.css', __FILE__), array(), RAISE_ASSET_VERSION);
+        wp_enqueue_style('donation-plugin-flags', plugins_url('assets/css/flags-' . $flagSprite . '.css', __FILE__), [], RAISE_ASSET_VERSION);
     }
 
     // Enqueue all other styles
-    wp_enqueue_style('donation-plugin', plugins_url('assets/css/form.css', __FILE__), array(), RAISE_ASSET_VERSION);
-    wp_enqueue_style('donation-button', plugins_url('assets/css/button.css.php', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-plugin', plugins_url('assets/css/form.css', __FILE__), [], RAISE_ASSET_VERSION);
+    wp_enqueue_style('donation-button', plugins_url('assets/css/button.css.php', __FILE__), [], RAISE_ASSET_VERSION);
+    wp_enqueue_style('slick', plugins_url('assets/css/slick.css', __FILE__), [], RAISE_ASSET_VERSION);
 
     // Register scripts (enqueue later)
     wp_register_script('donation-plugin-bootstrapjs', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', array('jquery'));
     wp_register_script('donation-plugin-jqueryformjs', 'https://malsup.github.io/jquery.form.js', array('jquery'));
-    wp_register_script('donation-plugin-stripe', 'https://checkout.stripe.com/checkout.js');
     wp_register_script('donation-plugin-paypal', 'https://www.paypalobjects.com/api/checkout.js'); // The query string is actually supposed to be a separate attribute without value, see below
+    wp_register_script('donation-plugin-jquery-slick', plugins_url('assets/js/slick.min.js', __FILE__));
     wp_register_script('donation-plugin-json-logic', plugins_url('assets/js/logic.js', __FILE__));
-    wp_register_script('donation-plugin-combobox', plugins_url('assets/js/bootstrap-combobox.js', __FILE__), array(), RAISE_ASSET_VERSION);
+    wp_register_script('donation-plugin-combobox', plugins_url('assets/js/bootstrap-combobox.js', __FILE__), [], RAISE_ASSET_VERSION);
     wp_register_script('donation-plugin-form', plugins_url('assets/js/form.js', __FILE__), array('jquery'), RAISE_ASSET_VERSION);
 }
 
@@ -184,17 +197,15 @@ function raise_redefine_locale($locale) {
     return $locale;
 }
 
-// Set attribute data-version-4 for PayPal Checkout.js
-// Enable when data-version-5 is out
-/*add_filter('clean_url', 'unclean_url', 10, 3);
-function unclean_url($good_protocol_url, $original_url, $_context){
-    if (false !== strpos($original_url, '?data-version-4')){
-        remove_filter('clean_url', 'unclean_url', 10, 3);
-        $url_parts = parse_url($good_protocol_url);
-        return '//' . $url_parts['host'] . $url_parts['path'] . "' data-version-4 charset='UTF-8";
-    }
-    return $good_protocol_url;
-}*/
+/**
+ * Endpoint for Stripe webhook
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('raise/v1', '/stripe/log', [
+        'methods'  => 'POST',
+        'callback' => 'raise_log_stripe_donation',
+    ]);
+});
 
 /**
  * Returns current plugin version

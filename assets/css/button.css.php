@@ -77,6 +77,7 @@ ul#amounts span.input-group-addon {
 }
 
 ul#amounts input[type=number] {
+    color: <?= $textColor ?>;
     text-overflow: ellipsis;
     display: inline-block;
     height: 46px;
