@@ -1921,7 +1921,10 @@ function raise_log_stripe_donation(WP_REST_Request $request)
         $donation  = get_site_transient('raise_stripe_' . $sessionId);
         if (!$donation) {
             // Probably donation was made on different WordPress instance
-            $response = new WP_REST_Response(['success' => $sessionId]);
+            $response = new WP_REST_Response([
+                'success' => false,
+                'message' => 'Session ID not found. Probably donation was made on different WordPress instance',
+            ]);
             $response->set_status(202);
             return $response;
         }
@@ -1940,7 +1943,10 @@ function raise_log_stripe_donation(WP_REST_Request $request)
         // Make sure it's the checkout.session.completed event
         if ($event->type !== 'checkout.session.completed') {
             // Irrelevant event
-            $response = new WP_REST_Response(['success' => false]);
+            $response = new WP_REST_Response([
+                'success' => false,
+                'message' => 'Irrelevant event',
+            ]);
             $response->set_status(202);
             return $response;
         }
