@@ -1843,6 +1843,9 @@ function raise_prepare_stripe_donation(array $donation)
 
         // Define subscription
         $sessionParams['subscription_data'] = [
+            'metadata' => [
+                'purpose' => $donation['purpose'],
+            ],
             'items' => [[
                 'plan'     => $plan,
                 'quantity' => 1,
@@ -1850,6 +1853,11 @@ function raise_prepare_stripe_donation(array $donation)
         ];
     } else {
         // Define one-time charge
+        $sessionParams['payment_intent_data'] = [
+            'metadata' => [
+                'purpose' => $donation['purpose'],
+            ]
+        ];
         $sessionParams['line_items'] = [[
             'name'     => $recipient,
             'amount'   => $amountInt,
