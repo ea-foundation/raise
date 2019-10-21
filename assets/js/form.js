@@ -496,7 +496,7 @@ jQuery(function($) {
         $('#selected-purpose').text($(this).siblings('span').text());
 
         // Update tax deduction text
-        updateFormLabels();
+        updateFormLabels('purpose');
     });    
 
     // Country dropdown stuff
@@ -1091,8 +1091,10 @@ function applyJsonLogicAndParse(rule, data) {
 
 /**
  * Update form labels (payment provider tooltip, tax receipt checkbox, post donation instructions)
+ * 
+ * @param string source Name of widget that triggered this (optional)
  */
-function updateFormLabels() {
+function updateFormLabels(source) {
     // Get all form contents
     var formObj = getFormAsObject();
 
@@ -1112,8 +1114,8 @@ function updateFormLabels() {
         jQuery(this).find('div[data-toggle="tooltip"]').attr('data-original-title', tooltip);
     });
 
-    // Update checkbox states
-    if (!!jQuery('input[name=purpose]:checked', '#wizard').val()) {
+    // Update checkbox states when purpose changes (otherwise no need)
+    if (source === 'purpose' && !!jQuery('input[name=purpose]:checked', '#wizard').val()) {
         updateCheckboxState('share-data', shareDataCheckboxState, formObj);
         updateCheckboxState('tip', tipCheckboxState, formObj);
     }
