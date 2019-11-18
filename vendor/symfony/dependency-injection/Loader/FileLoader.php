@@ -86,11 +86,12 @@ abstract class FileLoader extends BaseFileLoader
     /**
      * Registers a definition in the container with its instanceof-conditionals.
      *
-     * @param string     $id
-     * @param Definition $definition
+     * @param string $id
      */
     protected function setDefinition($id, Definition $definition)
     {
+        $this->container->removeBindings($id);
+
         if ($this->isLoadingInstanceof) {
             if (!$definition instanceof ChildDefinition) {
                 throw new InvalidArgumentException(sprintf('Invalid type definition "%s": ChildDefinition expected, "%s" given.', $id, \get_class($definition)));
@@ -148,12 +149,7 @@ abstract class FileLoader extends BaseFileLoader
             try {
                 $r = $this->container->getReflectionClass($class);
             } catch (\ReflectionException $e) {
-                $classes[$class] = sprintf(
-                    'While discovering services from namespace "%s", an error was thrown when processing the class "%s": "%s".',
-                    $namespace,
-                    $class,
-                    $e->getMessage()
-                );
+                $classes[$class] = $e->getMessage();
                 continue;
             }
             // check to make sure the expected class exists

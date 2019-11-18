@@ -117,7 +117,7 @@ class UriTest extends BaseTest
 
     /**
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Invalid port: 100000. Must be between 1 and 65535
+     * @expectedExceptionMessage Invalid port: 100000. Must be between 0 and 65535
      */
     public function testPortMustBeValid()
     {
@@ -126,11 +126,11 @@ class UriTest extends BaseTest
 
     /**
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Invalid port: 0. Must be between 1 and 65535
+     * @expectedExceptionMessage Invalid port: -1. Must be between 0 and 65535
      */
-    public function testWithPortCannotBeZero()
+    public function testWithPortCannotBeNegative()
     {
-        (new Uri())->withPort(0);
+        (new Uri())->withPort(-1);
     }
 
     /**
@@ -324,6 +324,12 @@ class UriTest extends BaseTest
         $this->assertSame('a=b', $uri->getQuery());
         $uri = Uri::withoutQueryValue($uri, 'a');
         $this->assertSame('', $uri->getQuery());
+    }
+
+    public function testNumericQueryValue()
+    {
+        $uri = Uri::withQueryValue(new Uri(), 'version', 1);
+        $this->assertSame('version=1', $uri->getQuery());
     }
 
     public function testWithQueryValues()
@@ -679,6 +685,17 @@ class UriTest extends BaseTest
             'GuzzleHttp\Tests\Psr7\ExtendedUriTest',
             new ExtendedUriTest('http://h:9/')
         );
+    }
+
+    public function testSpecialCharsOfUserInfo()
+    {
+        // The `userInfo` must always be URL-encoded.
+        $uri = (new Uri)->withUserInfo('foo@bar.com', 'pass#word');
+        $this->assertSame('foo%40bar.com:pass%23word', $uri->getUserInfo());
+
+        // The `userInfo` can already be URL-encoded: it should not be encoded twice.
+        $uri = (new Uri)->withUserInfo('foo%40bar.com', 'pass%23word');
+        $this->assertSame('foo%40bar.com:pass%23word', $uri->getUserInfo());
     }
 }
 

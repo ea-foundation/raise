@@ -70,7 +70,7 @@ class ParameterBag implements ParameterBagInterface
     {
         $name = $this->normalizeName($name);
 
-        if (!array_key_exists($name, $this->parameters)) {
+        if (!\array_key_exists($name, $this->parameters)) {
             if (!$name) {
                 throw new ParameterNotFoundException($name);
             }
@@ -121,7 +121,7 @@ class ParameterBag implements ParameterBagInterface
      */
     public function has($name)
     {
-        return array_key_exists($this->normalizeName($name), $this->parameters);
+        return \array_key_exists($this->normalizeName($name), $this->parameters);
     }
 
     /**
@@ -195,7 +195,7 @@ class ParameterBag implements ParameterBagInterface
      * @param string $value     The string to resolve
      * @param array  $resolving An array of keys that are being resolved (used internally to detect circular references)
      *
-     * @return string The resolved string
+     * @return mixed The resolved string
      *
      * @throws ParameterNotFoundException          if a placeholder references a parameter that does not exist
      * @throws ParameterCircularReferenceException if a circular reference if detected
