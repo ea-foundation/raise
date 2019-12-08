@@ -722,7 +722,7 @@ function getDonationAmount() {
 
 function getTippingAmount() {
     var amount = parseInt(jQuery('#tip-amount').val() * 100) / 100;
-    return (amount % 1 == 0) ? amount.toFixed(0) : amount.toFixed(2);
+    return (amount % 1 === 0) ? amount.toFixed(0) : amount.toFixed(2);
 }
 
 function getDonationCurrencyIsoCode() {
@@ -1246,6 +1246,12 @@ function getFormAsObject() {
         formObj.amount = formObj.amount_other;
     }
     delete formObj.amount_other;
+
+    // Add tip amount
+    var tip = jQuery('#tip-amount').val();
+    if (tip > 0) {
+        formObj.amount += tip;
+    }
 
     // Save localized values for frequency, payment_provider, purpose to `*_label` (except `country` for `country_code`)
     formObj.frequency_label        = jQuery('input[name=frequency][value=' + formObj.frequency + ']').siblings('label').text();
