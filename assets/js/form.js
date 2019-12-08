@@ -701,8 +701,7 @@ function showLastItem(currentItem) {
     carouselNext();
 }
 
-function getTotalAmount()
-{
+function getTotalAmount() {
     var donation = getDonationAmount();
     var tip      = getTippingAmount();
     var total    = +donation + +tip;
@@ -1241,17 +1240,9 @@ function getFormAsObject() {
     delete formObj['mode'];
     delete formObj['locale'];
 
-    // Merge amount and amount-other
-    if (!formObj.hasOwnProperty('amount')) {
-        formObj.amount = formObj.amount_other;
-    }
+    // Get amount
+    formObj.amount = getTotalAmount();
     delete formObj.amount_other;
-
-    // Add tip amount
-    var tip = jQuery('#tip-amount').val();
-    if (tip > 0) {
-        formObj.amount += parseInt(tip);
-    }
 
     // Save localized values for frequency, payment_provider, purpose to `*_label` (except `country` for `country_code`)
     formObj.frequency_label        = jQuery('input[name=frequency][value=' + formObj.frequency + ']').siblings('label').text();
