@@ -1250,7 +1250,7 @@ function getFormAsObject() {
     // Add tip amount
     var tip = jQuery('#tip-amount').val();
     if (tip > 0) {
-        formObj.amount += tip;
+        formObj.amount += parseInt(tip);
     }
 
     // Save localized values for frequency, payment_provider, purpose to `*_label` (except `country` for `country_code`)
