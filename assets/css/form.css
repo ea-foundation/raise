@@ -141,7 +141,7 @@
 
 #wizard .scrollable-menu {
     height: auto;
-    max-height: 300px;
+    max-height: 240px;
     overflow-x: hidden;
 }
 
