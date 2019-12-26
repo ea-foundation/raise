@@ -398,7 +398,7 @@ function raise_form($atts, $content = null)
                 <div class="form-group donor-info optionally-required">
                     <label for="donor-zip" class="col-sm-3 control-label"><?php _e('Zip code', 'raise') ?></label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control text" name="zip" id="donor-zip" placeholder="">
+                        <input type="text" class="form-control text" name="zip" id="donor-zip" placeholder="" size="10">
                     </div>
                 </div>
 
