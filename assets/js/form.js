@@ -701,6 +701,9 @@ function showLastItem(currentItem) {
     carouselNext();
 }
 
+/**
+ * Includes amount and tip
+ */
 function getTotalAmount() {
     var donation = getDonationAmount();
     var tip      = getTippingAmount();
@@ -709,6 +712,9 @@ function getTotalAmount() {
     return (total % 1 == 0) ? total.toFixed(0) : total.toFixed(2);
 }
 
+/**
+ * Amount without tip
+ */
 function getDonationAmount() {
     var amount = jQuery('input[name=amount]:radio:checked', '#wizard').val();
     if (amount) {
@@ -719,6 +725,9 @@ function getDonationAmount() {
     }
 }
 
+/**
+ * Only tip
+ */
 function getTippingAmount() {
     var amount = parseInt(jQuery('#tip-amount').val() * 100) / 100;
     return (amount % 1 === 0) ? amount.toFixed(0) : amount.toFixed(2);

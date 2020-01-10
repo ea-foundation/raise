@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/raise
  * GitHub Plugin URI: ea-foundation/raise
  * Description: The Free Donation Plugin for WordPress
- * Version: 2.2.11
+ * Version: 2.2.12
  * Author: Naoki Peter
  * License: GPLv3 or later
  */
@@ -62,7 +62,7 @@ add_action("wp_ajax_process_banktransfer", "raise_process_banktransfer");
 add_action("wp_ajax_nopriv_stripe_log", "raise_finish_stripe_donation_flow");
 add_action("wp_ajax_stripe_log", "raise_finish_stripe_donation_flow");
 
-// Log Stripe donation
+// Cancel Stripe donation
 add_action("wp_ajax_nopriv_cancel_payment", "raise_cancel_payment");
 add_action("wp_ajax_cancel_payment", "raise_cancel_payment");
 
