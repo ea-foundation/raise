@@ -435,58 +435,13 @@ function raise_print_payment_providers($formSettings, $mode)
  * @return array
  * @throws \Exception
  */
-function raise_get_donation_from_post()
+function raise_get_form_data()
 {
-    // Trim the data
-    $post = array_map('trim', $_POST);
+    // Get data
+    $post = raise_get_donation_from_post();
 
-    // Replace amount-other
-    if (!empty($post['amount_other'])) {
-        $post['amount'] = $post['amount_other'];
-    }
-    unset($post['amount_other']);
-
-    // Add tip to amount
-    if (is_numeric($post['amount'])) {
-        $amountInt         = (int)($post['amount'] * 100);
-        $tipInt            = (int)($post['tip_amount'] * 100);
-        $post['amountInt'] = $amountInt + $tipInt;
-        $post['amount']    = money_format('%i', $post['amountInt'] / 100);
-    } else {
-        throw new \Exception('Invalid amount');
-    }
-
-    return array(
-        'form'                       => $post['form'],
-        'mode'                       => $post['mode'],
-        'url'                        => $_SERVER['HTTP_REFERER'],
-        'language'                   => substr($post['locale'], 0, 2),
-        'time'                       => date('c'),
-        'currency'                   => $post['currency'],
-        'amount'                     => $post['amount'],
-        'tip_amount'                 => $post['tip_amount'],
-        'tip_percentage'             => $post['tip_percentage'],
-        'frequency'                  => $post['frequency'],
-        'payment_provider'           => $post['payment_provider'],
-        'email'                      => $post['email'],
-        'name'                       => stripslashes($post['name']),
-        'purpose'                    => raise_get($post['purpose'], ''),
-        'address'                    => stripslashes(raise_get($post['address'], '')),
-        'zip'                        => raise_get($post['zip'], ''),
-        'city'                       => stripslashes(raise_get($post['city'], '')),
-        'country_code'               => raise_get($post['country_code'], ''),
-        'comment'                    => raise_get($post['comment'], ''),
-        'account'                    => raise_get($post['account'], ''),
-        'post_donation_instructions' => raise_get($post['post_donation_instructions'], ''),
-        'g-recaptcha-response'       => raise_get($post['g-recaptcha-response'], ''),
-        'anonymous'                  => (bool) raise_get($post['anonymous'], false),
-        'mailinglist'                => (bool) raise_get($post['mailinglist'], false),
-        'tax_receipt'                => (bool) raise_get($post['tax_receipt'], false),
-        'share_data'                 => (bool) raise_get($post['share_data'], false),
-        'share_data_offered'         => (bool) raise_get($post['share_data_offered'], false),
-        'tip'                        => (bool) raise_get($post['tip'], false),
-        'tip_offered'                => (bool) raise_get($post['tip_offered'], false),
-    );
+    // Return formatted data
+    return raise_format_donation($post);
 }
 
 /**
@@ -494,7 +449,7 @@ function raise_get_donation_from_post()
  *
  * @return array
  */
-function raise_get_form_data()
+function raise_get_donation_from_post()
 {
     // Trim the data
     $post = array_map('trim', $_POST);
@@ -509,7 +464,7 @@ function raise_get_form_data()
     if (is_numeric($post['amount'])) {
         $amountInt      = (int)($post['amount'] * 100);
         $tipInt         = (int)($post['tip_amount'] * 100);
-        $amountInt      = $amountInt + $tipInt;
+        $amountInt      += $tipInt;
         $post['amount'] = money_format('%i', $amountInt / 100);
     } else {
         throw new \Exception('Invalid amount');
@@ -522,61 +477,45 @@ function raise_get_form_data()
 }
 
 /**
- * Sanitize donation
+ * Format donation
  *
  * @param array $donation
- * @return array Sanitized donation
+ * @return array Formatted donation
  */
-function raise_sanitize_donation(array $donation) {
-    // Trim the data
-    $d = array_map('trim', $donation);
-    // Replace amount-other
-    if (!empty($d['amount_other'])) {
-        $d['amount'] = $d['amount_other'];
-    }
-    unset($d['amount_other']);
-    // Add tip to amount
-    if (is_numeric($d['amount'])) {
-        $amountInt      = (int)($d['amount'] * 100);
-        $tipInt         = (int)($d['tip_amount'] * 100);
-        $d['amountInt'] = $amountInt + $tipInt;
-        $d['amount']    = money_format('%i', $d['amountInt'] / 100);
-    } else {
-        throw new \Exception('Invalid amount');
-    }
+function raise_format_donation(array $donation) {
     return [
-        'form'                       => $d['form'],
-        'mode'                       => $d['mode'],
+        'form'                       => $donation['form'],
+        'mode'                       => $donation['mode'],
         'url'                        => $_SERVER['HTTP_REFERER'],
-        'language'                   => substr($d['locale'], 0, 2),
+        'language'                   => $donation['language'],
         'time'                       => date('c'),
-        'currency'                   => $d['currency'],
-        'amount'                     => $d['amount'],
-        'tip_amount'                 => $d['tip_amount'],
-        'tip_percentage'             => $d['tip_percentage'],
-        'frequency'                  => $d['frequency'],
-        'payment_provider'           => $d['payment_provider'],
-        'email'                      => $d['email'],
-        'name'                       => stripslashes($d['name']),
-        'purpose'                    => raise_get($d['purpose'], ''),
-        'address'                    => stripslashes(raise_get($d['address'], '')),
-        'zip'                        => raise_get($d['zip'], ''),
-        'city'                       => stripslashes(raise_get($d['city'], '')),
-        'country_code'               => raise_get($d['country_code'], ''),
-        'comment'                    => raise_get($d['comment'], ''),
-        'account'                    => raise_get($d['account'], ''),
-        'post_donation_instructions' => raise_get($d['post_donation_instructions'], ''),
-        'vendor_transaction_id'      => raise_get($d['vendor_transaction_id'], ''),
-        'vendor_subscription_id'     => raise_get($d['vendor_subscription_id'], ''),
-        'vendor_customer_id'         => raise_get($d['vendor_customer_id'], ''),
-        'g-recaptcha-response'       => raise_get($d['g-recaptcha-response'], ''),
-        'anonymous'                  => (bool) raise_get($d['anonymous'], false),
-        'mailinglist'                => (bool) raise_get($d['mailinglist'], false),
-        'tax_receipt'                => (bool) raise_get($d['tax_receipt'], false),
-        'share_data'                 => (bool) raise_get($d['share_data'], false),
-        'share_data_offered'         => (bool) raise_get($d['share_data_offered'], false),
-        'tip'                        => (bool) raise_get($d['tip'], false),
-        'tip_offered'                => (bool) raise_get($d['tip_offered'], false),
+        'currency'                   => $donation['currency'],
+        'amount'                     => $donation['amount'],
+        'tip_amount'                 => $donation['tip_amount'],
+        'tip_percentage'             => $donation['tip_percentage'],
+        'frequency'                  => $donation['frequency'],
+        'payment_provider'           => $donation['payment_provider'],
+        'email'                      => $donation['email'],
+        'name'                       => stripslashes($donation['name']),
+        'purpose'                    => raise_get($donation['purpose'], ''),
+        'address'                    => stripslashes(raise_get($donation['address'], '')),
+        'zip'                        => raise_get($donation['zip'], ''),
+        'city'                       => stripslashes(raise_get($donation['city'], '')),
+        'country_code'               => raise_get($donation['country_code'], ''),
+        'comment'                    => raise_get($donation['comment'], ''),
+        'account'                    => raise_get($donation['account'], ''),
+        'post_donation_instructions' => raise_get($donation['post_donation_instructions'], ''),
+        'vendor_transaction_id'      => raise_get($donation['vendor_transaction_id'], ''),
+        'vendor_subscription_id'     => raise_get($donation['vendor_subscription_id'], ''),
+        'vendor_customer_id'         => raise_get($donation['vendor_customer_id'], ''),
+        'g-recaptcha-response'       => raise_get($donation['g-recaptcha-response'], ''),
+        'anonymous'                  => (bool) raise_get($donation['anonymous'], false),
+        'mailinglist'                => (bool) raise_get($donation['mailinglist'], false),
+        'tax_receipt'                => (bool) raise_get($donation['tax_receipt'], false),
+        'share_data'                 => (bool) raise_get($donation['share_data'], false),
+        'share_data_offered'         => (bool) raise_get($donation['share_data_offered'], false),
+        'tip'                        => (bool) raise_get($donation['tip'], false),
+        'tip_offered'                => (bool) raise_get($donation['tip_offered'], false),
     ];
 }
 
@@ -588,7 +527,7 @@ function raise_sanitize_donation(array $donation) {
 function raise_prepare_redirect_html()
 {
     try {
-        $post = raise_get_form_data();
+        $post = raise_get_donation_from_post();
 
         // Output
         switch ($post['payment_provider']) {
@@ -614,7 +553,7 @@ function raise_prepare_redirect_html()
 function raise_prepare_redirect()
 {
     try {
-        $post = raise_get_form_data();
+        $post = raise_get_donation_from_post();
 
         // Output
         switch ($post['payment_provider']) {
@@ -653,7 +592,7 @@ function raise_process_banktransfer()
 {
     try {
         // Get donation
-        $donation = raise_get_donation_from_post();
+        $donation = raise_get_form_data();
 
         // Check honey pot (confirm email)
         raise_check_honey_pot($_POST);
@@ -1870,7 +1809,7 @@ function raise_prepare_stripe_donation(array $donation)
     $session = \Stripe\Checkout\Session::create($sessionParams);
 
     // Save donation as transient for 2h
-    set_site_transient('raise_stripe_' . $session->id, raise_sanitize_donation($donation), 60*60*2);
+    set_site_transient('raise_stripe_' . $session->id, raise_format_donation($donation), 60*60*2);
 
     $script = 'var stripe = Stripe("' . $settings['public_key'] . '");
       stripe.redirectToCheckout({
