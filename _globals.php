@@ -33,6 +33,8 @@ $GLOBALS['CoinbaseChargeEndpoint'] = 'https://commerce.coinbase.com/charges';
  * Supported bank account labels (listed here for automatic detection by Poedit)
  */
 __("Beneficiary", "raise");
+__("Beneficiary's address", "raise");
+__("Account number", "raise");
 __("IBAN", "raise");
 __("BIC/SWIFT", "raise");
 __("Sort code", "raise");
