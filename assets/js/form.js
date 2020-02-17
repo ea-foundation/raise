@@ -982,7 +982,7 @@ function alertError(response) {
 }
 
 function carouselNext() {
-    var nextItem = jQuery('#wizard div.active').index() + 1;
+    var nextItem = jQuery('#wizard li.active').index() + 1;
 
     if (nextItem  > totalItems) {
         return false;
