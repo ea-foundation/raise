@@ -104,23 +104,29 @@ function raise_init_donation_form($form, $mode)
 
     // Get bank accounts and localize their labels
     $bankAccounts = raise_get($formSettings['payment']['provider']['banktransfer']);
-    if (is_array($bankAccounts) && !raise_has_string_keys($bankAccounts)) {
-        $bankAccounts = array_map(function($item) {
-            if (!empty($item['value']['details']) && is_array($item['value']['details'])) {
-                $item['value']['details'] = raise_localize_array_keys($item['value']['details']);
-            }
-            if (!empty($item['value']['tooltip']) && is_array($item['value']['tooltip'])) {
-                $item['value']['tooltip'] = raise_get_localized_value($item['value']['tooltip']);
-            }
-            return $item;
-        }, $bankAccounts);
+    if (is_array($bankAccounts)) {
+        if (raise_has_string_keys($bankAccounts)) {
+            // No JsonLogic
+            $bankAccounts['details'] = raise_localize_array_keys(raise_get($bankAccounts['details'], []));
+        } else {
+            // JsonLogic
+            $bankAccounts = array_map(function($item) {
+                if (!empty($item['value']['details']) && is_array($item['value']['details'])) {
+                    $item['value']['details'] = raise_localize_array_keys($item['value']['details']);
+                }
+                if (!empty($item['value']['tooltip']) && is_array($item['value']['tooltip'])) {
+                    $item['value']['tooltip'] = raise_get_localized_value($item['value']['tooltip']);
+                }
+                return $item;
+            }, $bankAccounts);
+        }
     }
     $bankAccountsRule = raise_get_jsonlogic_if_rule($bankAccounts, 'json_encode');
 
     // Get tooltips and payment provider display rules
     $enabledProviders = raise_enabled_payment_providers($formSettings, $mode);
     $providerSettings = raise_get($formSettings['payment']['provider'], []);
-    $tooltipMap       = function ($value) { return raise_get_localized_value($value['tooltip'], ""); };
+    $tooltipMap       = function ($value) { return raise_get_localized_value(raise_get($value['tooltip']), ""); };
     $displayMap       = function ($value) { return true; };
     $accountMap       = function ($value) { return raise_get($value['account']); };
     $tooltipIf        = [];
