@@ -15,10 +15,10 @@ function raise_form($atts, $content = null)
     }
 
     // Extract shortcode attributes (name becomes $form, etc.)
-    extract(shortcode_atts(array(
+    extract(shortcode_atts([
         'form' => '',        // $form
         'live' => 'true',    // $live
-    ), $atts));
+    ], $atts));
 
     // Make sure we have a boolean
     $live = ($live == 'false' || $live == 'no' || $live == '0') ? false : true;

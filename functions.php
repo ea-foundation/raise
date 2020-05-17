@@ -1014,9 +1014,11 @@ function raise_process_gocardless_donation()
             $payment['params']['day_of_month']  = $startDate->format('d') <= 28 ? $startDate->format('d') : 1;
             $payment['params']['interval_unit'] = 'monthly';
 
-            $client->subscriptions()->create($payment);
+            $gcSubscription = $client->subscriptions()->create($payment);
+            $donation['vendor_subscription_id'] = $gcSubscription->id;
         } else {
-            $client->payments()->create($payment);
+            $gcPayment = $client->payments()->create($payment);
+            $donation['vendor_transaction_id'] = $gcPayment->id;
         }
 
         // Add vendor customer ID to donation
@@ -1927,7 +1929,7 @@ function raise_log_stripe_donation(WP_REST_Request $request)
         $response->set_status(201);
 
         // Delete transient
-        // delete_site_transient('raise_stripe_' . $sessionId);
+        delete_site_transient('raise_stripe_' . $sessionId);
 
         return $response;
     } catch (\Exception $ex) {
