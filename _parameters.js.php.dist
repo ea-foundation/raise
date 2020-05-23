@@ -10,6 +10,9 @@
                 "button": [35, 75, 150, 250, 500, 1000, 2000],
                 "button_monthly": [15, 35, 50, 100, 250, 500, 1000],
                 "custom": true,
+                "frequency": {
+                    "default": "once"
+                },
                 "columns": 3,
                 "currency": {
                     "eur": {

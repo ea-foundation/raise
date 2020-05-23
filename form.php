@@ -137,16 +137,21 @@ function raise_form($atts, $content = null)
 
             <?php
                 $enabledProviders = raise_enabled_payment_providers($formSettings, $mode);
-                $monthlyDisplay   = raise_monthly_frequency_supported($enabledProviders) ? '' : 'hidden'; 
+                $monthlyDisplay   = raise_monthly_frequency_supported($enabledProviders) ? '' : 'hidden';
+                $monthlyChecked   = raise_get($formSettings['amount']['frequency']['default'], 'once') == 'monthly';
+                $onceAttribute    = $monthlyChecked ? '' : ' checked';
+                $onceClass        = $monthlyChecked ? '' : 'active';
+                $monthlyAttribute = $monthlyChecked ? ' checked' : '';
+                $monthlyClass     = $monthlyChecked ? 'active' : '';
             ?>
             <div class="row <?= $monthlyDisplay ?>">
                 <ul id="frequency" class="col-xs-12">
                     <li>
-                        <input type="radio" class="radio" name="frequency" value="once" id="frequency-once" checked>
-                        <label for="frequency-once" class="active"><?php _e('Give once', 'raise') ?></label>
+                        <input type="radio" class="radio" name="frequency" value="once" id="frequency-once"<?= $onceAttribute ?>>
+                        <label for="frequency-once" class="<?= $onceClass ?>"><?php _e('Give once', 'raise') ?></label>
                     </li><li>
-                        <input type="radio" class="radio" name="frequency" value="monthly" id="frequency-monthly">
-                        <label for="frequency-monthly"><?php _e('Give monthly', 'raise') ?></label>
+                        <input type="radio" class="radio" name="frequency" value="monthly" id="frequency-monthly"<?= $monthlyAttribute ?>>
+                        <label for="frequency-monthly" class="<?= $monthlyClass ?>"><?php _e('Give monthly', 'raise') ?></label>
                     </li>
                 </ul>
             </div>
@@ -154,23 +159,26 @@ function raise_form($atts, $content = null)
             <div class="row">
                 <ul id="amounts" class="radio">
                     <?php
+                        // Monthly buttons (if present)
+                        $amountsMonthly     = raise_get($formSettings['amount']['button_monthly'], []);
+                        $onceButtonClass    = $monthlyChecked && $amountsMonthly ? ' hidden' : '';
+                        $monthlyButtonClass = $monthlyChecked && $amountsMonthly ? '' : ' hidden';
+
                         // One-time buttons
                         $cols          = min(12, raise_get($formSettings['amount']['columns'], 3));
                         $buttonColSpan = floor(12 / $cols);
                         $tabIndex      = 0;
                         $amounts       = raise_get($formSettings['amount']['button'], array());
                         foreach (array_filter($amounts) as $amount) {
-                            echo '<li class="col-xs-' . $buttonColSpan . ' amount-once">';
+                            echo '<li class="col-xs-' . $buttonColSpan . ' amount-once' . $onceButtonClass . '">';
                             echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndex . '" id="amount-once-' . $amount . '">';
                             echo '    <label for="amount-once-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
                             echo '</li>';
                         }
 
-                        // Monthly buttons (if present)
                         $tabIndexMonthly = $tabIndex;
-                        $amountsMonthly  = raise_get($formSettings['amount']['button_monthly'], []);
                         foreach (array_filter($amountsMonthly) as $amount) {
-                            echo '<li class="col-xs-' . $buttonColSpan . ' amount-monthly hidden">';
+                            echo '<li class="col-xs-' . $buttonColSpan . ' amount-monthly' . $monthlyButtonClass . '">';
                             echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndexMonthly . '" id="amount-monthly-' . $amount . '" disabled>';
                             echo '    <label for="amount-monthly-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
                             echo '</li>';

@@ -1,6 +1,6 @@
 # Raise
 
-Free donation plugin for Wordpress. Supports one-time and monthly payments, confirmation and notification-emails, webhooks, a newsletter checkbox, a tax deductibility checkbox, multiple purposes, custom colors, Javascript events, single form inheritance, sandbox mode, centralized settings and translations.
+Free donation plugin for Wordpress. Supports one-time and monthly payments, confirmation and notification-emails, webhooks, a newsletter checkbox, a tax deductibility checkbox, multiple purposes, custom colors, Javascript events, single form inheritance, sandbox mode, centralized settings and translations (German, French, Russian).
 
 Accept donations via [Stripe](#stripe), [PayPal](#paypal), [GoCardless](#gocardless), [BitPay](#bitpay), [Coinbase](#coinbase), [Skrill](#skrill) or [bank transfers](#bank-transfer).
 
@@ -46,6 +46,9 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           10
         ],
         "custom": true,
+        "frequency": {
+          "default": "once"
+        },
         "columns": 3,  # use 1,2,3,4,6,12 for optiomal display
         "currency": {
           "eur": {

@@ -14,7 +14,7 @@ var taxReceiptNeeded            = false;
 var slideTransitionInAction     = false;
 var otherAmountPlaceholder      = null;
 var currentStripeKey            = '';
-var frequency                   = 'once';
+var frequency                   = wordpress_vars.default_frequency === 'monthly' ? 'monthly' : 'once';
 var monthlySupport              = wordpress_vars.monthly_support.map(function(val) { return 'payment-' + val });
 var raisePopup                  = null;
 var gcPollTimer                 = null;
@@ -1259,7 +1259,7 @@ function getFormAsObject() {
     if (formObj.hasOwnProperty('country_code')) {
         formObj.country = formObj.country_code ? jQuery('select#donor-country option[value=' + formObj.country_code.toUpperCase() + ']').text() : '';
     }
-    if (formObj.hasOwnProperty('purpose')) {
+    if (formObj.purpose) {
         formObj.purpose_label = jQuery('input[name=purpose][value=' + formObj.purpose.replace(' ', '\\ ') + ']').siblings('span').text();
     }
 

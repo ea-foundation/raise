@@ -173,6 +173,7 @@ function raise_init_donation_form($form, $mode)
         'organization'                    => $GLOBALS['raiseOrganization'],
         'currency2country'                => $GLOBALS['currency2country'],
         'monthly_support'                 => $GLOBALS['monthlySupport'],
+        'default_frequency'               => raise_get($formSettings['amount']['frequency']['default'], 'once'),
         'labels'                          => [
             'yes'                   => __("yes", "raise"),
             'no'                    => __("no", "raise"),
@@ -371,6 +372,7 @@ function raise_payment_provider_settings_complete($provider, array $properties)
 function raise_print_payment_providers($formSettings, $mode)
 {
     // Get enabled providers
+    $frequency = raise_get($formSettings['amount']['frequency']['default'], 'once');
     $providers = raise_enabled_payment_providers($formSettings, $mode);
     $checked   = true;
     $result    = '';
@@ -420,6 +422,7 @@ function raise_print_payment_providers($formSettings, $mode)
         $id          = str_replace(' ', '', strtolower($value));
         $checkedAttr = $checked ? 'checked' : '';
         $checked     = false;
+        $hidden      = $frequency === 'once' || in_array($id, $GLOBALS['monthlySupport']) ? '' : ' hidden';
 
         // Construct radio and append to result
         $radio  = '<div class="pp-images">' . implode('', array_map(function($val) {
@@ -427,7 +430,7 @@ function raise_print_payment_providers($formSettings, $mode)
         }, $images)) . '</div>' . $text;
         $radio  = '<div data-toggle="tooltip" data-container="body" title="">' . $radio . '</div>';
         $radio  = '<input type="radio" name="payment_provider" value="' . $value . '" id="payment-' . $id . '" ' . $checkedAttr . '> ' . $radio;
-        $radio  = '<label for="payment-' . $id . '" class="radio-inline">' . $radio . '</label>' . "\n";
+        $radio  = '<label for="payment-' . $id . '" class="radio-inline' . $hidden . '">' . $radio . '</label>' . "\n";
 
         $result .= $radio;
     }
