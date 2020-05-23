@@ -1,3 +1,12 @@
+= 2.4.1 May 23, 2020 =
+* NEW: Make default donation frequency configurable
+
+= 2.3.0 May 17, 2020 =
+* NEW: Add Swiss French translations
+
+= 2.2.0 September 2, 2019 =
+* IMPROVED: Upgrade Stripe checkout
+
 = 2.1.4 April 5, 2019 =
 * FIX: Fix broken bank detail label translation
 

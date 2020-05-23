@@ -179,7 +179,7 @@ function raise_form($atts, $content = null)
                         $tabIndexMonthly = $tabIndex;
                         foreach (array_filter($amountsMonthly) as $amount) {
                             echo '<li class="col-xs-' . $buttonColSpan . ' amount-monthly' . $monthlyButtonClass . '">';
-                            echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndexMonthly . '" id="amount-monthly-' . $amount . '" disabled>';
+                            echo '    <input type="radio" class="radio" name="amount" value="' . $amount . '" tabindex="' . ++$tabIndexMonthly . '" id="amount-monthly-' . $amount . '">';
                             echo '    <label for="amount-monthly-' . $amount . '">' . str_replace('%amount%', $amount, $preselectedCurrencyPattern) . '</label>';
                             echo '</li>';
                         }
