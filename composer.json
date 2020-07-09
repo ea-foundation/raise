@@ -7,7 +7,7 @@
         }
     },
     "require": {
-        "stripe/stripe-php": "^6.8",
+        "stripe/stripe-php": "^7.40",
         "gocardless/gocardless-pro": "^1.7",
         "bitpay/php-client": "^2.2",
         "twig/twig": "^1.35",

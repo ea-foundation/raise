@@ -1869,7 +1869,7 @@ function raise_finish_stripe_donation_flow()
 function raise_log_stripe_donation(WP_REST_Request $request)
 {
     try {
-        $providedSignature = $request->get_header('stripe_signature');
+        $providedSignature = $_SERVER['HTTP_STRIPE_SIGNATURE'];
         if (!$providedSignature) {
             throw new \Exception('Missing stripe-signature header');
         }
@@ -1894,9 +1894,18 @@ function raise_log_stripe_donation(WP_REST_Request $request)
 
         // Verify signature
         $payload = @file_get_contents('php://input');
-        $event   = \Stripe\Webhook::constructEvent(
-            $payload, $providedSignature, $signingSecret
-        );
+
+        try {
+            $event = \Stripe\Webhook::constructEvent(
+                $payload, $providedSignature, $signingSecret
+            );
+        } catch (\UnexpectedValueException $e) {
+            // Invalid payload
+            throw new \Exception('Invaid payload: ' + $e->getMessage());
+        } catch (\Stripe\Exception\SignatureVerificationException $e) {
+            // Invalid signature
+            throw new \Exception('Invaid signature: ' + $e->getMessage());
+        }
 
         // Make sure it's the checkout.session.completed event
         if ($event->type !== 'checkout.session.completed') {
