@@ -1904,7 +1904,7 @@ function raise_log_stripe_donation(WP_REST_Request $request)
             throw new \Exception('Invalid payload: ' . $e->getMessage());
         } catch (\Stripe\Exception\SignatureVerificationException $e) {
             // Invalid signature
-            throw new \Exception('Invalid signature: ' . $e->getMessage() . ' ::: ' . $signingSecret . ' ::: ' . $payload);
+            throw new \Exception('Invalid signature: ' . $e->getMessage());
         }
 
         // Make sure it's the checkout.session.completed event
