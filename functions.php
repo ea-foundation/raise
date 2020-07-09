@@ -1901,10 +1901,10 @@ function raise_log_stripe_donation(WP_REST_Request $request)
             );
         } catch (\UnexpectedValueException $e) {
             // Invalid payload
-            throw new \Exception('Invaid payload: ' . $e->getMessage());
+            throw new \Exception('Invalid payload: ' . $e->getMessage());
         } catch (\Stripe\Exception\SignatureVerificationException $e) {
             // Invalid signature
-            throw new \Exception('Invaid signature: ' . $e->getMessage());
+            throw new \Exception('Invalid signature: ' . $e->getMessage() . ' ::: ' . $signingSecret . ' ::: ' . $payload);
         }
 
         // Make sure it's the checkout.session.completed event
