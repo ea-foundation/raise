@@ -1123,11 +1123,11 @@ function updateFormLabels(source) {
     });
 
     // Update checkbox states when purpose changes (otherwise no need)
-    if (source === 'purpose' && !!jQuery('input[name=purpose]:checked', '#wizard').val()) {
+    if (jQuery('input[name=purpose]:checked', '#wizard').val()) {
         updateCheckboxState('share-data', shareDataCheckboxState, formObj);
         updateCheckboxState('tip', tipCheckboxState, formObj);
+        updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
     }
-    updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
 
     // Update offered share data state
     jQuery('#share-data-offered').val(
@@ -1260,7 +1260,8 @@ function getFormAsObject() {
         formObj.country = formObj.country_code ? jQuery('select#donor-country option[value=' + formObj.country_code.toUpperCase() + ']').text() : '';
     }
     if (formObj.purpose) {
-        formObj.purpose_label = jQuery('input[name=purpose][value=' + formObj.purpose.replace(' ', '\\ ') + ']').siblings('span').text();
+        const shareDataNode = jQuery('input[name=purpose][value=' + formObj.purpose.replace(' ', '\\ ') + ']');
+        formObj.purpose_label = shareDataNode.data('label') || shareDataNode.siblings('span').text();
     }
 
     // Localize booleans

@@ -184,11 +184,21 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "site_key": "my_recaptcha_site_key",
           "secret_key": "my_secret_key"
         },
-        "form_elements": {
+        "labels": {
           "purpose": {
             "en": "Charity",
             "de": "Organisation"
           },
+          "tax_receipt": {
+            "en" => "I need a tax receipt for Germany, Switzerland, the Netherlands, or the United States",
+            "de" => "Ich benötige eine Steuerbescheinigung für Deutschland, die Schweiz, die Niederlanden oder die USA"
+          },
+          "mailing_list": {
+            "en" => "Subscribe me to monthly EA updates",
+            "de" => "Monatliche EA-Updates abonnieren"
+          }
+        },
+        "form_elements": {
           "tip": [
             {
               "value": {
