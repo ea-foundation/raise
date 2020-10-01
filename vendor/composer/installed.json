@@ -177,24 +177,25 @@
     },
     {
         "name": "guzzlehttp/guzzle",
-        "version": "6.4.1",
-        "version_normalized": "6.4.1.0",
+        "version": "6.5.5",
+        "version_normalized": "6.5.5.0",
         "source": {
             "type": "git",
             "url": "https://github.com/guzzle/guzzle.git",
-            "reference": "0895c932405407fd3a7368b6910c09a24d26db11"
+            "reference": "9d4290de1cfd701f38099ef7e183b64b4b7b0c5e"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/guzzle/guzzle/zipball/0895c932405407fd3a7368b6910c09a24d26db11",
-            "reference": "0895c932405407fd3a7368b6910c09a24d26db11",
+            "url": "https://api.github.com/repos/guzzle/guzzle/zipball/9d4290de1cfd701f38099ef7e183b64b4b7b0c5e",
+            "reference": "9d4290de1cfd701f38099ef7e183b64b4b7b0c5e",
             "shasum": ""
         },
         "require": {
             "ext-json": "*",
             "guzzlehttp/promises": "^1.0",
             "guzzlehttp/psr7": "^1.6.1",
-            "php": ">=5.5"
+            "php": ">=5.5",
+            "symfony/polyfill-intl-idn": "^1.17.0"
         },
         "require-dev": {
             "ext-curl": "*",
@@ -204,11 +205,11 @@
         "suggest": {
             "psr/log": "Required for using the Log middleware"
         },
-        "time": "2019-10-23T15:58:00+00:00",
+        "time": "2020-06-16T21:01:06+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "6.3-dev"
+                "dev-master": "6.5-dev"
             }
         },
         "installation-source": "dist",
@@ -371,17 +372,17 @@
     },
     {
         "name": "jwadhams/json-logic-php",
-        "version": "1.4.0",
-        "version_normalized": "1.4.0.0",
+        "version": "1.4.2",
+        "version_normalized": "1.4.2.0",
         "source": {
             "type": "git",
             "url": "https://github.com/jwadhams/json-logic-php.git",
-            "reference": "11d79774cc28af305b324b6eb2618c789fb620ed"
+            "reference": "2546c07ffef957bbf7b385938d0c155bd9b47c5f"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/jwadhams/json-logic-php/zipball/11d79774cc28af305b324b6eb2618c789fb620ed",
-            "reference": "11d79774cc28af305b324b6eb2618c789fb620ed",
+            "url": "https://api.github.com/repos/jwadhams/json-logic-php/zipball/2546c07ffef957bbf7b385938d0c155bd9b47c5f",
+            "reference": "2546c07ffef957bbf7b385938d0c155bd9b47c5f",
             "shasum": ""
         },
         "require": {
@@ -390,7 +391,7 @@
         "require-dev": {
             "phpunit/phpunit": "^7.0"
         },
-        "time": "2019-05-15T16:12:32+00:00",
+        "time": "2020-05-12T14:00:33+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -409,6 +410,57 @@
             }
         ],
         "description": "Build rules with complex comparisons and boolean operators, serialized as JSON, and execute them in PHP"
+    },
+    {
+        "name": "paragonie/random_compat",
+        "version": "v2.0.18",
+        "version_normalized": "2.0.18.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/paragonie/random_compat.git",
+            "reference": "0a58ef6e3146256cc3dc7cc393927bcc7d1b72db"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/paragonie/random_compat/zipball/0a58ef6e3146256cc3dc7cc393927bcc7d1b72db",
+            "reference": "0a58ef6e3146256cc3dc7cc393927bcc7d1b72db",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.2.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "4.*|5.*"
+        },
+        "suggest": {
+            "ext-libsodium": "Provides a modern crypto API that can be used to generate random bytes."
+        },
+        "time": "2019-01-03T20:59:08+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "files": [
+                "lib/random.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Paragon Initiative Enterprises",
+                "email": "security@paragonie.com",
+                "homepage": "https://paragonie.com"
+            }
+        ],
+        "description": "PHP 5.x polyfill for random_bytes() and random_int() from PHP 7",
+        "keywords": [
+            "csprng",
+            "polyfill",
+            "pseudorandom",
+            "random"
+        ]
     },
     {
         "name": "paypal/rest-api-sdk-php",
@@ -658,17 +710,17 @@
     },
     {
         "name": "stripe/stripe-php",
-        "version": "v7.40.0",
-        "version_normalized": "7.40.0.0",
+        "version": "v7.57.0",
+        "version_normalized": "7.57.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/stripe/stripe-php.git",
-            "reference": "04aedea5ad95b9722aa394a41787751b2b478310"
+            "reference": "e2475efff624c6b9b62e8ea14ba7ee4e417cbfe5"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/stripe/stripe-php/zipball/04aedea5ad95b9722aa394a41787751b2b478310",
-            "reference": "04aedea5ad95b9722aa394a41787751b2b478310",
+            "url": "https://api.github.com/repos/stripe/stripe-php/zipball/e2475efff624c6b9b62e8ea14ba7ee4e417cbfe5",
+            "reference": "e2475efff624c6b9b62e8ea14ba7ee4e417cbfe5",
             "shasum": ""
         },
         "require": {
@@ -684,7 +736,7 @@
             "squizlabs/php_codesniffer": "^3.3",
             "symfony/process": "~3.4"
         },
-        "time": "2020-07-06T17:51:30+00:00",
+        "time": "2020-09-30T05:53:53+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -967,18 +1019,286 @@
         ]
     },
     {
-        "name": "twig/twig",
-        "version": "v1.42.4",
-        "version_normalized": "1.42.4.0",
+        "name": "symfony/polyfill-intl-idn",
+        "version": "v1.18.1",
+        "version_normalized": "1.18.1.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/twigphp/Twig.git",
-            "reference": "e587180584c3d2d6cb864a0454e777bb6dcb6152"
+            "url": "https://github.com/symfony/polyfill-intl-idn.git",
+            "reference": "5dcab1bc7146cf8c1beaa4502a3d9be344334251"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/twigphp/Twig/zipball/e587180584c3d2d6cb864a0454e777bb6dcb6152",
-            "reference": "e587180584c3d2d6cb864a0454e777bb6dcb6152",
+            "url": "https://api.github.com/repos/symfony/polyfill-intl-idn/zipball/5dcab1bc7146cf8c1beaa4502a3d9be344334251",
+            "reference": "5dcab1bc7146cf8c1beaa4502a3d9be344334251",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.3",
+            "symfony/polyfill-intl-normalizer": "^1.10",
+            "symfony/polyfill-php70": "^1.10",
+            "symfony/polyfill-php72": "^1.10"
+        },
+        "suggest": {
+            "ext-intl": "For best performance"
+        },
+        "time": "2020-08-04T06:02:08+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.18-dev"
+            },
+            "thanks": {
+                "name": "symfony/polyfill",
+                "url": "https://github.com/symfony/polyfill"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Polyfill\\Intl\\Idn\\": ""
+            },
+            "files": [
+                "bootstrap.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Laurent Bassin",
+                "email": "laurent@bassin.info"
+            },
+            {
+                "name": "Trevor Rowbotham",
+                "email": "trevor.rowbotham@pm.me"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony polyfill for intl's idn_to_ascii and idn_to_utf8 functions",
+        "homepage": "https://symfony.com",
+        "keywords": [
+            "compatibility",
+            "idn",
+            "intl",
+            "polyfill",
+            "portable",
+            "shim"
+        ]
+    },
+    {
+        "name": "symfony/polyfill-intl-normalizer",
+        "version": "v1.18.1",
+        "version_normalized": "1.18.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/polyfill-intl-normalizer.git",
+            "reference": "37078a8dd4a2a1e9ab0231af7c6cb671b2ed5a7e"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/polyfill-intl-normalizer/zipball/37078a8dd4a2a1e9ab0231af7c6cb671b2ed5a7e",
+            "reference": "37078a8dd4a2a1e9ab0231af7c6cb671b2ed5a7e",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.3"
+        },
+        "suggest": {
+            "ext-intl": "For best performance"
+        },
+        "time": "2020-07-14T12:35:20+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.18-dev"
+            },
+            "thanks": {
+                "name": "symfony/polyfill",
+                "url": "https://github.com/symfony/polyfill"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Polyfill\\Intl\\Normalizer\\": ""
+            },
+            "files": [
+                "bootstrap.php"
+            ],
+            "classmap": [
+                "Resources/stubs"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Nicolas Grekas",
+                "email": "p@tchwork.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony polyfill for intl's Normalizer class and related functions",
+        "homepage": "https://symfony.com",
+        "keywords": [
+            "compatibility",
+            "intl",
+            "normalizer",
+            "polyfill",
+            "portable",
+            "shim"
+        ]
+    },
+    {
+        "name": "symfony/polyfill-php70",
+        "version": "v1.18.1",
+        "version_normalized": "1.18.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/polyfill-php70.git",
+            "reference": "0dd93f2c578bdc9c72697eaa5f1dd25644e618d3"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/polyfill-php70/zipball/0dd93f2c578bdc9c72697eaa5f1dd25644e618d3",
+            "reference": "0dd93f2c578bdc9c72697eaa5f1dd25644e618d3",
+            "shasum": ""
+        },
+        "require": {
+            "paragonie/random_compat": "~1.0|~2.0|~9.99",
+            "php": ">=5.3.3"
+        },
+        "time": "2020-07-14T12:35:20+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.18-dev"
+            },
+            "thanks": {
+                "name": "symfony/polyfill",
+                "url": "https://github.com/symfony/polyfill"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Polyfill\\Php70\\": ""
+            },
+            "files": [
+                "bootstrap.php"
+            ],
+            "classmap": [
+                "Resources/stubs"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Nicolas Grekas",
+                "email": "p@tchwork.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony polyfill backporting some PHP 7.0+ features to lower PHP versions",
+        "homepage": "https://symfony.com",
+        "keywords": [
+            "compatibility",
+            "polyfill",
+            "portable",
+            "shim"
+        ]
+    },
+    {
+        "name": "symfony/polyfill-php72",
+        "version": "v1.18.1",
+        "version_normalized": "1.18.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/polyfill-php72.git",
+            "reference": "639447d008615574653fb3bc60d1986d7172eaae"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/639447d008615574653fb3bc60d1986d7172eaae",
+            "reference": "639447d008615574653fb3bc60d1986d7172eaae",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.3"
+        },
+        "time": "2020-07-14T12:35:20+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.18-dev"
+            },
+            "thanks": {
+                "name": "symfony/polyfill",
+                "url": "https://github.com/symfony/polyfill"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Polyfill\\Php72\\": ""
+            },
+            "files": [
+                "bootstrap.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Nicolas Grekas",
+                "email": "p@tchwork.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony polyfill backporting some PHP 7.2+ features to lower PHP versions",
+        "homepage": "https://symfony.com",
+        "keywords": [
+            "compatibility",
+            "polyfill",
+            "portable",
+            "shim"
+        ]
+    },
+    {
+        "name": "twig/twig",
+        "version": "v1.42.5",
+        "version_normalized": "1.42.5.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/twigphp/Twig.git",
+            "reference": "87b2ea9d8f6fd014d0621ca089bb1b3769ea3f8e"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/twigphp/Twig/zipball/87b2ea9d8f6fd014d0621ca089bb1b3769ea3f8e",
+            "reference": "87b2ea9d8f6fd014d0621ca089bb1b3769ea3f8e",
             "shasum": ""
         },
         "require": {
@@ -987,10 +1307,9 @@
         },
         "require-dev": {
             "psr/container": "^1.0",
-            "symfony/debug": "^3.4|^4.2",
-            "symfony/phpunit-bridge": "^4.4@dev|^5.0"
+            "symfony/phpunit-bridge": "^4.4|^5.0"
         },
-        "time": "2019-11-11T16:49:32+00:00",
+        "time": "2020-02-11T05:59:23+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -1019,7 +1338,6 @@
             },
             {
                 "name": "Twig Team",
-                "homepage": "https://twig.symfony.com/contributors",
                 "role": "Contributors"
             },
             {
