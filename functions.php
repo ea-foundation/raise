@@ -474,7 +474,7 @@ function raise_get_donation_from_post()
         $amountInt      = (int)($post['amount'] * 100);
         $tipInt         = (int)($post['tip_amount'] * 100);
         $amountInt      += $tipInt;
-        $post['amount'] = money_format('%i', $amountInt / 100);
+        $post['amount'] = number_format($amountInt / 100, 2, '.', '');
     } else {
         throw new \Exception('Invalid amount');
     }
@@ -647,7 +647,7 @@ function raise_get_stripe_plan($amount, $currency, $purpose = null, $purposeLabe
     $purposeSuffix      = $purpose ? '-' . $purpose : '';
     $purposeLabelSuffix = $purposeLabel ? ' to ' . $purposeLabel : '';
 
-    $planId = 'donation-month-' . $currency . '-' . str_replace('.', '_', money_format('%i', $amount / 100)) . $purposeSuffix;
+    $planId = 'donation-month-' . $currency . '-' . str_replace('.', '_', number_format($amount / 100, 2, '.', '')) . $purposeSuffix;
 
     try {
         // Try fetching an existing plan
@@ -913,7 +913,7 @@ function raise_prepare_gocardless_donation(array $donation)
             : __("One-time payment mandate of %currency% %amount%", "raise");
         $redirectFlow = $client->redirectFlows()->create([
             "params" => [
-                "description"          => str_replace('%currency%', $donation['currency'], str_replace('%amount%', money_format('%i', $donation['amount']), $description)),
+                "description"          => str_replace('%currency%', $donation['currency'], str_replace('%amount%', number_format($donation['amount'], 2, '.', ''), $description)),
                 "session_token"        => $reqId,
                 "success_redirect_url" => $returnUrl,
                 "prefilled_customer"   => [
@@ -1298,7 +1298,7 @@ function raise_prepare_bitpay_donation(array $donation)
         $item
             ->setCode("$form.$mode.$frequency.$currency.$amount")
             ->setDescription("$name ($email)")
-            ->setPrice(money_format('%i', $amount));
+            ->setPrice(number_format($amount, 2, '.', ''));
 
         // Prepare buyer
         $buyer = new \Bitpay\Buyer();
@@ -1612,8 +1612,8 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
     $_SESSION['raise-name']             = stripslashes($donation['name']);
     $_SESSION['raise-currency']         = $donation['currency'];
     $_SESSION['raise-country_code']     = $donation['country_code'];
-    $_SESSION['raise-amount']           = money_format('%i', $donation['amount']);
-    $_SESSION['raise-tip-amount']       = money_format('%i', $donation['tip_amount']);
+    $_SESSION['raise-amount']           = number_format($donation['amount'], 2, '.', '');
+    $_SESSION['raise-tip-amount']       = number_format($donation['tip_amount'], 2, '.', '');
     $_SESSION['raise-tip-percentage']   = $donation['tip_percentage'];
     $_SESSION['raise-frequency']        = $donation['frequency'];
     $_SESSION['raise-payment-provider'] = $donation['payment_provider'];
