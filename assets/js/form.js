@@ -1123,7 +1123,7 @@ function updateFormLabels(source) {
     });
 
     // Update checkbox states when purpose changes (otherwise no need)
-    if (jQuery('input[name=purpose]:checked', '#wizard').val()) {
+    if (!!jQuery('input[name=purpose]:checked', '#wizard').val()) {
         updateCheckboxState('share-data', shareDataCheckboxState, formObj);
         updateCheckboxState('tip', tipCheckboxState, formObj);
         updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
@@ -1169,11 +1169,6 @@ function updateCheckboxState(id, state, formObj) {
     if (state && state.hasOwnProperty('checked')) {
         if (!checkboxPreCheck[id] && !element.is(':checked') && state.checked) {
             element.prop('checked', true).change();
-        }
-    } else {
-        // Uncheck
-        if (id === 'tip' && element.is(':checked')) {
-            element.prop('checked', false).change();
         }
     }
 
