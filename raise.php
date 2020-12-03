@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/ea-foundation/raise
  * GitHub Plugin URI: ea-foundation/raise
  * Description: The Free Donation Plugin for WordPress
- * Version: 2.5b
+ * Version: 2.5
  * Author: Naoki Peter
  * License: GPLv3 or later
  */
@@ -15,7 +15,7 @@ defined('ABSPATH') or exit;
 define('RAISE_PRIORITY', 12838790321);
 
 // Asset version
-define('RAISE_ASSET_VERSION', '0.56');
+define('RAISE_ASSET_VERSION', '0.57');
 
 // Load other files
 require "vendor/autoload.php";
