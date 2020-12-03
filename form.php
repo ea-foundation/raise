@@ -152,6 +152,9 @@ function raise_form($atts, $content = null)
                     </li><li>
                         <input type="radio" class="radio" name="frequency" value="monthly" id="frequency-monthly"<?= $monthlyAttribute ?>>
                         <label for="frequency-monthly" class="<?= $monthlyClass ?>"><?php _e('Give monthly', 'raise') ?></label>
+                        <?php if ($supertext = raise_get($formSettings['amount']['helper_texts']['monthly_donation_teaser'])): ?>
+                            <sup class="monthly-donation-teaser"><?= esc_html(raise_get_localized_value($supertext)) ?></sup>
+                        <?php endif; ?>
                     </li>
                 </ul>
             </div>

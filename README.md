@@ -72,6 +72,10 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "average_amount_monthly": {
             "en": "The average monthly donation is $50.",
             "de": "Die durschnittliche monatliche Spende beträgt €50."
+          },
+          "monthly_donation_teaser": {
+            "en": "popular",
+            "de": "beliebt"
           }
         }
       },

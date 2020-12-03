@@ -123,6 +123,14 @@ ul#amounts input[type=number]:-moz-placeholder { /* Firefox 18+ */
 
 /* Frequency */
 
+.monthly-donation-teaser {
+    position: relative;
+    top: -20px;
+    padding: 4px 10px;
+    color: white;
+    background-color: <?= $widgetColorActive ?>;
+}
+
 ul#frequency label.active {
     color: <?= $widgetColorActive ?>;
     border-bottom: 2px solid <?= $widgetColorActive ?>;
