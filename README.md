@@ -66,6 +66,10 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
         }
       },
       "payment": {
+        "order": {
+          "purpose_first": false,
+          "checkboxes_last": false,
+        },
         "purpose": {
             "my_org": "My organisation"  # If first element has an empty key, no purpose is selected by default
         },

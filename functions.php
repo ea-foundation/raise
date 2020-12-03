@@ -3237,3 +3237,104 @@ function raise_monthly_frequency_supported(array $enabledProviders)
         return $carry || in_array($item, $enabledProviders);
     }, false);
 }
+
+/**
+ * 
+ */
+function raise_print_purpose($purposes, $formSettings)
+{
+    // Localize labels
+    $purposes = raise_monolinguify($purposes);
+
+    // Check if selected purpose is deeplinked
+    if (isset($_GET['purpose']) && isset($purposes[$_GET['purpose']])) {
+        $purposeButtonLabel = $purposes[$_GET['purpose']];
+        $checked            = $_GET['purpose'];
+    } elseif (isset($purposes[''])) {
+        // Label of empty item ("Choose your purpose"), not selectable
+        $purposeButtonLabel = $purposes[''];
+        $checked            = ''; // none
+    } else {
+        // Label of first option (selected by default)
+        $purposeButtonLabel = reset($purposes);
+        $checked            = key($purposes);
+    }
+
+    // Unset empty purpose value
+    unset($purposes['']);
+
+    // Don't print dropdown when only one purpose
+    if (count($purposes) == 1) {
+        $purposeKeys = array_keys($purposes);
+        $firstKey    = reset($purposeKeys);
+        echo '<input type="radio" name="purpose" value="' . esc_attr($firstKey) . '" data-label="' . esc_attr($purposes[$firstKey]) . '" class="hidden" checked>';
+    } else {
+        $listItems = [];
+        foreach ($purposes as $value => $label) {
+            $attr = $value == $checked ? ' checked' : '';
+            $listItems[] = '<li><label for="purpose-' . strtolower($value) . '"><input type="radio" id="purpose-' . strtolower($value) . '" name="purpose" value="' . $value . '" class="hidden"'  . $attr . '><span>' . $label . '</span></label></li>';
+        }
+        echo '
+            <div class="form-group required donor-info" id="donation-purpose">
+                <label for="donor-purpose" class="col-sm-3 control-label">' . raise_get_localized_value(raise_get($formSettings['payment']['labels']['purpose'], __('Purpose', 'raise'))) . '</label>
+                <div class="col-sm-9">
+                    <button type="button" id="donor-purpose" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span id="selected-purpose">' . esc_html($purposeButtonLabel) . '</span>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu scrollable-menu">' . implode("\n", $listItems) . '</ul>
+                </div>
+            </div>';
+    }
+}
+
+function raise_print_donor_extra_info($formSettings, $userCountryCode) {
+    $taxReceiptCheckboxHidden = raise_get($formSettings['payment']['form_elements']['tax_receipt']['checkbox_hidden'], false);
+    echo '<div class="donor-extra-info ' . ($taxReceiptCheckboxHidden ? 'donor-extra-info--permanent' : '') . '">';
+    $extraInfoStartHelperText = raise_get($formSettings['payment']['helper_texts']['donor_extra_info_start']);
+    if (!empty($extraInfoStartHelperText)) {
+        echo '<div class="form-group">
+                  <div class="col-sm-9  col-sm-offset-3 helper-text">' . esc_html(raise_get_localized_value($extraInfoStartHelperText)) . '</div>
+              </div>';
+    }
+
+    echo '<div class="form-group donor-info optionally-required">
+             <label for="donor-address" class="col-sm-3 control-label">' . __('Address', 'raise') . '</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control text" name="address" id="donor-address" placeholder="">
+                    </div>
+                </div>
+
+                <div class="form-group donor-info optionally-required">
+                    <label for="donor-zip" class="col-sm-3 control-label">' . __('Zip code', 'raise') . '</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control text" name="zip" id="donor-zip" placeholder="" maxlength="10">
+                    </div>
+                </div>
+
+                <div class="form-group donor-info optionally-required">
+                    <label for="donor-city" class="col-sm-3 control-label">' . __('City', 'raise') . '</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control text" name="city" id="donor-city" placeholder="">
+                    </div>
+                </div>';
+
+    if (empty($formSettings['payment']['extra_fields']['country']) || !$formSettings['payment']['extra_fields']['country']) {
+        $countries = raise_get_sorted_country_list();
+        $options = [];
+        foreach ($countries as $code => $country) {
+            $checked = $userCountryCode == $code ? 'selected' : '';
+            $options[] = '<option value="' . $code . '" '  . $checked . '>' . $country[0] . '</option>';
+        }
+        echo '<div class="form-group donor-info optionally-required">
+                <label for="donor-country" class="col-sm-3 control-label">' . __('Country', 'raise') . '</label>
+                <div class="col-sm-9">
+                    <select class="combobox form-control" name="country" id="donor-country">
+                        <option></option>
+                        ' . implode("\n", $options)  . '
+                    </select>
+                </div>
+            </div>';
+    }
+    echo '</div>';
+}
