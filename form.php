@@ -399,6 +399,20 @@ function raise_form($atts, $content = null)
                 </div>
             <?php endif; ?>
 
+            <!-- Terms and conditions -->
+            <?php if (!empty($formSettings['payment']['form_elements']['terms']['label'])): ?>
+                <div id="share-data-form-group" class="form-group required donor-info" style="margin-top: -10px">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="terms" id="terms" value="1" required>
+                                <span id="terms-text"><?= raise_get_localized_value($formSettings['payment']['form_elements']['terms']['label']) ?></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <!-- Donor extra info start -->
             <div class="donor-extra-info <?= $taxReceiptCheckboxHidden ? 'donor-extra-info--permanent' : '' ?>">
                 <?php

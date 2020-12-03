@@ -194,6 +194,13 @@ jQuery(function($) {
                 }
             }
 
+            // Unchecked required checkboxes
+            var emptyCheckboxes = $('div.slick-active .required :checkbox:not(:checkbox:checked)', '#wizard');
+            if (emptyCheckboxes.length) {
+                errors['terms'] = wordpress_vars.error_messages.accept_terms;
+                invalid.push('terms');
+            }
+
             // Unchecked radio groups (bootstrap drop downs). Add button instead.
             var emptyRadios = $('div.slick-active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
             if (emptyRadios.find('button').length) {
@@ -211,8 +218,8 @@ jQuery(function($) {
                 empty = $.unique($.merge(empty, invalid));
                 empty.each(function(index) {
                     // Don't add X icon to combobox. It looks bad
-                    if ($(this).attr('type') != 'hidden' && $(this).attr('id') != 'donor-country-auto') {
-                        if ($(this).attr('id') != 'donor-country') {
+                    if ($(this).attr('type') !== 'hidden' && !['donor-country-auto', 'terms'].includes($(this).attr('id'))) {
+                        if ($(this).attr('id') !== 'donor-country') {
                             $(this).parent().append('<span class="raise-error glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>');
                         }
                         $(this).parent().parent().addClass('has-error');
@@ -1264,6 +1271,7 @@ function getFormAsObject() {
     formObj.share_data_label  = formObj.hasOwnProperty('share_data')  ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.mailinglist_label = formObj.hasOwnProperty('mailinglist') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.tax_receipt_label = formObj.hasOwnProperty('tax_receipt') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
+    formObj.terms_label       = formObj.hasOwnProperty('terms')       ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
 
     // Add account property
     formObj.account = jsonLogic.apply(wordpress_vars.payment_provider_account_rule, formObj);
@@ -1311,6 +1319,10 @@ function getErrorMessage(errors) {
 
     if (errors.hasOwnProperty('donor-email')) {
         return errors['donor-email'];
+    }
+
+    if (errors.hasOwnProperty('terms')) {
+        return errors['terms'];
     }
 
     return wordpress_vars.error_messages['missing_fields'];
