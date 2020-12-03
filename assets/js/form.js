@@ -528,11 +528,11 @@ jQuery(function($) {
             carousel.height(newHeight);
             list.height(newHeight);
 
-            $('div#donor-extra-info')
+            $('div.donor-extra-info')
                 .slideDown(400, resizeCarousel)
                 .find('div.optionally-required').addClass('required');
         } else {
-            $('div#donor-extra-info')
+            $('div.donor-extra-info')
                 .slideUp(400, resizeCarousel)
                 .find('div.optionally-required').removeClass('required');
         }

@@ -259,7 +259,7 @@ div#amount-item span.form-control-feedback {
     margin: 2px 0 0;
 }
 
-#wizard div#donor-extra-info .dropdown-menu,
+#wizard div.donor-extra-info .dropdown-menu,
 #wizard div.donor-info .dropdown-menu {
     overflow-y: auto;
 }
@@ -349,8 +349,16 @@ div#payment-method-item span.form-control-feedback {
     display: flex;
 }
 
-div#donor-extra-info {
+.donor-extra-info {
     display: none;
+}
+
+.donor-extra-info--permanent {
+    display: block;
+}
+
+.helper-text {
+    font-size: smaller;
 }
 
 div#secure-transaction {

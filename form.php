@@ -383,19 +383,32 @@ function raise_form($atts, $content = null)
             <?php endif; ?>
 
             <!-- Tax receipt -->
-            <div class="form-group donor-info" style="margin-top: -10px">
-                <div class="col-sm-offset-3 col-sm-9">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1" class="precheckable" disabled>
-                            <span id="tax-receipt-text"><?php _e('I need a tax receipt', 'raise'); ?></span>
-                        </label>
+            <?php
+                $taxReceiptCheckboxHidden = raise_get($formSettings['payment']['form_elements']['tax_receipt']['checkbox_hidden'], false);
+                if (!$taxReceiptCheckboxHidden):
+            ?>
+                <div class="form-group donor-info" style="margin-top: -10px">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1" class="precheckable" disabled>
+                                <span id="tax-receipt-text"><?php _e('I need a tax receipt', 'raise'); ?></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
-            </div>
+            <?php endif; ?>
 
             <!-- Donor extra info start -->
-            <div id="donor-extra-info">
+            <div class="donor-extra-info <?= $taxReceiptCheckboxHidden ? 'donor-extra-info--permanent' : '' ?>">
+                <?php
+                    $extraInfoStartHelperText = raise_get($formSettings['payment']['helper_texts']['donor_extra_info_start']);
+                    if (!empty($extraInfoStartHelperText)):
+                ?>
+                    <div class="form-group">
+                        <div class="col-sm-9  col-sm-offset-3 helper-text"><?= esc_html(raise_get_localized_value($extraInfoStartHelperText)) ?></div>
+                    </div>
+                <?php endif; ?>
                 <div class="form-group donor-info optionally-required">
                     <label for="donor-address" class="col-sm-3 control-label"><?php _e('Address', 'raise') ?></label>
                     <div class="col-sm-9">

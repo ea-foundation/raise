@@ -175,6 +175,12 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "anonymous": false,  # add anonynmous checkbox
           "comment": false # add comment textarea
         },
+        "helper_texts": {
+          "donor_extra_info_start": {
+            "en": "To issue a tax receipt we need your address.",
+            "de": "Um Ihnen eine Spendenbescheinigung auszustellen, benötigen wir Ihre Adresse."
+          }
+        },
         "country": {
           "initial": "ipstack",  # Initial value for country dropdown, e.g. "US". Default is "ipstack"
           "ipstack_access_key": "abc1234", # Necessary if initial is "ipstack". See ipstack.com
@@ -188,14 +194,6 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
           "purpose": {
             "en": "Charity",
             "de": "Organisation"
-          },
-          "tax_receipt": {
-            "en" => "I need a tax receipt for Germany, Switzerland, the Netherlands, or the United States",
-            "de" => "Ich benötige eine Steuerbescheinigung für Deutschland, die Schweiz, die Niederlanden oder die USA"
-          },
-          "mailing_list": {
-            "en" => "Subscribe me to monthly EA updates",
-            "de" => "Monatliche EA-Updates abonnieren"
           }
         },
         "form_elements": {
@@ -229,7 +227,8 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
                 "label": {
                   "en": "I need a tax receipt for Germany.",
                   "de": "Ich benötige eine Steuerbescheinigung für Deutschland."
-                }
+                },
+                "checkbox_hidden": false,
               },
               "if": {
                 "===": [
@@ -282,6 +281,10 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
               "if": true
             }
           ],
+          "mailing_list": {
+            "en": "Subscribe me to EA updates.",
+            "de": "Updates abonnieren"
+          }
         }
       },
       "finish": {
@@ -316,7 +319,7 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
             "en": "My Organization",
             "de": "Meine Organisation"
           },
-          "address": "anne.wissemann@ea-foundation.org",
+          "address": "alice@example.com",
           "subject": {
             "en": "Thank you for your donation",
             "de": "Vielen Dank für Ihre Spende"
