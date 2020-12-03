@@ -401,6 +401,17 @@ jQuery(function($) {
         // Reload payment providers
         reloadPaymentProviders();
 
+        // Switch helper text
+        if (toHide === 'amount-once') {
+            var hideClass = '.average-amounts__once';
+            var showClass = '.average-amounts__monthly';
+        } else {
+            var hideClass = '.average-amounts__monthly';
+            var showClass = '.average-amounts__once';
+        }
+        $(hideClass).addClass('hidden');
+        $(showClass).removeClass('hidden');
+
         // Switch buttons if necessary
         var buttonsToShow = $('ul#amounts li.' + toShow);
         if (buttonsToShow.length > 0) {

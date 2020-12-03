@@ -63,6 +63,16 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
             "minimum_monthly": 3,
             "below_minimum_message": "Please donate more than %minimum_amount%."
           }
+        },
+        "helper_texts": {
+          "average_amount_once": {
+            "en": "The average one-time donation is $84.",
+            "de": "Die durschnittliche Einmalspende beträgt €84."
+          },
+          "average_amount_monthly": {
+            "en": "The average monthly donation is $50.",
+            "de": "Die durschnittliche monatliche Spende beträgt €50."
+          }
         }
       },
       "payment": {

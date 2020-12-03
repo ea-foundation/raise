@@ -663,3 +663,8 @@ input[type='number'] {
     -ms-user-select: none;
     user-select: none;
 }
+
+.average-amounts {
+    text-align: center;
+    padding-bottom: 20px;
+}

@@ -128,6 +128,10 @@ ul#frequency label.active {
     border-bottom: 2px solid <?= $widgetColorActive ?>;
 }
 
+.average-amounts {
+    color: <?= $widgetColorActive ?>;
+}
+
 /* Progress bar */
 
 #progress li.active {

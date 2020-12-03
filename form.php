@@ -156,14 +156,33 @@ function raise_form($atts, $content = null)
                 </ul>
             </div>
 
+            <?php
+                // Monthly buttons (if present)
+                $amountsMonthly     = raise_get($formSettings['amount']['button_monthly'], []);
+                $onceButtonClass    = $monthlyChecked && $amountsMonthly ? ' hidden' : '';
+                $monthlyButtonClass = $monthlyChecked && $amountsMonthly ? '' : ' hidden';
+            ?>
+
+            <?php if (raise_get($formSettings['amount']['helper_texts']['average_amount_once']) || raise_get($formSettings['amount']['helper_texts']['average_amount_monhtly'])): ?>
+                <div class="row">
+                    <div class="col-xs-12 average-amounts">
+                        <div class="average-amounts__once<?= $onceButtonClass ?>">
+                        <?php
+                            echo raise_get_localized_value(raise_get($formSettings['amount']['helper_texts']['average_amount_once'], ""));
+                        ?>
+                        </div>
+                        <div class="average-amounts__monthly<?= $monthlyButtonClass ?>">
+                        <?php
+                            echo raise_get_localized_value(raise_get($formSettings['amount']['helper_texts']['average_amount_monthly'], ""));
+                        ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <div class="row">
                 <ul id="amounts" class="radio">
                     <?php
-                        // Monthly buttons (if present)
-                        $amountsMonthly     = raise_get($formSettings['amount']['button_monthly'], []);
-                        $onceButtonClass    = $monthlyChecked && $amountsMonthly ? ' hidden' : '';
-                        $monthlyButtonClass = $monthlyChecked && $amountsMonthly ? '' : ' hidden';
-
                         // One-time buttons
                         $cols          = min(12, raise_get($formSettings['amount']['columns'], 3));
                         $buttonColSpan = floor(12 / $cols);
