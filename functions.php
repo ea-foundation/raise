@@ -25,6 +25,7 @@ const RAISE_WEBHOOK_KEYS = [
     'share_data',
     'share_data_offered',
     'tax_receipt',
+    'terms',
     'time',
     'tip',
     'tip_amount',
@@ -526,6 +527,7 @@ function raise_format_donation(array $donation) {
         'share_data_offered'         => (bool) raise_get($donation['share_data_offered'], false),
         'tip'                        => (bool) raise_get($donation['tip'], false),
         'tip_offered'                => (bool) raise_get($donation['tip_offered'], false),
+        'terms'                      => (bool) raise_get($donation['terms'], false),
     ];
 }
 
@@ -1633,6 +1635,7 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
     $_SESSION['raise-tax-receipt']          = (bool) raise_get($donation['tax_receipt'], false);
     $_SESSION['raise-mailinglist']          = (bool) raise_get($donation['mailinglist'], false);
     $_SESSION['raise-anonymous']            = (bool) raise_get($donation['anonymous'], false);
+    $_SESSION['raise-terms']                = (bool) raise_get($donation['terms'], false);
 }
 
 /**
