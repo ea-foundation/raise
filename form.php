@@ -345,6 +345,34 @@ function raise_form($atts, $content = null)
                 </div>
             <?php endif; ?>
 
+            <!-- Tipping -->
+            <?php if (!empty($formSettings['payment']['form_elements']['tip'])): ?>
+                <div id="tip-form-group" class="form-group donor-info" style="margin-top: -10px; display: none">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="tip" id="tip" value="1" class="precheckable">
+                                <span id="tip-text"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Terms and conditions -->
+            <?php if (!empty($formSettings['payment']['form_elements']['terms']['label'])): ?>
+                <div id="share-data-form-group" class="form-group required donor-info" style="margin-top: -10px">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="terms" id="terms" value="1" required>
+                                <span id="terms-text"><?= raise_get_localized_value($formSettings['payment']['form_elements']['terms']['label']) ?></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <!-- Mailing list -->
             <?php if (!empty($formSettings['webhook']['mailing_list'][$mode])): ?>
                 <div class="form-group donor-info" style="margin-top: -10px">
@@ -365,20 +393,6 @@ function raise_form($atts, $content = null)
                 </div>
             <?php endif; ?>
 
-            <!-- Tipping -->
-            <?php if (!empty($formSettings['payment']['form_elements']['tip'])): ?>
-                <div id="tip-form-group" class="form-group donor-info" style="margin-top: -10px; display: none">
-                    <div class="col-sm-offset-3 col-sm-9">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="tip" id="tip" value="1" class="precheckable">
-                                <span id="tip-text"></span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-
             <!-- Tax receipt -->
             <?php
                 $taxReceiptCheckboxHidden = raise_get($formSettings['payment']['form_elements']['tax_receipt']['checkbox_hidden'], false);
@@ -390,20 +404,6 @@ function raise_form($atts, $content = null)
                             <label>
                                 <input type="checkbox" name="tax_receipt" id="tax-receipt" value="1" class="precheckable" disabled>
                                 <span id="tax-receipt-text"><?php _e('I need a tax receipt', 'raise'); ?></span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-
-            <!-- Terms and conditions -->
-            <?php if (!empty($formSettings['payment']['form_elements']['terms']['label'])): ?>
-                <div id="share-data-form-group" class="form-group required donor-info" style="margin-top: -10px">
-                    <div class="col-sm-offset-3 col-sm-9">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="terms" id="terms" value="1" required>
-                                <span id="terms-text"><?= raise_get_localized_value($formSettings['payment']['form_elements']['terms']['label']) ?></span>
                             </label>
                         </div>
                     </div>
