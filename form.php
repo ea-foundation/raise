@@ -417,7 +417,7 @@ function raise_form($atts, $content = null)
             ?>
 
             <div class="buttons row">
-                <div class="col-sm-6 col-sm-push-3">
+                <div class="col-md-6 col-md-push-3">
                     <button type="submit" class="btn btn-lg confirm donation-continue" id="donation-submit"><?php _e('Next', 'raise') ?></button>
                 </div>
                 <div class="col-xs-4 col-sm-3 col-sm-pull-6" style="text-align: left">
