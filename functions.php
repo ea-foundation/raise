@@ -3322,7 +3322,8 @@ function raise_print_donor_extra_info($formSettings, $userCountryCode) {
                     </div>
                 </div>';
 
-    if (empty($formSettings['payment']['extra_fields']['country']) || !$formSettings['payment']['extra_fields']['country']) {
+    $countryCompulosry = raise_get($formSettings['payment']['extra_fields']['country'], false);
+    if (!$countryCompulosry) {
         $countries = raise_get_sorted_country_list();
         $options = [];
         foreach ($countries as $code => $country) {
@@ -3332,7 +3333,7 @@ function raise_print_donor_extra_info($formSettings, $userCountryCode) {
         echo '<div class="form-group donor-info optionally-required">
                 <label for="donor-country" class="col-sm-3 control-label">' . __('Country', 'raise') . '</label>
                 <div class="col-sm-9">
-                    <select class="combobox form-control" name="country" id="donor-country">
+                    <select class="combobox form-control" name="country_code" id="donor-country">
                         <option></option>
                         ' . implode("\n", $options)  . '
                     </select>
