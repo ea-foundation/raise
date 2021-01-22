@@ -513,6 +513,9 @@ jQuery(function($) {
     $('#donation-purpose input[type=radio]').change(function() {
         $('#selected-purpose').text($(this).siblings('span').text());
 
+        // Hack: Remove slick-list height to adapt height automatically
+        $('.slick-list').height('auto');
+
         // Update tax deduction text
         updateFormLabels('purpose');
     });    
