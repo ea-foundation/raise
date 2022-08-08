@@ -10,7 +10,7 @@ var currencies                  = wordpress_vars.amount_patterns;
 var currencyMinimums            = wordpress_vars.amount_minimums;
 var stripeHandlers              = null;
 var totalItems                  = 0;
-var taxReceiptNeeded            = false;
+var extraInfoNeeded             = false;
 var slideTransitionInAction     = false;
 var otherAmountPlaceholder      = null;
 var currentStripeKey            = '';
@@ -538,12 +538,12 @@ jQuery(function($) {
         }
     });
 
-    // Tax receipt toggle
-    $('input#tax-receipt').change(function() {
-        taxReceiptNeeded = $(this).is(':checked');
+    // Tax receipt toggle / gift aid toggle
+    $('input#tax-receipt, input#gift-aid').change(function() {
+        extraInfoNeeded = $(this).is(':checked');
 
         // Toggle donor form display and required class
-        if (taxReceiptNeeded) {
+        if (extraInfoNeeded) {
             var list = carousel.find('.slick-list');
             var newHeight = list.height() + 147;
             carousel.height(newHeight);
@@ -1132,6 +1132,7 @@ function updateFormLabels(source) {
     var shareDataCheckboxState   = applyJsonLogicAndParse(wordpress_vars.share_data_rule, formObj);
     var tipCheckboxState         = applyJsonLogicAndParse(wordpress_vars.tip_rule, formObj);
     var taxReceiptCheckboxState  = applyJsonLogicAndParse(wordpress_vars.tax_receipt_rule, formObj);
+    var giftAidCheckboxState     = applyJsonLogicAndParse(wordpress_vars.gift_aid_rule, formObj);
     var bankAccount              = applyJsonLogicAndParse(wordpress_vars.bank_account_rule, formObj) || {};
     var bankAccountProperties    = bankAccount.hasOwnProperty('details') ? bankAccount.details : {};
 
@@ -1148,6 +1149,7 @@ function updateFormLabels(source) {
         updateCheckboxState('share-data', shareDataCheckboxState, formObj);
         updateCheckboxState('tip', tipCheckboxState, formObj);
         updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
+        updateCheckboxState('gift-aid', giftAidCheckboxState, formObj);
     }
 
     // Update offered share data state
@@ -1285,6 +1287,7 @@ function getFormAsObject() {
     formObj.share_data_label  = formObj.hasOwnProperty('share_data')  ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.mailinglist_label = formObj.hasOwnProperty('mailinglist') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.tax_receipt_label = formObj.hasOwnProperty('tax_receipt') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
+    formObj.gift_aid_label    = formObj.hasOwnProperty('gift_aid')    ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.terms_label       = formObj.hasOwnProperty('terms')       ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
 
     // Add account property

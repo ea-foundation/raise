@@ -393,6 +393,22 @@ function raise_form($atts, $content = null)
                 </div>
             <?php endif; ?>
 
+            <!-- Gift aid -->
+            <?php
+                if (!empty($formSettings['payment']['form_elements']['gift_aid'])):
+            ?>
+                <div class="form-group donor-info" style="margin-top: -10px; display: none">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="gift_aid" id="gift-aid" value="1" class="precheckable">
+                                <span id="gift-aid-text"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <!-- Tax receipt -->
             <?php
                 $taxReceiptCheckboxHidden = raise_get($formSettings['payment']['form_elements']['tax_receipt']['checkbox_hidden'], false);

@@ -6,6 +6,7 @@ const RAISE_WEBHOOK_KEYS = [
     'amount',
     'anonymous',
     'city',
+    'gift_aid',
     'comment',
     'country',
     'country_code',
@@ -91,6 +92,10 @@ function raise_init_donation_form($form, $mode)
     }
     $postDonationInstructionsRule = raise_get_jsonlogic_if_rule($postDonationInstructions, 'raise_get_localized_value');
 
+    // Get gift_aid rule and localize labels
+    $giftAidSettings = raise_get($formSettings['payment']['form_elements']['gift_aid'], "");
+    $giftAidRule     = raise_get_checkbox_rule($giftAidSettings);
+    
     // Get tax_receipt rule and localize labels
     $taxReceiptSettings = raise_get($formSettings['payment']['form_elements']['tax_receipt'], "");
     $taxReceiptRule     = raise_get_checkbox_rule($taxReceiptSettings);
@@ -170,6 +175,7 @@ function raise_init_donation_form($form, $mode)
         'share_data_rule'                 => $shareDataRule,
         'tip_rule'                        => $tipRule,
         'tax_receipt_rule'                => $taxReceiptRule,
+        'gift_aid_rule'                   => $giftAidRule,
         'bank_account_rule'               => $bankAccountsRule,
         'organization'                    => $GLOBALS['raiseOrganization'],
         'currency2country'                => $GLOBALS['currency2country'],
@@ -528,6 +534,7 @@ function raise_format_donation(array $donation) {
         'tip'                        => (bool) raise_get($donation['tip'], false),
         'tip_offered'                => (bool) raise_get($donation['tip_offered'], false),
         'terms'                      => (bool) raise_get($donation['terms'], false),
+        'gift_aid'                   => (bool) raise_get($donation['gift_aid'], false),
     ];
 }
 
@@ -625,10 +632,10 @@ function raise_process_banktransfer()
         $reference = raise_handle_banktransfer_payment($donation);
 
         // Prepare response
-        $response = array(
+        $response = [
             'success'   => true,
             'reference' => $reference,
-        );
+        ];
 
         wp_send_json($response);
     } catch (\Exception $ex) {
@@ -1594,6 +1601,7 @@ function raise_get_donation_from_session()
         "comment"                    => $_SESSION['raise-comment'],
         "post_donation_instructions" => $_SESSION['post_donation_instructions'],
         "anonymous"                  => $_SESSION['raise-anonymous'],
+        "gift_aid"                   => $_SESSION['raise-gift_aid'],
     ];
 }
 
@@ -1636,6 +1644,7 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
     $_SESSION['raise-mailinglist']          = (bool) raise_get($donation['mailinglist'], false);
     $_SESSION['raise-anonymous']            = (bool) raise_get($donation['anonymous'], false);
     $_SESSION['raise-terms']                = (bool) raise_get($donation['terms'], false);
+    $_SESSION['raise-gift_aid']             = (bool) raise_get($donation['gift_aid'], false);
 }
 
 /**
@@ -3113,7 +3122,7 @@ function raise_do_post_donation_actions(array $donation)
     // Add post donation instructions and deductible flag to donation
     $formSettings           = raise_load_settings($donation['form']);
     $taxReceiptSettings     = raise_get($formSettings['payment']['form_elements']['tax_receipt']);
-    $mapper                 = function ($item) { return !raise_get($item['disabled'], false); };
+    $mapper                 = function ($item) { return $item !== '' ? !raise_get($item['disabled'], false) : false; };
     $donation['deductible'] = raise_get_conditional_value($taxReceiptSettings, $donation, $mapper);
 
     // Add account
@@ -3309,7 +3318,7 @@ function raise_print_donor_extra_info($formSettings, $userCountryCode) {
                 </div>
 
                 <div class="form-group donor-info optionally-required">
-                    <label for="donor-zip" class="col-sm-3 control-label">' . raise_get_localized_value(raise_get($formSettings['payment']['labels']['zip'], __('Zip code', 'raise'))) . '</label>
+                    <label for="donor-zip" class="col-sm-3 control-label">' . raise_get_localized_value(raise_get($formSettings['payment']['labels']['zip_code'], __('Zip code', 'raise'))) . '</label>
                     <div class="col-sm-9">
                         <input type="text" class="form-control text" name="zip" id="donor-zip" placeholder="" maxlength="10">
                     </div>
