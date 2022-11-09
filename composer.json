@@ -3,14 +3,14 @@
     "description": "Free donation plugin for WordPress",
     "config": {
         "platform": {
-            "php": "5.6.3"
+            "php": "7.4"
         }
     },
     "require": {
         "stripe/stripe-php": "^7.57",
         "gocardless/gocardless-pro": "^1.7",
         "bitpay/php-client": "^2.2",
-        "twig/twig": "^1.42",
+        "twig/twig": "^1.44.7",
         "paypal/rest-api-sdk-php": "*",
         "google/recaptcha": "~1.2",
         "jwadhams/json-logic-php": "^1.4.1",

@@ -12,7 +12,9 @@ namespace Twig\Tests\Extension;
  */
 
 use Twig\Environment;
+use Twig\Error\SyntaxError;
 use Twig\Extension\SandboxExtension;
+use Twig\Extension\StringLoaderExtension;
 use Twig\Loader\ArrayLoader;
 use Twig\Sandbox\SecurityError;
 use Twig\Sandbox\SecurityPolicy;
@@ -22,7 +24,7 @@ class SandboxTest extends \PHPUnit\Framework\TestCase
     protected static $params;
     protected static $templates;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         self::$params = [
             'name' => 'Fabien',
@@ -43,7 +45,11 @@ class SandboxTest extends \PHPUnit\Framework\TestCase
             '1_layout' => '{% block content %}{% endblock %}',
             '1_child' => "{% extends \"1_layout\" %}\n{% block content %}\n{{ \"a\"|json_encode }}\n{% endblock %}",
             '1_include' => '{{ include("1_basic1", sandboxed=true) }}',
+            '1_basic2_include_template_from_string_sandboxed' => '{{ include(template_from_string("{{ name|upper }}"), sandboxed=true) }}',
+            '1_basic2_include_template_from_string' => '{{ include(template_from_string("{{ name|upper }}")) }}',
             '1_range_operator' => '{{ (1..2)[0] }}',
+            '1_syntax_error_wrapper' => '{% sandbox %}{% include "1_syntax_error" %}{% endsandbox %}',
+            '1_syntax_error' => '{% syntax error }}',
         ];
     }
 
@@ -72,6 +78,64 @@ class SandboxTest extends \PHPUnit\Framework\TestCase
             $this->assertInstanceOf('\Twig\Sandbox\SecurityNotAllowedMethodError', $e, 'Exception should be an instance of Twig_Sandbox_SecurityNotAllowedMethodError');
             $this->assertEquals('Twig\Tests\Extension\FooObject', $e->getClassName(), 'Exception should be raised on the "Twig\Tests\Extension\FooObject" class');
             $this->assertEquals('foo', $e->getMethodName(), 'Exception should be raised on the "foo" method');
+        }
+    }
+
+    public function testIfSandBoxIsDisabledAfterSyntaxError()
+    {
+        $twig = $this->getEnvironment(false, [], self::$templates);
+        try {
+            $twig->load('1_syntax_error_wrapper')->render(self::$params);
+        } catch (SyntaxError $e) {
+            /** @var SandboxExtension $sandbox */
+            $sandbox = $twig->getExtension(SandboxExtension::class);
+            $this->assertFalse($sandbox->isSandboxed());
+        }
+    }
+
+    public function testSandboxGloballyFalseUnallowedFilterWithIncludeTemplateFromStringSandboxed()
+    {
+        $twig = $this->getEnvironment(false, [], self::$templates);
+        $twig->addExtension(new StringLoaderExtension());
+        try {
+            $twig->load('1_basic2_include_template_from_string_sandboxed')->render(self::$params);
+            $this->fail('Sandbox throws a SecurityError exception if an unallowed filter is called');
+        } catch (SecurityError $e) {
+            $this->assertInstanceOf('\Twig\Sandbox\SecurityNotAllowedFilterError', $e, 'Exception should be an instance of Twig_Sandbox_SecurityNotAllowedFilterError');
+            $this->assertEquals('upper', $e->getFilterName(), 'Exception should be raised on the "upper" filter');
+        }
+    }
+
+    public function testSandboxGloballyTrueUnallowedFilterWithIncludeTemplateFromStringSandboxed()
+    {
+        $twig = $this->getEnvironment(true, [], self::$templates, [], [], [], [], ['include', 'template_from_string']);
+        $twig->addExtension(new StringLoaderExtension());
+        try {
+            $twig->load('1_basic2_include_template_from_string_sandboxed')->render(self::$params);
+            $this->fail('Sandbox throws a SecurityError exception if an unallowed filter is called');
+        } catch (SecurityError $e) {
+            $this->assertInstanceOf('\Twig\Sandbox\SecurityNotAllowedFilterError', $e, 'Exception should be an instance of Twig_Sandbox_SecurityNotAllowedFilterError');
+            $this->assertEquals('upper', $e->getFilterName(), 'Exception should be raised on the "upper" filter');
+        }
+    }
+
+    public function testSandboxGloballyFalseUnallowedFilterWithIncludeTemplateFromStringNotSandboxed()
+    {
+        $twig = $this->getEnvironment(false, [], self::$templates);
+        $twig->addExtension(new StringLoaderExtension());
+        $this->assertSame('FABIEN', $twig->load('1_basic2_include_template_from_string')->render(self::$params));
+    }
+
+    public function testSandboxGloballyTrueUnallowedFilterWithIncludeTemplateFromStringNotSandboxed()
+    {
+        $twig = $this->getEnvironment(true, [], self::$templates, [], [], [], [], ['include', 'template_from_string']);
+        $twig->addExtension(new StringLoaderExtension());
+        try {
+            $twig->load('1_basic2_include_template_from_string')->render(self::$params);
+            $this->fail('Sandbox throws a SecurityError exception if an unallowed filter is called');
+        } catch (SecurityError $e) {
+            $this->assertInstanceOf('\Twig\Sandbox\SecurityNotAllowedFilterError', $e, 'Exception should be an instance of Twig_Sandbox_SecurityNotAllowedFilterError');
+            $this->assertEquals('upper', $e->getFilterName(), 'Exception should be raised on the "upper" filter');
         }
     }
 
@@ -164,8 +228,11 @@ class SandboxTest extends \PHPUnit\Framework\TestCase
             'is_defined' => ['{{ obj.anotherFooObject is defined }}', '1'],
             'is_null' => ['{{ obj is null }}', ''],
             'is_sameas' => ['{{ obj is same as(obj) }}', '1'],
+            'is_sameas_no_brackets' => ['{{ obj is same as obj }}', '1'],
             'is_sameas_from_array' => ['{{ arr.obj is same as(arr.obj) }}', '1'],
+            'is_sameas_from_array_no_brackets' => ['{{ arr.obj is same as arr.obj }}', '1'],
             'is_sameas_from_another_method' => ['{{ obj.anotherFooObject is same as(obj.anotherFooObject) }}', ''],
+            'is_sameas_from_another_method_no_brackets' => ['{{ obj.anotherFooObject is same as obj.anotherFooObject }}', ''],
         ];
     }
 
@@ -313,6 +380,29 @@ EOF
         }
 
         $this->assertFalse($twig->getExtension('\Twig\Extension\SandboxExtension')->isSandboxed(), 'Sandboxed include() function call should not leave Sandbox enabled when an error occurs.');
+    }
+
+    public function testSandboxWithNoClosureFilter()
+    {
+        $this->expectException('\Twig\Error\RuntimeError');
+        $this->expectExceptionMessage('The callable passed to "filter" filter must be a Closure in sandbox mode in "index" at line 1.');
+
+        $twig = $this->getEnvironment(true, ['autoescape' => 'html'], ['index' => <<<EOF
+{{ ["foo", "bar", ""]|filter("trim")|join(", ") }}
+EOF
+        ], [], ['escape', 'filter', 'join']);
+
+        $twig->load('index')->render([]);
+    }
+
+    public function testSandboxWithClosureFilter()
+    {
+        $twig = $this->getEnvironment(true, ['autoescape' => 'html'], ['index' => <<<EOF
+{{ ["foo", "bar", ""]|filter(v => v != "")|join(", ") }}
+EOF
+        ], [], ['escape', 'filter', 'join']);
+
+        $this->assertSame('foo, bar', $twig->load('index')->render([]));
     }
 
     protected function getEnvironment($sandboxed, $options, $templates, $tags = [], $filters = [], $methods = [], $properties = [], $functions = [])

@@ -2,9 +2,11 @@
 ==============
 
 .. versionadded:: 1.12.3
+
     Support for encoding an array as query string was added in Twig 1.12.3.
 
 .. versionadded:: 1.16.0
+
     The ``raw`` argument was removed in Twig 1.16.0. Twig now always encodes
     according to RFC 3986.
 
@@ -29,6 +31,6 @@ or an array as query string:
     that as of Twig 1.16.0, ``urlencode`` **always** uses ``rawurlencode`` (the
     ``raw`` argument was removed.)
 
-.. _`urlencode`:        https://secure.php.net/urlencode
-.. _`rawurlencode`:     https://secure.php.net/rawurlencode
-.. _`http_build_query`: https://secure.php.net/http_build_query
+.. _`urlencode`:        https://www.php.net/urlencode
+.. _`rawurlencode`:     https://www.php.net/rawurlencode
+.. _`http_build_query`: https://www.php.net/http_build_query

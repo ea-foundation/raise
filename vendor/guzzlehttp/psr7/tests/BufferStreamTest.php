@@ -1,4 +1,5 @@
 <?php
+
 namespace GuzzleHttp\Tests\Psr7;
 
 use GuzzleHttp\Psr7\BufferStream;
@@ -8,37 +9,36 @@ class BufferStreamTest extends BaseTest
     public function testHasMetadata()
     {
         $b = new BufferStream(10);
-        $this->assertTrue($b->isReadable());
-        $this->assertTrue($b->isWritable());
-        $this->assertFalse($b->isSeekable());
-        $this->assertEquals(null, $b->getMetadata('foo'));
-        $this->assertEquals(10, $b->getMetadata('hwm'));
-        $this->assertEquals([], $b->getMetadata());
+        self::assertTrue($b->isReadable());
+        self::assertTrue($b->isWritable());
+        self::assertFalse($b->isSeekable());
+        self::assertSame(null, $b->getMetadata('foo'));
+        self::assertSame(10, $b->getMetadata('hwm'));
+        self::assertSame([], $b->getMetadata());
     }
 
     public function testRemovesReadDataFromBuffer()
     {
         $b = new BufferStream();
-        $this->assertEquals(3, $b->write('foo'));
-        $this->assertEquals(3, $b->getSize());
-        $this->assertFalse($b->eof());
-        $this->assertEquals('foo', $b->read(10));
-        $this->assertTrue($b->eof());
-        $this->assertEquals('', $b->read(10));
+        self::assertSame(3, $b->write('foo'));
+        self::assertSame(3, $b->getSize());
+        self::assertFalse($b->eof());
+        self::assertSame('foo', $b->read(10));
+        self::assertTrue($b->eof());
+        self::assertSame('', $b->read(10));
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Cannot determine the position of a BufferStream
-     */
     public function testCanCastToStringOrGetContents()
     {
         $b = new BufferStream();
         $b->write('foo');
         $b->write('baz');
-        $this->assertEquals('foo', $b->read(3));
+        self::assertSame('foo', $b->read(3));
         $b->write('bar');
-        $this->assertEquals('bazbar', (string) $b);
+        self::assertSame('bazbar', (string) $b);
+
+        $this->expectExceptionGuzzle('RuntimeException', 'Cannot determine the position of a BufferStream');
+
         $b->tell();
     }
 
@@ -47,17 +47,17 @@ class BufferStreamTest extends BaseTest
         $b = new BufferStream();
         $b->write('foo');
         $b->detach();
-        $this->assertTrue($b->eof());
-        $this->assertEquals(3, $b->write('abc'));
-        $this->assertEquals('abc', $b->read(10));
+        self::assertTrue($b->eof());
+        self::assertSame(3, $b->write('abc'));
+        self::assertSame('abc', $b->read(10));
     }
 
     public function testExceedingHighwaterMarkReturnsFalseButStillBuffers()
     {
         $b = new BufferStream(5);
-        $this->assertEquals(3, $b->write('hi '));
-        $this->assertFalse($b->write('hello'));
-        $this->assertEquals('hi hello', (string) $b);
-        $this->assertEquals(4, $b->write('test'));
+        self::assertSame(3, $b->write('hi '));
+        self::assertFalse($b->write('hello'));
+        self::assertSame('hi hello', (string) $b);
+        self::assertSame(4, $b->write('test'));
     }
 }

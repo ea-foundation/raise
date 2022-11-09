@@ -2,13 +2,16 @@
 
 namespace Twig\Tests;
 
+use Twig\Environment;
+use Twig\Loader\LoaderInterface;
+
 /**
  * This class is adapted from code coming from Zend Framework.
  *
  * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (https://www.zend.com)
  * @license   https://framework.zend.com/license/new-bsd New BSD License
  */
-class Twig_Test_EscapingTest extends \PHPUnit\Framework\TestCase
+class escapingTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * All character encodings supported by htmlspecialchars().
@@ -151,9 +154,9 @@ class Twig_Test_EscapingTest extends \PHPUnit\Framework\TestCase
 
     protected $env;
 
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->env = new \Twig\Environment($this->createMock('\Twig\Loader\LoaderInterface'));
+        $this->env = new Environment($this->createMock(LoaderInterface::class));
     }
 
     public function testHtmlEscapingConvertsSpecialChars()
@@ -174,6 +177,22 @@ class Twig_Test_EscapingTest extends \PHPUnit\Framework\TestCase
     {
         foreach ($this->jsSpecialChars as $key => $value) {
             $this->assertEquals($value, twig_escape_filter($this->env, $key, 'js'), 'Failed to escape: '.$key);
+        }
+    }
+
+    public function testJavascriptEscapingConvertsSpecialCharsWithInternalEncoding()
+    {
+        $twig = new Environment($this->createMock(LoaderInterface::class));
+        $previousInternalEncoding = mb_internal_encoding();
+        try {
+            mb_internal_encoding('ISO-8859-1');
+            foreach ($this->jsSpecialChars as $key => $value) {
+                $this->assertEquals($value, twig_escape_filter($twig, $key, 'js'), 'Failed to escape: ' . $key);
+            }
+        } finally {
+            if ($previousInternalEncoding !== false) {
+                mb_internal_encoding($previousInternalEncoding);
+            }
         }
     }
 

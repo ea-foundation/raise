@@ -59,7 +59,7 @@ function test_foo($value = 'foo')
 
 class TwigTestFoo implements \Iterator
 {
-    const BAR_NAME = 'bar';
+    public const BAR_NAME = 'bar';
 
     public $position = 0;
     public $array = [1, 2];
@@ -164,6 +164,7 @@ class TwigTestExtension extends AbstractExtension
             new TwigFilter('magic_call_array', ['Twig\Tests\TwigTestExtension', 'magicStaticCall']),
             new TwigFilter('*_path', [$this, 'dynamic_path']),
             new TwigFilter('*_foo_*_bar', [$this, 'dynamic_foo']),
+            new TwigFilter('not', [$this, 'notFilter']),
         ];
     }
 
@@ -186,6 +187,11 @@ class TwigTestExtension extends AbstractExtension
             new TwigTest('multi word', [$this, 'is_multi_word']),
             new TwigTest('test_*', [$this, 'dynamic_test']),
         ];
+    }
+
+    public function notFilter($value)
+    {
+        return 'not '.$value;
     }
 
     public function §Filter($value)

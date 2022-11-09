@@ -16,10 +16,6 @@ Twig supports the in operator
 {{ true in [0, 1] ? 'OK' : 'KO' }}
 {{ '0' in [0, 1] ? 'OK' : 'KO' }}
 {{ '0' in [1, 0] ? 'OK' : 'KO' }}
-{{ '' in [0, 1] ? 'OK' : 'KO' }}
-{{ '' in [1, 0] ? 'OK' : 'KO' }}
-{{ 0 in ['', 1] ? 'OK' : 'KO' }}
-{{ 0 in [1, ''] ? 'OK' : 'KO' }}
 
 {{ '' in 'foo' ? 'OK' : 'KO' }}
 {{ 0 in 'foo' ? 'KO' : 'OK' }}
@@ -43,7 +39,6 @@ Twig supports the in operator
 {{ ''~dir_object in dir_object ? 'KO' : 'OK' }}
 
 {{ resource in [''~resource] ? 'KO' : 'OK' }}
-{{ resource in [resource + 1 - 1] ? 'KO' : 'OK' }}
 {{ dir_object in [''~dir_object] ? 'KO' : 'OK' }}
 
 {{ 5 in 125 ? 'KO' : 'OK' }}
@@ -57,8 +52,14 @@ Twig supports the in operator
 
 {{ safe in ['foo', 'bar'] ? 'OK' : 'KO' }}
 {{ 'fo' in safe ? 'OK' : 'KO' }}
+
+{{ foo.not in ['not'] ? 'OK' : 'KO' }}
+{{ 'value'|not in ['not value'] ? 'OK' : 'KO' }}
+{{ foo.not not in ['not'] ? 'KO' : 'OK' }}
+{{ 'value'|not not in ['not value'] ? 'KO' : 'OK' }}
+{{ 'value'not in['not value'] ? 'OK' : 'KO' }}
 --DATA--
-return ['bar' => 'bar', 'foo' => ['bar' => 'bar'], 'dir_object' => new \SplFileInfo(dirname(__FILE__)), 'object' => new \stdClass(), 'resource' => opendir(dirname(__FILE__)), 'safe' => new \Twig\Markup('foo', 'UTF-8')]
+return ['bar' => 'bar', 'foo' => ['bar' => 'bar', 'not' => 'not'], 'dir_object' => new \SplFileInfo(dirname(__FILE__)), 'object' => new \stdClass(), 'resource' => opendir(dirname(__FILE__)), 'safe' => new \Twig\Markup('foo', 'UTF-8')]
 --EXPECT--
 OK
 OK
@@ -75,10 +76,6 @@ OK
 OK
 OK
 OK
-OK
-OK
-OK
-OK
 
 OK
 OK
@@ -103,7 +100,6 @@ OK
 
 OK
 OK
-OK
 
 OK
 OK
@@ -114,5 +110,11 @@ OK
 OK
 OK
 
+OK
+OK
+
+OK
+OK
+OK
 OK
 OK

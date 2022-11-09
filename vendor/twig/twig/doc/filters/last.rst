@@ -2,6 +2,7 @@
 ========
 
 .. versionadded:: 1.12.2
+
     The ``last`` filter was added in Twig 1.12.2.
 
 The ``last`` filter returns the last "element" of a sequence, a mapping, or
@@ -22,4 +23,4 @@ a string:
 
     It also works with objects implementing the `Traversable`_ interface.
 
-.. _`Traversable`: https://secure.php.net/manual/en/class.traversable.php
+.. _`Traversable`: https://www.php.net/manual/en/class.traversable.php

@@ -20,7 +20,7 @@ The rendering of a Twig template can be summarized into four key steps:
   * Then, the **parser** converts the token stream into a meaningful tree
     of nodes (the Abstract Syntax Tree);
 
-  * Finally, the *compiler* transforms the AST into PHP code.
+  * Finally, the **compiler** transforms the AST into PHP code.
 
 * **Evaluate** the template: It means calling the ``display()``
   method of the compiled template and passing it the context.
@@ -49,6 +49,7 @@ You can manually convert a source code into a token stream by calling the
     $stream = $twig->tokenize(new \Twig\Source($source, $identifier));
 
 .. versionadded:: 1.27
+
     ``\Twig\Source`` was introduced in version 1.27, pass the source and the
     identifier directly on previous versions.
 
