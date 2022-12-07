@@ -264,7 +264,7 @@ function raise_form($atts, $content = null)
                 <div class="col-sm-offset-3 col-sm-9">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" name="anonymous" id="donor-anonymous" value="1"> <?php _e('Don\'t publish my name', 'raise') ?>
+                            <input type="checkbox" name="anonymous" id="donor-anonymous" value="1"> <?= raise_get_localized_value(raise_get($formSettings['payment']['labels']['anonymous'], __('Don\'t publish my name', 'raise'))) ?>
                         </label>
                     </div>
                 </div>
@@ -318,7 +318,7 @@ function raise_form($atts, $content = null)
             <!-- Comment -->
             <?php if (raise_get($formSettings['payment']['extra_fields']['comment'], false)): ?>
                 <div class="form-group donor-info">
-                    <label for="donor-comment" class="col-sm-3 control-label"><?php _e('Public comment', 'raise') ?> (<?php _e('optional', 'raise') ?>)</label>
+                    <label for="donor-comment" class="col-sm-3 control-label"><?= raise_get_localized_value(raise_get($formSettings['payment']['labels']['comment'], __('Public comment', 'raise'))) ?> (<?php _e('optional', 'raise') ?>)</label>
                     <div class="col-sm-9">
                         <textarea class="form-control" rows="3" name="comment" id="donor-comment"></textarea>
                     </div>

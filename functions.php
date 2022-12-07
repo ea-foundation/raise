@@ -3309,7 +3309,7 @@ function raise_print_donor_extra_info($formSettings, $userCountryCode) {
                 </div>
 
                 <div class="form-group donor-info optionally-required">
-                    <label for="donor-zip" class="col-sm-3 control-label">' . __('Zip code', 'raise') . '</label>
+                    <label for="donor-zip" class="col-sm-3 control-label">' . raise_get_localized_value(raise_get($formSettings['payment']['labels']['zip'], __('Zip code', 'raise'))) . '</label>
                     <div class="col-sm-9">
                         <input type="text" class="form-control text" name="zip" id="donor-zip" placeholder="" maxlength="10">
                     </div>
