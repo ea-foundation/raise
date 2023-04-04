@@ -1904,6 +1904,7 @@ function raise_log_stripe_donation(WP_REST_Request $request)
         $settings      = raise_get_payment_provider_account_settings('stripe', $donation);
         $signingSecret = raise_get($settings['signing_secret'], '');
         \Stripe\Stripe::setApiKey($settings['secret_key']);
+        \Stripe\Stripe::setApiVersion('2016-07-06');
 
         // Verify signature
         $payload = @file_get_contents('php://input');
