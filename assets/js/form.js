@@ -1220,6 +1220,12 @@ function updateCheckboxState(id, state, formObj) {
     }
 }
 
+function stringifyAccountData(accountDataObj) {
+    return Object.keys(accountDataObj).map(function(key) {
+        return '<strong>' + key + '</strong>: ' + accountDataObj[key];
+    }).join("\n");
+}
+
 /**
  * Replace donation placeholders
  */
@@ -1233,9 +1239,13 @@ function replaceDonationPlaceholders(label, formObj, accountData) {
         var accountDataString = '<strong>' + wordpress_vars.labels.amount + '</strong>: ' + amount + "\n";
 
         // Add bank details
-        accountDataString += Object.keys(accountData).map(function(key) {
-            return '<strong>' + key + '</strong>: ' + accountData[key];
-        }).join("\n");
+        if (Array.isArray(accountData)) {
+            for (const accountDataObj of accountData) {
+                accountDataString += stringifyAccountData(accountDataObj);
+            }
+        } else {
+            accountDataString += stringifyAccountData(accountData);
+        }
 
         label = label.replace('%bank_account_formatted%', accountDataString);
     }
