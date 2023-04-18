@@ -113,12 +113,26 @@ function raise_init_donation_form($form, $mode)
     if (is_array($bankAccounts)) {
         if (raise_has_string_keys($bankAccounts)) {
             // No JsonLogic
-            $bankAccounts['details'] = raise_localize_array_keys(raise_get($bankAccounts['details'], []));
+            if (raise_has_string_keys($bankAccounts['details'])) {
+                // Normal case
+                $bankAccounts['details'] = raise_localize_array_keys(raise_get($bankAccounts['details'], []));
+            } else {
+                // When using the same keys several times
+                $bankAccounts['details'] = array_map(function($item) {
+                    return raise_localize_array_keys(raise_get($item, []));
+                }, $bankAccounts['details']);
+            }
         } else {
             // JsonLogic
             $bankAccounts = array_map(function($item) {
                 if (!empty($item['value']['details']) && is_array($item['value']['details'])) {
-                    $item['value']['details'] = raise_localize_array_keys($item['value']['details']);
+                    if (raise_has_string_keys($item['value']['details'])) {
+                        $item['value']['details'] = raise_localize_array_keys($item['value']['details']);
+                    } else {
+                        $item['value']['details'] = array_map(function($details) {
+                            return raise_localize_array_keys($details);
+                        }, $item['value']['details']);
+                    }
                 }
                 if (!empty($item['value']['tooltip']) && is_array($item['value']['tooltip'])) {
                     $item['value']['tooltip'] = raise_get_localized_value($item['value']['tooltip']);
