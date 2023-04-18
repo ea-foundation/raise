@@ -1241,7 +1241,7 @@ function replaceDonationPlaceholders(label, formObj, accountData) {
         // Add bank details
         if (Array.isArray(accountData)) {
             for (const accountDataObj of accountData) {
-                accountDataString += stringifyAccountData(accountDataObj);
+                accountDataString += stringifyAccountData(accountDataObj) + "\n";
             }
         } else {
             accountDataString += stringifyAccountData(accountData);
