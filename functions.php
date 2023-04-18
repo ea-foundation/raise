@@ -1794,6 +1794,7 @@ function raise_prepare_stripe_donation(array $donation)
     $sessionParams = [
         'customer_email'       => $donation['email'],
         'payment_method_types' => ['card'],
+        'mode'                 => 'payment',
         'success_url'          => $returnUrl,
         'cancel_url'           => $cancelUrl,
     ];
@@ -1822,11 +1823,15 @@ function raise_prepare_stripe_donation(array $donation)
             ]
         ];
         $sessionParams['line_items'] = [[
-            'name'     => $recipient,
-            'amount'   => $amountInt,
-            'currency' => $donation['currency'],
+            'price_data' => [
+                'unit_amount'   => $amountInt,
+                'currency' => $donation['currency'],
+                'product_data' => [
+                    'name' => $recipient,
+                    'images'   => [get_option('raise_logo')],
+                ]
+            ],
             'quantity' => 1,
-            'images'   => [get_option('raise_logo')],
         ]];
     }
 
@@ -1904,7 +1909,6 @@ function raise_log_stripe_donation(WP_REST_Request $request)
         $settings      = raise_get_payment_provider_account_settings('stripe', $donation);
         $signingSecret = raise_get($settings['signing_secret'], '');
         \Stripe\Stripe::setApiKey($settings['secret_key']);
-        \Stripe\Stripe::setApiVersion('2016-07-06');
 
         // Verify signature
         $payload = @file_get_contents('php://input');
