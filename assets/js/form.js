@@ -564,7 +564,7 @@ jQuery(function($) {
 
     // Toggle confirmation check box for gift aid
     $('input#gift-aid').change(function() {
-        $('input#gift-aid-confirmation').toggle();
+        $('input#gift-aid-confirmation').parents('.form-group.donor-info').toggle();
     });
 
     // Disable precheck state defined in settings on first click
