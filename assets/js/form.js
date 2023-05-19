@@ -196,6 +196,10 @@ jQuery(function($) {
 
             // Unchecked required checkboxes
             var emptyCheckboxes = $('div.slick-active .required :checkbox:not(:checkbox:checked)', '#wizard');
+            // Remove gift-aid-confiramtion if gift-aid isn't checked
+            if (!$('#gift-aid:checked', '#wizard').length) {
+                emptyCheckboxes = emptyCheckboxes.not('#gift-aid-confiramtion');
+            }
             emptyCheckboxes.each(function(index) {
                 const id = $(this).attr('id').replaceAll('-', '_');
                 errors[id] = wordpress_vars.error_messages[id];
