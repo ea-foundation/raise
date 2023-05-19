@@ -196,9 +196,10 @@ jQuery(function($) {
 
             // Unchecked required checkboxes
             var emptyCheckboxes = $('div.slick-active .required :checkbox:not(:checkbox:checked)', '#wizard');
-            if (emptyCheckboxes.length) {
-                errors['terms'] = wordpress_vars.error_messages.accept_terms;
-                invalid.push('terms');
+            for (const emptyCheckbox of emptyCheckboxes) {
+                const id = $(this).attr('id').replace('-', '_');
+                errors[id] = wordpress_vars.error_messages[id];
+                invalid.push(id);
             }
 
             // Unchecked radio groups (bootstrap drop downs). Add button instead.
@@ -216,9 +217,9 @@ jQuery(function($) {
 
                 // Add a error CSS for empty and invalid fields
                 empty = $.unique($.merge(empty, invalid));
-                empty.each(function(index) {
+                empty.filter(':text').not('#donor-country-auto').each(function(index) {
                     // Don't add X icon to combobox. It looks bad
-                    if ($(this).attr('type') !== 'hidden' && !['donor-country-auto', 'terms'].includes($(this).attr('id'))) {
+                    if ($(this).attr('type') !== 'hidden') {
                         if ($(this).attr('id') !== 'donor-country') {
                             $(this).parent().append('<span class="raise-error glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>');
                         }
@@ -1355,6 +1356,10 @@ function getErrorMessage(errors) {
 
     if (errors.hasOwnProperty('terms')) {
         return errors['terms'];
+    }
+
+    if (errors.hasOwnProperty('gift-aid-confirmation')) {
+        return errors['gift-aid-confirmation'];
     }
 
     return wordpress_vars.error_messages['missing_fields'];

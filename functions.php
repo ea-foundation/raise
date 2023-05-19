@@ -210,7 +210,8 @@ function raise_init_donation_form($form, $mode)
             'below_minimum_amount'        => __('The minimum donation is %minimum_amount%.', 'raise'),
             'connection_error'            => __('Error establishing a connection. Please try again.', 'raise'),
             'below_minimum_amount_custom' => $belowMinimumAmountMessages,
-            'accept_terms'                => __('You must accept our Terms and Conditions to continue.', 'raise'),
+            'terms'                       => __('You must accept our Terms and Conditions to continue.', 'raise'),
+            'gift_aid_confirmation'       => __('You must accept the UK Gift Aid Conditions to continue.', 'raise'),
         ],
     ));
 
