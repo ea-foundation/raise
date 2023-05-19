@@ -198,7 +198,7 @@ jQuery(function($) {
             var emptyCheckboxes = $('div.slick-active .required :checkbox:not(:checkbox:checked)', '#wizard');
             // Remove gift-aid-confiramtion if gift-aid isn't checked
             if (!$('#gift-aid:checked', '#wizard').length) {
-                emptyCheckboxes = emptyCheckboxes.not('#gift-aid-confiramtion');
+                emptyCheckboxes = emptyCheckboxes.not('#gift-aid-confirmation');
             }
             emptyCheckboxes.each(function(index) {
                 const id = $(this).attr('id').replaceAll('-', '_');
