@@ -413,7 +413,7 @@ function raise_form($atts, $content = null)
                     <div class="col-sm-offset-3 col-sm-9">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="gift_aid_confirmation" id="gift-aid-confirmation" value="1" class="precheckable" required>
+                                <input type="checkbox" name="gift_aid_confirmation" id="gift-aid-confirmation" value="1" class="precheckable required">
                                 <span id="gift-aid-confirmation-text">I confirm that I am a UK taxpayer, and I understand that if I pay less Income Tax and/or Capital Gains Tax in the current tax year than the amount of Gift Aid claimed on all my donations, it is my responsibility to pay any difference.</span>
                             </label>
                         </div>
