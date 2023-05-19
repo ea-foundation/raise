@@ -217,7 +217,7 @@ jQuery(function($) {
 
                 // Add a error CSS for empty and invalid fields
                 empty = $.unique($.merge(empty, invalid));
-                empty.filter(':text,:email').not('#donor-country-auto').each(function(index) {
+                empty.filter(':text,#donor-email').not('#donor-country-auto').each(function(index) {
                     // Don't add X icon to combobox. It looks bad
                     if ($(this).attr('type') !== 'hidden') {
                         if ($(this).attr('id') !== 'donor-country') {
@@ -1358,8 +1358,8 @@ function getErrorMessage(errors) {
         return errors['terms'];
     }
 
-    if (errors.hasOwnProperty('gift-aid-confirmation')) {
-        return errors['gift-aid-confirmation'];
+    if (errors.hasOwnProperty('gift_aid_confirmation')) {
+        return errors['gift_aid_confirmation'];
     }
 
     return wordpress_vars.error_messages['missing_fields'];
