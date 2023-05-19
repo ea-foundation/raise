@@ -196,11 +196,11 @@ jQuery(function($) {
 
             // Unchecked required checkboxes
             var emptyCheckboxes = $('div.slick-active .required :checkbox:not(:checkbox:checked)', '#wizard');
-            for (const emptyCheckbox of emptyCheckboxes) {
-                const id = $(this).attr('id').replace('-', '_');
+            emptyCheckboxes.each(function(index) {
+                const id = $(this).attr('id').replaceAll('-', '_');
                 errors[id] = wordpress_vars.error_messages[id];
                 invalid.push(id);
-            }
+            });
 
             // Unchecked radio groups (bootstrap drop downs). Add button instead.
             var emptyRadios = $('div.slick-active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
@@ -217,7 +217,7 @@ jQuery(function($) {
 
                 // Add a error CSS for empty and invalid fields
                 empty = $.unique($.merge(empty, invalid));
-                empty.filter(':text').not('#donor-country-auto').each(function(index) {
+                empty.filter(':text,:email').not('#donor-country-auto').each(function(index) {
                     // Don't add X icon to combobox. It looks bad
                     if ($(this).attr('type') !== 'hidden') {
                         if ($(this).attr('id') !== 'donor-country') {
