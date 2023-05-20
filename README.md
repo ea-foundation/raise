@@ -183,6 +183,11 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
             }
           ]
         },
+        "account_description": {
+            "DE": "Your donation will be received by Your Charity Germany, a German charitable association which collects donations on our behalf.",
+            "US": "Your donation will be received by Your Charity US, an American charitable association which collects donations on our behalf.",
+            "UK": "Your donation will be received directly by Your Charity UK, a registered charity in England and Wales (charity no. 123)."
+        },
         "<a href="#reference-numbers">reference_number_prefix</a>": {
           "my_org": "ORG",
           "default": "XRG"

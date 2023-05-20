@@ -1181,6 +1181,11 @@ function updateFormLabels(source) {
 
     // Update tip
     updateTip();
+
+    // Update account description
+    const account = formObj.account || "";
+    const accountDescription = wordpress_vars.account_description[account] || "";
+    jQuery('#account-description', '#wizard').html(accountDescription);
 }
 
 /**

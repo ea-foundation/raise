@@ -444,6 +444,13 @@ function raise_form($atts, $content = null)
                 }
             ?>
 
+            <!-- Account description -->
+            <?php if (!empty($formSettings['payment']['account_description'])): ?>
+                <div class="row">
+                    <div id="account-description" class="col-sm-offset-3 col-sm-9"></div>
+                </div>
+            <?php endif; ?>
+
             <div class="buttons row">
                 <div class="col-sm-6 col-sm-push-3 nopadding">
                     <button type="submit" class="btn btn-lg confirm donation-continue" id="donation-submit"><?php _e('Next', 'raise') ?></button>
