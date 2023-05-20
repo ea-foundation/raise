@@ -195,7 +195,7 @@ function raise_init_donation_form($form, $mode)
         'currency2country'                => $GLOBALS['currency2country'],
         'monthly_support'                 => $GLOBALS['monthlySupport'],
         'default_frequency'               => raise_get($formSettings['amount']['frequency']['default'], 'once'),
-        'account_description'             => raise_get($formSettings['payment']['account_desciption'], []),
+        'account_description'             => raise_get($formSettings['payment']['account_description'], []),
         'labels'                          => [
             'yes'                   => __("yes", "raise"),
             'no'                    => __("no", "raise"),
