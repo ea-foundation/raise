@@ -1157,7 +1157,7 @@ function updateFormLabels(source) {
         updateCheckboxState('gift-aid', giftAidCheckboxState, formObj);
         updateCheckboxState('gift-aid-confirmation', !!giftAidCheckboxState.label && !!$('#gift-aid:checked', '#wizard').length
             ? { label: "I confirm that I am a UK taxpayer, and I understand that if I pay less Income Tax and/or Capital Gains Tax in the current tax year than the amount of Gift Aid claimed on all my donations, it is my responsibility to pay any difference." }
-            : {}, // Uncheck and hide 
+            : null, // Uncheck and hide 
             formObj
         );
     }
@@ -1224,7 +1224,7 @@ function updateCheckboxState(id, state, formObj) {
     element.prop('disabled', disabled);
 
     // Update checkbox label
-    if (state && state.hasOwnProperty('label')) {
+    if (state && state.label) {
         element.parent().parent().parent().parent().show();
         state.label = replaceDonationPlaceholders(state.label, formObj);
         jQuery('span#' + id + '-text').html(state.label);
