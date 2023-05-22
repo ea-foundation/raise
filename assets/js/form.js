@@ -567,11 +567,6 @@ jQuery(function($) {
         updateFormLabels();
     });
 
-    // Toggle confirmation check box for gift aid
-    $('input#gift-aid').change(function() {
-        $('input#gift-aid-confirmation').parents('.form-group.donor-info').toggle();
-    });
-
     // Disable precheck state defined in settings on first click
     $('input.precheckable').click(function() {
         checkboxPreCheck[$(this).attr('id')] = true;
@@ -1154,12 +1149,17 @@ function updateFormLabels(source) {
         jQuery(this).find('div[data-toggle="tooltip"]').attr('data-original-title', tooltip);
     });
 
-    // Update checkbox states when purpose changes (otherwise no need)
+    // Update checkbox states when purpose is set (otherwise no need)
     if (!!jQuery('input[name=purpose]:checked', '#wizard').val()) {
         updateCheckboxState('share-data', shareDataCheckboxState, formObj);
         updateCheckboxState('tip', tipCheckboxState, formObj);
         updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
         updateCheckboxState('gift-aid', giftAidCheckboxState, formObj);
+        updateCheckboxState('gift-aid-confirmation', !!giftAidCheckboxState.label && !!$('#gift-aid:checked', '#wizard').length
+            ? { label: "I confirm that I am a UK taxpayer, and I understand that if I pay less Income Tax and/or Capital Gains Tax in the current tax year than the amount of Gift Aid claimed on all my donations, it is my responsibility to pay any difference." }
+            : {}, // Uncheck and hide 
+            formObj
+        );
     }
 
     // Update offered share data state
@@ -1192,7 +1192,7 @@ function updateFormLabels(source) {
  * Update checkbox state
  * 
  * @param string id      ID of form element
- * @param Object state   Object containing the properties `label` and `disabled`
+ * @param Object state   Object containing the properties `label`, `checked` and `disabled`
  * @param Object formObj Form object
  */
 function updateCheckboxState(id, state, formObj) {
@@ -1224,7 +1224,7 @@ function updateCheckboxState(id, state, formObj) {
     element.prop('disabled', disabled);
 
     // Update checkbox label
-    if (state && state.label) {
+    if (state && state.hasOwnProperty('label')) {
         element.parent().parent().parent().parent().show();
         state.label = replaceDonationPlaceholders(state.label, formObj);
         jQuery('span#' + id + '-text').html(state.label);
