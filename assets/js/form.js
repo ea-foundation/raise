@@ -1155,7 +1155,7 @@ function updateFormLabels(source) {
         updateCheckboxState('tip', tipCheckboxState, formObj);
         updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
         updateCheckboxState('gift-aid', giftAidCheckboxState, formObj);
-        updateCheckboxState('gift-aid-confirmation', !!giftAidCheckboxState && !!$('#gift-aid:checked', '#wizard').length
+        updateCheckboxState('gift-aid-confirmation', !!giftAidCheckboxState && !!jQuery('#gift-aid:checked', '#wizard').length
             ? { label: "I confirm that I am a UK taxpayer, and I understand that if I pay less Income Tax and/or Capital Gains Tax in the current tax year than the amount of Gift Aid claimed on all my donations, it is my responsibility to pay any difference." }
             : null, // Uncheck and hide 
             formObj
