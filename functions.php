@@ -2255,21 +2255,13 @@ function raise_send_notification_email(array $donation)
 
     // Run email filters if array
     if (is_array($emails)) {
-        $matchingEmails = array();
+        $matchingEmails = [];
 
-        // Loop over emails and keep only those who have no condition mismatches
-        foreach ($emails as $email => $conditions) {
-            if (!is_array($conditions)) {
-                continue;
+        // Loop over emails and keep only those that match
+        foreach ($emails as $email => $jsonLogic) {
+            if (JWadhams\JsonLogic::apply($jsonLogic, $donation)) {
+                $matchingEmails[] = $email;
             }
-
-            foreach ($conditions as $field => $requiredValue) {
-                if (!isset($donation[$field]) || strtolower($donation[$field]) != strtolower($requiredValue)) {
-                    continue 2;
-                }
-            }
-
-            $matchingEmails[] = $email;
         }
 
         if (count($matchingEmails) > 0) {

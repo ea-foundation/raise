@@ -773,16 +773,32 @@ Internally, Raise uses `wp_mail` to send email. If you prefer sending email over
 
 
 ## Notification emails
-Send a notification email whenever a donation was completed. Can be a comma-separated list of email addresses or an object with sending rules:
+Send a notification email whenever a donation was completed. Can be a comma-separated list of email addresses or an JsonLogic expression:
 
 ```json
 {
   "notification_email": {
     "partner-charity@example.org": {
-      "payment_provider": "Bank Transfer",
-      "country_code": "us"
+      "and": [
+        {
+          "===": [
+            {
+              "var": "payment_provider"
+            },
+            "Bank Transfer"
+          ]
+        },
+        {
+          "===": [
+            {
+              "var": "country_code"
+            },
+            "us"
+          ]
+        }
+      ]
     },
-    "new-donation@example.org": {}
+    "new-donation@example.org": true
   }
 }
 ```
