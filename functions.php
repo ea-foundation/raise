@@ -2277,6 +2277,8 @@ function raise_send_notification_email(array $donation)
         $donation['amount'] = preg_replace('#\.00$#', '', $donation['amount']);
     }
 
+    //TODO Add [URGENT] if urgent
+
     // Prepare email
     $freq    = !empty($donation['frequency']) && $donation['frequency'] === 'monthly' ? ' (monthly)' : '';
     $subject = $form

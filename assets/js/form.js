@@ -337,6 +337,11 @@ jQuery(function($) {
         }
     });
 
+    // Reload payment providers when amount is chosen
+    $('button.confirm:first').click(function() {
+        reloadPaymentProviders(); 
+    });
+
     // Focus on other amount
     $('input#amount-other').focus(function() {
         if ($(this).hasClass("active")) {
