@@ -2255,10 +2255,9 @@ function raise_send_notification_email(array $donation)
 
     // Run email filters if array
     $matchingEmails = [];
-    $freq    = !empty($donation['frequency']) && $donation['frequency'] === 'monthly' ? ' (monthly)' : '';
-    $defaultSubject = $form
-        . ' : ' . raise_get($donation['currency'], '') . ' ' . raise_get($donation['amount'], '') . $freq
-        . ' : ' . raise_get($donation['name'], '');
+    $freq = !empty($donation['frequency']) && $donation['frequency'] === 'monthly' ? ' (monthly)' : '';
+    $defaultSubject = $form . ' : ' . raise_get($donation['currency'], '') . ' ' . raise_get($donation['amount'], '') . $freq
+                            . ' : ' . raise_get($donation['name'], '');
     if (is_array($emails)) {
         // Loop over emails and keep only those that match
         foreach ($emails as $email) {
@@ -2299,7 +2298,7 @@ function raise_send_notification_email(array $donation)
     }
 
     // Send email
-    foreach ($emails as $email) {
+    foreach ($matchingEmails as $email) {
         $subject = raise_replace_placeholders_in_text($email['subject'], $donation);
         $text = raise_replace_placeholders_in_text($email['text'], $donation);
         wp_mail($email['to'], $subject, $text . $donationText);
