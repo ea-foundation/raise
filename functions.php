@@ -2254,22 +2254,37 @@ function raise_send_notification_email(array $donation)
     $emails = $formSettings['finish']['notification_email'];
 
     // Run email filters if array
+    $matchingEmails = [];
+    $freq    = !empty($donation['frequency']) && $donation['frequency'] === 'monthly' ? ' (monthly)' : '';
+    $defaultSubject = $form
+        . ' : ' . raise_get($donation['currency'], '') . ' ' . raise_get($donation['amount'], '') . $freq
+        . ' : ' . raise_get($donation['name'], '');
     if (is_array($emails)) {
-        $matchingEmails = [];
-
         // Loop over emails and keep only those that match
-        foreach ($emails as $email => $jsonLogic) {
-            if (JWadhams\JsonLogic::apply($jsonLogic, $donation)) {
-                $matchingEmails[] = $email;
+        foreach ($emails as $email) {
+            if (empty($email['filter']) || JWadhams\JsonLogic::apply($email['filter'], $donation)) {
+                $matchingEmails[] = [
+                    'to'      => $email['to'],
+                    'subject' => raise_get($email['subject'], $defaultSubject),
+                    'text'    => raise_get($email['text'], ''),
+                ];
             }
         }
 
-        if (count($matchingEmails) > 0) {
-            $emails = implode(', ', $matchingEmails);
-        } else {
+        if (count($matchingEmails) == 0) {
             // No matching emails. Nothing to do.
             return;
         }
+    } else {
+        // Comma-separated list of emails
+        $tos = explode(',', $emails);
+        $matchingEmails = array_map(function($to) use ($defaultSubject) {
+            return [
+                'to'      => trim($to),
+                'subject' => $defaultSubject,
+                'text'    => '',
+            ];
+        }, $tos);
     }
 
     // Trim amount
@@ -2277,20 +2292,18 @@ function raise_send_notification_email(array $donation)
         $donation['amount'] = preg_replace('#\.00$#', '', $donation['amount']);
     }
 
-    //TODO Add [URGENT] if urgent
-
-    // Prepare email
-    $freq    = !empty($donation['frequency']) && $donation['frequency'] === 'monthly' ? ' (monthly)' : '';
-    $subject = $form
-               . ' : ' . raise_get($donation['currency'], '') . ' ' . raise_get($donation['amount'], '') . $freq
-               . ' : ' . raise_get($donation['name'], '');
-    $text    = '';
+    // Stringify donation
+    $donationText    = "\n\n";
     foreach ($donation as $key => $value) {
-        $text .= $key . ' : ' . $value . "\n";
+        $donationText .= $key . ' : ' . $value . "\n";
     }
 
     // Send email
-    wp_mail($emails, $subject, $text);
+    foreach ($emails as $email) {
+        $subject = raise_replace_placeholders_in_text($email['subject'], $donation);
+        $text = raise_replace_placeholders_in_text($email['text'], $donation);
+        wp_mail($email['to'], $subject, $text . $donationText);
+    }
 }
 
 /**
@@ -3365,4 +3378,13 @@ function raise_print_donor_extra_info($formSettings, $userCountryCode) {
             </div>';
     }
     echo '</div>';
+}
+
+function raise_replace_placeholders_in_text($text, $donation) {
+    $newText = $text;
+    foreach ($donation as $key => $value) {
+        $newText = str_replace('%'.$key.'%', $value, $newText);
+    }
+
+    return $newText;
 }
