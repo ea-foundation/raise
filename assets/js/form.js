@@ -151,6 +151,9 @@ jQuery(function($) {
 
         // Check contents
         if (currentItem <= totalItems) {
+            // Reload payment providers in case amount
+            reloadPaymentProviders();
+
             // Get all fields inside the page, except honey pot (#donor-email-confirm)
             var inputs = $('div.slick-active :input', '#wizard').not('#donor-email-confirm');
 
