@@ -6,6 +6,7 @@ const RAISE_WEBHOOK_KEYS = [
     'amount',
     'anonymous',
     'city',
+    'gift_aid',
     'comment',
     'country',
     'country_code',
@@ -91,6 +92,10 @@ function raise_init_donation_form($form, $mode)
     }
     $postDonationInstructionsRule = raise_get_jsonlogic_if_rule($postDonationInstructions, 'raise_get_localized_value');
 
+    // Get gift_aid rule and localize labels
+    $giftAidSettings = raise_get($formSettings['payment']['form_elements']['gift_aid'], "");
+    $giftAidRule     = raise_get_checkbox_rule($giftAidSettings);
+    
     // Get tax_receipt rule and localize labels
     $taxReceiptSettings = raise_get($formSettings['payment']['form_elements']['tax_receipt'], "");
     $taxReceiptRule     = raise_get_checkbox_rule($taxReceiptSettings);
@@ -108,12 +113,26 @@ function raise_init_donation_form($form, $mode)
     if (is_array($bankAccounts)) {
         if (raise_has_string_keys($bankAccounts)) {
             // No JsonLogic
-            $bankAccounts['details'] = raise_localize_array_keys(raise_get($bankAccounts['details'], []));
+            if (raise_has_string_keys($bankAccounts['details'])) {
+                // Normal case
+                $bankAccounts['details'] = raise_localize_array_keys(raise_get($bankAccounts['details'], []));
+            } else {
+                // When using the same keys several times
+                $bankAccounts['details'] = array_map(function($item) {
+                    return raise_localize_array_keys(raise_get($item, []));
+                }, $bankAccounts['details']);
+            }
         } else {
             // JsonLogic
             $bankAccounts = array_map(function($item) {
                 if (!empty($item['value']['details']) && is_array($item['value']['details'])) {
-                    $item['value']['details'] = raise_localize_array_keys($item['value']['details']);
+                    if (raise_has_string_keys($item['value']['details'])) {
+                        $item['value']['details'] = raise_localize_array_keys($item['value']['details']);
+                    } else {
+                        $item['value']['details'] = array_map(function($details) {
+                            return raise_localize_array_keys($details);
+                        }, $item['value']['details']);
+                    }
                 }
                 if (!empty($item['value']['tooltip']) && is_array($item['value']['tooltip'])) {
                     $item['value']['tooltip'] = raise_get_localized_value($item['value']['tooltip']);
@@ -170,11 +189,13 @@ function raise_init_donation_form($form, $mode)
         'share_data_rule'                 => $shareDataRule,
         'tip_rule'                        => $tipRule,
         'tax_receipt_rule'                => $taxReceiptRule,
+        'gift_aid_rule'                   => $giftAidRule,
         'bank_account_rule'               => $bankAccountsRule,
         'organization'                    => $GLOBALS['raiseOrganization'],
         'currency2country'                => $GLOBALS['currency2country'],
         'monthly_support'                 => $GLOBALS['monthlySupport'],
         'default_frequency'               => raise_get($formSettings['amount']['frequency']['default'], 'once'),
+        'account_description'             => raise_get($formSettings['payment']['account_description'], []),
         'labels'                          => [
             'yes'                   => __("yes", "raise"),
             'no'                    => __("no", "raise"),
@@ -190,7 +211,8 @@ function raise_init_donation_form($form, $mode)
             'below_minimum_amount'        => __('The minimum donation is %minimum_amount%.', 'raise'),
             'connection_error'            => __('Error establishing a connection. Please try again.', 'raise'),
             'below_minimum_amount_custom' => $belowMinimumAmountMessages,
-            'accept_terms'                => __('You must accept our Terms and Conditions to continue.', 'raise'),
+            'terms'                       => __('You must accept our Terms and Conditions to continue.', 'raise'),
+            'gift_aid_confirmation'       => __('You must accept the UK Gift Aid Conditions to continue.', 'raise'),
         ],
     ));
 
@@ -528,6 +550,7 @@ function raise_format_donation(array $donation) {
         'tip'                        => (bool) raise_get($donation['tip'], false),
         'tip_offered'                => (bool) raise_get($donation['tip_offered'], false),
         'terms'                      => (bool) raise_get($donation['terms'], false),
+        'gift_aid'                   => (bool) raise_get($donation['gift_aid'], false),
     ];
 }
 
@@ -625,10 +648,10 @@ function raise_process_banktransfer()
         $reference = raise_handle_banktransfer_payment($donation);
 
         // Prepare response
-        $response = array(
+        $response = [
             'success'   => true,
             'reference' => $reference,
-        );
+        ];
 
         wp_send_json($response);
     } catch (\Exception $ex) {
@@ -1594,6 +1617,7 @@ function raise_get_donation_from_session()
         "comment"                    => $_SESSION['raise-comment'],
         "post_donation_instructions" => $_SESSION['post_donation_instructions'],
         "anonymous"                  => $_SESSION['raise-anonymous'],
+        "gift_aid"                   => $_SESSION['raise-gift_aid'],
     ];
 }
 
@@ -1636,6 +1660,7 @@ function raise_set_donation_data_to_session(array $donation, $reqId = null)
     $_SESSION['raise-mailinglist']          = (bool) raise_get($donation['mailinglist'], false);
     $_SESSION['raise-anonymous']            = (bool) raise_get($donation['anonymous'], false);
     $_SESSION['raise-terms']                = (bool) raise_get($donation['terms'], false);
+    $_SESSION['raise-gift_aid']             = (bool) raise_get($donation['gift_aid'], false);
 }
 
 /**
@@ -1785,6 +1810,7 @@ function raise_prepare_stripe_donation(array $donation)
     $sessionParams = [
         'customer_email'       => $donation['email'],
         'payment_method_types' => ['card'],
+        'mode'                 => 'payment',
         'success_url'          => $returnUrl,
         'cancel_url'           => $cancelUrl,
     ];
@@ -1813,11 +1839,15 @@ function raise_prepare_stripe_donation(array $donation)
             ]
         ];
         $sessionParams['line_items'] = [[
-            'name'     => $recipient,
-            'amount'   => $amountInt,
-            'currency' => $donation['currency'],
+            'price_data' => [
+                'unit_amount'   => $amountInt,
+                'currency' => $donation['currency'],
+                'product_data' => [
+                    'name' => $recipient,
+                    'images'   => [get_option('raise_logo')],
+                ]
+            ],
             'quantity' => 1,
-            'images'   => [get_option('raise_logo')],
         ]];
     }
 
@@ -2224,30 +2254,36 @@ function raise_send_notification_email(array $donation)
     $emails = $formSettings['finish']['notification_email'];
 
     // Run email filters if array
+    $matchingEmails = [];
+    $freq = !empty($donation['frequency']) && $donation['frequency'] === 'monthly' ? ' (monthly)' : '';
+    $defaultSubject = $form . ' : ' . raise_get($donation['currency'], '') . ' ' . raise_get($donation['amount'], '') . $freq
+                            . ' : ' . raise_get($donation['name'], '');
     if (is_array($emails)) {
-        $matchingEmails = array();
-
-        // Loop over emails and keep only those who have no condition mismatches
-        foreach ($emails as $email => $conditions) {
-            if (!is_array($conditions)) {
-                continue;
+        // Loop over emails and keep only those that match
+        foreach ($emails as $email) {
+            if (empty($email['filter']) || JWadhams\JsonLogic::apply($email['filter'], $donation)) {
+                $matchingEmails[] = [
+                    'to'      => $email['to'],
+                    'subject' => raise_get($email['subject'], $defaultSubject),
+                    'text'    => raise_get($email['text'], ''),
+                ];
             }
-
-            foreach ($conditions as $field => $requiredValue) {
-                if (!isset($donation[$field]) || strtolower($donation[$field]) != strtolower($requiredValue)) {
-                    continue 2;
-                }
-            }
-
-            $matchingEmails[] = $email;
         }
 
-        if (count($matchingEmails) > 0) {
-            $emails = implode(', ', $matchingEmails);
-        } else {
+        if (count($matchingEmails) == 0) {
             // No matching emails. Nothing to do.
             return;
         }
+    } else {
+        // Comma-separated list of emails
+        $tos = explode(',', $emails);
+        $matchingEmails = array_map(function($to) use ($defaultSubject) {
+            return [
+                'to'      => trim($to),
+                'subject' => $defaultSubject,
+                'text'    => '',
+            ];
+        }, $tos);
     }
 
     // Trim amount
@@ -2255,18 +2291,18 @@ function raise_send_notification_email(array $donation)
         $donation['amount'] = preg_replace('#\.00$#', '', $donation['amount']);
     }
 
-    // Prepare email
-    $freq    = !empty($donation['frequency']) && $donation['frequency'] === 'monthly' ? ' (monthly)' : '';
-    $subject = $form
-               . ' : ' . raise_get($donation['currency'], '') . ' ' . raise_get($donation['amount'], '') . $freq
-               . ' : ' . raise_get($donation['name'], '');
-    $text    = '';
+    // Stringify donation
+    $donationText    = "\n\n";
     foreach ($donation as $key => $value) {
-        $text .= $key . ' : ' . $value . "\n";
+        $donationText .= $key . ' : ' . $value . "\n";
     }
 
     // Send email
-    wp_mail($emails, $subject, $text);
+    foreach ($matchingEmails as $email) {
+        $subject = raise_replace_placeholders_in_text($email['subject'], $donation);
+        $text = raise_replace_placeholders_in_text($email['text'], $donation);
+        wp_mail($email['to'], $subject, $text . $donationText);
+    }
 }
 
 /**
@@ -3113,7 +3149,7 @@ function raise_do_post_donation_actions(array $donation)
     // Add post donation instructions and deductible flag to donation
     $formSettings           = raise_load_settings($donation['form']);
     $taxReceiptSettings     = raise_get($formSettings['payment']['form_elements']['tax_receipt']);
-    $mapper                 = function ($item) { return !raise_get($item['disabled'], false); };
+    $mapper                 = function ($item) { return $item !== '' ? !raise_get($item['disabled'], false) : false; };
     $donation['deductible'] = raise_get_conditional_value($taxReceiptSettings, $donation, $mapper);
 
     // Add account
@@ -3309,7 +3345,7 @@ function raise_print_donor_extra_info($formSettings, $userCountryCode) {
                 </div>
 
                 <div class="form-group donor-info optionally-required">
-                    <label for="donor-zip" class="col-sm-3 control-label">' . raise_get_localized_value(raise_get($formSettings['payment']['labels']['zip'], __('Zip code', 'raise'))) . '</label>
+                    <label for="donor-zip" class="col-sm-3 control-label">' . raise_get_localized_value(raise_get($formSettings['payment']['labels']['zip_code'], __('Zip code', 'raise'))) . '</label>
                     <div class="col-sm-9">
                         <input type="text" class="form-control text" name="zip" id="donor-zip" placeholder="" maxlength="10">
                     </div>
@@ -3341,4 +3377,13 @@ function raise_print_donor_extra_info($formSettings, $userCountryCode) {
             </div>';
     }
     echo '</div>';
+}
+
+function raise_replace_placeholders_in_text($text, $donation) {
+    $newText = $text;
+    foreach ($donation as $key => $value) {
+        $newText = str_replace('%'.$key.'%', $value, $newText);
+    }
+
+    return $newText;
 }

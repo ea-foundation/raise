@@ -10,7 +10,7 @@ var currencies                  = wordpress_vars.amount_patterns;
 var currencyMinimums            = wordpress_vars.amount_minimums;
 var stripeHandlers              = null;
 var totalItems                  = 0;
-var taxReceiptNeeded            = false;
+var extraInfoNeeded             = false;
 var slideTransitionInAction     = false;
 var otherAmountPlaceholder      = null;
 var currentStripeKey            = '';
@@ -149,6 +149,11 @@ jQuery(function($) {
 
         var currentItem = carousel.slick('slickCurrentSlide') + 1;
 
+        if (currentItem === 1) {
+            // Reload payment providers in case the amount is too high
+            reloadPaymentProviders();
+        }
+
         // Check contents
         if (currentItem <= totalItems) {
             // Get all fields inside the page, except honey pot (#donor-email-confirm)
@@ -196,10 +201,15 @@ jQuery(function($) {
 
             // Unchecked required checkboxes
             var emptyCheckboxes = $('div.slick-active .required :checkbox:not(:checkbox:checked)', '#wizard');
-            if (emptyCheckboxes.length) {
-                errors['terms'] = wordpress_vars.error_messages.accept_terms;
-                invalid.push('terms');
+            // Remove gift-aid-confiramtion if gift-aid isn't checked
+            if (!$('#gift-aid:checked', '#wizard').length) {
+                emptyCheckboxes = emptyCheckboxes.not('#gift-aid-confirmation');
             }
+            emptyCheckboxes.each(function(index) {
+                const id = $(this).attr('id').replaceAll('-', '_');
+                errors[id] = wordpress_vars.error_messages[id];
+                invalid.push(id);
+            });
 
             // Unchecked radio groups (bootstrap drop downs). Add button instead.
             var emptyRadios = $('div.slick-active .required:has(:radio):not(:has(:radio:checked))', '#wizard');
@@ -216,9 +226,9 @@ jQuery(function($) {
 
                 // Add a error CSS for empty and invalid fields
                 empty = $.unique($.merge(empty, invalid));
-                empty.each(function(index) {
+                empty.filter(':text,#donor-email').not('#donor-country-auto').each(function(index) {
                     // Don't add X icon to combobox. It looks bad
-                    if ($(this).attr('type') !== 'hidden' && !['donor-country-auto', 'terms'].includes($(this).attr('id'))) {
+                    if ($(this).attr('type') !== 'hidden') {
                         if ($(this).attr('id') !== 'donor-country') {
                             $(this).parent().append('<span class="raise-error glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>');
                         }
@@ -330,6 +340,11 @@ jQuery(function($) {
                 .css('left', '186px')
                 .siblings().animate({ width: 256 }, 200);
         }
+    });
+
+    // Reload payment providers when amount is chosen
+    $('button.confirm:first').click(function() {
+        reloadPaymentProviders(); 
     });
 
     // Focus on other amount
@@ -538,12 +553,12 @@ jQuery(function($) {
         }
     });
 
-    // Tax receipt toggle
-    $('input#tax-receipt').change(function() {
-        taxReceiptNeeded = $(this).is(':checked');
+    // Tax receipt toggle / gift aid toggle
+    $('input#tax-receipt, input#gift-aid').change(function() {
+        extraInfoNeeded = $(this).is(':checked');
 
         // Toggle donor form display and required class
-        if (taxReceiptNeeded) {
+        if (extraInfoNeeded) {
             var list = carousel.find('.slick-list');
             var newHeight = list.height() + 147;
             carousel.height(newHeight);
@@ -1132,6 +1147,7 @@ function updateFormLabels(source) {
     var shareDataCheckboxState   = applyJsonLogicAndParse(wordpress_vars.share_data_rule, formObj);
     var tipCheckboxState         = applyJsonLogicAndParse(wordpress_vars.tip_rule, formObj);
     var taxReceiptCheckboxState  = applyJsonLogicAndParse(wordpress_vars.tax_receipt_rule, formObj);
+    var giftAidCheckboxState     = applyJsonLogicAndParse(wordpress_vars.gift_aid_rule, formObj);
     var bankAccount              = applyJsonLogicAndParse(wordpress_vars.bank_account_rule, formObj) || {};
     var bankAccountProperties    = bankAccount.hasOwnProperty('details') ? bankAccount.details : {};
 
@@ -1143,11 +1159,17 @@ function updateFormLabels(source) {
         jQuery(this).find('div[data-toggle="tooltip"]').attr('data-original-title', tooltip);
     });
 
-    // Update checkbox states when purpose changes (otherwise no need)
+    // Update checkbox states when purpose is set (otherwise no need)
     if (!!jQuery('input[name=purpose]:checked', '#wizard').val()) {
         updateCheckboxState('share-data', shareDataCheckboxState, formObj);
         updateCheckboxState('tip', tipCheckboxState, formObj);
         updateCheckboxState('tax-receipt', taxReceiptCheckboxState, formObj);
+        updateCheckboxState('gift-aid', giftAidCheckboxState, formObj);
+        updateCheckboxState('gift-aid-confirmation', !!giftAidCheckboxState && !!jQuery('#gift-aid:checked', '#wizard').length
+            ? { label: "I confirm that I am a UK taxpayer, and I understand that if I pay less Income Tax and/or Capital Gains Tax in the current tax year than the amount of Gift Aid claimed on all my donations, it is my responsibility to pay any difference." }
+            : null, // Uncheck and hide 
+            formObj
+        );
     }
 
     // Update offered share data state
@@ -1169,13 +1191,18 @@ function updateFormLabels(source) {
 
     // Update tip
     updateTip();
+
+    // Update account description
+    const account = formObj.account || "";
+    const accountDescription = wordpress_vars.account_description[account] || "";
+    jQuery('#account-description', '#wizard').html(accountDescription);
 }
 
 /**
  * Update checkbox state
  * 
  * @param string id      ID of form element
- * @param Object state   Object containing the properties `label` and `disabled`
+ * @param Object state   Object containing the properties `label`, `checked` and `disabled`
  * @param Object formObj Form object
  */
 function updateCheckboxState(id, state, formObj) {
@@ -1218,6 +1245,12 @@ function updateCheckboxState(id, state, formObj) {
     }
 }
 
+function stringifyAccountData(accountDataObj) {
+    return Object.keys(accountDataObj).map(function(key) {
+        return '<strong>' + key + '</strong>: ' + accountDataObj[key];
+    }).join("\n");
+}
+
 /**
  * Replace donation placeholders
  */
@@ -1231,9 +1264,13 @@ function replaceDonationPlaceholders(label, formObj, accountData) {
         var accountDataString = '<strong>' + wordpress_vars.labels.amount + '</strong>: ' + amount + "\n";
 
         // Add bank details
-        accountDataString += Object.keys(accountData).map(function(key) {
-            return '<strong>' + key + '</strong>: ' + accountData[key];
-        }).join("\n");
+        if (Array.isArray(accountData)) {
+            for (const accountDataObj of accountData) {
+                accountDataString += stringifyAccountData(accountDataObj) + "\n\n";
+            }
+        } else {
+            accountDataString += stringifyAccountData(accountData);
+        }
 
         label = label.replace('%bank_account_formatted%', accountDataString);
     }
@@ -1285,6 +1322,7 @@ function getFormAsObject() {
     formObj.share_data_label  = formObj.hasOwnProperty('share_data')  ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.mailinglist_label = formObj.hasOwnProperty('mailinglist') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.tax_receipt_label = formObj.hasOwnProperty('tax_receipt') ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
+    formObj.gift_aid_label    = formObj.hasOwnProperty('gift_aid')    ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
     formObj.terms_label       = formObj.hasOwnProperty('terms')       ? wordpress_vars.labels.yes : wordpress_vars.labels.no;
 
     // Add account property
@@ -1337,6 +1375,10 @@ function getErrorMessage(errors) {
 
     if (errors.hasOwnProperty('terms')) {
         return errors['terms'];
+    }
+
+    if (errors.hasOwnProperty('gift_aid_confirmation')) {
+        return errors['gift_aid_confirmation'];
     }
 
     return wordpress_vars.error_messages['missing_fields'];

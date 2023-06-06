@@ -393,6 +393,34 @@ function raise_form($atts, $content = null)
                 </div>
             <?php endif; ?>
 
+            <!-- Gift aid -->
+            <?php
+                if (!empty($formSettings['payment']['form_elements']['gift_aid'])):
+            ?>
+                <div class="form-group donor-info" style="margin-top: -10px; display: none">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="gift_aid" id="gift-aid" value="1" class="precheckable">
+                                <span id="gift-aid-text"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gift aid confirmation -->
+                <div class="form-group required donor-info" style="margin-top: -10px; display: none">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="gift_aid_confirmation" id="gift-aid-confirmation" value="1" class="precheckable" required>
+                                <span id="gift-aid-confirmation-text"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <!-- Tax receipt -->
             <?php
                 $taxReceiptCheckboxHidden = raise_get($formSettings['payment']['form_elements']['tax_receipt']['checkbox_hidden'], false);
@@ -416,8 +444,15 @@ function raise_form($atts, $content = null)
                 }
             ?>
 
+            <!-- Account description -->
+            <?php if (!empty($formSettings['payment']['account_description'])): ?>
+                <div class="row">
+                    <div id="account-description" class="col-sm-offset-3 col-sm-9"></div>
+                </div>
+            <?php endif; ?>
+
             <div class="buttons row">
-                <div class="col-md-6 col-md-push-3 nopadding">
+                <div class="col-sm-6 col-sm-push-3 nopadding">
                     <button type="submit" class="btn btn-lg confirm donation-continue" id="donation-submit"><?php _e('Next', 'raise') ?></button>
                 </div>
                 <div class="col-xs-4 col-sm-3 col-sm-pull-6" style="text-align: left">

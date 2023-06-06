@@ -1,3 +1,8 @@
+= 2.6.0 August 2022 =
+* NEW: Add gift aid checkbox
+
+... Lots of minor improvements and bug fixes
+
 = 2.4.1 May 23, 2020 =
 * NEW: Make default donation frequency configurable
 

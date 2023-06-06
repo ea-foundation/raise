@@ -183,6 +183,11 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
             }
           ]
         },
+        "account_description": {
+            "DE": "Your donation will be received by Your Charity Germany, a German charitable association which collects donations on our behalf.",
+            "US": "Your donation will be received by Your Charity US, an American charitable association which collects donations on our behalf.",
+            "UK": "Your donation will be received directly by Your Charity UK, a registered charity in England and Wales (charity no. 123)."
+        },
         "<a href="#reference-numbers">reference_number_prefix</a>": {
           "my_org": "ORG",
           "default": "XRG"
@@ -233,6 +238,26 @@ Initially, the default settings are loaded from `_parameters.js.php.dist`. Once 
                   [
                     "purpose_1",
                     "purpose_2"
+                  ]
+                ]
+              }
+            }
+          ],
+          "gift_aid": [
+            {
+              "value": {
+                "label": {
+                  "en": "I want to claim Gift Aid on this donation (and recurring instances of it).",
+                  "de": "Ich möchte für diese Spende (und für wiederkehrende Spenden) Gift Aid beantragen."
+                }
+              },
+              "if": {
+                "in": [
+                  {
+                    "var": "country_code"
+                  },
+                  [
+                    "GB"
                   ]
                 ]
               }
@@ -423,6 +448,7 @@ EOD
 The following properties can be specified in an array format that lets you encode `if ... else if ... else` rules:
 - `forms > my_form > payment > provider > (banktransfer|stripe|paypal|gocardless|bitpay|coinbase|skrill)`
 - `forms > my_form > payment > form_elements > tax_receipt`
+- `forms > my_form > payment > form_elements > gift_aid`
 - `forms > my_form > payment > form_elements > share_data`
 - `forms > my_form > payment > form_elements > tip`
 - `forms > my_form > finish > post_donation_instructions`
@@ -747,17 +773,40 @@ Internally, Raise uses `wp_mail` to send email. If you prefer sending email over
 
 
 ## Notification emails
-Send a notification email whenever a donation was completed. Can be a comma-separated list of email addresses or an object with sending rules:
+Send a notification email whenever a donation was completed. Can be a comma-separated list of email addresses or an array of objects. The optional `filter` property contains a JsonLogic expression. The email is only sent if it evaluates to `true`.
 
 ```json
 {
-  "notification_email": {
-    "partner-charity@example.org": {
-      "payment_provider": "Bank Transfer",
-      "country_code": "us"
+  "notification_email": [
+    {
+      "to": "email@example.org",
+      "subject": "New donation by %name%",
+      "text": "See donation details below and reach out to donor",
+      "filter": {
+        "and": [
+          {
+            "===": [
+              {
+                "var": "payment_provider"
+              },
+              "Bank Transfer"
+            ]
+          },
+          {
+            "===": [
+              {
+                "var": "country_code"
+              },
+              "us"
+            ]
+          }
+        ]
+      }
     },
-    "new-donation@example.org": {}
-  }
+    {
+      "to": "new-donation@example.org"
+    }
+  ]
 }
 ```
 
@@ -769,7 +818,7 @@ Note: The possible `payment_provider` values are `Stripe`, `PayPal`, `GoCardless
 ## Webhooks
 Array of webhook URLs. There are currently two options, `logging` and `mailing_list`, the latter of which will only get triggered when the subscribe checkbox was ticked. Upon successful donation a JSON object will be sent to each webhook, containing these parameters for `logging`:
 
-`form`, `url`, `mode` (sandbox/live), `language` (ISO-639-1), `time`, `currency`, `amount` (includes tip), `payment_provider`, `email`, `frequency`, `purpose`, `name`, `address`, `zip`, `city`, `country` (in English), `country_code` (ISO-3166-1 alpha-2, e.g. `US`), `comment`, `anonymous` (yes/no), `tax_receipt` (yes/no), `mailinglist` (yes/no), `account`, `deductible` (yes/no), `share_data` (yes/no), `share_data_offered` (yes/no), `tip` (yes/no), `tip_offered` (yes/no), `tip_amount`, `tip_percentage` (the _offered_ percentage), `post_donation_instructions` (text on confirmation page), `reference`, `referrer`, `vendor_transaction_id`, `vendor_subscription_id`, `vendor_customer_id`
+`form`, `url`, `mode` (sandbox/live), `language` (ISO-639-1), `time`, `currency`, `amount` (includes tip), `payment_provider`, `email`, `frequency`, `purpose`, `name`, `address`, `zip`, `city`, `country` (in English), `country_code` (ISO-3166-1 alpha-2, e.g. `US`), `comment`, `anonymous` (yes/no), `tax_receipt` (yes/no), `gift_aid` (yes/no), `mailinglist` (yes/no), `account`, `deductible` (yes/no), `share_data` (yes/no), `share_data_offered` (yes/no), `tip` (yes/no), `tip_offered` (yes/no), `tip_amount`, `tip_percentage` (the _offered_ percentage), `post_donation_instructions` (text on confirmation page), `reference`, `referrer`, `vendor_transaction_id`, `vendor_subscription_id`, `vendor_customer_id`
 
 And these for `mailing_list`:
 `form`, `mode`, `email`, `name`, `language`
