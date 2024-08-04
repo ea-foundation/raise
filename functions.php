@@ -1818,6 +1818,7 @@ function raise_prepare_stripe_donation(array $donation)
     // Make charge/subscription
     $amountInt = floor($donation['amount'] * 100); // cents
     if ($donation['frequency'] === 'monthly') {
+	    $sessionParams['mode'] = 'subscription';
         // Get plan
         $plan = raise_get_stripe_plan($amountInt, $donation['currency'], $purpose, $purposeLabel);
 
