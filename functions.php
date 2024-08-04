@@ -668,38 +668,61 @@ function raise_process_banktransfer()
  * @param string $purposeLabel Plan purpose label, e.g. Against Malaria Foundation
  * @return array
  */
-function raise_get_stripe_plan($amount, $currency, $purpose = null, $purposeLabel = null)
+function raise_get_stripe_price($amount, $currency, $purpose = null, $purposeLabel = null)
 {
-    $purposeSuffix      = $purpose ? '-' . $purpose : '';
+    $purposeSuffix = $purpose ? '-' . $purpose : '';
     $purposeLabelSuffix = $purposeLabel ? ' to ' . $purposeLabel : '';
 
-    $planId = 'donation-month-' . $currency . '-' . str_replace('.', '_', number_format($amount / 100, 2, '.', '')) . $purposeSuffix;
+    // Create a unique identifier for the price
+    $priceLookupKey = 'donation-month-' . $currency . '-' . str_replace('.', '_', number_format($amount / 100, 2, '.', '')) . $purposeSuffix;
 
     try {
-        // Try fetching an existing plan
-        $plan = \Stripe\Plan::retrieve($planId);
-    } catch (\Exception $e) {
-        // Create a new plan
-        $params = array(
-            'amount'   => $amount,
-            'interval' => 'month',
-            'product'  => [
-                'name' => 'monthly donations' . $purposeLabelSuffix,
-            ],
-            'currency' => $currency,
-            'id'       => $planId,
-        );
-
-        $plan = \Stripe\Plan::create($params);
-
-        if (!$plan instanceof \Stripe\Plan) {
-            throw new \Exception('Credit card API is down. Please try later.');
+        // List all prices and check if the desired one exists
+        $prices = \Stripe\Price::all(['lookup_keys' => [$priceLookupKey]]);
+        if (count($prices->data) > 0) {
+            // Return the ID of the existing price
+            return $prices->data[0]->id;
         }
-
-        $plan->save();
+    } catch (\Exception $e) {
+        // Handle exception if price lookup fails
+        error_log('Error retrieving price: ' . $e->getMessage());
     }
 
-    return $plan->id;
+    try {
+        // Create a new product if it doesn't exist
+        $productParams = [
+            'name' => 'Recurring Donation' . $purposeLabelSuffix,
+        ];
+
+        $product = \Stripe\Product::create($productParams);
+
+        if (!$product instanceof \Stripe\Product) {
+            throw new \Exception('Failed to create the product.');
+        }
+
+        // Create a new price
+        $priceParams = [
+            'unit_amount' => $amount,
+            'currency' => $currency,
+            'recurring' => [
+                'interval' => 'month',
+            ],
+            'product' => $product->id,
+            'lookup_key' => $priceLookupKey,
+        ];
+
+        $price = \Stripe\Price::create($priceParams);
+
+        if (!$price instanceof \Stripe\Price) {
+            throw new \Exception('Failed to create the price.');
+        }
+
+        return $price->id;
+
+    } catch (\Exception $e) {
+        error_log('Error creating price: ' . $e->getMessage());
+        throw new \Exception('Credit card API is down. Please try later.');
+    }
 }
 
 /**
@@ -1810,46 +1833,51 @@ function raise_prepare_stripe_donation(array $donation)
     $sessionParams = [
         'customer_email'       => $donation['email'],
         'payment_method_types' => ['card'],
-        'mode'                 => 'payment',
         'success_url'          => $returnUrl,
         'cancel_url'           => $cancelUrl,
     ];
 
     // Make charge/subscription
     $amountInt = floor($donation['amount'] * 100); // cents
+    
     if ($donation['frequency'] === 'monthly') {
-        // Get plan
-        $plan = raise_get_stripe_plan($amountInt, $donation['currency'], $purpose, $purposeLabel);
+        // Get price
+        $price_id = raise_get_stripe_price($amountInt, $donation['currency'], $purpose, $purposeLabel);
 
         // Define subscription
-        $sessionParams['mode'] = 'subscription';
-        $sessionParams['subscription_data'] = [
-            'metadata' => [
-                'purpose' => $donation['purpose'],
-            ],
-            'items' => [[
-                'plan'     => $plan,
+        $sessionParams = array_merge($sessionParams, [
+            'mode' => 'subscription',
+            'line_items' => [[
+                'price' => $price_id,
                 'quantity' => 1,
             ]],
-        ];
+            'subscription_data' => [
+                'metadata' => [
+                    'purpose' => $purpose,
+                ],
+            ],
+        ]);
     } else {
-        // Define one-time charge
-        $sessionParams['payment_intent_data'] = [
-            'metadata' => [
-                'purpose' => $donation['purpose'],
-            ]
-        ];
-        $sessionParams['line_items'] = [[
-            'price_data' => [
-                'unit_amount'   => $amountInt,
-                'currency' => $donation['currency'],
-                'product_data' => [
-                    'name' => $recipient,
-                    'images'   => [get_option('raise_logo')],
+        // Session params
+        $sessionParams = array_merge($sessionParams, [
+            'mode'                 => 'payment',
+            'payment_intent_data'  => [
+                'metadata' => [
+                    'purpose' => $donation['purpose'],
                 ]
             ],
-            'quantity' => 1,
-        ]];
+            'line_items' => [[
+                'price_data' => [
+                    'unit_amount'   => $amountInt,
+                    'currency' => $donation['currency'],
+                    'product_data' => [
+                        'name' => $recipient,
+                        'images'   => [get_option('raise_logo')],
+                    ]
+                ],
+                'quantity' => 1,
+            ]],
+        ]);
     }
 
     $session = \Stripe\Checkout\Session::create($sessionParams);
