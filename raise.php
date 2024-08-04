@@ -50,7 +50,13 @@ function raise_start_session()
     }
 
     if (!preg_match('/admin-ajax\.php/', $_SERVER['REQUEST_URI'])) {
-        $_SESSION['raise-plugin-url'] = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+        
+        // Check if HTTP_HOST is set and use it if available
+        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'unknown_host';
+        
+        // Construct the URL
+        $_SESSION['raise-plugin-url'] = "$protocol://$host$_SERVER[REQUEST_URI]";
     }
 }
 
