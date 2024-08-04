@@ -405,7 +405,7 @@ function raise_print_payment_providers($formSettings, $mode)
             case 'stripe':
                 $value  = 'Stripe';
                 $text   = '<div class="payment-method-name sr-only">' . __('credit card', 'raise') . '</div>';
-                $images = ['pp cc visa', 'pp cc mastercard', 'pp cc amex'];
+$images = ['pp cc visa', 'pp cc mastercard', 'pp cc amex', 'pp cc gpay', 'pp cc apay'];
                 break;
             case 'paypal':
                 $value  = 'PayPal';

@@ -586,6 +586,24 @@ input[type='number'] {
 .pp-images .cc.amex {
     background-position: -91px 0;
 }
+.pp-images .cc.gpay {
+    background: url(../images/google_pay_logo.svg) no-repeat;
+    background-size: 33px 23px;
+    margin-left: 2px;
+    border: 1px solid #c5c4c4;
+    border-radius: 2px;
+    padding: 2px;
+    background-position: 2px 0px;
+}
+.pp-images .cc.apay {
+    background: url(../images/apple_pay_logo.svg) no-repeat;
+    background-size: 33px 23px;
+    margin-left: 2px;
+    border: 1px solid #c5c4c4;
+    border-radius: 2px;
+    padding: 2px;
+    background-position: 2px 0px;
+}
 
 .pp-images .pp.paypal {
     background: url(../images/paypal.svg) no-repeat;
