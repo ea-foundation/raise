@@ -1796,6 +1796,7 @@ function raise_prepare_stripe_donation(array $donation)
         $plan = raise_get_stripe_plan($amountInt, $donation['currency'], $purpose, $purposeLabel);
 
         // Define subscription
+        $sessionParams['mode'] = 'subscription';
         $sessionParams['subscription_data'] = [
             'metadata' => [
                 'purpose' => $donation['purpose'],
